@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import id.rancak.app.presentation.barcode.BarcodeScannerView
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
@@ -30,10 +31,23 @@ fun PosScreen(
 ) {
     val uiState by posViewModel.uiState.collectAsState()
     val cartState by cartViewModel.uiState.collectAsState()
+    var showBarcodeScanner by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         posViewModel.loadProducts()
         posViewModel.loadCategories()
+    }
+
+    // Barcode scanner overlay — ditampilkan full screen di atas UI kasir
+    if (showBarcodeScanner) {
+        BarcodeScannerView(
+            onBarcodeDetected = { barcode ->
+                posViewModel.onSearchQueryChange(barcode)
+                showBarcodeScanner = false
+            },
+            onClose = { showBarcodeScanner = false }
+        )
+        return
     }
 
     Scaffold(
@@ -65,17 +79,22 @@ fun PosScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // Search Bar
+            // Search Bar + barcode scanner button
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = posViewModel::onSearchQueryChange,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("Cari produk...") },
+                placeholder = { Text("Cari produk atau scan barcode...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (uiState.searchQuery.isNotEmpty()) {
                         IconButton(onClick = { posViewModel.onSearchQueryChange("") }) {
-                            Icon(Icons.Default.Close, contentDescription = "Hapus")
+                            Icon(Icons.Default.Close, contentDescription = "Hapus pencarian")
+                        }
+                    } else {
+                        // Ikon scan barcode — tampilkan scanner saat diklik
+                        IconButton(onClick = { showBarcodeScanner = true }) {
+                            Icon(Icons.Default.QrCodeScanner, contentDescription = "Scan barcode")
                         }
                     }
                 },

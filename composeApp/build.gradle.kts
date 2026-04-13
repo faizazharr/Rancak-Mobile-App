@@ -23,8 +23,15 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
-            // Link CoreBluetooth for BLE printer support
-            linkerOpts("-framework", "CoreBluetooth")
+            // iOS system frameworks used by KMM code:
+            // CoreBluetooth  — BLE printer (PrinterManager.ios.kt)
+            // BackgroundTasks — BGTaskScheduler sync (SyncManager.ios.kt + MainViewController.kt)
+            // AVFoundation   — Camera barcode scanner (BarcodeScanner.ios.kt)
+            linkerOpts(
+                "-framework", "CoreBluetooth",
+                "-framework", "BackgroundTasks",
+                "-framework", "AVFoundation"
+            )
         }
     }
     
