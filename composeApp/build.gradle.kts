@@ -28,7 +28,6 @@ kotlin {
     
     sourceSets {
         androidMain.dependencies {
-            implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
@@ -41,9 +40,8 @@ kotlin {
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
             implementation(libs.compose.uiToolingPreview)
-            implementation(compose.materialIconsExtended)
+            implementation(libs.compose.material.icons)
 
             // Lifecycle
             implementation(libs.androidx.lifecycle.viewmodelCompose)
