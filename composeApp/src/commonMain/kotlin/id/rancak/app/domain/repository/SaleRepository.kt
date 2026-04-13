@@ -16,9 +16,12 @@ interface SaleRepository {
 
     suspend fun getSales(dateFrom: String? = null, dateTo: String? = null): Resource<List<Sale>>
     suspend fun getSaleDetail(saleUuid: String): Resource<Sale>
+    suspend fun paySale(saleUuid: String, paymentMethod: PaymentMethod, paidAmount: Long): Resource<Sale>
     suspend fun serveSale(saleUuid: String): Resource<Sale>
     suspend fun voidSale(saleUuid: String, reason: String? = null): Resource<Sale>
     suspend fun cancelSale(saleUuid: String, reason: String? = null): Resource<Sale>
+    suspend fun refundSale(saleUuid: String, amount: Long? = null, reason: String? = null): Resource<Sale>
+    suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale>
 }
 
 data class CartItem(

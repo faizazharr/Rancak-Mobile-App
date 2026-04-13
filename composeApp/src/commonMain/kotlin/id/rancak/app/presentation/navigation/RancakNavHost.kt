@@ -18,10 +18,12 @@ import androidx.navigation.compose.rememberNavController
 import id.rancak.app.presentation.ui.auth.LoginScreen
 import id.rancak.app.presentation.ui.auth.TenantPickerScreen
 import id.rancak.app.presentation.ui.cart.CartScreen
+import id.rancak.app.presentation.ui.finance.CashExpenseScreen
 import id.rancak.app.presentation.ui.kds.KdsScreen
 import id.rancak.app.presentation.ui.orderboard.OrderBoardScreen
 import id.rancak.app.presentation.ui.payment.PaymentScreen
 import id.rancak.app.presentation.ui.pos.PosScreen
+import id.rancak.app.presentation.ui.reports.ReportScreen
 import id.rancak.app.presentation.ui.sales.SalesHistoryScreen
 import id.rancak.app.presentation.ui.shift.ShiftScreen
 import id.rancak.app.presentation.ui.tables.TableMapScreen
@@ -48,7 +50,9 @@ fun RancakNavHost() {
             DrawerItem("Meja", Icons.Default.TableBar, Screen.Tables),
             DrawerItem("Dapur (KDS)", Icons.Default.Restaurant, Screen.Kds),
             DrawerItem("Order Board", Icons.Default.Dashboard, Screen.OrderBoard),
+            DrawerItem("Kas & Biaya", Icons.Default.AccountBalance, Screen.CashExpense),
             DrawerItem("Riwayat", Icons.Default.Receipt, Screen.SalesHistory),
+            DrawerItem("Laporan", Icons.Default.BarChart, Screen.Reports),
         )
     }
 
@@ -203,6 +207,14 @@ private fun NavigationContent(
 
         composable<Screen.SalesHistory> {
             SalesHistoryScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.Reports> {
+            ReportScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.CashExpense> {
+            CashExpenseScreen(onBack = { navController.popBackStack() })
         }
     }
 }

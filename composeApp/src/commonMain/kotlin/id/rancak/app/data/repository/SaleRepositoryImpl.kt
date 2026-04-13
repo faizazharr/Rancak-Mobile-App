@@ -100,6 +100,19 @@ class SaleRepositoryImpl(
         }
     }
 
+    override suspend fun paySale(saleUuid: String, paymentMethod: PaymentMethod, paidAmount: Long): Resource<Sale> {
+        return try {
+            val response = api.paySale(tenantUuid, saleUuid, paymentMethod.value, paidAmount)
+            if (response.status == "ok" && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Failed to pay sale")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
     override suspend fun voidSale(saleUuid: String, reason: String?): Resource<Sale> {
         return try {
             val response = api.voidSale(tenantUuid, saleUuid, reason)
@@ -120,6 +133,32 @@ class SaleRepositoryImpl(
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Failed to cancel sale")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun refundSale(saleUuid: String, amount: Long?, reason: String?): Resource<Sale> {
+        return try {
+            val response = api.refundSale(tenantUuid, saleUuid, amount, reason)
+            if (response.status == "ok" && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Failed to refund sale")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale> {
+        return try {
+            val response = api.moveTable(tenantUuid, saleUuid, tableUuid)
+            if (response.status == "ok" && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Failed to move table")
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")

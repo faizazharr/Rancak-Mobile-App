@@ -14,4 +14,6 @@ sealed class Screen {
     @Serializable data object Kds : Screen()
     @Serializable data object SalesHistory : Screen()
     @Serializable data object OrderBoard : Screen()
+    @Serializable data object Reports : Screen()
+    @Serializable data object CashExpense : Screen()
 }

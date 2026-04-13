@@ -22,6 +22,7 @@ val repositoryModule = module {
     singleOf(::ProductRepositoryImpl) bind ProductRepository::class
     singleOf(::SaleRepositoryImpl) bind SaleRepository::class
     singleOf(::OperationsRepositoryImpl) bind OperationsRepository::class
+    singleOf(::FinanceRepositoryImpl) bind FinanceRepository::class
 }
 
 val viewModelModule = module {
@@ -35,6 +36,8 @@ val viewModelModule = module {
     viewModelOf(::KdsViewModel)
     viewModelOf(::SalesHistoryViewModel)
     viewModelOf(::OrderBoardViewModel)
+    viewModelOf(::ReportViewModel)
+    viewModelOf(::CashExpenseViewModel)
 }
 
 val appModules = listOf(dataModule, repositoryModule, viewModelModule)
