@@ -1,33 +1,70 @@
 package id.rancak.app.data.local
 
+import com.russhwolf.settings.Settings
+import com.russhwolf.settings.set
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+/**
+ * Manages authentication tokens with persistent storage via multiplatform-settings.
+ * On Android: backed by SharedPreferences.
+ * On iOS: backed by NSUserDefaults.
+ * Tokens survive app restarts — no re-login required after closing the app.
+ */
 class TokenManager {
-    private val _accessToken = MutableStateFlow<String?>(null)
+
+    private val settings = Settings()
+
+    private val _accessToken = MutableStateFlow<String?>(settings.getStringOrNull(KEY_ACCESS_TOKEN))
     val accessToken: StateFlow<String?> = _accessToken.asStateFlow()
 
-    private var _refreshToken: String? = null
-    val refreshToken: String? get() = _refreshToken
+    val refreshToken: String?
+        get() = settings.getStringOrNull(KEY_REFRESH_TOKEN)
 
-    private var _tenantUuid: String? = null
-    val tenantUuid: String? get() = _tenantUuid
+    val tenantUuid: String?
+        get() = settings.getStringOrNull(KEY_TENANT_UUID)
 
     fun saveTokens(accessToken: String, refreshToken: String) {
         _accessToken.value = accessToken
-        _refreshToken = refreshToken
+        settings[KEY_ACCESS_TOKEN] = accessToken
+        settings[KEY_REFRESH_TOKEN] = refreshToken
     }
 
     fun setTenant(uuid: String) {
-        _tenantUuid = uuid
+        settings[KEY_TENANT_UUID] = uuid
     }
 
     fun clear() {
         _accessToken.value = null
-        _refreshToken = null
-        _tenantUuid = null
+        settings.remove(KEY_ACCESS_TOKEN)
+        settings.remove(KEY_REFRESH_TOKEN)
+        settings.remove(KEY_TENANT_UUID)
     }
 
-    val isLoggedIn: Boolean get() = _accessToken.value != null
+    /**
+     * A stable device identifier generated once and persisted permanently.
+     * Used as the `device_id` field in sales to track which physical device
+     * created a transaction (important for multi-device setups).
+     */
+    val deviceId: String
+        get() {
+            val existing = settings.getStringOrNull(KEY_DEVICE_ID)
+            if (existing != null) return existing
+            // Generate and persist on first access
+            @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
+            val newId = kotlin.uuid.Uuid.random().toString()
+            settings[KEY_DEVICE_ID] = newId
+            return newId
+        }
+
+    val isLoggedIn: Boolean
+        get() = _accessToken.value != null
+
+    companion object {
+        private const val KEY_ACCESS_TOKEN  = "rancak_access_token"
+        private const val KEY_REFRESH_TOKEN = "rancak_refresh_token"
+        private const val KEY_TENANT_UUID   = "rancak_tenant_uuid"
+        private const val KEY_DEVICE_ID     = "rancak_device_id"
+    }
 }

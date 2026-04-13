@@ -1,5 +1,7 @@
 package id.rancak.app.di
 
+import com.russhwolf.settings.Settings
+import id.rancak.app.data.local.OfflineSaleQueue
 import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.createHttpClient
@@ -15,11 +17,14 @@ val dataModule = module {
     single { TokenManager() }
     single { createHttpClient(get()) }
     single { RancakApiService(get()) }
+    // Offline queue — persisted via multiplatform-settings
+    single { OfflineSaleQueue(Settings()) }
 }
 
 val repositoryModule = module {
     singleOf(::AuthRepositoryImpl) bind AuthRepository::class
     singleOf(::ProductRepositoryImpl) bind ProductRepository::class
+    // SaleRepositoryImpl now takes OfflineSaleQueue + SyncManager
     singleOf(::SaleRepositoryImpl) bind SaleRepository::class
     singleOf(::OperationsRepositoryImpl) bind OperationsRepository::class
     singleOf(::FinanceRepositoryImpl) bind FinanceRepository::class
@@ -40,4 +45,4 @@ val viewModelModule = module {
     viewModelOf(::CashExpenseViewModel)
 }
 
-val appModules = listOf(dataModule, repositoryModule, viewModelModule)
+val appModules = listOf(dataModule, repositoryModule, viewModelModule, platformModule)

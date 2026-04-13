@@ -23,6 +23,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            // Link CoreBluetooth for BLE printer support
+            linkerOpts("-framework", "CoreBluetooth")
         }
     }
     
@@ -32,6 +34,13 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.koin.android)
+            // WorkManager (offline sync)
+            implementation(libs.androidx.work.runtime.ktx)
+            // CameraX + ML Kit (barcode scanner)
+            implementation(libs.cameraX.camera2)
+            implementation(libs.cameraX.lifecycle)
+            implementation(libs.cameraX.view)
+            implementation(libs.mlkit.barcode.scanning)
         }
         commonMain.dependencies {
             // Compose
@@ -70,6 +79,13 @@ kotlin {
             // Coil (Image)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
+
+            // Persistent storage (multiplatform-settings)
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.coroutines)
+
+            // QR Code (QRIS)
+            implementation(libs.qrose)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

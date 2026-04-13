@@ -4,5 +4,25 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+
+	<!-- ── Kamera (barcode scanner) ── -->
+	<key>NSCameraUsageDescription</key>
+	<string>Dibutuhkan untuk scan barcode produk saat kasir memasukkan item ke keranjang.</string>
+
+	<!-- ── Bluetooth LE (ESC/POS thermal printer) ── -->
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Dibutuhkan untuk menghubungkan dan mencetak struk via Bluetooth thermal printer.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Dibutuhkan untuk menghubungkan dan mencetak struk via Bluetooth thermal printer.</string>
+
+	<!-- ── Jaringan lokal (TCP/IP printer di LAN) ── -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Dibutuhkan untuk mencetak struk ke printer ESC/POS yang terhubung ke jaringan Wi-Fi/LAN yang sama.</string>
+
+	<!-- ── Background sync (BGTaskScheduler) ── -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>id.rancak.app.sync</string>
+	</array>
 </dict>
 </plist>

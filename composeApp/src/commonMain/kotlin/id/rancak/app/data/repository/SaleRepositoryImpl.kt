@@ -1,19 +1,26 @@
 package id.rancak.app.data.repository
 
+import id.rancak.app.data.local.OfflineSaleQueue
+import id.rancak.app.data.local.PendingSale
+import id.rancak.app.data.local.PendingSaleItem
 import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.mapper.toDomain
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.dto.sale.CreateSaleRequest
 import id.rancak.app.data.remote.dto.sale.SaleItemRequest
+import id.rancak.app.data.sync.SyncManager
 import id.rancak.app.domain.model.*
 import id.rancak.app.domain.repository.CartItem
 import id.rancak.app.domain.repository.SaleRepository
+import kotlinx.datetime.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 class SaleRepositoryImpl(
     private val api: RancakApiService,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val offlineQueue: OfflineSaleQueue,
+    private val syncManager: SyncManager
 ) : SaleRepository {
 
     private val tenantUuid: String
@@ -30,8 +37,13 @@ class SaleRepositoryImpl(
         note: String?,
         hold: Boolean
     ): Resource<Sale> {
+        val idempotencyKey = Uuid.random().toString()
+        // ISO-8601 UTC timestamp — consistent regardless of device timezone
+        val deviceCreatedAt = Clock.System.now().toString()
+        // Stable device UUID persisted in settings (generated once per install)
+        val deviceId = tokenManager.deviceId
+
         return try {
-            val idempotencyKey = Uuid.random().toString()
             val request = CreateSaleRequest(
                 items = items.map { cartItem ->
                     SaleItemRequest(
@@ -48,7 +60,8 @@ class SaleRepositoryImpl(
                 customerName = customerName,
                 note = note,
                 hold = hold,
-                deviceCreatedAt = null // set by server
+                deviceCreatedAt = deviceCreatedAt,
+                deviceId = deviceId
             )
             val response = api.createSale(tenantUuid, request, idempotencyKey)
             if (response.status == "ok" && response.data != null) {
@@ -57,7 +70,41 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Failed to create sale")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            // Network unreachable — queue for background sync
+            val networkError = e.message?.let {
+                it.contains("UnknownHostException", ignoreCase = true) ||
+                it.contains("ConnectException", ignoreCase = true) ||
+                it.contains("SocketTimeoutException", ignoreCase = true) ||
+                it.contains("Network is unreachable", ignoreCase = true) ||
+                it.contains("Unable to resolve host", ignoreCase = true) ||
+                it.contains("failed to connect", ignoreCase = true)
+            } ?: false
+
+            if (networkError) {
+                offlineQueue.enqueue(
+                    PendingSale(
+                        idempotencyKey = idempotencyKey,
+                        tenantUuid = tenantUuid,
+                        items = items.map { PendingSaleItem(it.productUuid, it.qty, it.variantUuid, it.note) },
+                        paymentMethod = paymentMethod.value,
+                        paidAmount = paidAmount,
+                        orderType = orderType.value,
+                        tableUuid = tableUuid,
+                        customerName = customerName,
+                        note = note,
+                        hold = hold,
+                        deviceCreatedAt = deviceCreatedAt,
+                        deviceId = deviceId,
+                        enqueuedAt = Clock.System.now().toEpochMilliseconds()
+                    )
+                )
+                // Schedule WorkManager to sync when connectivity returns
+                syncManager.scheduleSync()
+                // Return as queued success so the UI can proceed
+                Resource.Error("Offline: sale queued for sync (${offlineQueue.size} pending)")
+            } else {
+                Resource.Error(e.message ?: "Network error")
+            }
         }
     }
 
