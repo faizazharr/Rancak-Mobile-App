@@ -2,6 +2,7 @@ package id.rancak.app.presentation.navigation
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,10 +16,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import id.rancak.app.presentation.ui.auth.LoginScreen
+import id.rancak.app.presentation.ui.auth.TenantPickerScreen
 import id.rancak.app.presentation.ui.cart.CartScreen
+import id.rancak.app.presentation.ui.kds.KdsScreen
+import id.rancak.app.presentation.ui.orderboard.OrderBoardScreen
 import id.rancak.app.presentation.ui.payment.PaymentScreen
 import id.rancak.app.presentation.ui.pos.PosScreen
+import id.rancak.app.presentation.ui.sales.SalesHistoryScreen
 import id.rancak.app.presentation.ui.shift.ShiftScreen
+import id.rancak.app.presentation.ui.tables.TableMapScreen
 import kotlinx.coroutines.launch
 
 private data class DrawerItem(
@@ -39,6 +45,9 @@ fun RancakNavHost() {
         listOf(
             DrawerItem("Kasir", Icons.Default.PointOfSale, Screen.Pos),
             DrawerItem("Shift", Icons.Default.AccessTime, Screen.Shift),
+            DrawerItem("Meja", Icons.Default.TableBar, Screen.Tables),
+            DrawerItem("Dapur (KDS)", Icons.Default.Restaurant, Screen.Kds),
+            DrawerItem("Order Board", Icons.Default.Dashboard, Screen.OrderBoard),
             DrawerItem("Riwayat", Icons.Default.Receipt, Screen.SalesHistory),
         )
     }
@@ -134,8 +143,18 @@ private fun NavigationContent(
         composable<Screen.Login> {
             LoginScreen(
                 onLoginSuccess = {
-                    navController.navigate(Screen.Pos) {
+                    navController.navigate(Screen.TenantPicker) {
                         popUpTo(Screen.Login) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable<Screen.TenantPicker> {
+            TenantPickerScreen(
+                onTenantSelected = {
+                    navController.navigate(Screen.Pos) {
+                        popUpTo(Screen.TenantPicker) { inclusive = true }
                     }
                 }
             )
@@ -168,6 +187,22 @@ private fun NavigationContent(
 
         composable<Screen.Shift> {
             ShiftScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.Tables> {
+            TableMapScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.Kds> {
+            KdsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.OrderBoard> {
+            OrderBoardScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.SalesHistory> {
+            SalesHistoryScreen(onBack = { navController.popBackStack() })
         }
     }
 }

@@ -154,6 +154,23 @@ class RancakApiService(private val client: HttpClient) {
             contentType(ContentType.Application.Json)
             setBody(mapOf("status" to status))
         }.body()
+
+    // ── Sale Actions ──
+
+    suspend fun serveSale(tenantUuid: String, saleUuid: String): ApiResponse<SaleDto> =
+        client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/serve").body()
+
+    suspend fun voidSale(tenantUuid: String, saleUuid: String, reason: String? = null): ApiResponse<SaleDto> =
+        client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/void") {
+            contentType(ContentType.Application.Json)
+            setBody(buildMap { reason?.let { put("reason", it) } })
+        }.body()
+
+    suspend fun cancelSale(tenantUuid: String, saleUuid: String, reason: String? = null): ApiResponse<SaleDto> =
+        client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/cancel") {
+            contentType(ContentType.Application.Json)
+            setBody(buildMap { reason?.let { put("reason", it) } })
+        }.body()
 }
 
 @kotlinx.serialization.Serializable

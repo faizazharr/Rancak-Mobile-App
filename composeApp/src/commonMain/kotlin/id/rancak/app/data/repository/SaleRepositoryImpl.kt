@@ -86,4 +86,43 @@ class SaleRepositoryImpl(
             Resource.Error(e.message ?: "Network error")
         }
     }
+
+    override suspend fun serveSale(saleUuid: String): Resource<Sale> {
+        return try {
+            val response = api.serveSale(tenantUuid, saleUuid)
+            if (response.status == "ok" && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Failed to serve sale")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun voidSale(saleUuid: String, reason: String?): Resource<Sale> {
+        return try {
+            val response = api.voidSale(tenantUuid, saleUuid, reason)
+            if (response.status == "ok" && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Failed to void sale")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun cancelSale(saleUuid: String, reason: String?): Resource<Sale> {
+        return try {
+            val response = api.cancelSale(tenantUuid, saleUuid, reason)
+            if (response.status == "ok" && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Failed to cancel sale")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }

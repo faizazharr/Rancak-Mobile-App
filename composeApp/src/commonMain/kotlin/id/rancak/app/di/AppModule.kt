@@ -34,6 +34,7 @@ val viewModelModule = module {
     viewModelOf(::TableViewModel)
     viewModelOf(::KdsViewModel)
     viewModelOf(::SalesHistoryViewModel)
+    viewModelOf(::OrderBoardViewModel)
 }
 
 val appModules = listOf(dataModule, repositoryModule, viewModelModule)
