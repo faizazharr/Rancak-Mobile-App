@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import id.rancak.app.presentation.auth.GoogleSignInButton
 import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.designsystem.RancakTheme
@@ -162,6 +163,38 @@ fun LoginScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
+
+            Spacer(Modifier.height(8.dp))
+
+            // ── Divider "atau" ────────────────────────────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(modifier = Modifier.weight(1f))
+                Text(
+                    text = "  atau  ",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f))
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // ── Google Sign-In ────────────────────────────────────────────────
+            GoogleSignInButton(
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading && !uiState.isGoogleLoading,
+                onIdToken = { idToken ->
+                    viewModel.loginWithGoogle(idToken)
+                },
+                onError = { error ->
+                    viewModel.setError(error)
+                }
+            )
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }

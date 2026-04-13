@@ -15,6 +15,7 @@ data class LoginUiState(
     val email: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
+    val isGoogleLoading: Boolean = false,
     val error: String? = null,
     val tenants: List<Tenant>? = null,
     val isLoggedIn: Boolean = false
@@ -60,6 +61,31 @@ class LoginViewModel(
                 is Resource.Loading -> { /* handled by isLoading flag */ }
             }
         }
+    }
+
+    fun loginWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isGoogleLoading = true, error = null) }
+            when (val result = authRepository.loginWithGoogle(idToken)) {
+                is Resource.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            isGoogleLoading = false,
+                            tenants = result.data.user.tenants,
+                            isLoggedIn = true
+                        )
+                    }
+                }
+                is Resource.Error -> {
+                    _uiState.update { it.copy(isGoogleLoading = false, error = result.message) }
+                }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun setError(message: String) {
+        _uiState.update { it.copy(error = message) }
     }
 
     fun clearError() {
