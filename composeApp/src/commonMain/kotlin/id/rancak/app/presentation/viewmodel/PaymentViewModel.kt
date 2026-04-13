@@ -1,0 +1,78 @@
+package id.rancak.app.presentation.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import id.rancak.app.domain.model.*
+import id.rancak.app.domain.repository.CartItem
+import id.rancak.app.domain.repository.SaleRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+data class PaymentUiState(
+    val selectedMethod: PaymentMethod = PaymentMethod.CASH,
+    val paidAmount: String = "",
+    val isProcessing: Boolean = false,
+    val error: String? = null,
+    val completedSale: Sale? = null
+) {
+    val paidAmountLong: Long get() = paidAmount.toLongOrNull() ?: 0L
+}
+
+class PaymentViewModel(
+    private val saleRepository: SaleRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(PaymentUiState())
+    val uiState: StateFlow<PaymentUiState> = _uiState.asStateFlow()
+
+    fun selectMethod(method: PaymentMethod) {
+        _uiState.update { it.copy(selectedMethod = method, error = null) }
+    }
+
+    fun setPaidAmount(amount: String) {
+        _uiState.update { it.copy(paidAmount = amount.filter { c -> c.isDigit() }, error = null) }
+    }
+
+    fun processPayment(
+        items: List<CartItem>,
+        orderType: OrderType,
+        tableUuid: String?,
+        customerName: String?,
+        note: String?
+    ) {
+        val state = _uiState.value
+        if (state.paidAmountLong <= 0 && state.selectedMethod == PaymentMethod.CASH) {
+            _uiState.update { it.copy(error = "Masukkan jumlah pembayaran") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isProcessing = true, error = null) }
+            when (val result = saleRepository.createSale(
+                items = items,
+                paymentMethod = state.selectedMethod,
+                paidAmount = state.paidAmountLong,
+                orderType = orderType,
+                tableUuid = tableUuid,
+                customerName = customerName?.takeIf { it.isNotBlank() },
+                note = note?.takeIf { it.isNotBlank() },
+                hold = false
+            )) {
+                is Resource.Success -> {
+                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                }
+                is Resource.Error -> {
+                    _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun reset() {
+        _uiState.value = PaymentUiState()
+    }
+}
