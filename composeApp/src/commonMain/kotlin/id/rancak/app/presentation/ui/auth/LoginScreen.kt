@@ -24,7 +24,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.RancakTextField
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.LoginViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -159,6 +161,57 @@ fun LoginScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun LoginScreenPreview() {
+    RancakTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Surface(
+                    modifier = Modifier.size(80.dp),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "R",
+                            style = MaterialTheme.typography.displaySmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+                Text("Rancak POS", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text("Masuk ke akun Anda untuk melanjutkan", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(48.dp))
+                RancakTextField(value = "", onValueChange = {}, label = "Email", leadingIcon = { Icon(Icons.Default.Email, null) })
+                Spacer(Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = "",
+                    onValueChange = {},
+                    label = { Text("Password") },
+                    leadingIcon = { Icon(Icons.Default.Lock, null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium
+                )
+                Spacer(Modifier.height(32.dp))
+                RancakButton(text = "Masuk", onClick = {}, modifier = Modifier.fillMaxWidth())
             }
         }
     }

@@ -15,8 +15,10 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.repository.CartItem
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -196,5 +198,24 @@ private fun CartItemCard(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun CartItemCardPreview() {
+    RancakTheme {
+        CartItemCard(
+            item = CartItem(
+                productUuid = "1",
+                productName = "Nasi Goreng Spesial",
+                qty = 2,
+                price = 25000,
+                variantName = "Pedas"
+            ),
+            onIncrement = {},
+            onDecrement = {},
+            onRemove = {}
+        )
     }
 }

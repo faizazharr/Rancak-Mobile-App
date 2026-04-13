@@ -16,6 +16,7 @@ import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.designsystem.*
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.SalesHistoryViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,5 +91,60 @@ private fun SaleCard(sale: Sale) {
                 Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun SaleCardPaidPreview() {
+    RancakTheme {
+        SaleCard(
+            sale = Sale(
+                uuid = "1",
+                invoiceNo = "INV-2024-001",
+                orderType = id.rancak.app.domain.model.OrderType.DINE_IN,
+                queueNumber = 5,
+                status = SaleStatus.PAID,
+                subtotal = 75000,
+                discount = 0,
+                surcharge = 0,
+                tax = 7500,
+                total = 82500,
+                paymentMethod = id.rancak.app.domain.model.PaymentMethod.CASH,
+                paidAmount = 100000,
+                changeAmount = 17500,
+                items = listOf(
+                    id.rancak.app.domain.model.SaleItem("i1", "Nasi Goreng", "2", 25000, 50000, null, null),
+                    id.rancak.app.domain.model.SaleItem("i2", "Es Teh", "1", 8000, 8000, null, null)
+                ),
+                createdAt = "2024-01-15T10:30:00"
+            )
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SaleCardVoidPreview() {
+    RancakTheme {
+        SaleCard(
+            sale = Sale(
+                uuid = "2",
+                invoiceNo = "INV-2024-002",
+                orderType = id.rancak.app.domain.model.OrderType.TAKEAWAY,
+                queueNumber = 6,
+                status = SaleStatus.VOID,
+                subtotal = 30000,
+                discount = 0,
+                surcharge = 0,
+                tax = 3000,
+                total = 33000,
+                paymentMethod = null,
+                paidAmount = 0,
+                changeAmount = 0,
+                items = emptyList(),
+                createdAt = "2024-01-15T11:00:00"
+            )
+        )
     }
 }

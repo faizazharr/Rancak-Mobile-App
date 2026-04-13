@@ -9,11 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import id.rancak.app.presentation.designsystem.*
+import androidx.compose.ui.tooling.preview.Preview
+import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
 fun ProductCard(
@@ -39,7 +39,6 @@ fun ProductCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Image placeholder
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -90,84 +89,30 @@ fun ProductCard(
     }
 }
 
-@Composable
-fun StatusChip(
-    text: String,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        color = color.copy(alpha = 0.12f)
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = color,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-}
+// ── Previews ──
 
+@Preview
 @Composable
-fun PaymentMethodChip(
-    method: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val color = when (method.lowercase()) {
-        "cash" -> PaymentCash
-        "card" -> PaymentCard
-        "qris" -> PaymentQris
-        "transfer" -> PaymentTransfer
-        else -> MaterialTheme.colorScheme.outline
-    }
-
-    FilterChip(
-        selected = isSelected,
-        onClick = onClick,
-        label = {
-            Text(
-                method.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.labelMedium
+private fun ProductCardPreview() {
+    RancakTheme {
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ProductCard(
+                name = "Nasi Goreng Spesial",
+                price = "Rp 35.000",
+                category = "Makanan Berat",
+                imageUrl = null,
+                onClick = {},
+                modifier = Modifier.width(160.dp)
             )
-        },
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = color.copy(alpha = 0.15f),
-            selectedLabelColor = color
-        ),
-        modifier = modifier
-    )
-}
-
-@Composable
-fun SummaryRow(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    isBold: Boolean = false,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Row(
-        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = if (isBold) MaterialTheme.typography.titleSmall
-            else MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = if (isBold) MaterialTheme.typography.titleSmall
-            else MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-            color = valueColor
-        )
+            ProductCard(
+                name = "Es Teh Manis",
+                price = "Rp 8.000",
+                category = "Minuman",
+                imageUrl = null,
+                isAvailable = false,
+                onClick = {},
+                modifier = Modifier.width(160.dp)
+            )
+        }
     }
 }

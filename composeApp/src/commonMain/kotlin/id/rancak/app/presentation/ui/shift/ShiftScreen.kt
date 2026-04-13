@@ -12,8 +12,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -168,6 +170,67 @@ fun ShiftScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ShiftOpenPreview() {
+    RancakTheme {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("Buka Shift Baru", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+            Text("Masukkan jumlah kas awal untuk memulai shift", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(32.dp))
+            OutlinedTextField(
+                value = "500000",
+                onValueChange = {},
+                label = { Text("Kas Awal") },
+                prefix = { Text("Rp ") },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(24.dp))
+            RancakButton(text = "Buka Shift", onClick = {}, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ShiftActivePreview() {
+    RancakTheme {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Card(
+                shape = MaterialTheme.shapes.large,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(20.dp)) {
+                    Text("Shift Aktif", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(12.dp))
+                    SummaryRow("Kas Awal", formatRupiah(500000))
+                    SummaryRow("Total Penjualan", formatRupiah(1250000))
+                    SummaryRow("Total Pengeluaran", formatRupiah(75000))
+                }
+            }
+            Spacer(Modifier.height(32.dp))
+            Text("Tutup Shift", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(value = "", onValueChange = {}, label = { Text("Kas Akhir") }, prefix = { Text("Rp ") }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(value = "", onValueChange = {}, label = { Text("Catatan (opsional)") }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
+            Spacer(Modifier.height(24.dp))
+            RancakButton(text = "Tutup Shift", onClick = {}, modifier = Modifier.fillMaxWidth())
         }
     }
 }

@@ -21,6 +21,7 @@ import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.designsystem.*
 import id.rancak.app.presentation.viewmodel.TableViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,5 +106,27 @@ private fun TableCell(table: Table, onClick: () -> Unit) {
                 Text("$it kursi", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun TableCellAvailablePreview() {
+    RancakTheme {
+        TableCell(
+            table = Table(uuid = "1", name = "A1", area = "Indoor", capacity = 4, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 1, activeSaleUuid = null),
+            onClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun TableCellOccupiedPreview() {
+    RancakTheme {
+        TableCell(
+            table = Table(uuid = "2", name = "B3", area = "Outdoor", capacity = 6, status = TableStatus.OCCUPIED, isActive = true, sortOrder = 2, activeSaleUuid = "sale-1"),
+            onClick = {}
+        )
     }
 }

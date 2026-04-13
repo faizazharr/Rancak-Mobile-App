@@ -17,9 +17,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -237,6 +239,58 @@ fun PaymentScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PaymentFormPreview() {
+    RancakTheme {
+        Column(Modifier.padding(16.dp)) {
+            Card(
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Ringkasan Pesanan", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(8.dp))
+                    SummaryRow(label = "3 item", value = "Rp 75.000")
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    SummaryRow(label = "Total", value = "Rp 75.000", isBold = true, valueColor = MaterialTheme.colorScheme.primary)
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+            Text("Metode Pembayaran", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PaymentMethodChip(method = "Cash", isSelected = true, onClick = {}, modifier = Modifier.weight(1f))
+                PaymentMethodChip(method = "QRIS", isSelected = false, onClick = {}, modifier = Modifier.weight(1f))
+                PaymentMethodChip(method = "Card", isSelected = false, onClick = {}, modifier = Modifier.weight(1f))
+            }
+            Spacer(Modifier.height(24.dp))
+            RancakButton(text = "Proses Pembayaran", onClick = {}, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PaymentSuccessPreview() {
+    RancakTheme {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(Icons.Default.CheckCircle, null, Modifier.size(80.dp), MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.height(24.dp))
+            Text("Transaksi Berhasil!", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+            Text("INV-2024-0001", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            Text("Rp 75.000", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Text("Kembalian: Rp 25.000", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
         }
     }
 }

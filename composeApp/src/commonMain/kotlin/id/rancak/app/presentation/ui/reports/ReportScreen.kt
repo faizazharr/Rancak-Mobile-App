@@ -11,8 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.ReportViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,5 +116,60 @@ private fun SummaryRow(label: String, value: String, color: androidx.compose.ui.
     Row(Modifier.fillMaxWidth()) {
         Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
         Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = color)
+    }
+}
+
+@Preview
+@Composable
+private fun ReportScreenPreview() {
+    RancakTheme {
+        LazyColumn(
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Text("Ringkasan Penjualan", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            }
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SummaryRow("Total Penjualan", "Rp 5.250.000", MaterialTheme.colorScheme.primary)
+                        SummaryRow("Jumlah Transaksi", "48", MaterialTheme.colorScheme.onSurface)
+                        SummaryRow("Total Diskon", "Rp 150.000", MaterialTheme.colorScheme.error)
+                        SummaryRow("Total Pajak", "Rp 525.000", MaterialTheme.colorScheme.onSurfaceVariant)
+                        HorizontalDivider()
+                        SummaryRow("Pendapatan Bersih", "Rp 5.625.000", MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+            item {
+                Spacer(Modifier.height(4.dp))
+                Text("Per Metode Bayar", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            }
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        SummaryRow("Cash", "Rp 3.000.000 (25x)", MaterialTheme.colorScheme.onSurface)
+                        SummaryRow("Qris", "Rp 1.500.000 (15x)", MaterialTheme.colorScheme.onSurface)
+                        SummaryRow("Card", "Rp 750.000 (8x)", MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            }
+            item {
+                Spacer(Modifier.height(4.dp))
+                Text("Produk Terlaris", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            }
+            items(listOf("Nasi Goreng" to "Rp 1.250.000", "Ayam Bakar" to "Rp 875.000", "Es Teh" to "Rp 400.000")) { (name, revenue) ->
+                Card(Modifier.fillMaxWidth()) {
+                    Row(Modifier.padding(12.dp)) {
+                        Column(Modifier.weight(1f)) {
+                            Text(name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                            Text("50 terjual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                        }
+                        Text(revenue, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
     }
 }

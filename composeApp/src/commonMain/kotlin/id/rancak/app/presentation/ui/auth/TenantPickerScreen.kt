@@ -17,7 +17,9 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.RancakButton
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.TenantPickerViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -88,6 +90,45 @@ fun TenantPickerScreen(
                 enabled = uiState.selectedTenant != null,
                 modifier = Modifier.fillMaxWidth()
             )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TenantPickerScreenPreview() {
+    RancakTheme {
+        Scaffold { padding ->
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.height(32.dp))
+                Icon(Icons.Default.Store, null, Modifier.size(56.dp), MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.height(12.dp))
+                Text("Pilih Outlet", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text("Pilih outlet untuk mulai kasir", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(24.dp))
+                listOf("Outlet Utama", "Outlet Cabang 1", "Outlet Cabang 2").forEachIndexed { index, name ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (index == 0) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+                        ),
+                        border = if (index == 0) null else CardDefaults.outlinedCardBorder()
+                    ) {
+                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Store, null, tint = if (index == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(24.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text(name, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                            if (index == 0) Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                RancakButton(text = "Lanjutkan", onClick = {}, modifier = Modifier.fillMaxWidth())
             }
         }
     }

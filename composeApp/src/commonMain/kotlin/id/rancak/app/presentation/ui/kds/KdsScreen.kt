@@ -17,6 +17,7 @@ import id.rancak.app.domain.model.*
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.designsystem.*
 import id.rancak.app.presentation.viewmodel.KdsViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,5 +146,28 @@ private fun KdsOrderCard(order: KdsOrder, onAdvance: (KdsStatus) -> Unit) {
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun KdsOrderCardPreview() {
+    RancakTheme {
+        KdsOrderCard(
+            order = KdsOrder(
+                uuid = "1",
+                invoiceNo = "INV-2024-001",
+                orderType = OrderType.DINE_IN,
+                tableName = "A1",
+                queueNumber = 12,
+                status = KdsStatus.COOKING,
+                items = listOf(
+                    KdsItem("i1", "Nasi Goreng", "2", null, "Pedas", KdsItemStatus.PENDING),
+                    KdsItem("i2", "Es Teh Manis", "2", null, null, KdsItemStatus.PENDING)
+                ),
+                createdAt = "2024-01-15T10:30:00"
+            ),
+            onAdvance = {}
+        )
     }
 }

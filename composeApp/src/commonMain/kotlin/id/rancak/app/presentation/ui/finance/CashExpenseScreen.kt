@@ -17,8 +17,10 @@ import id.rancak.app.domain.model.Expense
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.designsystem.Success
 import id.rancak.app.presentation.designsystem.Error
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseViewModel
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -152,5 +154,33 @@ private fun ExpenseList(items: List<Expense>, onDelete: (String) -> Unit) {
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun CashInListPreview() {
+    RancakTheme {
+        CashInList(
+            items = listOf(
+                CashIn(uuid = "1", amount = 500000, source = "Modal", description = "Kas Awal", note = null, createdAt = null),
+                CashIn(uuid = "2", amount = 200000, source = "Pinjaman", description = "Tambahan Modal", note = "Dari owner", createdAt = null)
+            ),
+            onDelete = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ExpenseListPreview() {
+    RancakTheme {
+        ExpenseList(
+            items = listOf(
+                Expense(uuid = "1", amount = 50000, description = "Beli Gas", note = "2 tabung", categoryUuid = null, expenseDate = null, createdAt = null),
+                Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null, categoryUuid = null, expenseDate = null, createdAt = null)
+            ),
+            onDelete = {}
+        )
     }
 }
