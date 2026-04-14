@@ -61,12 +61,13 @@ private val DarkColorScheme = darkColorScheme(
     outlineVariant = DarkOutlineVariant
 )
 
+// ERP kasir: sudut tajam → kesan profesional, bukan consumer-app
 val RancakShapes = Shapes(
-    extraSmall = RoundedCornerShape(4.dp),
-    small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(12.dp),
-    large = RoundedCornerShape(16.dp),
-    extraLarge = RoundedCornerShape(24.dp)
+    extraSmall = RoundedCornerShape(2.dp),
+    small      = RoundedCornerShape(4.dp),
+    medium     = RoundedCornerShape(6.dp),
+    large      = RoundedCornerShape(8.dp),
+    extraLarge = RoundedCornerShape(10.dp)
 )
 
 @Composable

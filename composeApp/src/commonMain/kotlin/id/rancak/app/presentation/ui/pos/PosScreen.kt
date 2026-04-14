@@ -83,7 +83,7 @@ fun PosScreen(
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = posViewModel::onSearchQueryChange,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
                 placeholder = { Text("Cari produk atau scan barcode...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
@@ -105,9 +105,9 @@ fun PosScreen(
             // Category Chips
             if (uiState.categories.isNotEmpty()) {
                 LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(vertical = 2.dp)
                 ) {
                     items(uiState.categories) { category ->
                         FilterChip(
@@ -130,10 +130,10 @@ fun PosScreen(
                 uiState.filteredProducts.isEmpty() -> EmptyScreen("Tidak ada produk ditemukan")
                 else -> {
                     LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 150.dp),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        columns = GridCells.Adaptive(minSize = 108.dp),
+                        contentPadding = PaddingValues(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         items(uiState.filteredProducts, key = { it.uuid }) { product ->
                             ProductCard(
@@ -174,26 +174,26 @@ private fun PosScreenPreview() {
                 OutlinedTextField(
                     value = "",
                     onValueChange = {},
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
                     placeholder = { Text("Cari produk...") },
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     singleLine = true,
                     shape = MaterialTheme.shapes.medium
                 )
                 LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(vertical = 2.dp)
                 ) {
                     items(listOf("Makanan", "Minuman", "Snack")) { cat ->
                         FilterChip(selected = cat == "Makanan", onClick = {}, label = { Text(cat) }, shape = MaterialTheme.shapes.small)
                     }
                 }
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 150.dp),
-                    contentPadding = PaddingValues(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    columns = GridCells.Adaptive(minSize = 108.dp),
+                    contentPadding = PaddingValues(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     items(listOf("Nasi Goreng" to "Rp 25.000", "Es Teh" to "Rp 8.000", "Ayam Bakar" to "Rp 35.000", "Mie Goreng" to "Rp 22.000")) { (name, price) ->
                         ProductCard(name = name, price = price, category = "Makanan", imageUrl = null, isAvailable = true, onClick = {})

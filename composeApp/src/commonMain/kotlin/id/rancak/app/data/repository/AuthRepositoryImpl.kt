@@ -4,6 +4,7 @@ import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.mapper.toDomain
 import id.rancak.app.data.mapper.toLoginResult
 import id.rancak.app.data.remote.api.RancakApiService
+import id.rancak.app.data.remote.dto.auth.GoogleLoginRequest
 import id.rancak.app.data.remote.dto.auth.LoginRequest
 import id.rancak.app.data.remote.dto.auth.LogoutRequest
 import id.rancak.app.data.remote.dto.auth.RefreshTokenRequest
@@ -24,6 +25,21 @@ class AuthRepositoryImpl(
                 Resource.Success(result)
             } else {
                 Resource.Error(response.message ?: "Login failed", response.code)
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun loginWithGoogle(idToken: String): Resource<LoginResult> {
+        return try {
+            val response = api.googleLogin(GoogleLoginRequest(idToken))
+            if (response.status == "ok" && response.data != null) {
+                val result = response.data.toLoginResult()
+                tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
+                Resource.Success(result)
+            } else {
+                Resource.Error(response.message ?: "Google login gagal", response.code)
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")

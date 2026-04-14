@@ -24,5 +24,25 @@
 	<array>
 		<string>id.rancak.app.sync</string>
 	</array>
+
+	<!-- ── Google Sign-In ── -->
+	<!-- GIDClientID: iOS Client ID dari Google Cloud Console                    -->
+	<!-- Cara mendapatkan: console.cloud.google.com → APIs & Services →          -->
+	<!--                   Credentials → Create/pilih OAuth 2.0 Client ID (iOS) -->
+	<key>GIDClientID</key>
+	<string>YOUR_IOS_CLIENT_ID.apps.googleusercontent.com</string>
+
+	<!-- URL scheme untuk OAuth redirect (REVERSED iOS client ID) -->
+	<!-- Contoh: jika client ID = 123456789-abc.apps.googleusercontent.com       -->
+	<!--         maka URL scheme = com.googleusercontent.apps.123456789-abc      -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

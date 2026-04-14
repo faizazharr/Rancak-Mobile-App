@@ -19,9 +19,9 @@ fun RancakButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(52.dp),
+        modifier = modifier.height(40.dp),
         enabled = enabled && !isLoading,
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(6.dp)
     ) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -44,9 +44,9 @@ fun RancakOutlinedButton(
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.height(52.dp),
+        modifier = modifier.height(40.dp),
         enabled = enabled,
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(6.dp)
     ) {
         Text(text, style = MaterialTheme.typography.labelLarge)
     }

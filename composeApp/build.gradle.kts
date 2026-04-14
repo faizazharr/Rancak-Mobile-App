@@ -48,6 +48,10 @@ kotlin {
             implementation(libs.cameraX.lifecycle)
             implementation(libs.cameraX.view)
             implementation(libs.mlkit.barcode.scanning)
+            // Google Sign-In via Credential Manager
+            implementation(libs.androidx.credentials)
+            implementation(libs.androidx.credentials.play.services)
+            implementation(libs.googleid)
         }
         commonMain.dependencies {
             // Compose
