@@ -52,7 +52,7 @@ fun SummaryRow(
     valueColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = modifier.fillMaxWidth().padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

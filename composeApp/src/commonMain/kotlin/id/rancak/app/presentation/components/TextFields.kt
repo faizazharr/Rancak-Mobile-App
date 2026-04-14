@@ -30,7 +30,7 @@ fun RancakTextField(
             singleLine = singleLine,
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(6.dp),
             modifier = Modifier.fillMaxWidth()
         )
         if (isError && errorMessage != null) {

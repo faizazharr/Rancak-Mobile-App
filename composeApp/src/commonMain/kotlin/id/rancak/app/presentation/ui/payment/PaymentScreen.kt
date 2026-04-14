@@ -80,7 +80,7 @@ fun PaymentScreen(
                     .fillMaxSize()
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(12.dp)
             ) {
                 // Order Summary Card
                 Card(
@@ -89,18 +89,19 @@ fun PaymentScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text(
                             "Ringkasan Pesanan",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(4.dp))
                         SummaryRow(
                             label = "${cartState.itemCount} item",
                             value = formatRupiah(cartState.subtotal)
                         )
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                         SummaryRow(
                             label = "Total",
                             value = formatRupiah(cartState.subtotal),
@@ -110,19 +111,20 @@ fun PaymentScreen(
                     }
                 }
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(16.dp))
 
                 // Payment Method
                 Text(
                     "Metode Pembayaran",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(6.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     PaymentMethod.entries.forEach { method ->
                         PaymentMethodChip(
@@ -134,16 +136,17 @@ fun PaymentScreen(
                     }
                 }
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(16.dp))
 
                 // Paid Amount (cash only)
                 if (paymentState.selectedMethod == PaymentMethod.CASH) {
                     Text(
                         "Jumlah Bayar",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(6.dp))
 
                     OutlinedTextField(
                         value = paymentState.paidAmount,
@@ -156,10 +159,10 @@ fun PaymentScreen(
                     )
 
                     // Quick amount buttons
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(6.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         val quickAmounts = listOf(
                             cartState.subtotal,
@@ -187,7 +190,7 @@ fun PaymentScreen(
 
                 // Error
                 if (paymentState.error != null) {
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(8.dp))
                     Surface(
                         color = MaterialTheme.colorScheme.errorContainer,
                         shape = MaterialTheme.shapes.small,
@@ -195,14 +198,14 @@ fun PaymentScreen(
                     ) {
                         Text(
                             text = paymentState.error!!,
-                            modifier = Modifier.padding(12.dp),
+                            modifier = Modifier.padding(8.dp),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }
 
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(20.dp))
 
                 RancakButton(
                     text = "Proses Pembayaran",
@@ -237,43 +240,43 @@ private fun PaymentSuccessContent(
     var showPrintDialog by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier.padding(32.dp),
+        modifier = modifier.padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
             Icons.Default.CheckCircle,
             contentDescription = null,
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(56.dp),
             tint = MaterialTheme.colorScheme.primary
         )
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
         Text(
             "Transaksi Berhasil!",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
         Text(
             sale.invoiceNo ?: "",
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
         Text(
             formatRupiah(sale.total),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
         if (sale.changeAmount > 0) {
             Text(
                 "Kembalian: ${formatRupiah(sale.changeAmount)}",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary
             )
         }
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         // Print receipt button
         OutlinedButton(
@@ -281,12 +284,12 @@ private fun PaymentSuccessContent(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium
         ) {
-            Icon(Icons.Default.Print, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
+            Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
             Text("Cetak Struk")
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
         // New transaction button
         RancakButton(

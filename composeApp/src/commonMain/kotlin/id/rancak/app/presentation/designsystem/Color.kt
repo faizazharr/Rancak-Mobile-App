@@ -26,16 +26,16 @@ val OnError = Color(0xFFFFFFFF)
 val ErrorContainer = Color(0xFFFFDAD6)
 val OnErrorContainer = Color(0xFF410002)
 
-// ── Background & Surface ──
-val Background = Color(0xFFF8FAF9)
-val OnBackground = Color(0xFF191C1B)
+// ── Background & Surface — ERP neutral palette ──
+val Background = Color(0xFFF2F3F5)   // abu-abu enterprise, lebih padat dari putih
+val OnBackground = Color(0xFF1A1C1E)
 val Surface = Color(0xFFFFFFFF)
-val OnSurface = Color(0xFF191C1B)
-val SurfaceVariant = Color(0xFFF0F3F1)
-val OnSurfaceVariant = Color(0xFF404944)
+val OnSurface = Color(0xFF1A1C1E)
+val SurfaceVariant = Color(0xFFE8EAED)
+val OnSurfaceVariant = Color(0xFF3D4043)
 val SurfaceTint = Primary
-val Outline = Color(0xFF6F7974)
-val OutlineVariant = Color(0xFFBFC9C3)
+val Outline = Color(0xFFB0B7B3)       // lebih halus agar border card tidak terlalu tebal
+val OutlineVariant = Color(0xFFD5D9D6)
 
 // ── Dark Theme ──
 val DarkPrimary = Color(0xFF5FDBB8)

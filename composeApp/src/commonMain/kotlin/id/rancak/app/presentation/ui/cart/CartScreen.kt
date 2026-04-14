@@ -51,21 +51,33 @@ fun CartScreen(
         bottomBar = {
             if (!uiState.isEmpty) {
                 Surface(
-                    shadowElevation = 8.dp,
+                    shadowElevation = 4.dp,
                     color = MaterialTheme.colorScheme.surface
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        SummaryRow(
-                            label = "Subtotal (${uiState.itemCount} item)",
-                            value = formatRupiah(uiState.subtotal),
-                            isBold = true,
-                            valueColor = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "${uiState.itemCount} item",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = formatRupiah(uiState.subtotal),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         RancakButton(
-                            text = "Bayar ${formatRupiah(uiState.subtotal)}",
+                            text = "Bayar",
                             onClick = onCheckout,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.width(120.dp)
                         )
                     }
                 }
@@ -80,17 +92,18 @@ fun CartScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 // Order Type
                 item {
                     Text(
                         "Tipe Pesanan",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         OrderType.entries.forEach { type ->
                             FilterChip(
                                 selected = uiState.orderType == type,
@@ -107,7 +120,7 @@ fun CartScreen(
                             )
                         }
                     }
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
                 }
 
                 // Cart Items
@@ -143,58 +156,60 @@ private fun CartItemCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.productName,
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
                 )
                 if (item.variantName != null) {
                     Text(
                         text = item.variantName,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Text(
                     text = formatRupiah(item.price),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
 
-            // Qty Controls
+            // Qty Controls — compact
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onDecrement, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.Remove, contentDescription = "Kurang", modifier = Modifier.size(18.dp))
+                IconButton(onClick = onDecrement, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Default.Remove, contentDescription = "Kurang", modifier = Modifier.size(14.dp))
                 }
                 Text(
                     text = "${item.qty}",
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = 6.dp)
                 )
-                IconButton(onClick = onIncrement, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.Add, contentDescription = "Tambah", modifier = Modifier.size(18.dp))
+                IconButton(onClick = onIncrement, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Default.Add, contentDescription = "Tambah", modifier = Modifier.size(14.dp))
                 }
             }
 
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(6.dp))
 
             Text(
                 text = formatRupiah(item.subtotal),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.width(72.dp)
             )
 
-            IconButton(onClick = onRemove, modifier = Modifier.size(28.dp)) {
+            IconButton(onClick = onRemove, modifier = Modifier.size(24.dp)) {
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Hapus",
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(14.dp)
                 )
             }
         }
