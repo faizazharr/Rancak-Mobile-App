@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,7 +20,7 @@ fun RancakButton(
         onClick = onClick,
         modifier = modifier.height(40.dp),
         enabled = enabled && !isLoading,
-        shape = RoundedCornerShape(6.dp)
+        shape = MaterialTheme.shapes.medium
     ) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -46,7 +45,7 @@ fun RancakOutlinedButton(
         onClick = onClick,
         modifier = modifier.height(40.dp),
         enabled = enabled,
-        shape = RoundedCornerShape(6.dp)
+        shape = MaterialTheme.shapes.medium
     ) {
         Text(text, style = MaterialTheme.typography.labelLarge)
     }

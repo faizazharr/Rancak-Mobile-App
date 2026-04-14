@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.components.*
-import id.rancak.app.presentation.designsystem.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.TableViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -81,11 +81,12 @@ fun TableMapScreen(
 
 @Composable
 private fun TableCell(table: Table, onClick: () -> Unit) {
+    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
     val bg = when (table.status) {
-        TableStatus.AVAILABLE -> StatusAvailable
-        TableStatus.OCCUPIED -> StatusOccupied
-        TableStatus.RESERVED -> StatusReserved
-        TableStatus.MAINTENANCE -> StatusMaintenance
+        TableStatus.AVAILABLE -> semantic.statusAvailable
+        TableStatus.OCCUPIED -> semantic.statusOccupied
+        TableStatus.RESERVED -> semantic.statusReserved
+        TableStatus.MAINTENANCE -> semantic.statusMaintenance
     }
     Box(
         modifier = Modifier

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
+import androidx.compose.ui.tooling.preview.Preview
+import id.rancak.app.presentation.designsystem.RancakTheme
 import io.github.alexzhirkevich.qrose.options.*
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 
@@ -58,7 +61,7 @@ fun QrisQrCode(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF1A1A2E)
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -107,11 +110,36 @@ fun QrisPaymentPanel(
         Text(
             text = "Menunggu konfirmasi pembayaran...",
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        androidx.compose.material3.TextButton(onClick = onDismiss) {
+        TextButton(onClick = onDismiss) {
             Text("Batalkan Pembayaran")
         }
+    }
+}
+
+// ── Previews ──
+
+@Preview
+@Composable
+private fun QrisQrCodePreview() {
+    RancakTheme {
+        QrisQrCode(
+            qrString = "00020101021226610014ID.CO.QRIS.WWW0215ID20230001234560303UMI51440014ID.CO.QRIS.WWW0215ID2023000123456",
+            label = "Scan dengan aplikasi bank atau e-wallet"
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun QrisPaymentPanelPreview() {
+    RancakTheme {
+        QrisPaymentPanel(
+            qrString = "00020101021226610014ID.CO.QRIS.WWW0215ID20230001234560303UMI",
+            amount = 75000,
+            onDismiss = {}
+        )
     }
 }

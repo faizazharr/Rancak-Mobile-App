@@ -10,9 +10,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import id.rancak.app.domain.model.PaymentMethodReport
+import id.rancak.app.domain.model.ProductReport
+import id.rancak.app.domain.model.ReportSummary
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import id.rancak.app.presentation.viewmodel.ReportUiState
 import id.rancak.app.presentation.viewmodel.ReportViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -43,66 +47,79 @@ fun ReportScreen(
             )
         }
     ) { padding ->
-        when {
-            uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
-            uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = viewModel::loadReport, modifier = Modifier.padding(padding))
-            else -> LazyColumn(
-                modifier = Modifier.padding(padding),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                uiState.summary?.let { summary ->
+        ReportScreenContent(
+            uiState = uiState,
+            onRetry = viewModel::loadReport,
+            modifier = Modifier.padding(padding)
+        )
+    }
+}
+
+@Composable
+private fun ReportScreenContent(
+    uiState: ReportUiState,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    when {
+        uiState.isLoading -> LoadingScreen(modifier)
+        uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = onRetry, modifier = modifier)
+        else -> LazyColumn(
+            modifier = modifier,
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            uiState.summary?.let { summary ->
+                item {
+                    Text("Ringkasan Penjualan", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+                item {
+                    Card(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            ReportSummaryRow("Total Penjualan", formatRupiah(summary.totalSales), MaterialTheme.colorScheme.primary)
+                            ReportSummaryRow("Jumlah Transaksi", summary.totalTransactions.toString(), MaterialTheme.colorScheme.onSurface)
+                            ReportSummaryRow("Total Diskon", formatRupiah(summary.totalDiscount), MaterialTheme.colorScheme.error)
+                            ReportSummaryRow("Total Pajak", formatRupiah(summary.totalTax), MaterialTheme.colorScheme.onSurfaceVariant)
+                            HorizontalDivider()
+                            ReportSummaryRow("Pendapatan Bersih", formatRupiah(summary.totalNet), MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+
+                if (summary.paymentMethods.isNotEmpty()) {
                     item {
-                        Text("Ringkasan Penjualan", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Per Metode Bayar", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
                     item {
                         Card(Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                SummaryRow("Total Penjualan", formatRupiah(summary.totalSales), MaterialTheme.colorScheme.primary)
-                                SummaryRow("Jumlah Transaksi", summary.totalTransactions.toString(), MaterialTheme.colorScheme.onSurface)
-                                SummaryRow("Total Diskon", formatRupiah(summary.totalDiscount), MaterialTheme.colorScheme.error)
-                                SummaryRow("Total Pajak", formatRupiah(summary.totalTax), MaterialTheme.colorScheme.onSurfaceVariant)
-                                HorizontalDivider()
-                                SummaryRow("Pendapatan Bersih", formatRupiah(summary.totalNet), MaterialTheme.colorScheme.primary)
-                            }
-                        }
-                    }
-
-                    if (summary.paymentMethods.isNotEmpty()) {
-                        item {
-                            Spacer(Modifier.height(4.dp))
-                            Text("Per Metode Bayar", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        }
-                        item {
-                            Card(Modifier.fillMaxWidth()) {
-                                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    summary.paymentMethods.forEach { pm ->
-                                        SummaryRow(
-                                            pm.method.replaceFirstChar { it.uppercase() },
-                                            "${formatRupiah(pm.total)} (${pm.count}x)",
-                                            MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                summary.paymentMethods.forEach { pm ->
+                                    ReportSummaryRow(
+                                        pm.method.replaceFirstChar { it.uppercase() },
+                                        "${formatRupiah(pm.total)} (${pm.count}x)",
+                                        MaterialTheme.colorScheme.onSurface
+                                    )
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                if (uiState.topProducts.isNotEmpty()) {
-                    item {
-                        Spacer(Modifier.height(4.dp))
-                        Text("Produk Terlaris", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    }
-                    items(uiState.topProducts.take(10)) { product ->
-                        Card(Modifier.fillMaxWidth()) {
-                            Row(Modifier.padding(12.dp)) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(product.productName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                                    Text("${product.qtySold} terjual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-                                }
-                                Text(formatRupiah(product.totalRevenue), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+            if (uiState.topProducts.isNotEmpty()) {
+                item {
+                    Spacer(Modifier.height(4.dp))
+                    Text("Produk Terlaris", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+                items(uiState.topProducts.take(10)) { product ->
+                    Card(Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(12.dp)) {
+                            Column(Modifier.weight(1f)) {
+                                Text(product.productName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                                Text("${product.qtySold} terjual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
                             }
+                            Text(formatRupiah(product.totalRevenue), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -112,7 +129,7 @@ fun ReportScreen(
 }
 
 @Composable
-private fun SummaryRow(label: String, value: String, color: androidx.compose.ui.graphics.Color) {
+private fun ReportSummaryRow(label: String, value: String, color: androidx.compose.ui.graphics.Color) {
     Row(Modifier.fillMaxWidth()) {
         Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
         Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = color)
@@ -123,53 +140,34 @@ private fun SummaryRow(label: String, value: String, color: androidx.compose.ui.
 @Composable
 private fun ReportScreenPreview() {
     RancakTheme {
-        LazyColumn(
-            contentPadding = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            item {
-                Text("Ringkasan Penjualan", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-            item {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SummaryRow("Total Penjualan", "Rp 5.250.000", MaterialTheme.colorScheme.primary)
-                        SummaryRow("Jumlah Transaksi", "48", MaterialTheme.colorScheme.onSurface)
-                        SummaryRow("Total Diskon", "Rp 150.000", MaterialTheme.colorScheme.error)
-                        SummaryRow("Total Pajak", "Rp 525.000", MaterialTheme.colorScheme.onSurfaceVariant)
-                        HorizontalDivider()
-                        SummaryRow("Pendapatan Bersih", "Rp 5.625.000", MaterialTheme.colorScheme.primary)
-                    }
-                }
-            }
-            item {
-                Spacer(Modifier.height(4.dp))
-                Text("Per Metode Bayar", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-            item {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        SummaryRow("Cash", "Rp 3.000.000 (25x)", MaterialTheme.colorScheme.onSurface)
-                        SummaryRow("Qris", "Rp 1.500.000 (15x)", MaterialTheme.colorScheme.onSurface)
-                        SummaryRow("Card", "Rp 750.000 (8x)", MaterialTheme.colorScheme.onSurface)
-                    }
-                }
-            }
-            item {
-                Spacer(Modifier.height(4.dp))
-                Text("Produk Terlaris", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-            items(listOf("Nasi Goreng" to "Rp 1.250.000", "Ayam Bakar" to "Rp 875.000", "Es Teh" to "Rp 400.000")) { (name, revenue) ->
-                Card(Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(12.dp)) {
-                        Column(Modifier.weight(1f)) {
-                            Text(name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                            Text("50 terjual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-                        }
-                        Text(revenue, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
+        val mockUiState = ReportUiState(
+            summary = ReportSummary(
+                totalSales = 5250000,
+                totalTransactions = 48,
+                totalDiscount = 150000,
+                totalTax = 525000,
+                totalNet = 5625000,
+                paymentMethods = listOf(
+                    PaymentMethodReport("cash", 3000000, 25),
+                    PaymentMethodReport("qris", 1500000, 15),
+                    PaymentMethodReport("card", 750000, 8)
+                )
+            ),
+            topProducts = listOf(
+                ProductReport("prod-1", "Nasi Goreng", 50, 1250000),
+                ProductReport("prod-2", "Ayam Bakar", 35, 875000),
+                ProductReport("prod-3", "Es Teh", 80, 400000)
+            ),
+            isLoading = false,
+            error = null,
+            dateFrom = "2026-04-01",
+            dateTo = "2026-04-30"
+        )
+
+        ReportScreenContent(
+            uiState = mockUiState,
+            onRetry = {},
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }

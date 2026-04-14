@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.*
 import id.rancak.app.presentation.components.*
-import id.rancak.app.presentation.designsystem.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.KdsViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -74,11 +74,12 @@ private fun KdsOrderCard(order: KdsOrder, onAdvance: (KdsStatus) -> Unit) {
         KdsStatus.READY -> KdsStatus.DONE
         KdsStatus.DONE -> null
     }
+    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
     val statusColor = when (order.status) {
-        KdsStatus.NEW -> Info
-        KdsStatus.COOKING -> Warning
-        KdsStatus.READY -> Success
-        KdsStatus.DONE -> StatusMaintenance
+        KdsStatus.NEW -> semantic.info
+        KdsStatus.COOKING -> semantic.warning
+        KdsStatus.READY -> semantic.success
+        KdsStatus.DONE -> semantic.statusMaintenance
     }
 
     Card(
@@ -126,7 +127,7 @@ private fun KdsOrderCard(order: KdsOrder, onAdvance: (KdsStatus) -> Unit) {
                             Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
                         }
                         item.note?.let {
-                            Text("📝 $it", style = MaterialTheme.typography.labelSmall, color = Warning)
+                            Text("📝 $it", style = MaterialTheme.typography.labelSmall, color = semantic.warning)
                         }
                     }
                 }

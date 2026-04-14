@@ -4,6 +4,11 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 private val LightColorScheme = lightColorScheme(
@@ -70,17 +75,90 @@ val RancakShapes = Shapes(
     extraLarge = RoundedCornerShape(10.dp)
 )
 
+// ── Semantic / Extended Colors ──────────────────────────────────────────────
+
+/**
+ * Warna semantik bisnis yang otomatis menyesuaikan light / dark theme.
+ * Akses via [RancakColors.semantic] di dalam composable.
+ */
+@Immutable
+data class SemanticColors(
+    val success: Color,
+    val warning: Color,
+    val info: Color,
+    val statusAvailable: Color,
+    val statusOccupied: Color,
+    val statusReserved: Color,
+    val statusMaintenance: Color,
+    val paymentCash: Color,
+    val paymentCard: Color,
+    val paymentQris: Color,
+    val paymentTransfer: Color
+)
+
+private val LightSemanticColors = SemanticColors(
+    success           = Success,
+    warning           = Warning,
+    info              = Info,
+    statusAvailable   = StatusAvailable,
+    statusOccupied    = StatusOccupied,
+    statusReserved    = StatusReserved,
+    statusMaintenance = StatusMaintenance,
+    paymentCash       = PaymentCash,
+    paymentCard       = PaymentCard,
+    paymentQris       = PaymentQris,
+    paymentTransfer   = PaymentTransfer
+)
+
+private val DarkSemanticColors = SemanticColors(
+    success           = DarkSuccess,
+    warning           = DarkWarning,
+    info              = DarkInfo,
+    statusAvailable   = DarkStatusAvailable,
+    statusOccupied    = DarkStatusOccupied,
+    statusReserved    = DarkStatusReserved,
+    statusMaintenance = DarkStatusMaintenance,
+    paymentCash       = DarkPaymentCash,
+    paymentCard       = DarkPaymentCard,
+    paymentQris       = DarkPaymentQris,
+    paymentTransfer   = DarkPaymentTransfer
+)
+
+val LocalSemanticColors = staticCompositionLocalOf { LightSemanticColors }
+
+// ── Theme ───────────────────────────────────────────────────────────────────
+
 @Composable
 fun RancakTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme    = if (darkTheme) DarkColorScheme else LightColorScheme
+    val semanticColors = if (darkTheme) DarkSemanticColors else LightSemanticColors
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = RancakTypography,
-        shapes = RancakShapes,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalSpacing to Spacing(),
+        LocalSemanticColors to semanticColors
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography  = RancakTypography,
+            shapes      = RancakShapes,
+            content     = content
+        )
+    }
+}
+
+/**
+ * Akses cepat ke warna semantik dari mana saja dalam `RancakTheme`.
+ *
+ * ```
+ * val color = RancakColors.semantic.success
+ * ```
+ */
+object RancakColors {
+    val semantic: SemanticColors
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalSemanticColors.current
 }

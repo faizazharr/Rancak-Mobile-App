@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -30,7 +29,7 @@ fun RancakTextField(
             singleLine = singleLine,
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
-            shape = RoundedCornerShape(6.dp),
+            shape = MaterialTheme.shapes.medium,
             modifier = Modifier.fillMaxWidth()
         )
         if (isError && errorMessage != null) {

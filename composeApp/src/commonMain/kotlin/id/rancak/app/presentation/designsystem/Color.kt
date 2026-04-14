@@ -67,7 +67,7 @@ val DarkOnSurfaceVariant = Color(0xFFBFC9C3)
 val DarkOutline = Color(0xFF89938E)
 val DarkOutlineVariant = Color(0xFF404944)
 
-// ── Semantic Colors ──
+// ── Semantic Colors (Light) ──
 val Success = Color(0xFF2E7D32)
 val Warning = Color(0xFFF9A825)
 val Info = Color(0xFF1976D2)
@@ -81,3 +81,18 @@ val PaymentCash = Color(0xFF4CAF50)
 val PaymentCard = Color(0xFF2196F3)
 val PaymentQris = Color(0xFF9C27B0)
 val PaymentTransfer = Color(0xFFFF9800)
+
+// ── Semantic Colors (Dark) ──
+val DarkSuccess = Color(0xFF66BB6A)
+val DarkWarning = Color(0xFFFFD54F)
+val DarkInfo = Color(0xFF42A5F5)
+
+val DarkStatusAvailable = Color(0xFF81C784)
+val DarkStatusOccupied = Color(0xFFFFB74D)
+val DarkStatusReserved = Color(0xFF64B5F6)
+val DarkStatusMaintenance = Color(0xFFBDBDBD)
+
+val DarkPaymentCash = Color(0xFF81C784)
+val DarkPaymentCard = Color(0xFF64B5F6)
+val DarkPaymentQris = Color(0xFFCE93D8)
+val DarkPaymentTransfer = Color(0xFFFFB74D)

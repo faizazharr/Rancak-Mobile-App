@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
-import id.rancak.app.presentation.designsystem.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
 fun StatusChip(
@@ -38,12 +38,13 @@ fun StatusChip(
 @Composable
 private fun StatusChipPreview() {
     RancakTheme {
+        val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatusChip(text = "Paid", color = Success)
-            StatusChip(text = "Held", color = Warning)
-            StatusChip(text = "Void", color = Error)
-            StatusChip(text = "New", color = Info)
-            StatusChip(text = "Available", color = StatusAvailable)
+            StatusChip(text = "Paid", color = semantic.success)
+            StatusChip(text = "Held", color = semantic.warning)
+            StatusChip(text = "Void", color = MaterialTheme.colorScheme.error)
+            StatusChip(text = "New", color = semantic.info)
+            StatusChip(text = "Available", color = semantic.statusAvailable)
         }
     }
 }

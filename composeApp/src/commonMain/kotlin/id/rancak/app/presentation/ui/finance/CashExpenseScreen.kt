@@ -15,8 +15,6 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.CashIn
 import id.rancak.app.domain.model.Expense
 import id.rancak.app.presentation.components.*
-import id.rancak.app.presentation.designsystem.Success
-import id.rancak.app.presentation.designsystem.Error
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseViewModel
@@ -128,7 +126,7 @@ private fun CashInList(items: List<CashIn>, onDelete: (String) -> Unit) {
                             Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
                             item.source?.let { Text("Sumber: $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline) }
                         }
-                        Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Success)
+                        Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = id.rancak.app.presentation.designsystem.RancakColors.semantic.success)
                     }
                 }
             }
@@ -149,7 +147,7 @@ private fun ExpenseList(items: List<Expense>, onDelete: (String) -> Unit) {
                             Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
                             item.note?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline) }
                         }
-                        Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Error)
+                        Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }

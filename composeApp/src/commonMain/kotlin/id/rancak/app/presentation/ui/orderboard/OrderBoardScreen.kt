@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.components.*
-import id.rancak.app.presentation.designsystem.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.OrderBoardViewModel
 import androidx.compose.ui.tooling.preview.Preview
@@ -71,10 +71,11 @@ fun OrderBoardScreen(
 
 @Composable
 private fun OrderBoardCard(order: Sale, onServe: () -> Unit) {
+    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
     val statusColor = when (order.status) {
-        SaleStatus.HELD -> Warning
-        SaleStatus.SERVED -> Success
-        else -> StatusMaintenance
+        SaleStatus.HELD -> semantic.warning
+        SaleStatus.SERVED -> semantic.success
+        else -> semantic.statusMaintenance
     }
 
     Card(Modifier.fillMaxWidth()) {

@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
-import id.rancak.app.presentation.designsystem.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
 fun PaymentMethodChip(
@@ -18,11 +18,12 @@ fun PaymentMethodChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
     val color = when (method.lowercase()) {
-        "cash" -> PaymentCash
-        "card" -> PaymentCard
-        "qris" -> PaymentQris
-        "transfer" -> PaymentTransfer
+        "cash" -> semantic.paymentCash
+        "card" -> semantic.paymentCard
+        "qris" -> semantic.paymentQris
+        "transfer" -> semantic.paymentTransfer
         else -> MaterialTheme.colorScheme.outline
     }
 
@@ -94,10 +95,10 @@ private fun SummaryRowPreview() {
         Surface {
             Column(Modifier.padding(16.dp)) {
                 SummaryRow(label = "Subtotal", value = "Rp 70.000")
-                SummaryRow(label = "Diskon", value = "- Rp 5.000", valueColor = Error)
+                SummaryRow(label = "Diskon", value = "- Rp 5.000", valueColor = MaterialTheme.colorScheme.error)
                 SummaryRow(label = "Pajak (10%)", value = "Rp 6.500")
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                SummaryRow(label = "Total", value = "Rp 71.500", isBold = true, valueColor = Primary)
+                SummaryRow(label = "Total", value = "Rp 71.500", isBold = true, valueColor = MaterialTheme.colorScheme.primary)
             }
         }
     }

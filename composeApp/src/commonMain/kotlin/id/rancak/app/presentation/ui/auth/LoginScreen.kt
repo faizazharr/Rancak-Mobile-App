@@ -626,3 +626,67 @@ private fun BrandingBullet(icon: ImageVector, label: String) {
         )
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Previews
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Preview
+@Composable
+private fun PhoneLoginPreview() {
+    RancakTheme {
+        PhoneLoginLayout(
+            uiState          = LoginUiState(),
+            showEmailForm    = false,
+            passwordVisible  = false,
+            onPasswordToggle = {},
+            onEmailChange    = {},
+            onPasswordChange = {},
+            onLogin          = {},
+            onGoogleToken    = {},
+            onGoogleError    = {},
+            onShowEmailForm  = {},
+            onBackToOptions  = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PhoneEmailFormPreview() {
+    RancakTheme {
+        PhoneLoginLayout(
+            uiState          = LoginUiState(email = "user@example.com"),
+            showEmailForm    = true,
+            passwordVisible  = false,
+            onPasswordToggle = {},
+            onEmailChange    = {},
+            onPasswordChange = {},
+            onLogin          = {},
+            onGoogleToken    = {},
+            onGoogleError    = {},
+            onShowEmailForm  = {},
+            onBackToOptions  = {}
+        )
+    }
+}
+
+@Preview(widthDp = 1024, heightDp = 768)
+@Composable
+private fun TabletLoginPreview() {
+    RancakTheme {
+        TabletLoginLayout(
+            uiState          = LoginUiState(),
+            showEmailForm    = false,
+            passwordVisible  = false,
+            onPasswordToggle = {},
+            onEmailChange    = {},
+            onPasswordChange = {},
+            onLogin          = {},
+            onGoogleToken    = {},
+            onGoogleError    = {},
+            onShowEmailForm  = {},
+            onBackToOptions  = {}
+        )
+    }
+}

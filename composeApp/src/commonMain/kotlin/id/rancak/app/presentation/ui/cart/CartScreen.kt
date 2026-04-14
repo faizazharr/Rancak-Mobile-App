@@ -17,11 +17,11 @@ import id.rancak.app.domain.repository.CartItem
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import id.rancak.app.presentation.viewmodel.CartUiState
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
     onBack: () -> Unit,
@@ -30,6 +30,32 @@ fun CartScreen(
 ) {
     val uiState by cartViewModel.uiState.collectAsState()
 
+    CartScreenContent(
+        uiState    = uiState,
+        onBack     = onBack,
+        onCheckout = onCheckout,
+        onClearCart = cartViewModel::clearCart,
+        onSetOrderType = { cartViewModel.setOrderType(it) },
+        onUpdateQty = { productUuid, variantUuid, qty ->
+            cartViewModel.updateQuantity(productUuid, variantUuid, qty)
+        },
+        onRemoveItem = { productUuid, variantUuid ->
+            cartViewModel.removeItem(productUuid, variantUuid)
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CartScreenContent(
+    uiState: CartUiState,
+    onBack: () -> Unit = {},
+    onCheckout: () -> Unit = {},
+    onClearCart: () -> Unit = {},
+    onSetOrderType: (OrderType) -> Unit = {},
+    onUpdateQty: (String, String?, Int) -> Unit = { _, _, _ -> },
+    onRemoveItem: (String, String?) -> Unit = { _, _ -> }
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -41,7 +67,7 @@ fun CartScreen(
                 },
                 actions = {
                     if (!uiState.isEmpty) {
-                        TextButton(onClick = cartViewModel::clearCart) {
+                        TextButton(onClick = onClearCart) {
                             Text("Hapus Semua", color = MaterialTheme.colorScheme.error)
                         }
                     }
@@ -107,7 +133,7 @@ fun CartScreen(
                         OrderType.entries.forEach { type ->
                             FilterChip(
                                 selected = uiState.orderType == type,
-                                onClick = { cartViewModel.setOrderType(type) },
+                                onClick = { onSetOrderType(type) },
                                 label = {
                                     Text(
                                         when (type) {
@@ -128,13 +154,13 @@ fun CartScreen(
                     CartItemCard(
                         item = item,
                         onIncrement = {
-                            cartViewModel.updateQuantity(item.productUuid, item.variantUuid, item.qty + 1)
+                            onUpdateQty(item.productUuid, item.variantUuid, item.qty + 1)
                         },
                         onDecrement = {
-                            cartViewModel.updateQuantity(item.productUuid, item.variantUuid, item.qty - 1)
+                            onUpdateQty(item.productUuid, item.variantUuid, item.qty - 1)
                         },
                         onRemove = {
-                            cartViewModel.removeItem(item.productUuid, item.variantUuid)
+                            onRemoveItem(item.productUuid, item.variantUuid)
                         }
                     )
                 }
@@ -216,21 +242,41 @@ private fun CartItemCard(
     }
 }
 
+// ── Previews — call actual CartScreenContent ──
+
 @Preview
 @Composable
-private fun CartItemCardPreview() {
+private fun CartScreenEmptyPreview() {
     RancakTheme {
-        CartItemCard(
-            item = CartItem(
-                productUuid = "1",
-                productName = "Nasi Goreng Spesial",
-                qty = 2,
-                price = 25000,
-                variantName = "Pedas"
-            ),
-            onIncrement = {},
-            onDecrement = {},
-            onRemove = {}
+        CartScreenContent(
+            uiState = CartUiState()
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CartScreenWithItemsPreview() {
+    RancakTheme {
+        CartScreenContent(
+            uiState = CartUiState(
+                items = listOf(
+                    CartItem(
+                        productUuid = "1",
+                        productName = "Nasi Goreng Spesial",
+                        qty = 2,
+                        price = 25000,
+                        variantName = "Pedas"
+                    ),
+                    CartItem(
+                        productUuid = "2",
+                        productName = "Es Teh Manis",
+                        qty = 3,
+                        price = 8000
+                    )
+                ),
+                orderType = OrderType.DINE_IN
+            )
         )
     }
 }

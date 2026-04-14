@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.components.*
-import id.rancak.app.presentation.designsystem.*
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.SalesHistoryViewModel
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,11 +62,12 @@ fun SalesHistoryScreen(
 
 @Composable
 private fun SaleCard(sale: Sale) {
+    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
     val statusColor = when (sale.status) {
-        SaleStatus.PAID -> Success
-        SaleStatus.HELD -> Warning
-        SaleStatus.VOID, SaleStatus.CANCELLED -> Error
-        SaleStatus.SERVED -> Info
+        SaleStatus.PAID -> semantic.success
+        SaleStatus.HELD -> semantic.warning
+        SaleStatus.VOID, SaleStatus.CANCELLED -> MaterialTheme.colorScheme.error
+        SaleStatus.SERVED -> semantic.info
     }
 
     Card(

@@ -57,11 +57,13 @@ kotlin {
             // Compose
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
-            implementation(libs.compose.material3)
+            // Material3 — always auto-matched to compose plugin version
+            implementation(compose.material3)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
-            implementation(libs.compose.material.icons)
+            // Material Icons Extended — always auto-matched to compose plugin version
+            implementation(compose.materialIconsExtended)
 
             // Lifecycle
             implementation(libs.androidx.lifecycle.viewmodelCompose)

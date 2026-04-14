@@ -23,8 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import id.rancak.app.presentation.designsystem.RancakTheme
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dialog numpad untuk input nominal biaya
@@ -251,6 +253,38 @@ private fun NumpadKey(
 // ─────────────────────────────────────────────────────────────────────────────
 // Format angka dengan pemisah ribuan (titik)
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ── Previews ──
+
+@Preview
+@Composable
+private fun FeeInputDialogPreview() {
+    RancakTheme {
+        FeeInputDialog(
+            title = "Diskon",
+            icon = Icons.Default.Check,
+            initialValue = 15000L,
+            isNegative = true,
+            onDismiss = {},
+            onConfirm = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun FeeInputDialogEmptyPreview() {
+    RancakTheme {
+        FeeInputDialog(
+            title = "Biaya Admin",
+            icon = Icons.Default.Check,
+            initialValue = 0L,
+            isNegative = false,
+            onDismiss = {},
+            onConfirm = {}
+        )
+    }
+}
 
 internal fun feeFormatNumber(value: Long): String {
     if (value == 0L) return "0"

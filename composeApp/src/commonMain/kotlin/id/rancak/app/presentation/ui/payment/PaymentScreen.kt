@@ -87,146 +87,177 @@ fun PaymentScreen(
             )
         } else {
             // ── Payment Form ───────────────────────────────────────────────────
-            Column(
+            PaymentFormContent(
+                itemCount = cartState.itemCount,
+                subtotal = cartState.subtotal,
+                selectedMethod = paymentState.selectedMethod,
+                onSelectMethod = paymentViewModel::selectMethod,
+                paidAmount = paymentState.paidAmount,
+                onPaidAmountChange = paymentViewModel::setPaidAmount,
+                isCashSelected = paymentState.selectedMethod == PaymentMethod.CASH,
+                isProcessing = paymentState.isProcessing,
+                onProcessPayment = {
+                    paymentViewModel.processPayment(
+                        items        = cartState.items,
+                        orderType    = cartState.orderType,
+                        tableUuid    = cartState.tableUuid,
+                        customerName = cartState.customerName,
+                        note         = cartState.note,
+                        pax          = cartState.pax,
+                        discount     = cartState.discount,
+                        tax          = cartState.tax,
+                        adminFee     = cartState.adminFee,
+                        deliveryFee  = cartState.deliveryFee,
+                        tip          = cartState.tip,
+                        voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
+                    )
+                },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(12.dp)
-            ) {
-                // Order Summary Card
-                Card(
-                    shape = MaterialTheme.shapes.medium,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            "Ringkasan Pesanan",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        SummaryRow(
-                            label = "${cartState.itemCount} item",
-                            value = formatRupiah(cartState.subtotal)
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                        SummaryRow(
-                            label = "Total",
-                            value = formatRupiah(cartState.subtotal),
-                            isBold = true,
-                            valueColor = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
+            )
+        } // end else
+        } // end Box
+    }
+}
 
-                Spacer(Modifier.height(16.dp))
+// ─────────────────────────────────────────────────────────────────────────────
+// Payment Form Content
+// ─────────────────────────────────────────────────────────────────────────────
 
-                // Payment Method
+@Composable
+internal fun PaymentFormContent(
+    itemCount: Int,
+    subtotal: Long,
+    selectedMethod: PaymentMethod,
+    onSelectMethod: (PaymentMethod) -> Unit,
+    paidAmount: String,
+    onPaidAmountChange: (String) -> Unit,
+    isCashSelected: Boolean,
+    isProcessing: Boolean,
+    onProcessPayment: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(12.dp)
+    ) {
+        // Order Summary Card
+        Card(
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    "Metode Pembayaran",
+                    "Ringkasan Pesanan",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(6.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    PaymentMethod.entries.forEach { method ->
-                        PaymentMethodChip(
-                            method = method.value,
-                            isSelected = paymentState.selectedMethod == method,
-                            onClick = { paymentViewModel.selectMethod(method) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Paid Amount (cash only)
-                if (paymentState.selectedMethod == PaymentMethod.CASH) {
-                    Text(
-                        "Jumlah Bayar",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(6.dp))
-
-                    OutlinedTextField(
-                        value = paymentState.paidAmount,
-                        onValueChange = paymentViewModel::setPaidAmount,
-                        modifier = Modifier.fillMaxWidth(),
-                        prefix = { Text("Rp ") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        shape = MaterialTheme.shapes.medium
-                    )
-
-                    // Quick amount buttons
-                    Spacer(Modifier.height(6.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        val quickAmounts = listOf(
-                            cartState.subtotal,
-                            ((cartState.subtotal / 10000) + 1) * 10000,
-                            ((cartState.subtotal / 50000) + 1) * 50000,
-                            ((cartState.subtotal / 100000) + 1) * 100000
-                        ).distinct().sorted()
-
-                        quickAmounts.take(4).forEach { amount ->
-                            OutlinedButton(
-                                onClick = { paymentViewModel.setPaidAmount(amount.toString()) },
-                                modifier = Modifier.weight(1f),
-                                shape = MaterialTheme.shapes.small,
-                                contentPadding = PaddingValues(4.dp)
-                            ) {
-                                Text(
-                                    formatRupiah(amount),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Error
-                Spacer(Modifier.height(20.dp))
-
-                RancakButton(
-                    text = "Proses Pembayaran",
-                    onClick = {
-                        paymentViewModel.processPayment(
-                            items        = cartState.items,
-                            orderType    = cartState.orderType,
-                            tableUuid    = cartState.tableUuid,
-                            customerName = cartState.customerName,
-                            note         = cartState.note,
-                            pax          = cartState.pax,
-                            discount     = cartState.discount,
-                            tax          = cartState.tax,
-                            adminFee     = cartState.adminFee,
-                            deliveryFee  = cartState.deliveryFee,
-                            tip          = cartState.tip,
-                            voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
-                        )
-                    },
-                    isLoading = paymentState.isProcessing,
-                    modifier = Modifier.fillMaxWidth()
+                Spacer(Modifier.height(4.dp))
+                SummaryRow(
+                    label = "$itemCount item",
+                    value = formatRupiah(subtotal)
+                )
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                SummaryRow(
+                    label = "Total",
+                    value = formatRupiah(subtotal),
+                    isBold = true,
+                    valueColor = MaterialTheme.colorScheme.primary
                 )
             }
-        } // end else
-        } // end Box
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Payment Method
+        Text(
+            "Metode Pembayaran",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(6.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            PaymentMethod.entries.forEach { method ->
+                PaymentMethodChip(
+                    method = method.value,
+                    isSelected = selectedMethod == method,
+                    onClick = { onSelectMethod(method) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Paid Amount (cash only)
+        if (isCashSelected) {
+            Text(
+                "Jumlah Bayar",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(6.dp))
+
+            OutlinedTextField(
+                value = paidAmount,
+                onValueChange = onPaidAmountChange,
+                modifier = Modifier.fillMaxWidth(),
+                prefix = { Text("Rp ") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium
+            )
+
+            // Quick amount buttons
+            Spacer(Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                val quickAmounts = listOf(
+                    subtotal,
+                    ((subtotal / 10000) + 1) * 10000,
+                    ((subtotal / 50000) + 1) * 50000,
+                    ((subtotal / 100000) + 1) * 100000
+                ).distinct().sorted()
+
+                quickAmounts.take(4).forEach { amount ->
+                    OutlinedButton(
+                        onClick = { onPaidAmountChange(amount.toString()) },
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.small,
+                        contentPadding = PaddingValues(4.dp)
+                    ) {
+                        Text(
+                            formatRupiah(amount),
+                            style = MaterialTheme.typography.labelSmall,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+
+        // Error
+        Spacer(Modifier.height(20.dp))
+
+        RancakButton(
+            text = "Proses Pembayaran",
+            onClick = onProcessPayment,
+            isLoading = isProcessing,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -559,6 +590,73 @@ private fun PrintDialog(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Preview Content Composables
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+internal fun PaymentSuccessPreviewContent(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            Icons.Default.CheckCircle,
+            contentDescription = null,
+            modifier = Modifier.size(56.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "Transaksi Berhasil!",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "INV-2024-0001",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            formatRupiah(75000),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            "Kembalian: ${formatRupiah(25000)}",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        Spacer(Modifier.height(24.dp))
+
+        // Print receipt button
+        OutlinedButton(
+            onClick = { },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("Cetak Struk")
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // New transaction button
+        RancakButton(
+            text = "Transaksi Baru",
+            onClick = { },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Previews
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -566,30 +664,20 @@ private fun PrintDialog(
 @Composable
 private fun PaymentFormPreview() {
     RancakTheme {
-        Column(Modifier.padding(16.dp)) {
-            Card(
-                shape = MaterialTheme.shapes.medium,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Ringkasan Pesanan", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.height(8.dp))
-                    SummaryRow(label = "3 item", value = "Rp 75.000")
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    SummaryRow(label = "Total", value = "Rp 75.000", isBold = true, valueColor = MaterialTheme.colorScheme.primary)
-                }
-            }
-            Spacer(Modifier.height(24.dp))
-            Text("Metode Pembayaran", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PaymentMethodChip(method = "Cash", isSelected = true, onClick = {}, modifier = Modifier.weight(1f))
-                PaymentMethodChip(method = "QRIS", isSelected = false, onClick = {}, modifier = Modifier.weight(1f))
-                PaymentMethodChip(method = "Card", isSelected = false, onClick = {}, modifier = Modifier.weight(1f))
-            }
-            Spacer(Modifier.height(24.dp))
-            RancakButton(text = "Proses Pembayaran", onClick = {}, modifier = Modifier.fillMaxWidth())
-        }
+        PaymentFormContent(
+            itemCount = 3,
+            subtotal = 75000,
+            selectedMethod = PaymentMethod.CASH,
+            onSelectMethod = { },
+            paidAmount = "",
+            onPaidAmountChange = { },
+            isCashSelected = true,
+            isProcessing = false,
+            onProcessPayment = { },
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
+        )
     }
 }
 
@@ -597,27 +685,8 @@ private fun PaymentFormPreview() {
 @Composable
 private fun PaymentSuccessPreview() {
     RancakTheme {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(Icons.Default.CheckCircle, null, Modifier.size(80.dp), MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.height(24.dp))
-            Text("Transaksi Berhasil!", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(8.dp))
-            Text("INV-2024-0001", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(8.dp))
-            Text("Rp 75.000", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            Text("Kembalian: Rp 25.000", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
-            Spacer(Modifier.height(32.dp))
-            OutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
-                Icon(Icons.Default.Print, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Cetak Struk")
-            }
-            Spacer(Modifier.height(12.dp))
-            RancakButton(text = "Transaksi Baru", onClick = {}, modifier = Modifier.fillMaxWidth())
-        }
+        PaymentSuccessPreviewContent(
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
