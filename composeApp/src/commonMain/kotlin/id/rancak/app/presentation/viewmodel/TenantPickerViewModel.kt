@@ -52,7 +52,7 @@ class TenantPickerViewModel(
 
     fun confirm() {
         val tenant = _uiState.value.selectedTenant ?: return
-        authRepository.setTenant(tenant.uuid)
+        authRepository.setTenant(tenant.uuid, tenant.name)
         _uiState.update { it.copy(isConfirmed = true) }
     }
 }

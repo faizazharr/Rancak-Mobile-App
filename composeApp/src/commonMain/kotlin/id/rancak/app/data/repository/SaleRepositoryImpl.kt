@@ -35,33 +35,45 @@ class SaleRepositoryImpl(
         tableUuid: String?,
         customerName: String?,
         note: String?,
-        hold: Boolean
+        hold: Boolean,
+        pax: Int,
+        discount: Long,
+        tax: Long,
+        adminFee: Long,
+        deliveryFee: Long,
+        tip: Long,
+        voucherCode: String?
     ): Resource<Sale> {
-        val idempotencyKey = Uuid.random().toString()
-        // ISO-8601 UTC timestamp — consistent regardless of device timezone
+        val idempotencyKey  = Uuid.random().toString()
         val deviceCreatedAt = Clock.System.now().toString()
-        // Stable device UUID persisted in settings (generated once per install)
-        val deviceId = tokenManager.deviceId
+        val deviceId        = tokenManager.deviceId
 
         return try {
             val request = CreateSaleRequest(
                 items = items.map { cartItem ->
                     SaleItemRequest(
                         productUuid = cartItem.productUuid,
-                        qty = cartItem.qty,
+                        qty         = cartItem.qty,
                         variantUuid = cartItem.variantUuid,
-                        note = cartItem.note
+                        note        = cartItem.note
                     )
                 },
-                paymentMethod = paymentMethod.value,
-                paidAmount = paidAmount,
-                orderType = orderType.value,
-                tableUuid = tableUuid,
-                customerName = customerName,
-                note = note,
-                hold = hold,
+                paymentMethod   = paymentMethod.value,
+                paidAmount      = paidAmount,
+                orderType       = orderType.value,
+                tableUuid       = tableUuid,
+                customerName    = customerName,
+                pax             = pax.takeIf { it > 0 },
+                discount        = discount.takeIf { it > 0 },
+                tax             = tax.takeIf { it > 0 },
+                adminFee        = adminFee.takeIf { it > 0 },
+                deliveryFee     = deliveryFee.takeIf { it > 0 },
+                tip             = tip.takeIf { it > 0 },
+                voucherCode     = voucherCode?.takeIf { it.isNotBlank() },
+                note            = note,
+                hold            = hold,
                 deviceCreatedAt = deviceCreatedAt,
-                deviceId = deviceId
+                deviceId        = deviceId
             )
             val response = api.createSale(tenantUuid, request, idempotencyKey)
             if (response.status == "ok" && response.data != null) {
@@ -70,7 +82,6 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Failed to create sale")
             }
         } catch (e: Exception) {
-            // Network unreachable — queue for background sync
             val networkError = e.message?.let {
                 it.contains("UnknownHostException", ignoreCase = true) ||
                 it.contains("ConnectException", ignoreCase = true) ||
@@ -83,24 +94,29 @@ class SaleRepositoryImpl(
             if (networkError) {
                 offlineQueue.enqueue(
                     PendingSale(
-                        idempotencyKey = idempotencyKey,
-                        tenantUuid = tenantUuid,
-                        items = items.map { PendingSaleItem(it.productUuid, it.qty, it.variantUuid, it.note) },
-                        paymentMethod = paymentMethod.value,
-                        paidAmount = paidAmount,
-                        orderType = orderType.value,
-                        tableUuid = tableUuid,
-                        customerName = customerName,
-                        note = note,
-                        hold = hold,
+                        idempotencyKey  = idempotencyKey,
+                        tenantUuid      = tenantUuid,
+                        items           = items.map { PendingSaleItem(it.productUuid, it.qty, it.variantUuid, it.note) },
+                        paymentMethod   = paymentMethod.value,
+                        paidAmount      = paidAmount,
+                        orderType       = orderType.value,
+                        tableUuid       = tableUuid,
+                        customerName    = customerName,
+                        pax             = pax,
+                        discount        = discount,
+                        tax             = tax,
+                        adminFee        = adminFee,
+                        deliveryFee     = deliveryFee,
+                        tip             = tip,
+                        voucherCode     = voucherCode,
+                        note            = note,
+                        hold            = hold,
                         deviceCreatedAt = deviceCreatedAt,
-                        deviceId = deviceId,
-                        enqueuedAt = Clock.System.now().toEpochMilliseconds()
+                        deviceId        = deviceId,
+                        enqueuedAt      = Clock.System.now().toEpochMilliseconds()
                     )
                 )
-                // Schedule WorkManager to sync when connectivity returns
                 syncManager.scheduleSync()
-                // Return as queued success so the UI can proceed
                 Resource.Error("Offline: sale queued for sync (${offlineQueue.size} pending)")
             } else {
                 Resource.Error(e.message ?: "Network error")

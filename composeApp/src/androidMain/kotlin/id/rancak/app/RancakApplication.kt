@@ -1,6 +1,8 @@
 package id.rancak.app
 
 import android.app.Application
+import androidx.work.WorkManager
+import id.rancak.app.di.DEMO_MODE
 import id.rancak.app.di.appModules
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -23,9 +25,16 @@ class RancakApplication : Application() {
         super.onCreate()
 
         startKoin {
-            androidLogger(Level.ERROR)  // Reduce noise in production
+            androidLogger(Level.ERROR)
             androidContext(this@RancakApplication)
             modules(appModules)
+        }
+
+        // Batalkan semua background sync yang tersisa saat mode demo aktif.
+        // Ini penting agar SyncWorker dari sesi sebelumnya tidak coba
+        // inject RancakApiService yang tidak ada di DI graph demo.
+        if (DEMO_MODE) {
+            WorkManager.getInstance(this).cancelAllWork()
         }
     }
 }

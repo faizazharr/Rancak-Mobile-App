@@ -8,6 +8,7 @@ import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.local.toBatchItem
 import id.rancak.app.data.remote.dto.sale.BatchSalesRequest
+import id.rancak.app.di.DEMO_MODE
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -35,6 +36,9 @@ class SyncWorker(
     private val tokenManager: TokenManager by inject()
 
     override suspend fun doWork(): Result {
+        // Jangan sync saat mode demo — tidak ada API service di DI graph
+        if (DEMO_MODE) return Result.success()
+
         // Safety check: ensure we have a tenant before attempting sync
         val tenantUuid = tokenManager.tenantUuid
             ?: return Result.failure()  // Can't sync without tenant context

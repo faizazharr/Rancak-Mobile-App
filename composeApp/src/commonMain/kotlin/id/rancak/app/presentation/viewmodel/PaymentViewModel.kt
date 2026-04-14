@@ -41,7 +41,14 @@ class PaymentViewModel(
         orderType: OrderType,
         tableUuid: String?,
         customerName: String?,
-        note: String?
+        note: String?,
+        pax: Int = 1,
+        discount: Long = 0,
+        tax: Long = 0,
+        adminFee: Long = 0,
+        deliveryFee: Long = 0,
+        tip: Long = 0,
+        voucherCode: String? = null
     ) {
         val state = _uiState.value
         if (state.paidAmountLong <= 0 && state.selectedMethod == PaymentMethod.CASH) {
@@ -52,14 +59,21 @@ class PaymentViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
             when (val result = saleRepository.createSale(
-                items = items,
+                items         = items,
                 paymentMethod = state.selectedMethod,
-                paidAmount = state.paidAmountLong,
-                orderType = orderType,
-                tableUuid = tableUuid,
-                customerName = customerName?.takeIf { it.isNotBlank() },
-                note = note?.takeIf { it.isNotBlank() },
-                hold = false
+                paidAmount    = state.paidAmountLong,
+                orderType     = orderType,
+                tableUuid     = tableUuid,
+                customerName  = customerName?.takeIf { it.isNotBlank() },
+                note          = note?.takeIf { it.isNotBlank() },
+                hold          = false,
+                pax           = pax,
+                discount      = discount,
+                tax           = tax,
+                adminFee      = adminFee,
+                deliveryFee   = deliveryFee,
+                tip           = tip,
+                voucherCode   = voucherCode?.takeIf { it.isNotBlank() }
             )) {
                 is Resource.Success -> {
                     _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
@@ -74,5 +88,9 @@ class PaymentViewModel(
 
     fun reset() {
         _uiState.value = PaymentUiState()
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 }

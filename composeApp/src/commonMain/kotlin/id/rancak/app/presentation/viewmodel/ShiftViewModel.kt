@@ -103,4 +103,8 @@ class ShiftViewModel(
             }
         }
     }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
+    }
 }

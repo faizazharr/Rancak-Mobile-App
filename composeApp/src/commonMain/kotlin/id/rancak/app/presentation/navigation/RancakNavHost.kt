@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -15,7 +16,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import id.rancak.app.domain.repository.AuthRepository
 import id.rancak.app.presentation.ui.auth.LoginScreen
+import org.koin.compose.koinInject
 import id.rancak.app.presentation.ui.auth.TenantPickerScreen
 import id.rancak.app.presentation.ui.cart.CartScreen
 import id.rancak.app.presentation.ui.finance.CashExpenseScreen
@@ -42,6 +45,7 @@ fun RancakNavHost() {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val scope = rememberCoroutineScope()
+    val authRepository: AuthRepository = koinInject()
 
     val drawerItems = remember {
         listOf(
@@ -67,25 +71,54 @@ fun RancakNavHost() {
             drawerContent = {
                 ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
                     Spacer(Modifier.height(24.dp))
+
+                    // ── Header: brand + outlet aktif ──────────────────────
                     Surface(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                         shape = MaterialTheme.shapes.large,
                         color = MaterialTheme.colorScheme.primaryContainer
                     ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
+                        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                             Text(
-                                "Rancak POS",
+                                "Rancak",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                            Text(
-                                "Point of Sale",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                            )
+                            val activeTenantName = authRepository.getCurrentTenantName()
+                            if (activeTenantName != null) {
+                                Spacer(Modifier.height(6.dp))
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Store,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        activeTenantName,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    "Point of Sale",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                )
+                            }
                         }
                     }
+
                     Spacer(Modifier.height(16.dp))
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     Spacer(Modifier.height(8.dp))
@@ -99,9 +132,7 @@ fun RancakNavHost() {
                                 navController.navigate(item.screen) {
                                     launchSingleTop = true
                                 }
-                                scope.launch {
-                                    drawerState.close()
-                                }
+                                scope.launch { drawerState.close() }
                             },
                             modifier = Modifier.padding(horizontal = 12.dp)
                         )
@@ -110,11 +141,29 @@ fun RancakNavHost() {
                     Spacer(Modifier.weight(1f))
 
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    Spacer(Modifier.height(4.dp))
+
+                    // ── Ganti Outlet ───────────────────────────────────────
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Store, contentDescription = null) },
+                        label = { Text("Ganti Outlet") },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            navController.navigate(Screen.TenantPicker) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        },
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+
+                    // ── Keluar ─────────────────────────────────────────────
                     NavigationDrawerItem(
                         icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
                         label = { Text("Keluar") },
                         selected = false,
                         onClick = {
+                            scope.launch { drawerState.close() }
                             navController.navigate(Screen.Login) {
                                 popUpTo(0) { inclusive = true }
                             }
@@ -167,7 +216,15 @@ private fun NavigationContent(
         composable<Screen.Pos> {
             PosScreen(
                 onCartClick = { navController.navigate(Screen.Cart) },
-                onMenuClick = onMenuClick
+                onCheckoutClick = {
+                    navController.navigate(Screen.Payment) {
+                        launchSingleTop = true
+                    }
+                },
+                onMenuClick = onMenuClick,
+                onSaveClick = {
+                    // TODO: implement hold/save order when backend ready
+                }
             )
         }
 

@@ -11,7 +11,16 @@ interface SaleRepository {
         tableUuid: String?,
         customerName: String?,
         note: String?,
-        hold: Boolean
+        hold: Boolean,
+        // ── Info tamu ──────────────────────────────
+        pax: Int = 1,
+        // ── Komponen biaya (kalkulasi dari frontend) ──
+        discount: Long = 0,
+        tax: Long = 0,
+        adminFee: Long = 0,
+        deliveryFee: Long = 0,
+        tip: Long = 0,
+        voucherCode: String? = null
     ): Resource<Sale>
 
     suspend fun getSales(dateFrom: String? = null, dateTo: String? = null): Resource<List<Sale>>

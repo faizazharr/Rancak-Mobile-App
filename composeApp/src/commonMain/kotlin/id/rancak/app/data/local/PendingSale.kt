@@ -22,8 +22,17 @@ data class PendingSale(
     val orderType: String,
     val tableUuid: String? = null,
     val customerName: String? = null,
+    /** Jumlah tamu. Default 1. */
+    val pax: Int = 1,
     val note: String? = null,
     val hold: Boolean = false,
+    // ── Komponen biaya ────────────────────────────────────────────────────
+    val discount: Long = 0,
+    val tax: Long = 0,
+    val adminFee: Long = 0,
+    val deliveryFee: Long = 0,
+    val tip: Long = 0,
+    val voucherCode: String? = null,
     /** ISO-8601 timestamp of when the sale was created on the device. */
     val deviceCreatedAt: String,
     /** Unique identifier of the device (e.g. Android ID or UUID stored in settings). */
@@ -57,5 +66,17 @@ fun PendingSale.toBatchItem() = BatchSaleItem(
         )
     },
     paymentMethod = paymentMethod,
-    paidAmount    = paidAmount
+    paidAmount    = paidAmount,
+    orderType     = orderType,
+    customerName  = customerName,
+    pax           = pax.takeIf { it > 1 },
+    note          = note,
+    hold          = hold.takeIf { it },
+    discount      = discount.takeIf { it > 0 },
+    tax           = tax.takeIf { it > 0 },
+    adminFee      = adminFee.takeIf { it > 0 },
+    deliveryFee   = deliveryFee.takeIf { it > 0 },
+    tip           = tip.takeIf { it > 0 },
+    voucherCode   = voucherCode,
+    tableUuid     = tableUuid
 )

@@ -14,11 +14,28 @@ data class CartUiState(
     val orderType: OrderType = OrderType.DINE_IN,
     val tableUuid: String? = null,
     val customerName: String = "",
-    val note: String = ""
+    val note: String = "",
+    val pax: Int = 1,
+    // ── Komponen biaya (dihitung di frontend) ────────────────────────────
+    /** Diskon nominal keseluruhan (Rp). */
+    val discount: Long = 0,
+    /** PPN/pajak nominal. 0 = tidak ada pajak. */
+    val tax: Long = 0,
+    /** Biaya admin (mis. biaya platform/grab, dll). */
+    val adminFee: Long = 0,
+    /** Ongkos kirim (hanya relevan saat orderType = DELIVERY). */
+    val deliveryFee: Long = 0,
+    /** Tip opsional dari pelanggan. */
+    val tip: Long = 0,
+    /** Kode voucher/promo yang diaplikasikan (validasi di backend). */
+    val voucherCode: String = ""
 ) {
     val subtotal: Long get() = items.sumOf { it.subtotal }
     val itemCount: Int get() = items.sumOf { it.qty }
     val isEmpty: Boolean get() = items.isEmpty()
+
+    /** Total akhir yang harus dibayar pelanggan. */
+    val total: Long get() = subtotal - discount + tax + adminFee + deliveryFee + tip
 }
 
 class CartViewModel : ViewModel() {
@@ -96,6 +113,34 @@ class CartViewModel : ViewModel() {
 
     fun setNote(note: String) {
         _uiState.update { it.copy(note = note) }
+    }
+
+    fun setPax(pax: Int) {
+        if (pax >= 1) _uiState.update { it.copy(pax = pax) }
+    }
+
+    fun setDiscount(discount: Long) {
+        _uiState.update { it.copy(discount = discount.coerceAtLeast(0L)) }
+    }
+
+    fun setTax(tax: Long) {
+        _uiState.update { it.copy(tax = tax.coerceAtLeast(0L)) }
+    }
+
+    fun setAdminFee(adminFee: Long) {
+        _uiState.update { it.copy(adminFee = adminFee.coerceAtLeast(0L)) }
+    }
+
+    fun setDeliveryFee(deliveryFee: Long) {
+        _uiState.update { it.copy(deliveryFee = deliveryFee.coerceAtLeast(0L)) }
+    }
+
+    fun setTip(tip: Long) {
+        _uiState.update { it.copy(tip = tip.coerceAtLeast(0L)) }
+    }
+
+    fun setVoucherCode(code: String) {
+        _uiState.update { it.copy(voucherCode = code) }
     }
 
     fun clearCart() {

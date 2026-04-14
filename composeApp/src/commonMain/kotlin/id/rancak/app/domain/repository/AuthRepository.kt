@@ -10,5 +10,6 @@ interface AuthRepository {
     suspend fun getMe(): Resource<User>
     fun isLoggedIn(): Boolean
     fun getCurrentTenantUuid(): String?
-    fun setTenant(uuid: String)
+    fun getCurrentTenantName(): String?
+    fun setTenant(uuid: String, name: String)
 }

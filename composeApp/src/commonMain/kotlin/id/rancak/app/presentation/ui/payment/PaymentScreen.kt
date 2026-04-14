@@ -26,6 +26,7 @@ import id.rancak.app.data.printing.toReceiptData
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.presentation.components.*
+import androidx.compose.ui.zIndex
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartViewModel
@@ -59,6 +60,17 @@ fun PaymentScreen(
             )
         }
     ) { padding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+        // ── Error banner ───────────────────────────────────────────────────
+        ErrorBanner(
+            error = paymentState.error,
+            onDismiss = paymentViewModel::clearError,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .zIndex(10f)
+        )
+
         if (paymentState.completedSale != null) {
             // ── Success State ──────────────────────────────────────────────────
             PaymentSuccessContent(
@@ -189,40 +201,32 @@ fun PaymentScreen(
                 }
 
                 // Error
-                if (paymentState.error != null) {
-                    Spacer(Modifier.height(8.dp))
-                    Surface(
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        shape = MaterialTheme.shapes.small,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = paymentState.error!!,
-                            modifier = Modifier.padding(8.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    }
-                }
-
                 Spacer(Modifier.height(20.dp))
 
                 RancakButton(
                     text = "Proses Pembayaran",
                     onClick = {
                         paymentViewModel.processPayment(
-                            items = cartState.items,
-                            orderType = cartState.orderType,
-                            tableUuid = cartState.tableUuid,
+                            items        = cartState.items,
+                            orderType    = cartState.orderType,
+                            tableUuid    = cartState.tableUuid,
                             customerName = cartState.customerName,
-                            note = cartState.note
+                            note         = cartState.note,
+                            pax          = cartState.pax,
+                            discount     = cartState.discount,
+                            tax          = cartState.tax,
+                            adminFee     = cartState.adminFee,
+                            deliveryFee  = cartState.deliveryFee,
+                            tip          = cartState.tip,
+                            voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
                         )
                     },
                     isLoading = paymentState.isProcessing,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-        }
+        } // end else
+        } // end Box
     }
 }
 

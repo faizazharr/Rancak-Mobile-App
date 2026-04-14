@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
@@ -42,8 +43,19 @@ fun ShiftScreen(
             )
         }
     ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        // ── Error banner ───────────────────────────────────────────────────
+        ErrorBanner(
+            error = uiState.error,
+            onDismiss = viewModel::clearError,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .zIndex(10f)
+        )
+
         when {
-            uiState.isLoading -> LoadingScreen(modifier = Modifier.padding(padding))
+            uiState.isLoading -> LoadingScreen()
             uiState.currentShift != null -> {
                 // Active Shift - Show close shift UI
                 Column(
@@ -151,15 +163,6 @@ fun ShiftScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    if (uiState.error != null) {
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            uiState.error!!,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-
                     Spacer(Modifier.height(24.dp))
 
                     RancakButton(
@@ -170,7 +173,8 @@ fun ShiftScreen(
                     )
                 }
             }
-        }
+        } // end when
+        } // end Box
     }
 }
 

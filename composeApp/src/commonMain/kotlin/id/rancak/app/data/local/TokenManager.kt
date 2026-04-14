@@ -25,14 +25,18 @@ class TokenManager {
     val tenantUuid: String?
         get() = settings.getStringOrNull(KEY_TENANT_UUID)
 
+    val tenantName: String?
+        get() = settings.getStringOrNull(KEY_TENANT_NAME)
+
     fun saveTokens(accessToken: String, refreshToken: String) {
         _accessToken.value = accessToken
         settings[KEY_ACCESS_TOKEN] = accessToken
         settings[KEY_REFRESH_TOKEN] = refreshToken
     }
 
-    fun setTenant(uuid: String) {
+    fun setTenant(uuid: String, name: String) {
         settings[KEY_TENANT_UUID] = uuid
+        settings[KEY_TENANT_NAME] = name
     }
 
     fun clear() {
@@ -40,6 +44,7 @@ class TokenManager {
         settings.remove(KEY_ACCESS_TOKEN)
         settings.remove(KEY_REFRESH_TOKEN)
         settings.remove(KEY_TENANT_UUID)
+        settings.remove(KEY_TENANT_NAME)
     }
 
     /**
@@ -65,6 +70,7 @@ class TokenManager {
         private const val KEY_ACCESS_TOKEN  = "rancak_access_token"
         private const val KEY_REFRESH_TOKEN = "rancak_refresh_token"
         private const val KEY_TENANT_UUID   = "rancak_tenant_uuid"
+        private const val KEY_TENANT_NAME   = "rancak_tenant_name"
         private const val KEY_DEVICE_ID     = "rancak_device_id"
     }
 }

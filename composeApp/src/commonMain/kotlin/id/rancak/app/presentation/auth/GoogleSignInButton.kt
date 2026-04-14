@@ -104,38 +104,52 @@ internal fun GoogleSignInButtonContent(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Google "G" logo — canvas 4-warna
+// Google "G" logo — canvas 4-warna (proporsi resmi)
 // ─────────────────────────────────────────────────────────────────────────────
+//
+// Sudut (Android Canvas: 0° = jam 3, makin besar = searah jarum jam)
+//
+//  GAP (celah kanan) : -23° → +23°  (46°, center di 0°)
+//  Biru  (#4285F4)   :  23° →  73°  (sweep 50°)  — kanan turun
+//  Hijau (#34A853)   :  73° → 138°  (sweep 65°)  — bawah kanan
+//  Kuning(#FBBC05)   : 138° → 195°  (sweep 57°)  — bawah kiri
+//  Merah (#EA4335)   : 195° → 337°  (sweep 142°) — kiri & atas
+//  Total arc          : 314°  +  gap 46°  = 360° ✓
 
 @Composable
 private fun GoogleGLogo(size: Dp = 22.dp) {
     Canvas(modifier = Modifier.size(size)) {
-        val s   = this.size.minDimension
-        val sw  = s * 0.16f                    // stroke width
-        val r   = (s - sw) / 2                 // radius (inside stroke)
-        val cx  = s / 2f
-        val cy  = s / 2f
-        val tl  = Offset(cx - r, cy - r)
-        val sz  = Size(r * 2, r * 2)
+        val s  = this.size.minDimension
+        val sw = s * 0.155f                 // tebal stroke
+        val r  = (s - sw) / 2f             // jari-jari (ke tengah stroke)
+        val cx = s / 2f
+        val cy = s / 2f
+        val tl = Offset(cx - r, cy - r)
+        val sz = Size(r * 2f, r * 2f)
 
         fun arc(color: Color, start: Float, sweep: Float) = drawArc(
-            color = color, startAngle = start, sweepAngle = sweep,
-            useCenter = false,
-            topLeft = tl, size = sz,
-            style = Stroke(width = sw, cap = StrokeCap.Butt)
+            color      = color,
+            startAngle = start,
+            sweepAngle = sweep,
+            useCenter  = false,
+            topLeft    = tl,
+            size       = sz,
+            style      = Stroke(width = sw, cap = StrokeCap.Butt)
         )
 
-        // Urutan searah jarum jam dari kanan atas
-        arc(Color(0xFF4285F4), -30f,  90f)   // biru  — kanan bawah
-        arc(Color(0xFF34A853),  60f,  90f)   // hijau — bawah kanan
-        arc(Color(0xFFFBBC05), 150f,  70f)   // kuning— bawah kiri
-        arc(Color(0xFFEA4335), 220f, 110f)   // merah — kiri & atas
+        arc(Color(0xFF4285F4),  23f,  50f)   // Biru   — kanan turun
+        arc(Color(0xFF34A853),  73f,  65f)   // Hijau  — bawah kanan
+        arc(Color(0xFFFBBC05), 138f,  57f)   // Kuning — bawah kiri
+        arc(Color(0xFFEA4335), 195f, 142f)   // Merah  — kiri & atas
 
-        // Batang horizontal tengah (biru) — ciri khas huruf G
+        // Batang horizontal (biru) — mengisi celah di kanan
+        // Mulai dari ~40% jari-jari (dalam lubang G) sampai tepi luar lingkaran
+        val barX0 = cx + r * 0.38f
+        val barX1 = cx + r + sw * 0.5f
         drawLine(
-            color     = Color(0xFF4285F4),
-            start     = Offset(cx, cy),
-            end       = Offset(cx + r - sw * 0.4f, cy),
+            color       = Color(0xFF4285F4),
+            start       = Offset(barX0, cy),
+            end         = Offset(barX1, cy),
             strokeWidth = sw
         )
     }

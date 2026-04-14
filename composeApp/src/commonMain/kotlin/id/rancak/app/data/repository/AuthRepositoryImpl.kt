@@ -91,5 +91,7 @@ class AuthRepositoryImpl(
 
     override fun getCurrentTenantUuid(): String? = tokenManager.tenantUuid
 
-    override fun setTenant(uuid: String) = tokenManager.setTenant(uuid)
+    override fun getCurrentTenantName(): String? = tokenManager.tenantName
+
+    override fun setTenant(uuid: String, name: String) = tokenManager.setTenant(uuid, name)
 }

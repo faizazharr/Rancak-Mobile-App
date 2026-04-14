@@ -14,6 +14,8 @@ data class CreateSaleRequest(
     @SerialName("order_type") val orderType: String? = "dine_in",
     @SerialName("customer_name") val customerName: String? = null,
     @SerialName("table_uuid") val tableUuid: String? = null,
+    /** Jumlah tamu — digunakan sebagai label & info kapasitas meja */
+    val pax: Int? = null,
     val discount: Long? = null,
     val tax: Long? = null,
     val tip: Long? = null,
@@ -112,7 +114,19 @@ data class BatchSaleItem(
     @SerialName("device_id") val deviceId: String,
     val items: List<SaleItemRequest>,
     @SerialName("payment_method") val paymentMethod: String,
-    @SerialName("paid_amount") val paidAmount: Long
+    @SerialName("paid_amount") val paidAmount: Long,
+    @SerialName("order_type") val orderType: String? = null,
+    @SerialName("customer_name") val customerName: String? = null,
+    val pax: Int? = null,
+    val note: String? = null,
+    val hold: Boolean? = null,
+    val discount: Long? = null,
+    val tax: Long? = null,
+    @SerialName("admin_fee") val adminFee: Long? = null,
+    @SerialName("delivery_fee") val deliveryFee: Long? = null,
+    val tip: Long? = null,
+    @SerialName("voucher_code") val voucherCode: String? = null,
+    @SerialName("table_uuid") val tableUuid: String? = null
 )
 
 @Serializable

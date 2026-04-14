@@ -13,7 +13,7 @@ import id.rancak.app.domain.model.Sale
  * safely with [String.toIntOrNull], defaulting to 1 if parsing fails.
  */
 fun Sale.toReceiptData(
-    storeName: String = "Rancak POS",
+    storeName: String = "Rancak",
     storeAddress: String? = null,
     storePhone: String? = null,
     cashierName: String? = null,
