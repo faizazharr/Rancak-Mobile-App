@@ -174,6 +174,34 @@ class RancakApiService(private val client: HttpClient) {
     suspend fun getSaleReceipt(tenantUuid: String, saleUuid: String): ApiResponse<ReceiptDto> =
         client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/receipt").body()
 
+    /**
+     * Get pre-built ESC/POS cashier receipt bytes from server.
+     * Returns raw binary data ready to send to printer.
+     */
+    suspend fun getReceiptEscpos(tenantUuid: String, saleUuid: String): ByteArray =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.receiptEscpos(saleUuid)) {
+            accept(ContentType.Application.OctetStream)
+        }.body()
+
+    /**
+     * Get pre-built ESC/POS kitchen ticket (KOT) bytes from server.
+     * Returns raw binary data ready to send to kitchen printer.
+     */
+    suspend fun getReceiptKitchen(tenantUuid: String, saleUuid: String): ByteArray =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.receiptKitchen(saleUuid)) {
+            accept(ContentType.Application.OctetStream)
+        }.body()
+
+    /**
+     * Get combined KOT + cashier receipt bytes for single-printer mode.
+     * @param kotFirst true = KOT first then cashier, false = cashier first then KOT
+     */
+    suspend fun getReceiptCombined(tenantUuid: String, saleUuid: String, kotFirst: Boolean = true): ByteArray =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.receiptCombined(saleUuid)) {
+            accept(ContentType.Application.OctetStream)
+            parameter("kot_first", kotFirst)
+        }.body()
+
     // ── Sync ──
 
     suspend fun syncCatalog(tenantUuid: String, updatedAfter: String? = null): ApiResponse<CatalogSyncDto> =

@@ -17,9 +17,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.printing.EscPosBuilder
+import id.rancak.app.data.printing.PrintMode
 import id.rancak.app.data.printing.PrintResult
 import id.rancak.app.data.printing.PrinterManager
 import id.rancak.app.data.printing.toReceiptData
+import id.rancak.app.data.printing.toKitchenTicketData
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.presentation.components.*
@@ -29,6 +31,7 @@ import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -350,6 +353,23 @@ private fun PaymentSuccessContent(
 
 private enum class PrintDialogTab { BLUETOOTH, NETWORK }
 
+/**
+ * Sends [data] to a printer based on saved settings.
+ * Returns [PrintResult].
+ */
+private suspend fun sendToPrinter(
+    printerManager: PrinterManager,
+    type: String,
+    btAddress: String,
+    networkIp: String,
+    networkPort: Int,
+    data: ByteArray
+): PrintResult = if (type == SettingsStore.TYPE_BLUETOOTH) {
+    printerManager.printViaBluetooth(btAddress, data)
+} else {
+    printerManager.printViaNetwork(networkIp, networkPort, data)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PrintDialog(
@@ -360,13 +380,29 @@ private fun PrintDialog(
 ) {
     val scope = rememberCoroutineScope()
 
-    // Pre-load saved printer settings
+    // Read print mode
+    val printMode = PrintMode.from(settingsStore.printMode)
+
+    // Pre-load saved cashier printer settings
     val hasSavedPrinter = settingsStore.printerAddress.isNotBlank()
     val savedType = settingsStore.printerType
     val savedName = settingsStore.printerName
     val savedAddress = settingsStore.printerAddress
     val savedNetworkIp = settingsStore.networkPrinterIp
     val savedNetworkPort = settingsStore.networkPrinterPort
+
+    // Kitchen printer settings (for dual printer mode)
+    val hasKitchenPrinter = settingsStore.hasKitchenPrinter
+    val kitchenType = settingsStore.kitchenPrinterType
+    val kitchenAddress = settingsStore.kitchenPrinterAddress
+    val kitchenNetworkIp = settingsStore.kitchenNetworkPrinterIp
+    val kitchenNetworkPort = settingsStore.kitchenNetworkPrinterPort
+
+    // Receipt settings
+    val storeName = settingsStore.receiptStoreName.ifBlank { "Rancak" }
+    val storeAddress = settingsStore.receiptStoreAddress.ifBlank { null }
+    val storePhone = settingsStore.receiptStorePhone.ifBlank { null }
+    val footerText = settingsStore.receiptFooter.ifBlank { null }
 
     var selectedTab by remember {
         mutableStateOf(
@@ -378,6 +414,72 @@ private fun PrintDialog(
     var isPrinting by remember { mutableStateOf(false) }
     var printResult by remember { mutableStateOf<PrintResult?>(null) }
 
+    /**
+     * Executes print based on the current [PrintMode].
+     * - RECEIPT_ONLY: cashier receipt only
+     * - SINGLE_KOT_FIRST / SINGLE_RECEIPT_FIRST: combined bytes to one printer
+     * - DUAL_PRINTER: cashier receipt to cashier printer + KOT to kitchen printer in parallel
+     */
+    suspend fun executePrint(
+        cashierType: String,
+        cashierBtAddr: String,
+        cashierNetIp: String,
+        cashierNetPort: Int
+    ): PrintResult {
+        val receiptData = sale.toReceiptData(
+            storeName = storeName,
+            storeAddress = storeAddress,
+            storePhone = storePhone,
+            footerText = footerText
+        )
+
+        return when (printMode) {
+            PrintMode.RECEIPT_ONLY -> {
+                val bytes = EscPosBuilder.buildReceipt(receiptData)
+                sendToPrinter(printerManager, cashierType, cashierBtAddr, cashierNetIp, cashierNetPort, bytes)
+            }
+
+            PrintMode.SINGLE_KOT_FIRST, PrintMode.SINGLE_RECEIPT_FIRST -> {
+                val kitchenData = sale.toKitchenTicketData(storeName = storeName)
+                val kotFirst = printMode == PrintMode.SINGLE_KOT_FIRST
+                val bytes = EscPosBuilder.buildCombinedReceipt(receiptData, kitchenData, kotFirst)
+                sendToPrinter(printerManager, cashierType, cashierBtAddr, cashierNetIp, cashierNetPort, bytes)
+            }
+
+            PrintMode.DUAL_PRINTER -> {
+                val receiptBytes = EscPosBuilder.buildReceipt(receiptData)
+                val kitchenData = sale.toKitchenTicketData(storeName = storeName)
+                val kotBytes = EscPosBuilder.buildKitchenTicket(kitchenData)
+
+                // Print cashier receipt to cashier printer
+                val cashierDeferred = scope.async {
+                    sendToPrinter(printerManager, cashierType, cashierBtAddr, cashierNetIp, cashierNetPort, receiptBytes)
+                }
+
+                // Print KOT to kitchen printer (if configured)
+                val kitchenDeferred = if (hasKitchenPrinter) {
+                    scope.async {
+                        sendToPrinter(
+                            printerManager, kitchenType, kitchenAddress,
+                            kitchenNetworkIp, kitchenNetworkPort, kotBytes
+                        )
+                    }
+                } else null
+
+                val cashierResult = cashierDeferred.await()
+                val kitchenResult = kitchenDeferred?.await()
+
+                // Report result — prioritize errors
+                when {
+                    cashierResult is PrintResult.Error -> cashierResult
+                    kitchenResult is PrintResult.Error ->
+                        PrintResult.Error("Struk kasir berhasil, tapi gagal cetak KOT dapur: ${kitchenResult.message}")
+                    else -> PrintResult.Success
+                }
+            }
+        }
+    }
+
     // If saved printer is set, auto-print immediately when dialog opens
     var autoPrintAttempted by remember { mutableStateOf(false) }
     LaunchedEffect(hasSavedPrinter) {
@@ -385,12 +487,7 @@ private fun PrintDialog(
             autoPrintAttempted = true
             isPrinting = true
             printResult = null
-            val bytes = EscPosBuilder.buildReceipt(sale.toReceiptData())
-            printResult = if (savedType == SettingsStore.TYPE_BLUETOOTH) {
-                printerManager.printViaBluetooth(savedAddress, bytes)
-            } else {
-                printerManager.printViaNetwork(savedNetworkIp, savedNetworkPort, bytes)
-            }
+            printResult = executePrint(savedType, savedAddress, savedNetworkIp, savedNetworkPort)
             isPrinting = false
         }
     }
@@ -401,6 +498,22 @@ private fun PrintDialog(
         title = { Text("Cetak Struk") },
         text = {
             Column {
+                // Print mode indicator
+                val modeLabel = when (printMode) {
+                    PrintMode.RECEIPT_ONLY -> null
+                    PrintMode.DUAL_PRINTER -> "Mode: Dua Printer (Kasir + Dapur)"
+                    PrintMode.SINGLE_KOT_FIRST -> "Mode: Satu Printer (KOT dulu)"
+                    PrintMode.SINGLE_RECEIPT_FIRST -> "Mode: Satu Printer (Struk dulu)"
+                }
+                if (modeLabel != null) {
+                    Text(
+                        modeLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+
                 // Show saved printer info
                 if (hasSavedPrinter) {
                     Surface(
@@ -427,15 +540,79 @@ private fun PrintDialog(
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    "Printer tersimpan dari Pengaturan",
+                                    if (printMode == PrintMode.DUAL_PRINTER) "Printer kasir"
+                                    else "Printer tersimpan dari Pengaturan",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(4.dp))
                 }
+
+                // Show kitchen printer info (dual mode)
+                if (printMode == PrintMode.DUAL_PRINTER && hasKitchenPrinter) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                if (kitchenType == SettingsStore.TYPE_BLUETOOTH) Icons.Default.Bluetooth
+                                else Icons.Default.Wifi,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    settingsStore.kitchenPrinterName.ifBlank { kitchenAddress },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    "Printer dapur (KOT)",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                } else if (printMode == PrintMode.DUAL_PRINTER && !hasKitchenPrinter) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Printer dapur belum diatur. KOT tidak akan dicetak.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                }
+
+                Spacer(Modifier.height(8.dp))
 
                 // Manual fallback: tab selector (only when no saved printer OR user wants to retry)
                 if (!hasSavedPrinter || (printResult is PrintResult.Error)) {
@@ -571,7 +748,7 @@ private fun PrintDialog(
         confirmButton = {
             // Retry / manual print button
             val canPrint = !isPrinting && when {
-                hasSavedPrinter && printResult !is PrintResult.Error -> true // retry with saved
+                hasSavedPrinter && printResult !is PrintResult.Error -> true
                 selectedTab == PrintDialogTab.NETWORK -> networkIp.isNotBlank()
                 else -> false
             }
@@ -585,14 +762,11 @@ private fun PrintDialog(
                     scope.launch {
                         isPrinting = true
                         printResult = null
-                        val bytes = EscPosBuilder.buildReceipt(sale.toReceiptData())
                         printResult = when {
-                            hasSavedPrinter && savedType == SettingsStore.TYPE_BLUETOOTH ->
-                                printerManager.printViaBluetooth(savedAddress, bytes)
-                            hasSavedPrinter && savedType == SettingsStore.TYPE_NETWORK ->
-                                printerManager.printViaNetwork(savedNetworkIp, savedNetworkPort, bytes)
+                            hasSavedPrinter ->
+                                executePrint(savedType, savedAddress, savedNetworkIp, savedNetworkPort)
                             selectedTab == PrintDialogTab.NETWORK ->
-                                printerManager.printViaNetwork(networkIp.trim(), data = bytes)
+                                executePrint(SettingsStore.TYPE_NETWORK, "", networkIp.trim(), 9100)
                             else ->
                                 PrintResult.Error("Pilih printer terlebih dahulu di Pengaturan")
                         }

@@ -13,10 +13,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class OrderBoardUiState(
-    val orders: List<Sale> = emptyList(),
+    val activeOrders: List<Sale> = emptyList(),
+    val completedOrders: List<Sale> = emptyList(),
+    val showCompleted: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null
-)
+) {
+    val displayOrders: List<Sale>
+        get() = if (showCompleted) completedOrders else activeOrders
+}
 
 class OrderBoardViewModel(
     private val saleRepository: SaleRepository
@@ -25,13 +30,24 @@ class OrderBoardViewModel(
     private val _uiState = MutableStateFlow(OrderBoardUiState())
     val uiState: StateFlow<OrderBoardUiState> = _uiState.asStateFlow()
 
+    fun toggleTab(showCompleted: Boolean) {
+        _uiState.update { it.copy(showCompleted = showCompleted) }
+    }
+
     fun loadOrders() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             when (val result = saleRepository.getSales()) {
                 is Resource.Success -> {
                     val active = result.data.filter { it.status == SaleStatus.HELD || it.status == SaleStatus.SERVED }
-                    _uiState.update { it.copy(orders = active, isLoading = false) }
+                    val completed = result.data.filter { it.status == SaleStatus.PAID }
+                    _uiState.update {
+                        it.copy(
+                            activeOrders = active,
+                            completedOrders = completed,
+                            isLoading = false
+                        )
+                    }
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(error = result.message, isLoading = false) }

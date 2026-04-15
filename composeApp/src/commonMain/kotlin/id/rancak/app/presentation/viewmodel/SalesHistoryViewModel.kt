@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 
 data class SalesHistoryUiState(
     val sales: List<Sale> = emptyList(),
+    val selectedSale: Sale? = null,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -23,6 +24,10 @@ class SalesHistoryViewModel(
 
     private val _uiState = MutableStateFlow(SalesHistoryUiState())
     val uiState: StateFlow<SalesHistoryUiState> = _uiState.asStateFlow()
+
+    fun selectSale(sale: Sale?) {
+        _uiState.update { it.copy(selectedSale = sale) }
+    }
 
     fun loadSales() {
         viewModelScope.launch {

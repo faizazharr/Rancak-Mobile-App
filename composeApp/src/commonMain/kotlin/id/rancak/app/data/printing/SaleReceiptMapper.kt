@@ -17,7 +17,8 @@ fun Sale.toReceiptData(
     storeAddress: String? = null,
     storePhone: String? = null,
     cashierName: String? = null,
-    tableName: String? = null
+    tableName: String? = null,
+    footerText: String? = null
 ): ReceiptData = ReceiptData(
     storeName     = storeName,
     storeAddress  = storeAddress,
@@ -44,5 +45,37 @@ fun Sale.toReceiptData(
     total         = total,
     paymentMethod = paymentMethod?.value,
     paidAmount    = paidAmount,
-    changeAmount  = changeAmount
+    changeAmount  = changeAmount,
+    footerText    = footerText
+)
+
+/**
+ * Maps a [Sale] domain model to [KitchenTicketData] for KOT printing.
+ *
+ * KOT contains no prices — only item names, quantities, notes,
+ * table/queue info, and order metadata for kitchen staff.
+ */
+fun Sale.toKitchenTicketData(
+    storeName: String = "Rancak",
+    cashierName: String? = null,
+    tableName: String? = null,
+    customerName: String? = null
+): KitchenTicketData = KitchenTicketData(
+    storeName     = storeName,
+    invoiceNo     = invoiceNo ?: uuid.take(8).uppercase(),
+    orderType     = orderType.value,
+    tableName     = tableName,
+    queueNumber   = queueNumber,
+    customerName  = customerName,
+    cashierName   = cashierName,
+    createdAt     = createdAt.orEmpty(),
+    items         = items.map { item ->
+        KitchenTicketItem(
+            name = if (!item.variantName.isNullOrBlank())
+                "${item.productName} (${item.variantName})"
+            else item.productName,
+            qty  = item.qty.toIntOrNull() ?: 1,
+            note = item.note
+        )
+    }
 )

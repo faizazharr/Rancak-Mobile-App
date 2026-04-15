@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import id.rancak.app.data.local.SettingsStore
+import id.rancak.app.data.printing.PrintMode
 import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.presentation.components.rememberRequestBluetoothPermission
 import id.rancak.app.presentation.viewmodel.SettingsUiState
@@ -49,6 +50,13 @@ fun SettingsScreen(
         onNetworkPort = viewModel::setNetworkPort,
         onSaveNetwork = viewModel::saveNetworkPrinter,
         onTestPrint = viewModel::testPrint,
+        onPrintMode = viewModel::setPrintMode,
+        onKitchenPrinterType = viewModel::setKitchenPrinterType,
+        onSelectKitchenPrinter = viewModel::selectKitchenBluetoothPrinter,
+        onDisconnectKitchen = viewModel::disconnectKitchenPrinter,
+        onKitchenNetworkIp = viewModel::setKitchenNetworkIp,
+        onKitchenNetworkPort = viewModel::setKitchenNetworkPort,
+        onSaveKitchenNetwork = viewModel::saveKitchenNetworkPrinter,
         onStoreName = viewModel::setStoreName,
         onStoreAddress = viewModel::setStoreAddress,
         onStorePhone = viewModel::setStorePhone,
@@ -72,6 +80,13 @@ fun SettingsScreenContent(
     onNetworkPort: (String) -> Unit = {},
     onSaveNetwork: () -> Unit = {},
     onTestPrint: () -> Unit = {},
+    onPrintMode: (PrintMode) -> Unit = {},
+    onKitchenPrinterType: (String) -> Unit = {},
+    onSelectKitchenPrinter: (PrinterDevice) -> Unit = {},
+    onDisconnectKitchen: () -> Unit = {},
+    onKitchenNetworkIp: (String) -> Unit = {},
+    onKitchenNetworkPort: (String) -> Unit = {},
+    onSaveKitchenNetwork: () -> Unit = {},
     onStoreName: (String) -> Unit = {},
     onStoreAddress: (String) -> Unit = {},
     onStorePhone: (String) -> Unit = {},
@@ -185,6 +200,71 @@ fun SettingsScreenContent(
                         onPortChange = onNetworkPort,
                         onSave = onSaveNetwork
                     )
+                }
+            }
+
+            // ── Print Mode Section ───────────────────────────────────────
+            item { Spacer(Modifier.height(8.dp)) }
+            item { SectionHeader(icon = Icons.Default.Tune, title = "Mode Cetak") }
+            item {
+                PrintModeSection(
+                    printMode = uiState.printMode,
+                    onPrintMode = onPrintMode
+                )
+            }
+
+            // ── Kitchen Printer Section (visible for dual/single-KOT modes) ──
+            if (uiState.printMode != PrintMode.RECEIPT_ONLY) {
+                item { Spacer(Modifier.height(8.dp)) }
+                item { SectionHeader(icon = Icons.Default.Restaurant, title = "Printer Dapur") }
+
+                if (uiState.hasKitchenPrinter) {
+                    item {
+                        SavedPrinterCard(
+                            name = uiState.kitchenPrinterName,
+                            address = uiState.kitchenPrinterAddress,
+                            type = uiState.kitchenPrinterType,
+                            isPrinting = false,
+                            isConnected = false,
+                            onTestPrint = onTestPrint,
+                            onDisconnect = onDisconnectKitchen,
+                            label = "Printer Dapur (KOT)"
+                        )
+                    }
+                }
+
+                item {
+                    PrinterTypeSelector(
+                        selected = uiState.kitchenPrinterType,
+                        onSelect = onKitchenPrinterType
+                    )
+                }
+
+                if (uiState.kitchenPrinterType == SettingsStore.TYPE_BLUETOOTH) {
+                    item {
+                        BluetoothSection(
+                            printers = uiState.discoveredPrinters,
+                            isScanning = uiState.isScanning,
+                            isConnecting = uiState.isConnecting,
+                            savedAddress = uiState.kitchenPrinterAddress,
+                            hasScannedOnce = uiState.hasScannedOnce,
+                            isBluetoothOn = uiState.isBluetoothOn,
+                            onScan = requestBluetoothPermission,
+                            onSelect = onSelectKitchenPrinter
+                        )
+                    }
+                }
+
+                if (uiState.kitchenPrinterType == SettingsStore.TYPE_NETWORK) {
+                    item {
+                        NetworkSection(
+                            ip = uiState.kitchenNetworkIp,
+                            port = uiState.kitchenNetworkPort,
+                            onIpChange = onKitchenNetworkIp,
+                            onPortChange = onKitchenNetworkPort,
+                            onSave = onSaveKitchenNetwork
+                        )
+                    }
                 }
             }
 
@@ -348,7 +428,8 @@ private fun SavedPrinterCard(
     isPrinting: Boolean,
     isConnected: Boolean,
     onTestPrint: () -> Unit,
-    onDisconnect: () -> Unit
+    onDisconnect: () -> Unit,
+    label: String? = null
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -357,6 +438,15 @@ private fun SavedPrinterCard(
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            if (label != null) {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -690,6 +780,68 @@ private fun NetworkSection(
             )
             Button(onClick = onSave, modifier = Modifier.fillMaxWidth()) {
                 Text("Simpan Printer Jaringan")
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Print Mode Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun PrintModeSection(
+    printMode: PrintMode,
+    onPrintMode: (PrintMode) -> Unit
+) {
+    val modes = listOf(
+        PrintMode.RECEIPT_ONLY to ("Struk Kasir Saja" to "Hanya cetak struk kasir, tanpa KOT dapur"),
+        PrintMode.DUAL_PRINTER to ("Dua Printer" to "Struk kasir ke printer kasir, KOT ke printer dapur secara bersamaan"),
+        PrintMode.SINGLE_KOT_FIRST to ("Satu Printer — KOT Dulu" to "Cetak KOT dapur dulu, lalu struk kasir (satu printer)"),
+        PrintMode.SINGLE_RECEIPT_FIRST to ("Satu Printer — Struk Dulu" to "Cetak struk kasir dulu, lalu KOT dapur (satu printer)")
+    )
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                "Pilih bagaimana struk dan tiket dapur dicetak setelah pembayaran.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            modes.forEach { (mode, labelAndDesc) ->
+                val (label, desc) = labelAndDesc
+                Surface(
+                    onClick = { onPrintMode(mode) },
+                    shape = MaterialTheme.shapes.medium,
+                    color = if (printMode == mode)
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = printMode == mode,
+                            onClick = { onPrintMode(mode) }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                desc,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
         }
     }

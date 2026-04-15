@@ -13,10 +13,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class KdsUiState(
-    val orders: List<KdsOrder> = emptyList(),
+    val activeOrders: List<KdsOrder> = emptyList(),
+    val completedOrders: List<KdsOrder> = emptyList(),
+    val showCompleted: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null
-)
+) {
+    val displayOrders: List<KdsOrder>
+        get() = if (showCompleted) completedOrders else activeOrders
+}
 
 class KdsViewModel(
     private val operationsRepository: OperationsRepository
@@ -25,12 +30,24 @@ class KdsViewModel(
     private val _uiState = MutableStateFlow(KdsUiState())
     val uiState: StateFlow<KdsUiState> = _uiState.asStateFlow()
 
+    fun toggleTab(showCompleted: Boolean) {
+        _uiState.update { it.copy(showCompleted = showCompleted) }
+    }
+
     fun loadOrders() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             when (val result = operationsRepository.getKdsOrders()) {
                 is Resource.Success -> {
-                    _uiState.update { it.copy(orders = result.data, isLoading = false) }
+                    val active = result.data.filter { it.status != KdsStatus.DONE }
+                    val completed = result.data.filter { it.status == KdsStatus.DONE }
+                    _uiState.update {
+                        it.copy(
+                            activeOrders = active,
+                            completedOrders = completed,
+                            isLoading = false
+                        )
+                    }
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(error = result.message, isLoading = false) }

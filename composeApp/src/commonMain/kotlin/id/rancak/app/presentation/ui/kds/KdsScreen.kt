@@ -1,24 +1,87 @@
 package id.rancak.app.presentation.ui.kds
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.*
 import id.rancak.app.presentation.components.*
-import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.KdsViewModel
-import androidx.compose.ui.tooling.preview.Preview
+import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Color helpers — age-based header colors like SimpleKDS
+// ─────────────────────────────────────────────────────────────────────────────
+
+private val KdsGreen  = Color(0xFF4CAF50)
+private val KdsYellow = Color(0xFFF9A825)
+private val KdsOrange = Color(0xFFFF9800)
+private val KdsRed    = Color(0xFFD32F2F)
+
+private fun headerColorForAge(minutes: Long): Color = when {
+    minutes < 3  -> KdsGreen
+    minutes < 5  -> KdsYellow
+    minutes < 8  -> KdsOrange
+    else          -> KdsRed
+}
+
+@Composable
+private fun rememberElapsed(createdAt: String?): Pair<String, Long> {
+    val nowMillis = remember { Clock.System.now().toEpochMilliseconds() }
+    if (createdAt.isNullOrBlank()) return "" to 0L
+    return remember(createdAt) {
+        try {
+            val cleaned = createdAt
+                .replace("T", " ")
+                .take(19) // "yyyy-MM-dd HH:mm:ss"
+            val parts = cleaned.split(" ")
+            val dateParts = parts[0].split("-").map { it.toInt() }
+            val timeParts = parts[1].split(":").map { it.toInt() }
+
+            // Simple epoch calculation (UTC) — good enough for elapsed display
+            val y = dateParts[0]; val m = dateParts[1]; val d = dateParts[2]
+            val h = timeParts[0]; val min = timeParts[1]; val s = timeParts[2]
+
+            // Days from year
+            val daysFromYear = (y - 1970) * 365L + ((y - 1969) / 4) - ((y - 1901) / 100) + ((y - 1601) / 400)
+            val daysInMonth = intArrayOf(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+            val isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0)
+            if (isLeap) daysInMonth[2] = 29
+            val daysFromMonth = (1 until m).sumOf { daysInMonth[it].toLong() }
+            val totalDays = daysFromYear + daysFromMonth + (d - 1)
+            val createdMs = (totalDays * 86400L + h * 3600L + min * 60L + s) * 1000L
+
+            val diffSec = ((nowMillis - createdMs) / 1000L).coerceAtLeast(0)
+            val mins = diffSec / 60
+            val secs = diffSec % 60
+            "${mins}:${secs.toString().padStart(2, '0')}" to mins
+        } catch (_: Exception) { "" to 0L }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Screen
+// ─────────────────────────────────────────────────────────────────────────────
+
+private const val PAGE_SIZE = 6
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,8 +90,16 @@ fun KdsScreen(
     viewModel: KdsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var page by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) { viewModel.loadOrders() }
+
+    // Reset page when switching tabs
+    LaunchedEffect(uiState.showCompleted) { page = 0 }
+
+    val orders = uiState.displayOrders
+    val totalPages = ((orders.size + PAGE_SIZE - 1) / PAGE_SIZE).coerceAtLeast(1)
+    val pagedOrders = orders.drop(page * PAGE_SIZE).take(PAGE_SIZE)
 
     Scaffold(
         topBar = {
@@ -47,24 +118,130 @@ fun KdsScreen(
             )
         }
     ) { padding ->
-        when {
-            uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
-            uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = viewModel::loadOrders, modifier = Modifier.padding(padding))
-            uiState.orders.isEmpty() -> EmptyScreen("Tidak ada order di dapur", Modifier.padding(padding))
-            else -> LazyColumn(
-                modifier = Modifier.padding(padding),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(Color(0xFF1A1A1A))
+        ) {
+            when {
+                uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
+                uiState.error != null -> ErrorScreen(
+                    uiState.error!!,
+                    onRetry = viewModel::loadOrders,
+                    modifier = Modifier.weight(1f)
+                )
+                orders.isEmpty() -> Box(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        if (uiState.showCompleted) "Belum ada order selesai"
+                        else "Tidak ada order di dapur",
+                        color = Color.White.copy(alpha = 0.6f),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                else -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = 260.dp),
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        contentPadding = PaddingValues(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(pagedOrders, key = { it.uuid }) { order ->
+                            KdsOrderCard(
+                                order = order,
+                                onAdvance = { next ->
+                                    viewModel.updateOrderStatus(order.uuid, next)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ── Bottom bar: tab + pagination ──
+            Surface(
+                color = Color(0xFF2A2A2A),
+                tonalElevation = 4.dp
             ) {
-                items(uiState.orders, key = { it.uuid }) { order ->
-                    KdsOrderCard(order, onAdvance = { next ->
-                        viewModel.updateOrderStatus(order.uuid, next)
-                    })
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Active / Completed tabs
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = !uiState.showCompleted,
+                            onClick = { viewModel.toggleTab(false) },
+                            label = {
+                                Text(
+                                    "${uiState.activeOrders.size} Aktif",
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        )
+                        FilterChip(
+                            selected = uiState.showCompleted,
+                            onClick = { viewModel.toggleTab(true) },
+                            label = { Text("Selesai") },
+                            leadingIcon = if (uiState.showCompleted) {
+                                { Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp)) }
+                            } else null,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        )
+                    }
+
+                    // Pagination
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            "${page + 1} / $totalPages",
+                            color = Color.White.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        IconButton(
+                            onClick = { if (page > 0) page-- },
+                            enabled = page > 0
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                "Sebelumnya",
+                                tint = Color.White.copy(alpha = if (page > 0) 1f else 0.3f)
+                            )
+                        }
+                        IconButton(
+                            onClick = { if (page < totalPages - 1) page++ },
+                            enabled = page < totalPages - 1
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                "Selanjutnya",
+                                tint = Color.White.copy(alpha = if (page < totalPages - 1) 1f else 0.3f)
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KDS Order Card — SimpleKDS style
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun KdsOrderCard(order: KdsOrder, onAdvance: (KdsStatus) -> Unit) {
@@ -74,101 +251,124 @@ private fun KdsOrderCard(order: KdsOrder, onAdvance: (KdsStatus) -> Unit) {
         KdsStatus.READY -> KdsStatus.DONE
         KdsStatus.DONE -> null
     }
-    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
-    val statusColor = when (order.status) {
-        KdsStatus.NEW -> semantic.info
-        KdsStatus.COOKING -> semantic.warning
-        KdsStatus.READY -> semantic.success
-        KdsStatus.DONE -> semantic.statusMaintenance
+
+    val age = elapsedMinutes(order.createdAt)
+    val headerColor = if (order.status == KdsStatus.DONE) Color(0xFF616161) else headerColorForAge(age)
+    val elapsed = elapsedText(order.createdAt)
+
+    val orderTypeLabel = when (order.orderType) {
+        OrderType.DINE_IN -> "Dine In"
+        OrderType.TAKEAWAY -> "Take Away"
+        OrderType.DELIVERY -> "Delivery"
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = statusColor.copy(alpha = 0.08f))
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (nextStatus != null)
+                    Modifier.clickable { onAdvance(nextStatus) }
+                else Modifier
+            ),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column(Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    order.queueNumber?.let {
-                        Text("#$it", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Column {
+            // ── Colored header ──
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(headerColor)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "#${order.queueNumber ?: "-"}",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Text(
+                            "$orderTypeLabel${order.tableName?.let { " · $it" } ?: ""}",
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
+                    if (elapsed.isNotBlank()) {
+                        Text(
+                            elapsed,
+                            color = Color.White,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            // ── Item list (big font) ──
+            Column(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                order.items.forEach { item ->
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            item.qty,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,
+                            modifier = Modifier.width(28.dp)
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                item.productName,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.Black
+                            )
+                            item.variantName?.let {
+                                Text(
+                                    "- $it",
+                                    fontSize = 14.sp,
+                                    color = Color.DarkGray
+                                )
+                            }
+                            item.note?.let {
+                                Text(
+                                    "- $it",
+                                    fontSize = 14.sp,
+                                    color = Color.DarkGray
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Action hint at bottom
+                if (nextStatus != null) {
+                    HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                     Text(
-                        order.invoiceNo ?: "-",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline
+                        when (nextStatus) {
+                            KdsStatus.COOKING -> "Ketuk untuk mulai masak ▶"
+                            KdsStatus.READY -> "Ketuk jika siap antar ✓"
+                            KdsStatus.DONE -> "Ketuk untuk selesaikan ✓✓"
+                            else -> ""
+                        },
+                        fontSize = 12.sp,
+                        color = headerColor,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
                     )
                 }
-                StatusChip(
-                    text = order.status.value.replaceFirstChar { it.uppercase() },
-                    color = statusColor
-                )
-            }
-
-            if (order.tableName != null || order.orderType != OrderType.DINE_IN) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    buildString {
-                        append(order.orderType.value.replaceFirstChar { it.uppercase() })
-                        order.tableName?.let { append(" · $it") }
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-
-            order.items.forEach { item ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-                    Text("${item.qty}x", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.width(32.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(item.productName, style = MaterialTheme.typography.bodySmall)
-                        item.variantName?.let {
-                            Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-                        }
-                        item.note?.let {
-                            Text("📝 $it", style = MaterialTheme.typography.labelSmall, color = semantic.warning)
-                        }
-                    }
-                }
-            }
-
-            if (nextStatus != null) {
-                Spacer(Modifier.height(8.dp))
-                RancakButton(
-                    text = when (nextStatus) {
-                        KdsStatus.COOKING -> "Mulai Masak"
-                        KdsStatus.READY -> "Siap Antar"
-                        KdsStatus.DONE -> "Selesai"
-                        else -> ""
-                    },
-                    onClick = { onAdvance(nextStatus) },
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
         }
-    }
-}
-
-@Preview
-@Composable
-private fun KdsOrderCardPreview() {
-    RancakTheme {
-        KdsOrderCard(
-            order = KdsOrder(
-                uuid = "1",
-                invoiceNo = "INV-2024-001",
-                orderType = OrderType.DINE_IN,
-                tableName = "A1",
-                queueNumber = 12,
-                status = KdsStatus.COOKING,
-                items = listOf(
-                    KdsItem("i1", "Nasi Goreng", "2", null, "Pedas", KdsItemStatus.PENDING),
-                    KdsItem("i2", "Es Teh Manis", "2", null, null, KdsItemStatus.PENDING)
-                ),
-                createdAt = "2024-01-15T10:30:00"
-            ),
-            onAdvance = {}
-        )
     }
 }

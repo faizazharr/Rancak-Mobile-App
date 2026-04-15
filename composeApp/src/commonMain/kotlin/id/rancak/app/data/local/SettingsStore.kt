@@ -11,7 +11,7 @@ class SettingsStore {
 
     private val settings = Settings()
 
-    // ── Printer ──────────────────────────────────────────────────────────────
+    // ── Cashier Printer (primary) ────────────────────────────────────────────
 
     var printerType: String
         get() = settings.getString(KEY_PRINTER_TYPE, TYPE_BLUETOOTH)
@@ -35,6 +35,38 @@ class SettingsStore {
 
     val hasPrinter: Boolean
         get() = printerAddress.isNotBlank() || networkPrinterIp.isNotBlank()
+
+    // ── Kitchen Printer (secondary, for dual-printer mode) ───────────────────
+
+    var kitchenPrinterType: String
+        get() = settings.getString(KEY_KITCHEN_PRINTER_TYPE, TYPE_BLUETOOTH)
+        set(value) { settings[KEY_KITCHEN_PRINTER_TYPE] = value }
+
+    var kitchenPrinterName: String
+        get() = settings.getString(KEY_KITCHEN_PRINTER_NAME, "")
+        set(value) { settings[KEY_KITCHEN_PRINTER_NAME] = value }
+
+    var kitchenPrinterAddress: String
+        get() = settings.getString(KEY_KITCHEN_PRINTER_ADDRESS, "")
+        set(value) { settings[KEY_KITCHEN_PRINTER_ADDRESS] = value }
+
+    var kitchenNetworkPrinterIp: String
+        get() = settings.getString(KEY_KITCHEN_NETWORK_IP, "")
+        set(value) { settings[KEY_KITCHEN_NETWORK_IP] = value }
+
+    var kitchenNetworkPrinterPort: Int
+        get() = settings.getInt(KEY_KITCHEN_NETWORK_PORT, 9100)
+        set(value) { settings[KEY_KITCHEN_NETWORK_PORT] = value }
+
+    val hasKitchenPrinter: Boolean
+        get() = kitchenPrinterAddress.isNotBlank() || kitchenNetworkPrinterIp.isNotBlank()
+
+    // ── Print Mode ───────────────────────────────────────────────────────────
+
+    /** One of PrintMode.value: "receipt_only", "dual_printer", "single_kot_first", "single_receipt_first" */
+    var printMode: String
+        get() = settings.getString(KEY_PRINT_MODE, "receipt_only")
+        set(value) { settings[KEY_PRINT_MODE] = value }
 
     // ── Receipt ──────────────────────────────────────────────────────────────
 
@@ -74,6 +106,14 @@ class SettingsStore {
         settings.remove(KEY_NETWORK_PORT)
     }
 
+    fun clearKitchenPrinter() {
+        settings.remove(KEY_KITCHEN_PRINTER_TYPE)
+        settings.remove(KEY_KITCHEN_PRINTER_NAME)
+        settings.remove(KEY_KITCHEN_PRINTER_ADDRESS)
+        settings.remove(KEY_KITCHEN_NETWORK_IP)
+        settings.remove(KEY_KITCHEN_NETWORK_PORT)
+    }
+
     companion object {
         const val TYPE_BLUETOOTH = "bluetooth"
         const val TYPE_NETWORK = "network"
@@ -83,6 +123,15 @@ class SettingsStore {
         private const val KEY_PRINTER_ADDRESS = "rancak_printer_address"
         private const val KEY_NETWORK_IP = "rancak_network_ip"
         private const val KEY_NETWORK_PORT = "rancak_network_port"
+
+        private const val KEY_KITCHEN_PRINTER_TYPE = "rancak_kitchen_printer_type"
+        private const val KEY_KITCHEN_PRINTER_NAME = "rancak_kitchen_printer_name"
+        private const val KEY_KITCHEN_PRINTER_ADDRESS = "rancak_kitchen_printer_address"
+        private const val KEY_KITCHEN_NETWORK_IP = "rancak_kitchen_network_ip"
+        private const val KEY_KITCHEN_NETWORK_PORT = "rancak_kitchen_network_port"
+
+        private const val KEY_PRINT_MODE = "rancak_print_mode"
+
         private const val KEY_RECEIPT_STORE_NAME = "rancak_receipt_store_name"
         private const val KEY_RECEIPT_STORE_ADDRESS = "rancak_receipt_store_address"
         private const val KEY_RECEIPT_STORE_PHONE = "rancak_receipt_store_phone"

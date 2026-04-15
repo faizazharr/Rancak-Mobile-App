@@ -5,10 +5,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.PaymentMethodReport
 import id.rancak.app.domain.model.ProductReport
@@ -64,66 +67,160 @@ private fun ReportScreenContent(
     when {
         uiState.isLoading -> LoadingScreen(modifier)
         uiState.error != null -> ErrorScreen(uiState.error, onRetry = onRetry, modifier = modifier)
-        else -> LazyColumn(
-            modifier = modifier,
-            contentPadding = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            uiState.summary?.let { summary ->
-                item {
-                    Text("Ringkasan Penjualan", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                }
-                item {
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            ReportSummaryRow("Total Penjualan", formatRupiah(summary.totalSales), MaterialTheme.colorScheme.primary)
-                            ReportSummaryRow("Jumlah Transaksi", summary.totalTransactions.toString(), MaterialTheme.colorScheme.onSurface)
-                            ReportSummaryRow("Total Diskon", formatRupiah(summary.totalDiscount), MaterialTheme.colorScheme.error)
-                            ReportSummaryRow("Total Pajak", formatRupiah(summary.totalTax), MaterialTheme.colorScheme.onSurfaceVariant)
-                            HorizontalDivider()
-                            ReportSummaryRow("Pendapatan Bersih", formatRupiah(summary.totalNet), MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                }
+        else -> {
+            BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+                val isTablet = maxWidth >= 600.dp
 
-                if (summary.paymentMethods.isNotEmpty()) {
-                    item {
-                        Spacer(Modifier.height(4.dp))
-                        Text("Per Metode Bayar", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    }
-                    item {
-                        Card(Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                summary.paymentMethods.forEach { pm ->
-                                    ReportSummaryRow(
-                                        pm.method.replaceFirstChar { it.uppercase() },
-                                        "${formatRupiah(pm.total)} (${pm.count}x)",
-                                        MaterialTheme.colorScheme.onSurface
-                                    )
+                if (isTablet) {
+                    // ── Tablet: summary left, top products right ──
+                    Row(Modifier.fillMaxSize()) {
+                        // Left — summary + payment methods
+                        LazyColumn(
+                            modifier = Modifier.weight(0.5f).fillMaxHeight(),
+                            contentPadding = PaddingValues(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            uiState.summary?.let { summary ->
+                                item { SummarySection(summary) }
+                                if (summary.paymentMethods.isNotEmpty()) {
+                                    item { PaymentMethodsSection(summary.paymentMethods) }
                                 }
                             }
                         }
-                    }
-                }
-            }
 
-            if (uiState.topProducts.isNotEmpty()) {
-                item {
-                    Spacer(Modifier.height(4.dp))
-                    Text("Produk Terlaris", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                }
-                items(uiState.topProducts.take(10)) { product ->
-                    Card(Modifier.fillMaxWidth()) {
-                        Row(Modifier.padding(12.dp)) {
-                            Column(Modifier.weight(1f)) {
-                                Text(product.productName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                                Text("${product.qtySold} terjual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                        VerticalDivider()
+
+                        // Right — top products
+                        LazyColumn(
+                            modifier = Modifier.weight(0.5f).fillMaxHeight(),
+                            contentPadding = PaddingValues(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (uiState.topProducts.isNotEmpty()) {
+                                item {
+                                    Text(
+                                        "Produk Terlaris",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                items(uiState.topProducts.take(10)) { product ->
+                                    TopProductCard(product)
+                                }
+                            } else {
+                                item { TopProductsEmptyPlaceholder(Modifier.fillParentMaxHeight()) }
                             }
-                            Text(formatRupiah(product.totalRevenue), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                } else {
+                    // ── Phone: single column ──
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        uiState.summary?.let { summary ->
+                            item { SummarySection(summary) }
+                            if (summary.paymentMethods.isNotEmpty()) {
+                                item { PaymentMethodsSection(summary.paymentMethods) }
+                            }
+                        }
+                        if (uiState.topProducts.isNotEmpty()) {
+                            item {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "Produk Terlaris",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            items(uiState.topProducts.take(10)) { product ->
+                                TopProductCard(product)
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Extracted sub-composables
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun SummarySection(summary: ReportSummary) {
+    Text(
+        "Ringkasan Penjualan",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold
+    )
+    Spacer(Modifier.height(4.dp))
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            ReportSummaryRow("Total Penjualan", formatRupiah(summary.totalSales), MaterialTheme.colorScheme.primary)
+            ReportSummaryRow("Jumlah Transaksi", summary.totalTransactions.toString(), MaterialTheme.colorScheme.onSurface)
+            ReportSummaryRow("Total Diskon", formatRupiah(summary.totalDiscount), MaterialTheme.colorScheme.error)
+            ReportSummaryRow("Total Pajak", formatRupiah(summary.totalTax), MaterialTheme.colorScheme.onSurfaceVariant)
+            HorizontalDivider()
+            ReportSummaryRow("Pendapatan Bersih", formatRupiah(summary.totalNet), MaterialTheme.colorScheme.primary)
+        }
+    }
+}
+
+@Composable
+private fun PaymentMethodsSection(methods: List<PaymentMethodReport>) {
+    Spacer(Modifier.height(4.dp))
+    Text(
+        "Per Metode Bayar",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold
+    )
+    Spacer(Modifier.height(4.dp))
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            methods.forEach { pm ->
+                ReportSummaryRow(
+                    pm.method.replaceFirstChar { it.uppercase() },
+                    "${formatRupiah(pm.total)} (${pm.count}x)",
+                    MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TopProductCard(product: ProductReport) {
+    Card(Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(product.productName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Text("${product.qtySold} terjual", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            }
+            Text(formatRupiah(product.totalRevenue), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun TopProductsEmptyPlaceholder(modifier: Modifier = Modifier) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                Icons.Default.EmojiEvents,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.outlineVariant
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Belum ada data produk terlaris",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.outline,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

@@ -35,5 +35,10 @@ object ApiConstants {
     const val SYNC_STATUS = "/sync/status"
     const val DEVICE_CONFIG = "/device-config"
 
+    // Receipt endpoints (return raw ESC/POS bytes)
+    fun receiptEscpos(saleUuid: String) = "$SALES/$saleUuid/receipt/escpos"
+    fun receiptKitchen(saleUuid: String) = "$SALES/$saleUuid/receipt/kitchen"
+    fun receiptCombined(saleUuid: String) = "$SALES/$saleUuid/receipt/combined"
+
     fun tenantPath(tenantUuid: String) = "/tenants/$tenantUuid"
 }

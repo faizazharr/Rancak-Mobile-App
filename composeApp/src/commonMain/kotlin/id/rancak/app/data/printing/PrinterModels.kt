@@ -31,6 +31,29 @@ enum class PrinterConnectionType {
     NETWORK
 }
 
+/**
+ * Print mode — determines how cashier receipt and KOT are sent to printer(s).
+ *
+ * - [DUAL_PRINTER]: Two separate printers (cashier + kitchen). App sends
+ *   two parallel requests and writes to each printer simultaneously.
+ * - [SINGLE_KOT_FIRST]: One printer. KOT prints first, then paper cut,
+ *   then cashier receipt. Default for restaurants where kitchen speed matters.
+ * - [SINGLE_RECEIPT_FIRST]: One printer. Cashier receipt prints first,
+ *   then paper cut, then KOT. For food courts / "pay first, cook later".
+ * - [RECEIPT_ONLY]: Only cashier receipt, no KOT. For retail / non-food.
+ */
+enum class PrintMode(val value: String) {
+    DUAL_PRINTER("dual_printer"),
+    SINGLE_KOT_FIRST("single_kot_first"),
+    SINGLE_RECEIPT_FIRST("single_receipt_first"),
+    RECEIPT_ONLY("receipt_only");
+
+    companion object {
+        fun from(value: String?): PrintMode =
+            entries.firstOrNull { it.value == value } ?: RECEIPT_ONLY
+    }
+}
+
 /** Full receipt data to be rendered as ESC/POS bytes. */
 data class ReceiptData(
     val storeName: String,
@@ -51,7 +74,8 @@ data class ReceiptData(
     val total: Long,
     val paymentMethod: String? = null,
     val paidAmount: Long = 0,
-    val changeAmount: Long = 0
+    val changeAmount: Long = 0,
+    val footerText: String? = null
 )
 
 data class ReceiptItem(
@@ -60,5 +84,27 @@ data class ReceiptItem(
     val qty: Int,
     val price: Long,
     val subtotal: Long,
+    val note: String? = null
+)
+
+/**
+ * Kitchen Order Ticket data — sent to kitchen printer.
+ * No prices, no totals. Focused on what to cook and where to deliver.
+ */
+data class KitchenTicketData(
+    val storeName: String,
+    val invoiceNo: String,
+    val orderType: String,
+    val tableName: String? = null,
+    val queueNumber: Int? = null,
+    val customerName: String? = null,
+    val cashierName: String? = null,
+    val createdAt: String,
+    val items: List<KitchenTicketItem>
+)
+
+data class KitchenTicketItem(
+    val name: String,
+    val qty: Int,
     val note: String? = null
 )
