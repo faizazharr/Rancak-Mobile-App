@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -233,7 +233,7 @@ private fun NumpadKey(
     ) {
         if (isBackspace) {
             Icon(
-                Icons.Default.Backspace,
+                Icons.AutoMirrored.Filled.Backspace,
                 contentDescription = "Hapus",
                 tint   = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(20.dp)

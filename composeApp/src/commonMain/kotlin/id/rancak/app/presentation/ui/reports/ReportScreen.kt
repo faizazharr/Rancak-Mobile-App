@@ -63,7 +63,7 @@ private fun ReportScreenContent(
 ) {
     when {
         uiState.isLoading -> LoadingScreen(modifier)
-        uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = onRetry, modifier = modifier)
+        uiState.error != null -> ErrorScreen(uiState.error, onRetry = onRetry, modifier = modifier)
         else -> LazyColumn(
             modifier = modifier,
             contentPadding = PaddingValues(12.dp),

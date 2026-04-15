@@ -15,6 +15,10 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
     
     listOf(
         iosArm64(),
@@ -48,6 +52,8 @@ kotlin {
             implementation(libs.cameraX.lifecycle)
             implementation(libs.cameraX.view)
             implementation(libs.mlkit.barcode.scanning)
+            // Guava (ListenableFuture required by CameraX at compile time)
+            implementation(libs.guava.android)
             // Google Sign-In via Credential Manager
             implementation(libs.androidx.credentials)
             implementation(libs.androidx.credentials.play.services)

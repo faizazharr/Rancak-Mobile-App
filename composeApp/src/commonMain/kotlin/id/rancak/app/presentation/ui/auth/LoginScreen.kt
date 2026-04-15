@@ -13,6 +13,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,6 +31,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.painterResource
@@ -38,6 +41,7 @@ import id.rancak.app.presentation.auth.GoogleSignInButton
 import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.RancakTextField
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.LoginUiState
 import id.rancak.app.presentation.viewmodel.LoginViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -192,7 +196,7 @@ private fun TabletLoginLayout(
                 Spacer(Modifier.height(48.dp))
                 BrandingBullet(Icons.Default.Receipt,     "Kasir multi-device, satu dashboard")
                 BrandingBullet(Icons.Default.ShoppingCart,"Stok otomatis tiap transaksi")
-                BrandingBullet(Icons.Default.TrendingUp,  "Laporan real-time & shift harian")
+                BrandingBullet(Icons.AutoMirrored.Filled.TrendingUp,  "Laporan real-time & shift harian")
             }
 
             // Footer — branding TIAS
@@ -523,7 +527,7 @@ private fun EmailFormStep(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.ArrowBack, null,
+                    Icons.AutoMirrored.Filled.ArrowBack, null,
                     Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

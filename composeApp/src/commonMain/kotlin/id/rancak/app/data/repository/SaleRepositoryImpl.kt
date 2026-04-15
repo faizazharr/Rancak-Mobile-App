@@ -12,7 +12,7 @@ import id.rancak.app.data.sync.SyncManager
 import id.rancak.app.domain.model.*
 import id.rancak.app.domain.repository.CartItem
 import id.rancak.app.domain.repository.SaleRepository
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 

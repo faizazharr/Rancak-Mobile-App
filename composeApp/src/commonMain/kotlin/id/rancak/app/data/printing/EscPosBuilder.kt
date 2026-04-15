@@ -1,5 +1,8 @@
 package id.rancak.app.data.printing
 
+import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.core.toByteArray
+
 /**
  * Pure Kotlin ESC/POS receipt byte builder.
  * No platform dependencies — runs identically on Android and iOS.

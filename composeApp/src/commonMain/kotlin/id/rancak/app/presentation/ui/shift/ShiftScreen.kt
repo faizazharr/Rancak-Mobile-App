@@ -17,7 +17,6 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.ShiftUiState
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
-import androidx.compose.ui.tooling.preview.Preview
 import id.rancak.app.domain.model.Shift
 import id.rancak.app.domain.model.ShiftStatus
 import org.koin.compose.viewmodel.koinViewModel
@@ -106,11 +105,11 @@ fun ShiftScreenContent(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(Modifier.height(12.dp))
-                                SummaryRow("Kas Awal", formatRupiah(uiState.currentShift!!.openingCash))
-                                uiState.currentShift?.totalSales?.let {
+                                SummaryRow("Kas Awal", formatRupiah(uiState.currentShift.openingCash))
+                                uiState.currentShift.totalSales?.let {
                                     SummaryRow("Total Penjualan", formatRupiah(it))
                                 }
-                                uiState.currentShift?.totalExpenses?.let {
+                                uiState.currentShift.totalExpenses?.let {
                                     SummaryRow("Total Pengeluaran", formatRupiah(it))
                                 }
                             }
@@ -205,7 +204,7 @@ fun ShiftScreenContent(
 
 // ── Previews — call actual ShiftScreenContent ──
 
-@Preview
+//@Preview
 @Composable
 private fun ShiftOpenPreview() {
     RancakTheme {
@@ -215,7 +214,7 @@ private fun ShiftOpenPreview() {
     }
 }
 
-@Preview
+//@Preview
 @Composable
 private fun ShiftActivePreview() {
     RancakTheme {

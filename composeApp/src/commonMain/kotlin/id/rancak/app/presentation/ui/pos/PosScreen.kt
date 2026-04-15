@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,7 +47,7 @@ import id.rancak.app.presentation.viewmodel.PosUiState
 import id.rancak.app.presentation.viewmodel.PosViewModel
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.delay
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.koinInject
@@ -630,7 +632,7 @@ private fun ProductGridContent(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    uiState.error ?: "",
+                    uiState.error,
                     color     = onSurfaceVariant.copy(0.65f),
                     style     = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
@@ -1628,7 +1630,7 @@ private fun OrderItemRow(
                 )
                 // Ikon catatan — tap untuk tambah/edit catatan
                 Icon(
-                    if (item.note.isNullOrBlank()) Icons.Default.NoteAdd
+                    if (item.note.isNullOrBlank()) Icons.AutoMirrored.Filled.NoteAdd
                     else Icons.Default.Edit,
                     contentDescription = "Catatan",
                     modifier = Modifier
@@ -1649,7 +1651,7 @@ private fun OrderItemRow(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Icon(
-                    Icons.Default.Notes, null,
+                    Icons.AutoMirrored.Filled.Notes, null,
                     Modifier.size(11.dp),
                     tint = primary.copy(0.55f)
                 )

@@ -1,7 +1,13 @@
 package id.rancak.app.data.printing
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.OutputStream
@@ -21,6 +27,29 @@ import java.net.Socket
  *   - Printer must be on the same LAN/Wi-Fi network
  */
 actual class PrinterManager actual constructor() {
+
+    private var appContext: Context? = null
+
+    fun init(context: Context) {
+        appContext = context.applicationContext
+    }
+
+    private fun getAdapter(): BluetoothAdapter? {
+        val ctx = appContext ?: return null
+        val manager = ctx.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+        return manager?.adapter
+    }
+
+    private fun hasBluetoothPermission(): Boolean {
+        val ctx = appContext ?: return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ContextCompat.checkSelfPermission(
+                ctx, android.Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true // BLUETOOTH_CONNECT not required below API 31
+        }
+    }
 
     // ── TCP/IP ──────────────────────────────────────────────────────────────
 
@@ -48,11 +77,12 @@ actual class PrinterManager actual constructor() {
 
     // ── Bluetooth Classic (SPP) ──────────────────────────────────────────────
 
+    @SuppressLint("MissingPermission")
     actual suspend fun getBluetoothPrinters(): List<PrinterDevice> =
         withContext(Dispatchers.IO) {
-            val adapter = BluetoothAdapter.getDefaultAdapter()
-                ?: return@withContext emptyList()
+            if (!hasBluetoothPermission()) return@withContext emptyList()
 
+            val adapter = getAdapter() ?: return@withContext emptyList()
             if (!adapter.isEnabled) return@withContext emptyList()
 
             adapter.bondedDevices.map { device ->
@@ -64,11 +94,15 @@ actual class PrinterManager actual constructor() {
             }
         }
 
+    @SuppressLint("MissingPermission")
     actual suspend fun printViaBluetooth(
         address: String,
         data: ByteArray
     ): PrintResult = withContext(Dispatchers.IO) {
-        val adapter = BluetoothAdapter.getDefaultAdapter()
+        if (!hasBluetoothPermission()) {
+            return@withContext PrintResult.Error("Izin Bluetooth (BLUETOOTH_CONNECT) belum diberikan")
+        }
+        val adapter = getAdapter()
             ?: return@withContext PrintResult.Error("Bluetooth not available on this device")
 
         if (!adapter.isEnabled) {

@@ -11,16 +11,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.*
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import platform.AVFoundation.*
 import platform.CoreGraphics.*
 import platform.Foundation.NSError
 import platform.UIKit.*
+import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
 import kotlin.coroutines.resume
 

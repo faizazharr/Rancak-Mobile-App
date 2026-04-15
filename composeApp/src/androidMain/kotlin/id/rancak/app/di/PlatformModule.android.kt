@@ -8,5 +8,5 @@ import org.koin.dsl.module
 
 actual val platformModule: Module = module {
     single { SyncManager(androidContext()) }
-    single { PrinterManager() }
+    single { PrinterManager().apply { init(androidContext()) } }
 }

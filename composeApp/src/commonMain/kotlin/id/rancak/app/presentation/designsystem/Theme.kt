@@ -137,8 +137,8 @@ fun RancakTheme(
     val semanticColors = if (darkTheme) DarkSemanticColors else LightSemanticColors
 
     CompositionLocalProvider(
-        LocalSpacing to Spacing(),
-        LocalSemanticColors to semanticColors
+        LocalSpacing provides Spacing(),
+        LocalSemanticColors provides semanticColors
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
