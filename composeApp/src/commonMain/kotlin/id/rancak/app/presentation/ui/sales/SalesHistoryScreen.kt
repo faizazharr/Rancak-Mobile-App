@@ -7,12 +7,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +28,7 @@ import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import id.rancak.app.presentation.viewmodel.DateFilter
 import id.rancak.app.presentation.viewmodel.SalesHistoryViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -54,91 +57,219 @@ fun SalesHistoryScreen(
         when {
             uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
             uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = viewModel::loadSales, modifier = Modifier.padding(padding))
-            uiState.sales.isEmpty() -> EmptyScreen("Belum ada transaksi", Modifier.padding(padding))
+            uiState.allSales.isEmpty() -> EmptyScreen("Belum ada transaksi", Modifier.padding(padding))
             else -> {
-                BoxWithConstraints(modifier = Modifier.padding(padding).fillMaxSize()) {
-                    val isTablet = maxWidth >= 600.dp
+                Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+                    SearchAndFilterBar(
+                        query           = uiState.searchQuery,
+                        dateFilter      = uiState.dateFilter,
+                        statusFilter    = uiState.statusFilter,
+                        onQueryChange   = viewModel::setSearchQuery,
+                        onDateFilter    = viewModel::setDateFilter,
+                        onStatusFilter  = viewModel::setStatusFilter,
+                        onClear         = viewModel::clearFilters,
+                        hasActiveFilter = uiState.searchQuery.isNotBlank() ||
+                            uiState.dateFilter != DateFilter.ALL ||
+                            uiState.statusFilter != null
+                    )
+                    HorizontalDivider()
 
-                    if (isTablet) {
-                        // ── Tablet: master-detail side by side ──
-                        Row(Modifier.fillMaxSize()) {
-                            // Left — sale list
-                            LazyColumn(
-                                modifier = Modifier.weight(0.4f).fillMaxHeight(),
-                                contentPadding = PaddingValues(12.dp),
+                    if (uiState.sales.isEmpty()) {
+                        Box(
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                items(uiState.sales, key = { it.uuid }) { sale ->
-                                    SaleCard(
-                                        sale = sale,
-                                        isSelected = sale.uuid == uiState.selectedSale?.uuid,
-                                        onClick = { viewModel.selectSale(sale) }
-                                    )
-                                }
-                            }
-
-                            VerticalDivider()
-
-                            // Right — detail
-                            Box(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
-                                val selected = uiState.selectedSale
-                                if (selected != null) {
-                                    SaleDetailPanel(
-                                        sale = selected,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                } else {
-                                    EmptyDetailPlaceholder(Modifier.fillMaxSize())
-                                }
+                                Icon(
+                                    Icons.Default.Search,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                                )
+                                Text("Tidak ada hasil", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    "Coba ubah kata kunci atau filter",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                TextButton(onClick = viewModel::clearFilters) { Text("Reset Filter") }
                             }
                         }
                     } else {
-                        // ── Phone: list with bottom sheet detail ──
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(uiState.sales, key = { it.uuid }) { sale ->
-                                SaleCard(
-                                    sale = sale,
-                                    isSelected = false,
-                                    onClick = { viewModel.selectSale(sale) }
-                                )
-                            }
-                        }
+                        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                            val isTablet = maxWidth >= 600.dp
 
-                        // Detail dialog for phone
-                        uiState.selectedSale?.let { sale ->
-                            AlertDialog(
-                                onDismissRequest = { viewModel.selectSale(null) },
-                                title = {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
+                            if (isTablet) {
+                                // ── Tablet: master-detail side by side ──
+                                Row(Modifier.fillMaxSize()) {
+                                    // Left — sale list
+                                    LazyColumn(
+                                        modifier = Modifier.weight(0.4f).fillMaxHeight(),
+                                        contentPadding = PaddingValues(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Text("Detail Pesanan", style = MaterialTheme.typography.titleMedium)
-                                        IconButton(onClick = { viewModel.selectSale(null) }) {
-                                            Icon(Icons.Default.Close, "Tutup")
+                                        items(uiState.sales, key = { it.uuid }) { sale ->
+                                            SaleCard(
+                                                sale = sale,
+                                                isSelected = sale.uuid == uiState.selectedSale?.uuid,
+                                                onClick = { viewModel.selectSale(sale) }
+                                            )
                                         }
                                     }
-                                },
-                                text = {
-                                    SaleDetailPanel(
-                                        sale = sale,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                },
-                                confirmButton = {
-                                    TextButton(onClick = { viewModel.selectSale(null) }) {
-                                        Text("Tutup")
+
+                                    VerticalDivider()
+
+                                    // Right — detail
+                                    Box(modifier = Modifier.weight(0.6f).fillMaxHeight()) {
+                                        val selected = uiState.selectedSale
+                                        if (selected != null) {
+                                            SaleDetailPanel(
+                                                sale = selected,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        } else {
+                                            EmptyDetailPlaceholder(Modifier.fillMaxSize())
+                                        }
                                     }
                                 }
-                            )
+                            } else {
+                                // ── Phone: list with bottom sheet detail ──
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(uiState.sales, key = { it.uuid }) { sale ->
+                                        SaleCard(
+                                            sale = sale,
+                                            isSelected = false,
+                                            onClick = { viewModel.selectSale(sale) }
+                                        )
+                                    }
+                                }
+
+                                // Detail dialog for phone
+                                uiState.selectedSale?.let { sale ->
+                                    AlertDialog(
+                                        onDismissRequest = { viewModel.selectSale(null) },
+                                        title = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text("Detail Pesanan", style = MaterialTheme.typography.titleMedium)
+                                                IconButton(onClick = { viewModel.selectSale(null) }) {
+                                                    Icon(Icons.Default.Close, "Tutup")
+                                                }
+                                            }
+                                        },
+                                        text = {
+                                            SaleDetailPanel(
+                                                sale = sale,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        },
+                                        confirmButton = {
+                                            TextButton(onClick = { viewModel.selectSale(null) }) {
+                                                Text("Tutup")
+                                            }
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Search & Filter Bar
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun SearchAndFilterBar(
+    query: String,
+    dateFilter: DateFilter,
+    statusFilter: SaleStatus?,
+    onQueryChange: (String) -> Unit,
+    onDateFilter: (DateFilter) -> Unit,
+    onStatusFilter: (SaleStatus?) -> Unit,
+    onClear: () -> Unit,
+    hasActiveFilter: Boolean
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Cari invoice atau nama produk…") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            trailingIcon = {
+                if (query.isNotBlank()) {
+                    IconButton(onClick = { onQueryChange("") }) {
+                        Icon(Icons.Default.Close, contentDescription = "Hapus")
+                    }
+                }
+            },
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Date filter chips
+            DateFilter.entries.forEach { filter ->
+                FilterChip(
+                    selected = dateFilter == filter,
+                    onClick = { onDateFilter(filter) },
+                    label = { Text(filter.label, style = MaterialTheme.typography.labelMedium) }
+                )
+            }
+
+            Spacer(Modifier.width(4.dp))
+
+            // Status filter chips
+            val statusOptions: List<Pair<SaleStatus?, String>> = listOf(
+                null                 to "Semua Status",
+                SaleStatus.HELD      to "Belum Bayar",
+                SaleStatus.PAID      to "Lunas",
+                SaleStatus.SERVED    to "Disajikan",
+                SaleStatus.VOID      to "Void"
+            )
+            statusOptions.forEach { (status, label) ->
+                FilterChip(
+                    selected = statusFilter == status,
+                    onClick = { onStatusFilter(status) },
+                    label = { Text(label, style = MaterialTheme.typography.labelMedium) }
+                )
+            }
+
+            if (hasActiveFilter) {
+                Spacer(Modifier.width(4.dp))
+                AssistChip(
+                    onClick = onClear,
+                    label = { Text("Reset", style = MaterialTheme.typography.labelMedium) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(14.dp))
+                    }
+                )
             }
         }
     }

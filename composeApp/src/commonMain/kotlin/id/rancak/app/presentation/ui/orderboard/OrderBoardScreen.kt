@@ -31,19 +31,14 @@ import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Color helpers — age-based header colors
+// Color helpers — status-based header colors
 // ─────────────────────────────────────────────────────────────────────────────
 
-private val BoardGreen  = Color(0xFF4CAF50)
-private val BoardYellow = Color(0xFFF9A825)
-private val BoardOrange = Color(0xFFFF9800)
-private val BoardRed    = Color(0xFFD32F2F)
-
-private fun headerColorForAge(minutes: Long): Color = when {
-    minutes < 3  -> BoardGreen
-    minutes < 5  -> BoardYellow
-    minutes < 8  -> BoardOrange
-    else          -> BoardRed
+private fun headerColorForStatus(status: SaleStatus): Color = when (status) {
+    SaleStatus.HELD      -> Color(0xFFF57C00)  // Oranye — menunggu antar
+    SaleStatus.SERVED    -> Color(0xFF1565C0)  // Biru — sudah disajikan
+    SaleStatus.PAID      -> Color(0xFF2E7D32)  // Hijau — sudah bayar
+    else                 -> Color(0xFF757575)  // Abu-abu
 }
 
 @Composable
@@ -123,7 +118,7 @@ fun OrderBoardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFF1A1A1A))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             when {
                 uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
@@ -139,7 +134,7 @@ fun OrderBoardScreen(
                     Text(
                         if (uiState.showCompleted) "Belum ada order selesai"
                         else "Tidak ada order aktif",
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -163,8 +158,7 @@ fun OrderBoardScreen(
 
             // ── Bottom bar: tab + pagination ──
             Surface(
-                color = Color(0xFF2A2A2A),
-                tonalElevation = 4.dp
+                tonalElevation = 2.dp
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
@@ -206,7 +200,7 @@ fun OrderBoardScreen(
                     ) {
                         Text(
                             "${page + 1} / $totalPages",
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             style = MaterialTheme.typography.labelMedium
                         )
                         IconButton(
@@ -216,7 +210,7 @@ fun OrderBoardScreen(
                             Icon(
                                 Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                                 "Sebelumnya",
-                                tint = Color.White.copy(alpha = if (page > 0) 1f else 0.3f)
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (page > 0) 1f else 0.3f)
                             )
                         }
                         IconButton(
@@ -226,7 +220,7 @@ fun OrderBoardScreen(
                             Icon(
                                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                 "Selanjutnya",
-                                tint = Color.White.copy(alpha = if (page < totalPages - 1) 1f else 0.3f)
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (page < totalPages - 1) 1f else 0.3f)
                             )
                         }
                     }
@@ -242,10 +236,8 @@ fun OrderBoardScreen(
 
 @Composable
 private fun OrderBoardCard(order: Sale, onServe: () -> Unit) {
-    val age = elapsedMinutes(order.createdAt)
-    val isDone = order.status == SaleStatus.SERVED || order.status == SaleStatus.PAID
-    val headerColor = if (isDone) Color(0xFF616161) else headerColorForAge(age)
-    val elapsed = elapsedText(order.createdAt)
+    val (elapsed, _) = rememberElapsed(order.createdAt)
+    val headerColor = headerColorForStatus(order.status)
 
     val orderTypeLabel = when (order.orderType) {
         OrderType.DINE_IN -> "Dine In"

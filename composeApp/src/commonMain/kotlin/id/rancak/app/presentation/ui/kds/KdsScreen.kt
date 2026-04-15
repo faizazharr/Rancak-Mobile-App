@@ -24,57 +24,25 @@ import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.*
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.viewmodel.KdsViewModel
-import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Color helpers — age-based header colors like SimpleKDS
+// Color helpers — status-based header colors
 // ─────────────────────────────────────────────────────────────────────────────
 
-private val KdsGreen  = Color(0xFF4CAF50)
-private val KdsYellow = Color(0xFFF9A825)
-private val KdsOrange = Color(0xFFFF9800)
-private val KdsRed    = Color(0xFFD32F2F)
-
-private fun headerColorForAge(minutes: Long): Color = when {
-    minutes < 3  -> KdsGreen
-    minutes < 5  -> KdsYellow
-    minutes < 8  -> KdsOrange
-    else          -> KdsRed
+private fun headerColorForStatus(status: KdsStatus): Color = when (status) {
+    KdsStatus.NEW     -> Color(0xFF1565C0)   // Biru — baru masuk
+    KdsStatus.COOKING -> Color(0xFFE65100)   // Oranye — sedang dimasak
+    KdsStatus.READY   -> Color(0xFF2E7D32)   // Hijau — siap antar
+    KdsStatus.DONE    -> Color(0xFF757575)   // Abu-abu — selesai
 }
 
-@Composable
-private fun rememberElapsed(createdAt: String?): Pair<String, Long> {
-    val nowMillis = remember { Clock.System.now().toEpochMilliseconds() }
-    if (createdAt.isNullOrBlank()) return "" to 0L
-    return remember(createdAt) {
-        try {
-            val cleaned = createdAt
-                .replace("T", " ")
-                .take(19) // "yyyy-MM-dd HH:mm:ss"
-            val parts = cleaned.split(" ")
-            val dateParts = parts[0].split("-").map { it.toInt() }
-            val timeParts = parts[1].split(":").map { it.toInt() }
-
-            // Simple epoch calculation (UTC) — good enough for elapsed display
-            val y = dateParts[0]; val m = dateParts[1]; val d = dateParts[2]
-            val h = timeParts[0]; val min = timeParts[1]; val s = timeParts[2]
-
-            // Days from year
-            val daysFromYear = (y - 1970) * 365L + ((y - 1969) / 4) - ((y - 1901) / 100) + ((y - 1601) / 400)
-            val daysInMonth = intArrayOf(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-            val isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0)
-            if (isLeap) daysInMonth[2] = 29
-            val daysFromMonth = (1 until m).sumOf { daysInMonth[it].toLong() }
-            val totalDays = daysFromYear + daysFromMonth + (d - 1)
-            val createdMs = (totalDays * 86400L + h * 3600L + min * 60L + s) * 1000L
-
-            val diffSec = ((nowMillis - createdMs) / 1000L).coerceAtLeast(0)
-            val mins = diffSec / 60
-            val secs = diffSec % 60
-            "${mins}:${secs.toString().padStart(2, '0')}" to mins
-        } catch (_: Exception) { "" to 0L }
-    }
+private fun orderTime(createdAt: String?): String {
+    if (createdAt.isNullOrBlank()) return ""
+    return try {
+        val t = createdAt.replace("T", " ")
+        if (t.length >= 16) t.substring(11, 16) else ""
+    } catch (_: Exception) { "" }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,7 +90,7 @@ fun KdsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFF1A1A1A))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             when {
                 uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
@@ -138,7 +106,7 @@ fun KdsScreen(
                     Text(
                         if (uiState.showCompleted) "Belum ada order selesai"
                         else "Tidak ada order di dapur",
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -164,8 +132,7 @@ fun KdsScreen(
 
             // ── Bottom bar: tab + pagination ──
             Surface(
-                color = Color(0xFF2A2A2A),
-                tonalElevation = 4.dp
+                tonalElevation = 2.dp
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
@@ -209,7 +176,7 @@ fun KdsScreen(
                     ) {
                         Text(
                             "${page + 1} / $totalPages",
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             style = MaterialTheme.typography.labelMedium
                         )
                         IconButton(
@@ -219,7 +186,7 @@ fun KdsScreen(
                             Icon(
                                 Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                                 "Sebelumnya",
-                                tint = Color.White.copy(alpha = if (page > 0) 1f else 0.3f)
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (page > 0) 1f else 0.3f)
                             )
                         }
                         IconButton(
@@ -229,7 +196,7 @@ fun KdsScreen(
                             Icon(
                                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                 "Selanjutnya",
-                                tint = Color.White.copy(alpha = if (page < totalPages - 1) 1f else 0.3f)
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (page < totalPages - 1) 1f else 0.3f)
                             )
                         }
                     }
@@ -252,9 +219,8 @@ private fun KdsOrderCard(order: KdsOrder, onAdvance: (KdsStatus) -> Unit) {
         KdsStatus.DONE -> null
     }
 
-    val age = elapsedMinutes(order.createdAt)
-    val headerColor = if (order.status == KdsStatus.DONE) Color(0xFF616161) else headerColorForAge(age)
-    val elapsed = elapsedText(order.createdAt)
+    val headerColor = headerColorForStatus(order.status)
+    val time = orderTime(order.createdAt)
 
     val orderTypeLabel = when (order.orderType) {
         OrderType.DINE_IN -> "Dine In"
@@ -290,9 +256,19 @@ private fun KdsOrderCard(order: KdsOrder, onAdvance: (KdsStatus) -> Unit) {
                         Text(
                             "#${order.queueNumber ?: "-"}",
                             color = Color.White,
-                            fontSize = 20.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
+                        if (!order.invoiceNo.isNullOrBlank()) {
+                            Text(
+                                order.invoiceNo,
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Normal,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                         Text(
                             "$orderTypeLabel${order.tableName?.let { " · $it" } ?: ""}",
                             color = Color.White.copy(alpha = 0.9f),
@@ -302,13 +278,26 @@ private fun KdsOrderCard(order: KdsOrder, onAdvance: (KdsStatus) -> Unit) {
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    if (elapsed.isNotBlank()) {
-                        Text(
-                            elapsed,
-                            color = Color.White,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                    if (time.isNotBlank()) {
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                time,
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                when (order.status) {
+                                    KdsStatus.NEW     -> "BARU"
+                                    KdsStatus.COOKING -> "MASAK"
+                                    KdsStatus.READY   -> "SIAP"
+                                    KdsStatus.DONE    -> "SELESAI"
+                                },
+                                color = Color.White.copy(alpha = 0.9f),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
