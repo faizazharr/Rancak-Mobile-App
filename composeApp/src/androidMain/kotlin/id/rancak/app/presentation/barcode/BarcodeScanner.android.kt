@@ -3,6 +3,7 @@ package id.rancak.app.presentation.barcode
 import android.Manifest
 import android.annotation.SuppressLint
 import android.util.Size
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
@@ -104,6 +105,8 @@ private fun CameraBarcodeScannerContent(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = ComposeLocalLifecycleOwner.current
+
+    BackHandler(onBack = onClose)
 
     var lastScanned by remember { mutableStateOf("") }
     var lastScannedTime by remember { mutableStateOf(0L) }
