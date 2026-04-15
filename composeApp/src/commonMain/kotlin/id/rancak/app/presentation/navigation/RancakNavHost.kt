@@ -28,9 +28,12 @@ import id.rancak.app.presentation.ui.payment.PaymentScreen
 import id.rancak.app.presentation.ui.pos.PosScreen
 import id.rancak.app.presentation.ui.reports.ReportScreen
 import id.rancak.app.presentation.ui.sales.SalesHistoryScreen
+import id.rancak.app.presentation.ui.settings.SettingsScreen
 import id.rancak.app.presentation.ui.shift.ShiftScreen
 import id.rancak.app.presentation.ui.tables.TableMapScreen
+import id.rancak.app.presentation.viewmodel.CartViewModel
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 private data class DrawerItem(
     val label: String,
@@ -57,6 +60,7 @@ fun RancakNavHost() {
             DrawerItem("Kas & Biaya", Icons.Default.AccountBalance, Screen.CashExpense),
             DrawerItem("Riwayat", Icons.Default.Receipt, Screen.SalesHistory),
             DrawerItem("Laporan", Icons.Default.BarChart, Screen.Reports),
+            DrawerItem("Pengaturan", Icons.Default.Settings, Screen.Settings),
         )
     }
 
@@ -65,10 +69,15 @@ fun RancakNavHost() {
         route != null && !route.contains("Login") && !route.contains("TenantPicker")
     }
 
-    if (showDrawer) {
-        ModalNavigationDrawer(
-            drawerState = drawerState,
-            drawerContent = {
+    // ── Always keep NavigationContent in the same composition node ───────────
+    // Wrapping in ModalNavigationDrawer unconditionally prevents the NavHost
+    // from being destroyed and recreated when showDrawer changes (login → main),
+    // which was the root cause of white-screen flashes.
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = showDrawer,
+        drawerContent = {
+            if (showDrawer) {
                 ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
                     Spacer(Modifier.height(24.dp))
 
@@ -172,15 +181,11 @@ fun RancakNavHost() {
                     )
                 }
             }
-        ) {
-            NavigationContent(navController, onMenuClick = {
-                scope.launch {
-                    drawerState.open()
-                }
-            })
         }
-    } else {
-        NavigationContent(navController, onMenuClick = {})
+    ) {
+        NavigationContent(navController, onMenuClick = {
+            if (showDrawer) scope.launch { drawerState.open() }
+        })
     }
 }
 
@@ -189,6 +194,11 @@ private fun NavigationContent(
     navController: NavHostController,
     onMenuClick: () -> Unit
 ) {
+    // CartViewModel is created here (Activity scope) so PosScreen, CartScreen,
+    // and PaymentScreen all share the SAME instance — items added in PosScreen
+    // are visible in CartScreen and PaymentScreen.
+    val cartViewModel: CartViewModel = koinViewModel()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Login
@@ -224,14 +234,16 @@ private fun NavigationContent(
                 onMenuClick = onMenuClick,
                 onSaveClick = {
                     // TODO: implement hold/save order when backend ready
-                }
+                },
+                cartViewModel = cartViewModel
             )
         }
 
         composable<Screen.Cart> {
             CartScreen(
                 onBack = { navController.popBackStack() },
-                onCheckout = { navController.navigate(Screen.Payment) }
+                onCheckout = { navController.navigate(Screen.Payment) },
+                cartViewModel = cartViewModel
             )
         }
 
@@ -242,7 +254,8 @@ private fun NavigationContent(
                     navController.navigate(Screen.Pos) {
                         popUpTo(Screen.Pos) { inclusive = true }
                     }
-                }
+                },
+                cartViewModel = cartViewModel
             )
         }
 
@@ -272,6 +285,10 @@ private fun NavigationContent(
 
         composable<Screen.CashExpense> {
             CashExpenseScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.Settings> {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }

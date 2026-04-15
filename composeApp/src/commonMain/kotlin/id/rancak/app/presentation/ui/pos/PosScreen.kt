@@ -76,7 +76,7 @@ fun PosScreen(
     onMenuClick: () -> Unit,
     onSaveClick: () -> Unit = {},
     posViewModel: PosViewModel = koinViewModel(),
-    cartViewModel: CartViewModel = koinViewModel()
+    cartViewModel: CartViewModel
 ) {
     val uiState   by posViewModel.uiState.collectAsState()
     val cartState by cartViewModel.uiState.collectAsState()

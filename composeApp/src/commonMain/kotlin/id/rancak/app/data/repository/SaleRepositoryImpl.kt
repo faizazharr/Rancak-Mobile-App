@@ -4,6 +4,9 @@ import id.rancak.app.data.local.OfflineSaleQueue
 import id.rancak.app.data.local.PendingSale
 import id.rancak.app.data.local.PendingSaleItem
 import id.rancak.app.data.local.TokenManager
+import id.rancak.app.data.local.db.dao.SaleDao
+import id.rancak.app.data.local.db.entity.toEntity
+import id.rancak.app.data.local.db.entity.toDomain
 import id.rancak.app.data.mapper.toDomain
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.dto.sale.CreateSaleRequest
@@ -20,7 +23,8 @@ class SaleRepositoryImpl(
     private val api: RancakApiService,
     private val tokenManager: TokenManager,
     private val offlineQueue: OfflineSaleQueue,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val saleDao: SaleDao
 ) : SaleRepository {
 
     private val tenantUuid: String
@@ -128,12 +132,30 @@ class SaleRepositoryImpl(
         return try {
             val response = api.getSales(tenantUuid, dateFrom, dateTo)
             if (response.status == "ok" && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
+                val sales = response.data.map { it.toDomain() }
+                // Cache to Room
+                val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
+                saleDao.upsertSalesWithItems(
+                    sales = sales.map { it.toEntity(now) },
+                    items = sales.flatMap { sale ->
+                        sale.items.map { it.toEntity(sale.uuid) }
+                    }
+                )
+                Resource.Success(sales)
             } else {
                 Resource.Error(response.message ?: "Failed to load sales")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            // Fallback to cached sales
+            val cached = saleDao.getAll()
+            if (cached.isNotEmpty()) {
+                val sales = cached.map { entity ->
+                    entity.toDomain(saleDao.getItemsForSale(entity.uuid))
+                }
+                Resource.Success(sales)
+            } else {
+                Resource.Error(e.message ?: "Network error")
+            }
         }
     }
 
@@ -141,12 +163,24 @@ class SaleRepositoryImpl(
         return try {
             val response = api.getSaleDetail(tenantUuid, saleUuid)
             if (response.status == "ok" && response.data != null) {
-                Resource.Success(response.data.toDomain())
+                val sale = response.data.toDomain()
+                // Cache to Room
+                val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
+                saleDao.upsertSalesWithItems(
+                    sales = listOf(sale.toEntity(now)),
+                    items = sale.items.map { it.toEntity(sale.uuid) }
+                )
+                Resource.Success(sale)
             } else {
                 Resource.Error(response.message ?: "Sale not found")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            val cached = saleDao.findByUuid(saleUuid)
+            if (cached != null) {
+                Resource.Success(cached.toDomain(saleDao.getItemsForSale(saleUuid)))
+            } else {
+                Resource.Error(e.message ?: "Network error")
+            }
         }
     }
 

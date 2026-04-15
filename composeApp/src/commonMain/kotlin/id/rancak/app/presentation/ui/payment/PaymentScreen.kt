@@ -41,7 +41,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun PaymentScreen(
     onBack: () -> Unit,
     onPaymentComplete: () -> Unit,
-    cartViewModel: CartViewModel = koinViewModel(),
+    cartViewModel: CartViewModel,
     paymentViewModel: PaymentViewModel = koinViewModel()
 ) {
     val cartState by cartViewModel.uiState.collectAsState()

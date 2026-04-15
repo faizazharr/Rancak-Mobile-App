@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.ksp)
 }
 
 kotlin {
@@ -103,11 +104,16 @@ kotlin {
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.coroutines)
 
+            // Room (local SQLite — KMP)
+            implementation(libs.room.runtime)
+
             // QR Code (QRIS)
             implementation(libs.qrose)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            // SQLite bundled driver for iOS (Room KMP requires this on non-Android)
+            implementation(libs.sqlite.bundled)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -144,5 +150,9 @@ android {
 
 dependencies {
     debugImplementation(libs.compose.uiTooling)
+    // Room KSP annotation processor per target
+    add("kspAndroid", libs.room.compiler)
+    add("kspIosArm64", libs.room.compiler)
+    add("kspIosSimulatorArm64", libs.room.compiler)
 }
 

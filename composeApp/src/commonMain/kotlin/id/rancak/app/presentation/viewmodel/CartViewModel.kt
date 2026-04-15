@@ -1,13 +1,20 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import id.rancak.app.data.local.db.dao.CartDao
+import id.rancak.app.data.local.db.entity.CartItemEntity
+import id.rancak.app.data.local.db.entity.toDomain
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.repository.CartItem
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 data class CartUiState(
     val items: List<CartItem> = emptyList(),
@@ -38,50 +45,72 @@ data class CartUiState(
     val total: Long get() = subtotal - discount + tax + adminFee + deliveryFee + tip
 }
 
-class CartViewModel : ViewModel() {
+class CartViewModel(private val cartDao: CartDao) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CartUiState())
-    val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
+    private data class CartExtras(
+        val orderType: OrderType = OrderType.DINE_IN,
+        val tableUuid: String? = null,
+        val customerName: String = "",
+        val note: String = "",
+        val pax: Int = 1,
+        val discount: Long = 0,
+        val tax: Long = 0,
+        val adminFee: Long = 0,
+        val deliveryFee: Long = 0,
+        val tip: Long = 0,
+        val voucherCode: String = ""
+    )
+
+    private val _extras = MutableStateFlow(CartExtras())
+
+    // Room emits whenever the cart_items table changes — UI auto-updates
+    val uiState: StateFlow<CartUiState> = cartDao.observeAll()
+        .combine(_extras) { entities, extras ->
+            CartUiState(
+                items = entities.map { it.toDomain() },
+                orderType = extras.orderType,
+                tableUuid = extras.tableUuid,
+                customerName = extras.customerName,
+                note = extras.note,
+                pax = extras.pax,
+                discount = extras.discount,
+                tax = extras.tax,
+                adminFee = extras.adminFee,
+                deliveryFee = extras.deliveryFee,
+                tip = extras.tip,
+                voucherCode = extras.voucherCode
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, CartUiState())
 
     fun addProduct(product: Product, variantUuid: String? = null, variantName: String? = null) {
-        _uiState.update { state ->
-            val existingIndex = state.items.indexOfFirst {
-                it.productUuid == product.uuid && it.variantUuid == variantUuid
-            }
-            if (existingIndex >= 0) {
-                val updated = state.items.toMutableList()
-                val existing = updated[existingIndex]
-                updated[existingIndex] = existing.copy(qty = existing.qty + 1)
-                state.copy(items = updated)
-            } else {
-                state.copy(
-                    items = state.items + CartItem(
+        viewModelScope.launch {
+            val id = cartItemId(product.uuid, variantUuid)
+            val existing = cartDao.findById(id)
+            cartDao.upsert(
+                if (existing != null) {
+                    existing.copy(qty = existing.qty + 1)
+                } else {
+                    CartItemEntity(
+                        id = id,
                         productUuid = product.uuid,
                         productName = product.name,
                         qty = 1,
                         price = product.price,
                         variantUuid = variantUuid,
                         variantName = variantName,
+                        note = null,
                         imageUrl = product.imageUrl
                     )
-                )
-            }
+                }
+            )
         }
     }
 
     fun updateQuantity(productUuid: String, variantUuid: String?, qty: Int) {
-        _uiState.update { state ->
-            if (qty <= 0) {
-                state.copy(items = state.items.filter {
-                    !(it.productUuid == productUuid && it.variantUuid == variantUuid)
-                })
-            } else {
-                state.copy(items = state.items.map {
-                    if (it.productUuid == productUuid && it.variantUuid == variantUuid) {
-                        it.copy(qty = qty)
-                    } else it
-                })
-            }
+        viewModelScope.launch {
+            val id = cartItemId(productUuid, variantUuid)
+            if (qty <= 0) cartDao.deleteById(id) else cartDao.updateQty(id, qty)
         }
     }
 
@@ -90,60 +119,28 @@ class CartViewModel : ViewModel() {
     }
 
     fun updateItemNote(productUuid: String, variantUuid: String?, note: String) {
-        _uiState.update { state ->
-            state.copy(items = state.items.map {
-                if (it.productUuid == productUuid && it.variantUuid == variantUuid) {
-                    it.copy(note = note)
-                } else it
-            })
+        viewModelScope.launch {
+            cartDao.updateNote(cartItemId(productUuid, variantUuid), note.ifBlank { null })
         }
     }
 
-    fun setOrderType(orderType: OrderType) {
-        _uiState.update { it.copy(orderType = orderType) }
-    }
-
-    fun setTable(tableUuid: String?) {
-        _uiState.update { it.copy(tableUuid = tableUuid) }
-    }
-
-    fun setCustomerName(name: String) {
-        _uiState.update { it.copy(customerName = name) }
-    }
-
-    fun setNote(note: String) {
-        _uiState.update { it.copy(note = note) }
-    }
-
-    fun setPax(pax: Int) {
-        if (pax >= 1) _uiState.update { it.copy(pax = pax) }
-    }
-
-    fun setDiscount(discount: Long) {
-        _uiState.update { it.copy(discount = discount.coerceAtLeast(0L)) }
-    }
-
-    fun setTax(tax: Long) {
-        _uiState.update { it.copy(tax = tax.coerceAtLeast(0L)) }
-    }
-
-    fun setAdminFee(adminFee: Long) {
-        _uiState.update { it.copy(adminFee = adminFee.coerceAtLeast(0L)) }
-    }
-
-    fun setDeliveryFee(deliveryFee: Long) {
-        _uiState.update { it.copy(deliveryFee = deliveryFee.coerceAtLeast(0L)) }
-    }
-
-    fun setTip(tip: Long) {
-        _uiState.update { it.copy(tip = tip.coerceAtLeast(0L)) }
-    }
-
-    fun setVoucherCode(code: String) {
-        _uiState.update { it.copy(voucherCode = code) }
-    }
+    fun setOrderType(orderType: OrderType) = _extras.update { it.copy(orderType = orderType) }
+    fun setTable(tableUuid: String?) = _extras.update { it.copy(tableUuid = tableUuid) }
+    fun setCustomerName(name: String) = _extras.update { it.copy(customerName = name) }
+    fun setNote(note: String) = _extras.update { it.copy(note = note) }
+    fun setPax(pax: Int) { if (pax >= 1) _extras.update { it.copy(pax = pax) } }
+    fun setDiscount(discount: Long) = _extras.update { it.copy(discount = discount.coerceAtLeast(0L)) }
+    fun setTax(tax: Long) = _extras.update { it.copy(tax = tax.coerceAtLeast(0L)) }
+    fun setAdminFee(adminFee: Long) = _extras.update { it.copy(adminFee = adminFee.coerceAtLeast(0L)) }
+    fun setDeliveryFee(deliveryFee: Long) = _extras.update { it.copy(deliveryFee = deliveryFee.coerceAtLeast(0L)) }
+    fun setTip(tip: Long) = _extras.update { it.copy(tip = tip.coerceAtLeast(0L)) }
+    fun setVoucherCode(code: String) = _extras.update { it.copy(voucherCode = code) }
 
     fun clearCart() {
-        _uiState.value = CartUiState()
+        viewModelScope.launch { cartDao.deleteAll() }
+        _extras.value = CartExtras()
     }
+
+    private fun cartItemId(productUuid: String, variantUuid: String?) =
+        "$productUuid:${variantUuid ?: "_"}"
 }

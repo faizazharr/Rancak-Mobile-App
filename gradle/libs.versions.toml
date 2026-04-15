@@ -30,6 +30,9 @@ qrose = "1.1.2"
 credentials = "1.6.0"
 googleid = "1.2.0"
 guava = "33.4.0-android"
+ksp = "2.3.6"
+room = "2.7.1"
+sqlite = "2.5.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -95,6 +98,11 @@ mlkit-barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version
 # Guava (ListenableFuture for CameraX)
 guava-android = { module = "com.google.guava:guava", version.ref = "guava" }
 
+# Room (local SQLite database — KMP)
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+
 # QR Code (QRIS render)
 qrose = { module = "io.github.alexzhirkevich:qrose", version.ref = "qrose" }
 
@@ -110,3 +118,4 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMul
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
