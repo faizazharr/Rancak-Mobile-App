@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +18,7 @@ import id.rancak.app.domain.model.PaymentMethodReport
 import id.rancak.app.domain.model.ProductReport
 import id.rancak.app.domain.model.ReportSummary
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.ReportUiState
@@ -40,13 +42,11 @@ fun ReportScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Laporan") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali")
-                    }
-                }
+            RancakTopBar(
+                title = "Laporan",
+                icon = Icons.Default.BarChart,
+                subtitle = "Statistik penjualan",
+                onBack = onBack
             )
         }
     ) { padding ->

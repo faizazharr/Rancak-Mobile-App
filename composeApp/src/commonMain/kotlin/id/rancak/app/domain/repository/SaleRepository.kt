@@ -31,6 +31,12 @@ interface SaleRepository {
     suspend fun cancelSale(saleUuid: String, reason: String? = null): Resource<Sale>
     suspend fun refundSale(saleUuid: String, amount: Long? = null, reason: String? = null): Resource<Sale>
     suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale>
+
+    /** Create (or retrieve) a Xendit QRIS QR code for the given sale. */
+    suspend fun createQrPayment(saleUuid: String): Resource<QrPayment>
+
+    /** Poll the current status of the QRIS payment for the given sale. */
+    suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment>
 }
 
 data class CartItem(

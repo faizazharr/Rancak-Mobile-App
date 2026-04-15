@@ -75,7 +75,9 @@ data class ReceiptData(
     val paymentMethod: String? = null,
     val paidAmount: Long = 0,
     val changeAmount: Long = 0,
-    val footerText: String? = null
+    val footerText: String? = null,
+    /** Jika true, struk akan diberi stempel VOID di bagian atas. */
+    val isVoided: Boolean = false
 )
 
 data class ReceiptItem(

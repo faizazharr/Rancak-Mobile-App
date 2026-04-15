@@ -23,6 +23,7 @@ import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.printing.PrintMode
 import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.presentation.components.rememberRequestBluetoothPermission
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.viewmodel.SettingsUiState
 import id.rancak.app.presentation.viewmodel.SettingsViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -67,7 +68,6 @@ fun SettingsScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreenContent(
     uiState: SettingsUiState,
@@ -114,13 +114,11 @@ fun SettingsScreenContent(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Pengaturan") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
-                    }
-                }
+            RancakTopBar(
+                title = "Pengaturan",
+                icon = Icons.Default.Settings,
+                subtitle = "Konfigurasi aplikasi",
+                onBack = onBack
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

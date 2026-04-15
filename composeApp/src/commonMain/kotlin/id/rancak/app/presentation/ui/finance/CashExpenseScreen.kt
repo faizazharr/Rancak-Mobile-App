@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.CashIn
 import id.rancak.app.domain.model.Expense
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseViewModel
@@ -34,13 +36,11 @@ fun CashExpenseScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Kas & Pengeluaran") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali")
-                    }
-                }
+            RancakTopBar(
+                title = "Kas & Pengeluaran",
+                icon = Icons.Default.AccountBalance,
+                subtitle = "Kelola arus kas",
+                onBack = onBack
             )
         },
         floatingActionButton = {

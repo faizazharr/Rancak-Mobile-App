@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.TableViewModel
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,13 +39,11 @@ fun TableMapScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Denah Meja") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali")
-                    }
-                }
+            RancakTopBar(
+                title = "Denah Meja",
+                icon = Icons.Default.TableBar,
+                subtitle = "Manajemen meja",
+                onBack = onBack
             )
         }
     ) { padding ->

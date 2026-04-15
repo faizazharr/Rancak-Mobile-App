@@ -69,6 +69,11 @@ fun RancakNavHost() {
         route != null && !route.contains("Login") && !route.contains("TenantPicker")
     }
 
+    // Pastikan drawer selalu tertutup saat baru masuk ke layar utama (misal setelah pilih outlet)
+    LaunchedEffect(showDrawer) {
+        if (showDrawer) drawerState.snapTo(DrawerValue.Closed)
+    }
+
     // ── Always keep NavigationContent in the same composition node ───────────
     // Wrapping in ModalNavigationDrawer unconditionally prevents the NavHost
     // from being destroyed and recreated when showDrawer changes (login → main),

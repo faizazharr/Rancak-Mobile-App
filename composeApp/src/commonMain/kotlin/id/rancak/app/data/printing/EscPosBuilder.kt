@@ -72,6 +72,15 @@ object EscPosBuilder {
         if (!data.storePhone.isNullOrBlank())   { buf.text(data.storePhone);   buf.lf() }
         buf.lf()
 
+        // ── VOID stamp (jika transaksi di-void/batal) ────────────────────────
+        if (data.isVoided) {
+            buf.center()
+            buf.bold(true); buf.doubleSize(true)
+            buf.text("*** VOID ***"); buf.lf()
+            buf.doubleSize(false); buf.bold(false)
+            buf.lf()
+        }
+
         // ── Invoice header ───────────────────────────────────────────────────
         buf.left()
         buf.divider('='); buf.lf()

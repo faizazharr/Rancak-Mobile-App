@@ -171,6 +171,16 @@ class RancakApiService(private val client: HttpClient) {
             setBody(mapOf("table_uuid" to tableUuid))
         }.body()
 
+    /** Create (or retrieve existing) Xendit QRIS QR for a pending sale. */
+    suspend fun createQrPayment(tenantUuid: String, saleUuid: String): ApiResponse<QrPaymentDto> =
+        client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.qrPayment(saleUuid)) {
+            contentType(ContentType.Application.Json)
+        }.body()
+
+    /** Poll current QR payment status for a sale. */
+    suspend fun getQrPaymentStatus(tenantUuid: String, saleUuid: String): ApiResponse<QrPaymentDto> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.qrPayment(saleUuid)).body()
+
     suspend fun getSaleReceipt(tenantUuid: String, saleUuid: String): ApiResponse<ReceiptDto> =
         client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/receipt").body()
 

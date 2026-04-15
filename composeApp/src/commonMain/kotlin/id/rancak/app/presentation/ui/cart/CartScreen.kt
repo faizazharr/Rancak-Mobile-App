@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.repository.CartItem
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartUiState
@@ -45,7 +46,6 @@ fun CartScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreenContent(
     uiState: CartUiState,
@@ -58,13 +58,11 @@ fun CartScreenContent(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Keranjang") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
-                    }
-                },
+            RancakTopBar(
+                title = "Keranjang",
+                icon = Icons.Default.ShoppingCart,
+                subtitle = "Item pesanan dipilih",
+                onBack = onBack,
                 actions = {
                     if (!uiState.isEmpty) {
                         TextButton(onClick = onClearCart) {

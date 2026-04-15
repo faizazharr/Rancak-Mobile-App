@@ -127,4 +127,37 @@ class FakeSaleRepository : SaleRepository {
 
     override suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale> =
         getSaleDetail(saleUuid)
+
+    // ── QRIS / Xendit (fake — simulasi langsung succeeded) ────────────────────
+
+    private val fakeQrString = "00020101021226610014ID.CO.QRIS.WWW0215ID20230001234560303UMI51440014ID.CO.QRIS.WWW0215ID2023000123456"
+
+    override suspend fun createQrPayment(saleUuid: String): Resource<QrPayment> {
+        val sale = demoSales.firstOrNull { it.uuid == saleUuid }
+        return Resource.Success(
+            QrPayment(
+                uuid         = "qr-fake-$saleUuid",
+                saleUuid     = saleUuid,
+                qrString     = fakeQrString,
+                amount       = sale?.total ?: 0L,
+                status       = QrPaymentStatus.PENDING,
+                usingWebhook = false
+            )
+        )
+    }
+
+    override suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment> {
+        // Fake: selalu kembalikan PENDING (di dev bisa diubah ke SUCCEEDED untuk testing)
+        val sale = demoSales.firstOrNull { it.uuid == saleUuid }
+        return Resource.Success(
+            QrPayment(
+                uuid         = "qr-fake-$saleUuid",
+                saleUuid     = saleUuid,
+                qrString     = fakeQrString,
+                amount       = sale?.total ?: 0L,
+                status       = QrPaymentStatus.PENDING,
+                usingWebhook = false
+            )
+        )
+    }
 }

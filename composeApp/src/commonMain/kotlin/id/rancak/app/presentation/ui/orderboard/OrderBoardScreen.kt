@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.OrderBoardViewModel
 import kotlin.time.Clock
@@ -99,13 +101,11 @@ fun OrderBoardScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Order Board") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali")
-                    }
-                },
+            RancakTopBar(
+                title = "Order Board",
+                icon = Icons.Default.Dashboard,
+                subtitle = "Status pesanan aktif",
+                onBack = onBack,
                 actions = {
                     IconButton(onClick = viewModel::loadOrders) {
                         Icon(Icons.Default.Refresh, "Refresh")

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.*
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.viewmodel.KdsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -71,13 +73,11 @@ fun KdsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Kitchen Display") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali")
-                    }
-                },
+            RancakTopBar(
+                title = "Kitchen Display",
+                icon = Icons.Default.Restaurant,
+                subtitle = "Antrian pesanan dapur",
+                onBack = onBack,
                 actions = {
                     IconButton(onClick = viewModel::loadOrders) {
                         Icon(Icons.Default.Refresh, "Refresh")

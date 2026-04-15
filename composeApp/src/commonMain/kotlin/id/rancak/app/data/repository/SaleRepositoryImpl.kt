@@ -261,4 +261,30 @@ class SaleRepositoryImpl(
             Resource.Error(e.message ?: "Network error")
         }
     }
+
+    override suspend fun createQrPayment(saleUuid: String): Resource<QrPayment> {
+        return try {
+            val response = api.createQrPayment(tenantUuid, saleUuid)
+            if (response.status == "ok" && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal membuat QR QRIS")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment> {
+        return try {
+            val response = api.getQrPaymentStatus(tenantUuid, saleUuid)
+            if (response.status == "ok" && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal mengecek status QR")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }

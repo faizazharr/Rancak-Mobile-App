@@ -1,6 +1,7 @@
 package id.rancak.app.data.printing
 
 import id.rancak.app.domain.model.Sale
+import id.rancak.app.domain.model.SaleStatus
 
 /**
  * Maps a [Sale] domain model to [ReceiptData] for ESC/POS printing.
@@ -46,7 +47,8 @@ fun Sale.toReceiptData(
     paymentMethod = paymentMethod?.value,
     paidAmount    = paidAmount,
     changeAmount  = changeAmount,
-    footerText    = footerText
+    footerText    = footerText,
+    isVoided      = status == SaleStatus.VOID || status == SaleStatus.CANCELLED
 )
 
 /**

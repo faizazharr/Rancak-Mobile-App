@@ -52,6 +52,27 @@ enum class SaleStatus(val value: String) {
     }
 }
 
+/** Domain model untuk QRIS payment dari Xendit. */
+data class QrPayment(
+    val uuid: String,
+    val saleUuid: String,
+    val qrString: String,
+    val amount: Long,
+    val status: QrPaymentStatus,
+    val usingWebhook: Boolean
+)
+
+enum class QrPaymentStatus(val value: String) {
+    PENDING("pending"),
+    SUCCEEDED("succeeded"),
+    EXPIRED("expired");
+
+    companion object {
+        fun from(value: String?): QrPaymentStatus =
+            entries.firstOrNull { it.value == value } ?: PENDING
+    }
+}
+
 enum class PaymentMethod(val value: String) {
     CASH("cash"),
     CARD("card"),

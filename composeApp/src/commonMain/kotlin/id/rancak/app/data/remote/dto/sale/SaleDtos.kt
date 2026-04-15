@@ -129,6 +129,20 @@ data class BatchSaleItem(
     @SerialName("table_uuid") val tableUuid: String? = null
 )
 
+// ── QRIS / Xendit ──
+
+@Serializable
+data class QrPaymentDto(
+    val uuid: String,
+    @SerialName("sale_uuid")    val saleUuid: String,
+    @SerialName("xendit_qr_id") val xenditQrId: String? = null,
+    @SerialName("qr_string")    val qrString: String,
+    val amount: Long,
+    val status: String,          // "pending" | "succeeded" | "expired"
+    @SerialName("expires_at")   val expiresAt: String? = null,
+    @SerialName("using_webhook") val usingWebhook: Boolean = false
+)
+
 @Serializable
 data class BatchSalesResponse(
     val total: Int,

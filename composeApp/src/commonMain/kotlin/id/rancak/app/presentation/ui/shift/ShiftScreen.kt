@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,6 +14,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.ShiftUiState
@@ -45,7 +47,6 @@ fun ShiftScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShiftScreenContent(
     uiState: ShiftUiState,
@@ -59,13 +60,11 @@ fun ShiftScreenContent(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Shift Kasir") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
-                    }
-                }
+            RancakTopBar(
+                title = "Shift Kasir",
+                icon = Icons.Default.AccessTime,
+                subtitle = "Kelola jam operasional",
+                onBack = onBack
             )
         }
     ) { padding ->

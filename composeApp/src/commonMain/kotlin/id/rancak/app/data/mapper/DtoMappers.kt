@@ -7,6 +7,7 @@ import id.rancak.app.data.remote.dto.auth.TenantDto
 import id.rancak.app.data.remote.dto.auth.UserDto
 import id.rancak.app.data.remote.dto.product.CategoryDto
 import id.rancak.app.data.remote.dto.product.ProductDto
+import id.rancak.app.data.remote.dto.sale.QrPaymentDto
 import id.rancak.app.data.remote.dto.sale.SaleDto
 import id.rancak.app.data.remote.dto.sale.SaleItemDto
 import id.rancak.app.data.remote.dto.sync.ShiftDto
@@ -84,6 +85,15 @@ fun SaleItemDto.toDomain() = SaleItem(
     subtotal = subtotal,
     variantName = variantName,
     note = note
+)
+
+fun QrPaymentDto.toDomain() = QrPayment(
+    uuid         = uuid,
+    saleUuid     = saleUuid,
+    qrString     = qrString,
+    amount       = amount,
+    status       = QrPaymentStatus.from(status),
+    usingWebhook = usingWebhook
 )
 
 // ── Operations Mappers ──
