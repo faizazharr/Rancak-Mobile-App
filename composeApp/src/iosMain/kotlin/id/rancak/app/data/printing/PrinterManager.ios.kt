@@ -137,6 +137,11 @@ actual class PrinterManager actual constructor() {
 
     private val bleDelegate = BleCentralDelegate()
 
+    actual fun isBluetoothEnabled(): Boolean {
+        // CBCentralManager state check — requires an initialized manager
+        return bleDelegate.isBtPoweredOn()
+    }
+
     actual suspend fun getBluetoothPrinters(): List<PrinterDevice> =
         bleDelegate.scanForPrinters()
 
@@ -175,6 +180,10 @@ private class BleCentralDelegate :
     private var pendingBytes: ByteArray? = null
     private var writeOffset = 0
     private val CHUNK_SIZE  = 180   // 180B universal; some printers support 512B
+
+    fun isBtPoweredOn(): Boolean {
+        return central?.state == CBManagerStatePoweredOn
+    }
 
     // ── Scan ──────────────────────────────────────────────────────────────────
 

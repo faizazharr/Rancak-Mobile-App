@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.printing.PrinterDevice
+import id.rancak.app.presentation.components.rememberRequestBluetoothPermission
 import id.rancak.app.presentation.viewmodel.SettingsUiState
 import id.rancak.app.presentation.viewmodel.SettingsViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -31,6 +32,11 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Refresh BT state when screen is shown
+    LaunchedEffect(Unit) {
+        viewModel.checkBluetoothState()
+    }
 
     SettingsScreenContent(
         uiState = uiState,
@@ -76,6 +82,14 @@ fun SettingsScreenContent(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Request BT permission before scanning — on Android 12+ this triggers
+    // the system permission dialog; on older Android / iOS it's a no-op.
+    val requestBluetoothPermission = rememberRequestBluetoothPermission { granted ->
+        if (granted) {
+            onScanBluetooth()
+        }
+    }
+
     LaunchedEffect(uiState.printerMessage) {
         uiState.printerMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -111,7 +125,7 @@ fun SettingsScreenContent(
                 item {
                     NoPrinterCard(
                         printerType = uiState.printerType,
-                        onScanBluetooth = onScanBluetooth
+                        onScanBluetooth = requestBluetoothPermission
                     )
                 }
             }
@@ -131,9 +145,17 @@ fun SettingsScreenContent(
                         address = uiState.savedPrinterAddress,
                         type = uiState.printerType,
                         isPrinting = uiState.isPrinting,
+                        isConnected = uiState.isConnected,
                         onTestPrint = onTestPrint,
                         onDisconnect = onDisconnect
                     )
+                }
+            }
+
+            // Bluetooth OFF warning
+            if (uiState.printerType == SettingsStore.TYPE_BLUETOOTH && !uiState.isBluetoothOn) {
+                item {
+                    BluetoothOffWarning()
                 }
             }
 
@@ -143,9 +165,11 @@ fun SettingsScreenContent(
                     BluetoothSection(
                         printers = uiState.discoveredPrinters,
                         isScanning = uiState.isScanning,
+                        isConnecting = uiState.isConnecting,
                         savedAddress = uiState.savedPrinterAddress,
                         hasScannedOnce = uiState.hasScannedOnce,
-                        onScan = onScanBluetooth,
+                        isBluetoothOn = uiState.isBluetoothOn,
+                        onScan = requestBluetoothPermission,
                         onSelect = onSelectPrinter
                     )
                 }
@@ -322,6 +346,7 @@ private fun SavedPrinterCard(
     address: String,
     type: String,
     isPrinting: Boolean,
+    isConnected: Boolean,
     onTestPrint: () -> Unit,
     onDisconnect: () -> Unit
 ) {
@@ -357,13 +382,19 @@ private fun SavedPrinterCard(
                 }
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    color = if (isConnected)
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Text(
-                        "Tersimpan",
+                        if (isConnected) "Terhubung" else "Tersimpan",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = if (isConnected)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -387,8 +418,55 @@ private fun SavedPrinterCard(
                         contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Hapus")
+                    Icon(
+                        Icons.Default.LinkOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text("Putuskan")
                 }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bluetooth Off Warning
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun BluetoothOffWarning() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.BluetoothDisabled,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(
+                    "Bluetooth Tidak Aktif",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "Aktifkan Bluetooth di Pengaturan perangkat untuk mencari dan menghubungkan printer.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
             }
         }
     }
@@ -402,8 +480,10 @@ private fun SavedPrinterCard(
 private fun BluetoothSection(
     printers: List<PrinterDevice>,
     isScanning: Boolean,
+    isConnecting: Boolean,
     savedAddress: String,
     hasScannedOnce: Boolean,
+    isBluetoothOn: Boolean,
     onScan: () -> Unit,
     onSelect: (PrinterDevice) -> Unit
 ) {
@@ -411,7 +491,7 @@ private fun BluetoothSection(
         Column(modifier = Modifier.padding(16.dp)) {
             Button(
                 onClick = onScan,
-                enabled = !isScanning,
+                enabled = !isScanning && !isConnecting && isBluetoothOn,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (isScanning) {
@@ -422,7 +502,39 @@ private fun BluetoothSection(
                     )
                     Spacer(Modifier.width(8.dp))
                 }
-                Text(if (isScanning) "Mencari..." else "Cari Printer Bluetooth")
+                Text(
+                    when {
+                        isScanning -> "Mencari..."
+                        !isBluetoothOn -> "Bluetooth Mati"
+                        else -> "Cari Printer Bluetooth"
+                    }
+                )
+            }
+
+            // Connecting indicator
+            if (isConnecting) {
+                Spacer(Modifier.height(12.dp))
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "Menghubungkan ke printer...",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
 
             // Tips before first scan
@@ -492,7 +604,7 @@ private fun BluetoothSection(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
-                                .clickable(enabled = !isSaved) { onSelect(device) },
+                                .clickable(enabled = !isSaved && !isConnecting) { onSelect(device) },
                             color = if (isSaved)
                                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
                             else

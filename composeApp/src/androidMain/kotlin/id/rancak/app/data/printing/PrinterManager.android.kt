@@ -40,15 +40,30 @@ actual class PrinterManager actual constructor() {
         return manager?.adapter
     }
 
-    private fun hasBluetoothPermission(): Boolean {
+    private fun hasBluetoothConnectPermission(): Boolean {
         val ctx = appContext ?: return false
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             ContextCompat.checkSelfPermission(
                 ctx, android.Manifest.permission.BLUETOOTH_CONNECT
             ) == PackageManager.PERMISSION_GRANTED
         } else {
-            true // BLUETOOTH_CONNECT not required below API 31
+            true
         }
+    }
+
+    private fun hasBluetoothScanPermission(): Boolean {
+        val ctx = appContext ?: return false
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ContextCompat.checkSelfPermission(
+                ctx, android.Manifest.permission.BLUETOOTH_SCAN
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    actual fun isBluetoothEnabled(): Boolean {
+        return getAdapter()?.isEnabled == true
     }
 
     // ── TCP/IP ──────────────────────────────────────────────────────────────
@@ -80,18 +95,26 @@ actual class PrinterManager actual constructor() {
     @SuppressLint("MissingPermission")
     actual suspend fun getBluetoothPrinters(): List<PrinterDevice> =
         withContext(Dispatchers.IO) {
-            if (!hasBluetoothPermission()) return@withContext emptyList()
-
-            val adapter = getAdapter() ?: return@withContext emptyList()
-            if (!adapter.isEnabled) return@withContext emptyList()
-
-            adapter.bondedDevices.map { device ->
-                PrinterDevice(
-                    name    = device.name ?: device.address,
-                    address = device.address,
-                    type    = PrinterConnectionType.BLUETOOTH
-                )
+            if (!hasBluetoothConnectPermission()) {
+                throw SecurityException("permission denied: BLUETOOTH_CONNECT belum diberikan")
             }
+
+            val adapter = getAdapter()
+                ?: throw IllegalStateException("Bluetooth not available on this device")
+
+            if (!adapter.isEnabled) {
+                throw IllegalStateException("Bluetooth is disabled — not enabled")
+            }
+
+            adapter.bondedDevices
+                .orEmpty()
+                .map { device ->
+                    PrinterDevice(
+                        name    = device.name ?: device.address,
+                        address = device.address,
+                        type    = PrinterConnectionType.BLUETOOTH
+                    )
+                }
         }
 
     @SuppressLint("MissingPermission")
@@ -99,14 +122,14 @@ actual class PrinterManager actual constructor() {
         address: String,
         data: ByteArray
     ): PrintResult = withContext(Dispatchers.IO) {
-        if (!hasBluetoothPermission()) {
+        if (!hasBluetoothConnectPermission()) {
             return@withContext PrintResult.Error("Izin Bluetooth (BLUETOOTH_CONNECT) belum diberikan")
         }
         val adapter = getAdapter()
-            ?: return@withContext PrintResult.Error("Bluetooth not available on this device")
+            ?: return@withContext PrintResult.Error("Bluetooth tidak tersedia di perangkat ini")
 
         if (!adapter.isEnabled) {
-            return@withContext PrintResult.Error("Bluetooth is disabled — please enable it in Settings")
+            return@withContext PrintResult.Error("Bluetooth tidak aktif — aktifkan Bluetooth terlebih dahulu")
         }
 
         val device: BluetoothDevice? = adapter.bondedDevices
@@ -114,25 +137,63 @@ actual class PrinterManager actual constructor() {
 
         if (device == null) {
             return@withContext PrintResult.Error(
-                "Printer $address not found — pair it in Android Bluetooth Settings first"
+                "Printer $address tidak ditemukan — pair dulu di Pengaturan Bluetooth"
             )
         }
 
-        return@withContext try {
+        // cancelDiscovery needs BLUETOOTH_SCAN — only call if permitted
+        if (hasBluetoothScanPermission()) {
+            try { adapter.cancelDiscovery() } catch (_: Exception) { }
+        }
+
+        // Try 3 connection strategies — many budget thermal printers (ECO 58, XP-58,
+        // etc.) fail with standard createRfcommSocketToServiceRecord but succeed with
+        // insecure or reflection-based RFCOMM channel 1.
+        return@withContext tryConnectAndPrint(device, data)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun tryConnectAndPrint(device: BluetoothDevice, data: ByteArray): PrintResult {
+        // Strategy 1: Standard secure RFCOMM with SPP UUID
+        try {
             val socket = device.createRfcommSocketToServiceRecord(SPP_UUID)
-            adapter.cancelDiscovery()  // Speeds up connection
             socket.connect()
+            sendAndClose(socket, data)
+            return PrintResult.Success
+        } catch (_: Exception) { /* fall through */ }
 
-            val out: OutputStream = socket.outputStream
-            out.write(data)
-            out.flush()
-            out.close()
-            socket.close()
+        // Strategy 2: Insecure RFCOMM (no pairing confirmation popup)
+        try {
+            val socket = device.createInsecureRfcommSocketToServiceRecord(SPP_UUID)
+            socket.connect()
+            sendAndClose(socket, data)
+            return PrintResult.Success
+        } catch (_: Exception) { /* fall through */ }
 
+        // Strategy 3: Reflection — direct RFCOMM channel 1
+        // This is the most compatible method for cheap thermal printers
+        return try {
+            val method = device.javaClass.getMethod(
+                "createRfcommSocket",
+                Int::class.javaPrimitiveType
+            )
+            val socket = method.invoke(device, 1) as android.bluetooth.BluetoothSocket
+            socket.connect()
+            sendAndClose(socket, data)
             PrintResult.Success
         } catch (e: Exception) {
-            PrintResult.Error("Bluetooth print failed: ${e.message}")
+            PrintResult.Error(
+                "Gagal terhubung ke printer ${device.name ?: device.address}: ${e.message}"
+            )
         }
+    }
+
+    private fun sendAndClose(socket: android.bluetooth.BluetoothSocket, data: ByteArray) {
+        val out: OutputStream = socket.outputStream
+        out.write(data)
+        out.flush()
+        out.close()
+        socket.close()
     }
 
     companion object {

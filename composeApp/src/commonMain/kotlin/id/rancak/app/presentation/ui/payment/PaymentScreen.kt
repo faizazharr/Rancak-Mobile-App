@@ -1,8 +1,6 @@
 package id.rancak.app.presentation.ui.payment
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -17,10 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.printing.EscPosBuilder
 import id.rancak.app.data.printing.PrintResult
-import id.rancak.app.data.printing.PrinterConnectionType
-import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.data.printing.PrinterManager
 import id.rancak.app.data.printing.toReceiptData
 import id.rancak.app.domain.model.PaymentMethod
@@ -47,6 +44,7 @@ fun PaymentScreen(
     val cartState by cartViewModel.uiState.collectAsState()
     val paymentState by paymentViewModel.uiState.collectAsState()
     val printerManager: PrinterManager = koinInject()
+    val settingsStore: SettingsStore = koinInject()
 
     Scaffold(
         topBar = {
@@ -76,6 +74,7 @@ fun PaymentScreen(
             PaymentSuccessContent(
                 sale = paymentState.completedSale!!,
                 printerManager = printerManager,
+                settingsStore = settingsStore,
                 onNewTransaction = {
                     paymentViewModel.reset()
                     cartViewModel.clearCart()
@@ -269,6 +268,7 @@ internal fun PaymentFormContent(
 private fun PaymentSuccessContent(
     sale: Sale,
     printerManager: PrinterManager,
+    settingsStore: SettingsStore,
     onNewTransaction: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -338,6 +338,7 @@ private fun PaymentSuccessContent(
         PrintDialog(
             sale = sale,
             printerManager = printerManager,
+            settingsStore = settingsStore,
             onDismiss = { showPrintDialog = false }
         )
     }
@@ -354,24 +355,43 @@ private enum class PrintDialogTab { BLUETOOTH, NETWORK }
 private fun PrintDialog(
     sale: Sale,
     printerManager: PrinterManager,
+    settingsStore: SettingsStore,
     onDismiss: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
-    var selectedTab by remember { mutableStateOf(PrintDialogTab.BLUETOOTH) }
-    var bluetoothPrinters by remember { mutableStateOf<List<PrinterDevice>>(emptyList()) }
-    var isLoadingBt by remember { mutableStateOf(false) }
-    var selectedDevice by remember { mutableStateOf<PrinterDevice?>(null) }
-    var networkIp by remember { mutableStateOf("") }
+    // Pre-load saved printer settings
+    val hasSavedPrinter = settingsStore.printerAddress.isNotBlank()
+    val savedType = settingsStore.printerType
+    val savedName = settingsStore.printerName
+    val savedAddress = settingsStore.printerAddress
+    val savedNetworkIp = settingsStore.networkPrinterIp
+    val savedNetworkPort = settingsStore.networkPrinterPort
+
+    var selectedTab by remember {
+        mutableStateOf(
+            if (savedType == SettingsStore.TYPE_NETWORK) PrintDialogTab.NETWORK
+            else PrintDialogTab.BLUETOOTH
+        )
+    }
+    var networkIp by remember { mutableStateOf(savedNetworkIp) }
     var isPrinting by remember { mutableStateOf(false) }
     var printResult by remember { mutableStateOf<PrintResult?>(null) }
 
-    // Load Bluetooth printers when dialog opens or tab switches to BT
-    LaunchedEffect(selectedTab) {
-        if (selectedTab == PrintDialogTab.BLUETOOTH) {
-            isLoadingBt = true
-            bluetoothPrinters = printerManager.getBluetoothPrinters()
-            isLoadingBt = false
+    // If saved printer is set, auto-print immediately when dialog opens
+    var autoPrintAttempted by remember { mutableStateOf(false) }
+    LaunchedEffect(hasSavedPrinter) {
+        if (hasSavedPrinter && !autoPrintAttempted) {
+            autoPrintAttempted = true
+            isPrinting = true
+            printResult = null
+            val bytes = EscPosBuilder.buildReceipt(sale.toReceiptData())
+            printResult = if (savedType == SettingsStore.TYPE_BLUETOOTH) {
+                printerManager.printViaBluetooth(savedAddress, bytes)
+            } else {
+                printerManager.printViaNetwork(savedNetworkIp, savedNetworkPort, bytes)
+            }
+            isPrinting = false
         }
     }
 
@@ -381,116 +401,102 @@ private fun PrintDialog(
         title = { Text("Cetak Struk") },
         text = {
             Column {
-                // Tab selector
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FilterChip(
-                        selected = selectedTab == PrintDialogTab.BLUETOOTH,
-                        onClick = { selectedTab = PrintDialogTab.BLUETOOTH; printResult = null },
-                        label = { Text("Bluetooth") },
-                        leadingIcon = if (selectedTab == PrintDialogTab.BLUETOOTH) {
-                            { Icon(Icons.Default.Bluetooth, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                        } else null,
-                        modifier = Modifier.weight(1f)
-                    )
-                    FilterChip(
-                        selected = selectedTab == PrintDialogTab.NETWORK,
-                        onClick = { selectedTab = PrintDialogTab.NETWORK; printResult = null },
-                        label = { Text("Wi-Fi / LAN") },
-                        leadingIcon = if (selectedTab == PrintDialogTab.NETWORK) {
-                            { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                        } else null,
-                        modifier = Modifier.weight(1f)
-                    )
+                // Show saved printer info
+                if (hasSavedPrinter) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                if (savedType == SettingsStore.TYPE_BLUETOOTH) Icons.Default.Bluetooth
+                                else Icons.Default.Wifi,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    savedName.ifBlank { savedAddress },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    "Printer tersimpan dari Pengaturan",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
                 }
 
-                Spacer(Modifier.height(16.dp))
+                // Manual fallback: tab selector (only when no saved printer OR user wants to retry)
+                if (!hasSavedPrinter || (printResult is PrintResult.Error)) {
+                    if (printResult is PrintResult.Error && hasSavedPrinter) {
+                        Text(
+                            "Gagal mencetak ke printer tersimpan. Pilih printer lain atau coba lagi:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
 
-                when (selectedTab) {
-                    PrintDialogTab.BLUETOOTH -> {
-                        if (isLoadingBt) {
-                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                            }
-                        } else if (bluetoothPrinters.isEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = selectedTab == PrintDialogTab.BLUETOOTH,
+                            onClick = { selectedTab = PrintDialogTab.BLUETOOTH; printResult = null },
+                            label = { Text("Bluetooth") },
+                            leadingIcon = if (selectedTab == PrintDialogTab.BLUETOOTH) {
+                                { Icon(Icons.Default.Bluetooth, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                            modifier = Modifier.weight(1f)
+                        )
+                        FilterChip(
+                            selected = selectedTab == PrintDialogTab.NETWORK,
+                            onClick = { selectedTab = PrintDialogTab.NETWORK; printResult = null },
+                            label = { Text("Wi-Fi / LAN") },
+                            leadingIcon = if (selectedTab == PrintDialogTab.NETWORK) {
+                                { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    when (selectedTab) {
+                        PrintDialogTab.NETWORK -> {
+                            OutlinedTextField(
+                                value = networkIp,
+                                onValueChange = { networkIp = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("IP Printer") },
+                                placeholder = { Text("192.168.1.100") },
+                                leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null) },
+                                singleLine = true,
+                                shape = MaterialTheme.shapes.medium,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                            )
+                        }
+                        PrintDialogTab.BLUETOOTH -> {
                             Text(
-                                "Tidak ada printer Bluetooth ditemukan.\nPastikan printer sudah dipasangkan.",
+                                "Buka Pengaturan untuk menghubungkan printer Bluetooth.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.heightIn(max = 200.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                items(bluetoothPrinters) { device ->
-                                    val isSelected = selectedDevice == device
-                                    Surface(
-                                        onClick = { selectedDevice = if (isSelected) null else device },
-                                        shape = MaterialTheme.shapes.small,
-                                        color = if (isSelected)
-                                            MaterialTheme.colorScheme.primaryContainer
-                                        else
-                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Print,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(20.dp),
-                                                tint = if (isSelected)
-                                                    MaterialTheme.colorScheme.primary
-                                                else
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                            Spacer(Modifier.width(8.dp))
-                                            Column(Modifier.weight(1f)) {
-                                                Text(
-                                                    device.name,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                                )
-                                                Text(
-                                                    device.address,
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
-                                            if (isSelected) {
-                                                Icon(
-                                                    Icons.Default.CheckCircle,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                         }
-                    }
-
-                    PrintDialogTab.NETWORK -> {
-                        OutlinedTextField(
-                            value = networkIp,
-                            onValueChange = { networkIp = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("IP Printer") },
-                            placeholder = { Text("192.168.1.100") },
-                            leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null) },
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.medium,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-                        )
                     }
                 }
 
@@ -546,12 +552,33 @@ private fun PrintDialog(
                         }
                     }
                 }
+
+                // Loading indicator
+                if (isPrinting) {
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Mencetak...", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
             }
         },
         confirmButton = {
-            val canPrint = !isPrinting && when (selectedTab) {
-                PrintDialogTab.BLUETOOTH -> selectedDevice != null
-                PrintDialogTab.NETWORK   -> networkIp.isNotBlank()
+            // Retry / manual print button
+            val canPrint = !isPrinting && when {
+                hasSavedPrinter && printResult !is PrintResult.Error -> true // retry with saved
+                selectedTab == PrintDialogTab.NETWORK -> networkIp.isNotBlank()
+                else -> false
+            }
+            val buttonText = when {
+                printResult is PrintResult.Success -> "Cetak Ulang"
+                printResult is PrintResult.Error -> "Coba Lagi"
+                else -> "Cetak"
             }
             Button(
                 onClick = {
@@ -559,26 +586,22 @@ private fun PrintDialog(
                         isPrinting = true
                         printResult = null
                         val bytes = EscPosBuilder.buildReceipt(sale.toReceiptData())
-                        printResult = when (selectedTab) {
-                            PrintDialogTab.BLUETOOTH ->
-                                printerManager.printViaBluetooth(selectedDevice!!.address, bytes)
-                            PrintDialogTab.NETWORK   ->
+                        printResult = when {
+                            hasSavedPrinter && savedType == SettingsStore.TYPE_BLUETOOTH ->
+                                printerManager.printViaBluetooth(savedAddress, bytes)
+                            hasSavedPrinter && savedType == SettingsStore.TYPE_NETWORK ->
+                                printerManager.printViaNetwork(savedNetworkIp, savedNetworkPort, bytes)
+                            selectedTab == PrintDialogTab.NETWORK ->
                                 printerManager.printViaNetwork(networkIp.trim(), data = bytes)
+                            else ->
+                                PrintResult.Error("Pilih printer terlebih dahulu di Pengaturan")
                         }
                         isPrinting = false
                     }
                 },
                 enabled = canPrint
             ) {
-                if (isPrinting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    Spacer(Modifier.width(8.dp))
-                }
-                Text("Cetak")
+                Text(buttonText)
             }
         },
         dismissButton = {

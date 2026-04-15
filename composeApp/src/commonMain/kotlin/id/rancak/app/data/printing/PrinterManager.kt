@@ -44,6 +44,11 @@ expect class PrinterManager() {
     // ── Bluetooth ── platform-specific implementation ─────────────────────────
 
     /**
+     * Check if Bluetooth is currently enabled on the device.
+     */
+    fun isBluetoothEnabled(): Boolean
+
+    /**
      * Scan / return available Bluetooth printers.
      * Android: returns already-paired SPP devices.
      * iOS: scans for BLE peripherals advertising ESC/POS service UUIDs.

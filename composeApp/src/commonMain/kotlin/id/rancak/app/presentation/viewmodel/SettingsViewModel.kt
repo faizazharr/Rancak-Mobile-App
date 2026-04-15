@@ -28,6 +28,8 @@ data class SettingsUiState(
     val isPrinting: Boolean = false,
     val printerMessage: String? = null,
     val hasScannedOnce: Boolean = false,
+    val isBluetoothOn: Boolean = true,
+    val isConnected: Boolean = false,
 
     // Receipt
     val storeName: String = "",
@@ -64,8 +66,14 @@ class SettingsViewModel(
             storePhone = settingsStore.receiptStorePhone,
             footerText = settingsStore.receiptFooter,
             autoPrint = settingsStore.autoPrintReceipt,
-            paperWidth = settingsStore.paperWidth
+            paperWidth = settingsStore.paperWidth,
+            isBluetoothOn = try { printerManager.isBluetoothEnabled() } catch (_: Exception) { false }
         )
+    }
+
+    fun checkBluetoothState() {
+        val btOn = try { printerManager.isBluetoothEnabled() } catch (_: Exception) { false }
+        _uiState.update { it.copy(isBluetoothOn = btOn) }
     }
 
     // ── Printer type toggle ──────────────────────────────────────────────────
@@ -114,16 +122,39 @@ class SettingsViewModel(
     }
 
     fun selectBluetoothPrinter(device: PrinterDevice) {
-        settingsStore.printerType = SettingsStore.TYPE_BLUETOOTH
-        settingsStore.printerName = device.name
-        settingsStore.printerAddress = device.address
-        _uiState.update {
-            it.copy(
-                printerType = SettingsStore.TYPE_BLUETOOTH,
-                savedPrinterName = device.name,
-                savedPrinterAddress = device.address,
-                printerMessage = "Printer \"${device.name}\" tersimpan"
-            )
+        viewModelScope.launch {
+            _uiState.update { it.copy(isConnecting = true, printerMessage = null) }
+
+            // Test actual connection by sending an empty ESC/POS init command
+            val initCmd = byteArrayOf(0x1B, 0x40) // ESC @ = initialize printer
+            val result = printerManager.printViaBluetooth(device.address, initCmd)
+
+            when (result) {
+                is PrintResult.Success -> {
+                    settingsStore.printerType = SettingsStore.TYPE_BLUETOOTH
+                    settingsStore.printerName = device.name
+                    settingsStore.printerAddress = device.address
+                    _uiState.update {
+                        it.copy(
+                            isConnecting = false,
+                            isConnected = true,
+                            printerType = SettingsStore.TYPE_BLUETOOTH,
+                            savedPrinterName = device.name,
+                            savedPrinterAddress = device.address,
+                            printerMessage = "Printer \"${device.name}\" berhasil terhubung dan tersimpan"
+                        )
+                    }
+                }
+                is PrintResult.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            isConnecting = false,
+                            isConnected = false,
+                            printerMessage = "Gagal terhubung ke \"${device.name}\": ${result.message}"
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -134,7 +165,8 @@ class SettingsViewModel(
                 savedPrinterName = "",
                 savedPrinterAddress = "",
                 networkIp = "",
-                printerMessage = "Printer telah dihapus"
+                isConnected = false,
+                printerMessage = "Printer telah diputus dan dihapus"
             )
         }
     }
