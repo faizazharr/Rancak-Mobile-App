@@ -140,7 +140,9 @@ object EscPosBuilder {
         if (data.footerText == null) {
             buf.text("Sampai jumpa kembali :)"); buf.lf()
         }
-        buf.lf(); buf.lf(); buf.lf()
+        // 6 feed lines (~7.5mm) memastikan footer melewati posisi pisau pemotong
+        // yang biasanya berjarak 15–20mm di atas print head
+        buf.lf(); buf.lf(); buf.lf(); buf.lf(); buf.lf(); buf.lf()
 
         buf.cut()
 
@@ -226,7 +228,8 @@ object EscPosBuilder {
         // ── Footer ───────────────────────────────────────────────────────────
         buf.center()
         buf.text("-- SELESAI / DONE --"); buf.lf()
-        buf.lf(); buf.lf(); buf.lf()
+        // 6 feed lines agar teks terakhir melewati pisau pemotong
+        buf.lf(); buf.lf(); buf.lf(); buf.lf(); buf.lf(); buf.lf()
 
         buf.cut()
 

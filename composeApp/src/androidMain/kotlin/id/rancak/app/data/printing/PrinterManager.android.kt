@@ -81,6 +81,8 @@ actual class PrinterManager actual constructor() {
             val out: OutputStream = socket.getOutputStream()
             out.write(data)
             out.flush()
+            // Beri jeda agar printer selesai menerima semua data sebelum close
+            Thread.sleep(BT_DRAIN_DELAY_MS)
             out.close()
             socket.close()
 
@@ -190,8 +192,18 @@ actual class PrinterManager actual constructor() {
 
     private fun sendAndClose(socket: android.bluetooth.BluetoothSocket, data: ByteArray) {
         val out: OutputStream = socket.outputStream
-        out.write(data)
-        out.flush()
+        // Kirim dalam chunk 512 byte — printer budget (XP-58, ECO-58) punya
+        // buffer internal kecil (~4-8KB), mengirim sekaligus bisa overflow
+        // dan menyebabkan struk terpotong dari bawah.
+        var offset = 0
+        while (offset < data.size) {
+            val chunkEnd = minOf(offset + BT_CHUNK_SIZE, data.size)
+            out.write(data, offset, chunkEnd - offset)
+            out.flush()
+            offset = chunkEnd
+        }
+        // Beri jeda agar printer selesai menerima data sebelum koneksi ditutup
+        Thread.sleep(BT_DRAIN_DELAY_MS)
         out.close()
         socket.close()
     }
@@ -200,5 +212,7 @@ actual class PrinterManager actual constructor() {
         private val SPP_UUID = java.util.UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
         private const val CONNECT_TIMEOUT_MS = 5_000
         private const val WRITE_TIMEOUT_MS   = 10_000
+        private const val BT_CHUNK_SIZE      = 512         // byte per chunk via Bluetooth
+        private const val BT_DRAIN_DELAY_MS  = 150L        // ms tunggu sebelum close socket
     }
 }
