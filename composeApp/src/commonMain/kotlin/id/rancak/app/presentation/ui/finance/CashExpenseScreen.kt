@@ -40,7 +40,7 @@ fun CashExpenseScreen(
                 title = "Kas & Pengeluaran",
                 icon = Icons.Default.AccountBalance,
                 subtitle = "Kelola arus kas",
-                onBack = onBack
+                onMenu = onBack
             )
         },
         floatingActionButton = {

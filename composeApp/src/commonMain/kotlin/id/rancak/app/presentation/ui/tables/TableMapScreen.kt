@@ -43,7 +43,7 @@ fun TableMapScreen(
                 title = "Denah Meja",
                 icon = Icons.Default.TableBar,
                 subtitle = "Manajemen meja",
-                onBack = onBack
+                onMenu = onBack
             )
         }
     ) { padding ->

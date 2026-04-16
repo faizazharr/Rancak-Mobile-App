@@ -79,7 +79,7 @@ fun SalesHistoryScreen(
                 title    = "Riwayat Penjualan",
                 icon     = Icons.Default.Receipt,
                 subtitle = "Catatan seluruh transaksi",
-                onBack   = onBack
+                onMenu   = onBack
             )
         }
     ) { padding ->

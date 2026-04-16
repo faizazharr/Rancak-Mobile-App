@@ -77,7 +77,7 @@ fun KdsScreen(
                 title = "Kitchen Display",
                 icon = Icons.Default.Restaurant,
                 subtitle = "Antrian pesanan dapur",
-                onBack = onBack,
+                onMenu = onBack,
                 actions = {
                     IconButton(onClick = viewModel::loadOrders) {
                         Icon(Icons.Default.Refresh, "Refresh")

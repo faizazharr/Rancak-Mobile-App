@@ -3,6 +3,7 @@ package id.rancak.app.presentation.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,7 +21,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
  *
  * @param title       Judul layar
  * @param icon        Ikon yang mewakili layar (wajib)
- * @param onBack      Lambda tombol kembali; null = tidak tampil back button
+ * @param onBack      Lambda tombol kembali (back arrow); null = tidak tampil
+ * @param onMenu      Lambda tombol menu sidebar (hamburger); null = tidak tampil.
+ *                    Jika keduanya di-set, onMenu diprioritaskan.
  * @param subtitle    Teks kecil opsional di bawah judul
  * @param actions     Konten tambahan di kanan (opsional, misal icon action)
  */
@@ -29,6 +32,7 @@ fun RancakTopBar(
     title: String,
     icon: ImageVector,
     onBack: (() -> Unit)? = null,
+    onMenu: (() -> Unit)? = null,
     subtitle: String? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -45,17 +49,23 @@ fun RancakTopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // ── Back button ──────────────────────────────────────────────────
-            if (onBack != null) {
-                IconButton(onClick = onBack) {
+            // ── Nav button: hamburger (menu) atau back arrow ─────────────────
+            when {
+                onMenu != null -> IconButton(onClick = onMenu) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Kembali",
-                        tint = MaterialTheme.colorScheme.onPrimary
+                        imageVector        = Icons.Default.Menu,
+                        contentDescription = "Menu",
+                        tint               = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-            } else {
-                Spacer(Modifier.width(12.dp))
+                onBack != null -> IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Kembali",
+                        tint               = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                else -> Spacer(Modifier.width(12.dp))
             }
 
             // ── Ikon layar ───────────────────────────────────────────────────

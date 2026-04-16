@@ -18,6 +18,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import id.rancak.app.domain.repository.AuthRepository
 import id.rancak.app.presentation.ui.auth.LoginScreen
+import id.rancak.app.presentation.ui.splash.SplashScreen
 import org.koin.compose.koinInject
 import id.rancak.app.presentation.ui.auth.TenantPickerScreen
 import id.rancak.app.presentation.ui.cart.CartScreen
@@ -66,7 +67,10 @@ fun RancakNavHost() {
 
     val showDrawer = remember(navBackStackEntry) {
         val route = navBackStackEntry?.destination?.route
-        route != null && !route.contains("Login") && !route.contains("TenantPicker")
+        route != null &&
+            !route.contains("Splash") &&
+            !route.contains("Login") &&
+            !route.contains("TenantPicker")
     }
 
     // Pastikan drawer selalu tertutup saat baru masuk ke layar utama (misal setelah pilih outlet)
@@ -206,8 +210,18 @@ private fun NavigationContent(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login
+        startDestination = Screen.Splash
     ) {
+        composable<Screen.Splash> {
+            SplashScreen(
+                onFinished = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(Screen.Splash) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable<Screen.Login> {
             LoginScreen(
                 onLoginSuccess = {
@@ -265,35 +279,35 @@ private fun NavigationContent(
         }
 
         composable<Screen.Shift> {
-            ShiftScreen(onBack = { navController.popBackStack() })
+            ShiftScreen(onBack = onMenuClick)
         }
 
         composable<Screen.Tables> {
-            TableMapScreen(onBack = { navController.popBackStack() })
+            TableMapScreen(onBack = onMenuClick)
         }
 
         composable<Screen.Kds> {
-            KdsScreen(onBack = { navController.popBackStack() })
+            KdsScreen(onBack = onMenuClick)
         }
 
         composable<Screen.OrderBoard> {
-            OrderBoardScreen(onBack = { navController.popBackStack() })
+            OrderBoardScreen(onBack = onMenuClick)
         }
 
         composable<Screen.SalesHistory> {
-            SalesHistoryScreen(onBack = { navController.popBackStack() })
+            SalesHistoryScreen(onBack = onMenuClick)
         }
 
         composable<Screen.Reports> {
-            ReportScreen(onBack = { navController.popBackStack() })
+            ReportScreen(onBack = onMenuClick)
         }
 
         composable<Screen.CashExpense> {
-            CashExpenseScreen(onBack = { navController.popBackStack() })
+            CashExpenseScreen(onBack = onMenuClick)
         }
 
         composable<Screen.Settings> {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(onBack = onMenuClick)
         }
     }
 }

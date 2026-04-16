@@ -119,7 +119,7 @@ fun SettingsScreenContent(
                 title    = "Pengaturan",
                 icon     = Icons.Default.Settings,
                 subtitle = "Konfigurasi aplikasi",
-                onBack   = onBack
+                onMenu   = onBack
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

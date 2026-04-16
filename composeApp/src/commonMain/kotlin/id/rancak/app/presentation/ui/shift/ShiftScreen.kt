@@ -64,7 +64,7 @@ fun ShiftScreenContent(
                 title = "Shift Kasir",
                 icon = Icons.Default.AccessTime,
                 subtitle = "Kelola jam operasional",
-                onBack = onBack
+                onMenu = onBack
             )
         }
     ) { padding ->

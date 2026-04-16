@@ -105,7 +105,7 @@ fun OrderBoardScreen(
                 title = "Order Board",
                 icon = Icons.Default.Dashboard,
                 subtitle = "Status pesanan aktif",
-                onBack = onBack,
+                onMenu = onBack,
                 actions = {
                     IconButton(onClick = viewModel::loadOrders) {
                         Icon(Icons.Default.Refresh, "Refresh")
