@@ -59,9 +59,9 @@ class OrderBoardViewModel(
 
     fun serveOrder(saleUuid: String) {
         viewModelScope.launch {
-            when (saleRepository.serveSale(saleUuid)) {
+            when (val result = saleRepository.serveSale(saleUuid)) {
                 is Resource.Success -> loadOrders()
-                is Resource.Error -> {}
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }

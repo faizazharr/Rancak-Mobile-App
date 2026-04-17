@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import id.rancak.app.domain.model.DailyCategoryReport
+import id.rancak.app.domain.model.MySalesReport
 import id.rancak.app.domain.model.PaymentMethodReport
 import id.rancak.app.domain.model.ShiftSummary
 import id.rancak.app.presentation.components.LoadingScreen
@@ -242,6 +244,12 @@ private fun ReportScreenContent(
                             )
                         }
                         item { ShiftInfoCard(summary) }
+                        uiState.mySalesToday?.let { mySales ->
+                            item { MySalesTodayCard(mySales) }
+                        }
+                        if (uiState.dailyByCategory.isNotEmpty()) {
+                            item { DailyCategoryCard(uiState.dailyByCategory) }
+                        }
                     } else {
                         item {
                             Box(
@@ -275,6 +283,97 @@ private fun ReportScreenContent(
                         )
                     }
                     item { ShiftInfoCard(summary) }
+                    uiState.mySalesToday?.let { mySales ->
+                        item { MySalesTodayCard(mySales) }
+                    }
+                    if (uiState.dailyByCategory.isNotEmpty()) {
+                        item { DailyCategoryCard(uiState.dailyByCategory) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── My Sales Today Card ──────────────────────────────────────────────────────
+
+@Composable
+private fun MySalesTodayCard(mySales: MySalesReport) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(1.dp),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Text(
+                "Penjualan Saya Hari Ini",
+                style      = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.outline,
+                modifier   = Modifier.padding(bottom = 8.dp)
+            )
+            FinanceRow(
+                label = "Total Penjualan",
+                value = formatRupiah(mySales.totalSales),
+                color = MaterialTheme.colorScheme.primary
+            )
+            FinanceRow(
+                label = "Jumlah Transaksi",
+                value = "${mySales.totalTransactions}x",
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            FinanceRow(
+                label = "Total Tunai",
+                value = formatRupiah(mySales.cashTotal),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// ── Daily Category Breakdown Card ────────────────────────────────────────────
+
+@Composable
+private fun DailyCategoryCard(categories: List<DailyCategoryReport>) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(1.dp),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Text(
+                "Penjualan per Kategori",
+                style      = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.outline,
+                modifier   = Modifier.padding(bottom = 8.dp)
+            )
+            categories.forEach { cat ->
+                Row(
+                    modifier              = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 3.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text     = cat.categoryName,
+                            style    = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text  = "${cat.totalQty.toInt()} item",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                    Text(
+                        text       = formatRupiah(cat.totalSales),
+                        style      = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }

@@ -11,6 +11,9 @@ interface AuthRepository {
     suspend fun getMyTenants(): Resource<List<Tenant>>
     suspend fun getTenantSettings(): Resource<TenantSettings>
     suspend fun getReceiptSettings(): Resource<ReceiptSettings>
+    suspend fun changePassword(currentPassword: String, newPassword: String): Resource<Unit>
+    suspend fun getSessions(): Resource<List<Session>>
+    suspend fun revokeSession(sessionId: String): Resource<Unit>
     fun isLoggedIn(): Boolean
     fun getCurrentTenantUuid(): String?
     fun getCurrentTenantName(): String?

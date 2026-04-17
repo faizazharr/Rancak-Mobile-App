@@ -78,10 +78,9 @@ data class MySalesReport(
 )
 
 data class DailyCategoryReport(
-    val categoryUuid: String?,
     val categoryName: String,
     val totalSales: Long,
-    val totalTransactions: Int
+    val totalQty: Double
 )
 
 data class Receipt(

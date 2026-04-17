@@ -165,8 +165,57 @@ class FakeSaleRepository : SaleRepository {
         )
     }
 
-    override suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt> =
+    override suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt> {
+        val sale = demoSales.firstOrNull { it.uuid == saleUuid }
+        return if (sale != null) {
+            Resource.Success(Receipt(
+                invoiceNo = sale.invoiceNo,
+                tenantName = "Rancak Demo",
+                tenantAddress = "Jl. Demo 123",
+                tenantPhone = "08123456789",
+                customerName = sale.customerName,
+                queueNumber = sale.queueNumber,
+                orderType = sale.orderType.value,
+                cashierName = "Demo Kasir",
+                createdAt = sale.createdAt,
+                items = sale.items.map {
+                    ReceiptItemDomain(
+                        productName = it.productName,
+                        variantName = it.variantName,
+                        qty = it.qty.toIntOrNull() ?: 1,
+                        price = it.price,
+                        subtotal = it.subtotal,
+                        note = it.note
+                    )
+                },
+                subtotal = sale.subtotal,
+                discount = sale.discount,
+                surcharge = sale.surcharge ?: 0,
+                tax = sale.tax ?: 0,
+                deliveryFee = sale.deliveryFee ?: 0,
+                tip = sale.tip ?: 0,
+                adminFee = sale.adminFee ?: 0,
+                total = sale.total,
+                paidAmount = sale.paidAmount ?: 0,
+                changeAmount = sale.changeAmount ?: 0,
+                paymentMethod = sale.paymentMethod?.value
+            ))
+        } else {
+            Resource.Error("Transaksi tidak ditemukan")
+        }
+    }
+
+    override suspend fun getReceiptEscpos(saleUuid: String): Resource<ByteArray> =
         Resource.Error("Tidak tersedia dalam mode demo")
+
+    override suspend fun getReceiptKitchen(saleUuid: String): Resource<ByteArray> =
+        Resource.Error("Tidak tersedia dalam mode demo")
+
+    override suspend fun getReceiptCombined(saleUuid: String, kotFirst: Boolean): Resource<ByteArray> =
+        Resource.Error("Tidak tersedia dalam mode demo")
+
+    override suspend fun batchSales(sales: List<CartItem>): Resource<Unit> =
+        Resource.Success(Unit)
 
     override suspend fun getOrderBoard(date: String?, includeDone: Boolean): Resource<List<OrderBoardOrder>> =
         Resource.Success(emptyList())

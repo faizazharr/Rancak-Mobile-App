@@ -16,4 +16,5 @@ interface OperationsRepository {
     suspend fun previewDiscount(total: Long): Resource<DiscountPreview>
     suspend fun syncCatalog(updatedAfter: String? = null): Resource<Unit>
     suspend fun syncStatus(): Resource<Boolean>
+    suspend fun getShiftSummaryById(shiftUuid: String): Resource<ShiftSummary>
 }

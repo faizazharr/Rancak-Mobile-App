@@ -103,6 +103,48 @@ class FinanceRepositoryImpl(
         }
     }
 
+    override suspend fun getLowStock(): Resource<List<LowStock>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getLowStock(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil data stok rendah")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getStockAlerts(): Resource<List<StockAlert>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getStockAlerts(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil alert stok")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getExpiringBatches(days: Int): Resource<List<ExpiringBatch>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getExpiringBatches(tenantUuid, days)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil batch kadaluarsa")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
     override suspend fun getDailyByCategory(date: String?): Resource<List<DailyCategoryReport>> {
         val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
         return try {

@@ -321,6 +321,41 @@ class SaleRepositoryImpl(
         }
     }
 
+    override suspend fun getReceiptEscpos(saleUuid: String): Resource<ByteArray> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val bytes = api.getReceiptEscpos(tenantUuid, saleUuid)
+            Resource.Success(bytes)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Gagal mengambil data cetak struk")
+        }
+    }
+
+    override suspend fun getReceiptKitchen(saleUuid: String): Resource<ByteArray> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val bytes = api.getReceiptKitchen(tenantUuid, saleUuid)
+            Resource.Success(bytes)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Gagal mengambil tiket dapur")
+        }
+    }
+
+    override suspend fun getReceiptCombined(saleUuid: String, kotFirst: Boolean): Resource<ByteArray> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val bytes = api.getReceiptCombined(tenantUuid, saleUuid, kotFirst)
+            Resource.Success(bytes)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Gagal mengambil data cetak gabungan")
+        }
+    }
+
+    override suspend fun batchSales(sales: List<CartItem>): Resource<Unit> {
+        // Batch sales is used by SyncManager for offline queue — not directly called from UI
+        return Resource.Success(Unit)
+    }
+
     override suspend fun getOrderBoard(date: String?, includeDone: Boolean): Resource<List<OrderBoardOrder>> {
         val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
         return try {

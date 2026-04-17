@@ -4,6 +4,7 @@ import id.rancak.app.domain.model.*
 
 interface ProductRepository {
     suspend fun getProducts(query: String? = null, categoryId: String? = null): Resource<List<Product>>
+    suspend fun getProductByUuid(productUuid: String): Resource<Product>
     suspend fun getProductByBarcode(barcode: String): Resource<Product>
     suspend fun getCategories(): Resource<List<Category>>
     suspend fun getFavoriteProducts(): Resource<List<FavoriteProduct>>

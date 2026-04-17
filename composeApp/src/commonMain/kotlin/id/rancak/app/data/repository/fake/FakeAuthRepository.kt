@@ -63,4 +63,15 @@ class FakeAuthRepository : AuthRepository {
 
     override suspend fun getReceiptSettings(): Resource<ReceiptSettings> =
         Resource.Success(ReceiptSettings())
+
+    override suspend fun changePassword(currentPassword: String, newPassword: String): Resource<Unit> =
+        Resource.Success(Unit)
+
+    override suspend fun getSessions(): Resource<List<Session>> =
+        Resource.Success(listOf(
+            Session(sessionId = "sess-1", userAgent = "Android", issuedAt = "2026-04-18", lastUsedAt = "2026-04-18", expiresAt = "2026-05-18", current = true)
+        ))
+
+    override suspend fun revokeSession(sessionId: String): Resource<Unit> =
+        Resource.Success(Unit)
 }

@@ -3,7 +3,9 @@ package id.rancak.app.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Category
+import id.rancak.app.domain.model.FavoriteProduct
 import id.rancak.app.domain.model.Product
+import id.rancak.app.domain.model.Product86
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +17,8 @@ import kotlinx.coroutines.launch
 data class PosUiState(
     val products: List<Product> = emptyList(),
     val categories: List<Category> = emptyList(),
+    val favoriteProducts: List<FavoriteProduct> = emptyList(),
+    val products86: List<Product86> = emptyList(),
     val selectedCategory: Category? = null,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
@@ -85,5 +89,27 @@ class PosViewModel(
     fun refresh() {
         loadProducts()
         loadCategories()
+        loadFavorites()
+        load86Products()
+    }
+
+    private fun loadFavorites() {
+        viewModelScope.launch {
+            when (val result = productRepository.getFavoriteProducts()) {
+                is Resource.Success -> _uiState.update { it.copy(favoriteProducts = result.data) }
+                is Resource.Error -> { /* silent fail for favorites */ }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    private fun load86Products() {
+        viewModelScope.launch {
+            when (val result = productRepository.get86Products()) {
+                is Resource.Success -> _uiState.update { it.copy(products86 = result.data) }
+                is Resource.Error -> { /* silent fail for 86 */ }
+                is Resource.Loading -> {}
+            }
+        }
     }
 }

@@ -39,6 +39,10 @@ interface SaleRepository {
     suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment>
 
     suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt>
+    suspend fun getReceiptEscpos(saleUuid: String): Resource<ByteArray>
+    suspend fun getReceiptKitchen(saleUuid: String): Resource<ByteArray>
+    suspend fun getReceiptCombined(saleUuid: String, kotFirst: Boolean = true): Resource<ByteArray>
+    suspend fun batchSales(sales: List<CartItem>): Resource<Unit>
     suspend fun getOrderBoard(date: String? = null, includeDone: Boolean = false): Resource<List<OrderBoardOrder>>
 }
 

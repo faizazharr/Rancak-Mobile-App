@@ -77,6 +77,15 @@ class FakeFinanceRepository : FinanceRepository {
     override suspend fun getStockReport(): Resource<List<StockReport>> =
         Resource.Success(emptyList())
 
+    override suspend fun getLowStock(): Resource<List<LowStock>> =
+        Resource.Success(emptyList())
+
+    override suspend fun getStockAlerts(): Resource<List<StockAlert>> =
+        Resource.Success(emptyList())
+
+    override suspend fun getExpiringBatches(days: Int): Resource<List<ExpiringBatch>> =
+        Resource.Success(emptyList())
+
     override suspend fun getDailyByCategory(date: String?): Resource<List<DailyCategoryReport>> =
         Resource.Success(emptyList())
 }

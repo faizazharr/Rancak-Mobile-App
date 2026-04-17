@@ -216,5 +216,18 @@ class OperationsRepositoryImpl(
             Resource.Error(e.message ?: "Network error")
         }
     }
+
+    override suspend fun getShiftSummaryById(shiftUuid: String): Resource<ShiftSummary> {
+        return try {
+            val response = api.getShiftSummaryById(tenantUuid, shiftUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil ringkasan shift")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }
 

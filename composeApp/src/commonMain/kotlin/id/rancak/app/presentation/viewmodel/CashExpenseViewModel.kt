@@ -57,9 +57,9 @@ class CashExpenseViewModel(
         val s = _uiState.value
         val amount = s.formAmount.toLongOrNull() ?: return
         viewModelScope.launch {
-            when (financeRepository.createCashIn(amount, s.formSource, s.formDescription, s.formNote.ifBlank { null })) {
+            when (val result = financeRepository.createCashIn(amount, s.formSource, s.formDescription, s.formNote.ifBlank { null })) {
                 is Resource.Success -> { toggleCashInForm(); loadAll() }
-                is Resource.Error -> _uiState.update { it.copy(error = "Gagal menambah kas masuk") }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -69,9 +69,9 @@ class CashExpenseViewModel(
         val s = _uiState.value
         val amount = s.formAmount.toLongOrNull() ?: return
         viewModelScope.launch {
-            when (financeRepository.createExpense(amount, s.formDescription, s.formNote.ifBlank { null })) {
+            when (val result = financeRepository.createExpense(amount, s.formDescription, s.formNote.ifBlank { null })) {
                 is Resource.Success -> { toggleExpenseForm(); loadAll() }
-                is Resource.Error -> _uiState.update { it.copy(error = "Gagal menambah pengeluaran") }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -79,15 +79,21 @@ class CashExpenseViewModel(
 
     fun deleteCashIn(uuid: String) {
         viewModelScope.launch {
-            financeRepository.deleteCashIn(uuid)
-            loadAll()
+            when (val result = financeRepository.deleteCashIn(uuid)) {
+                is Resource.Success -> loadAll()
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
+                is Resource.Loading -> {}
+            }
         }
     }
 
     fun deleteExpense(uuid: String) {
         viewModelScope.launch {
-            financeRepository.deleteExpense(uuid)
-            loadAll()
+            when (val result = financeRepository.deleteExpense(uuid)) {
+                is Resource.Success -> loadAll()
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
+                is Resource.Loading -> {}
+            }
         }
     }
 }

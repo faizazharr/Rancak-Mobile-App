@@ -60,6 +60,19 @@ class ProductRepositoryImpl(
         }
     }
 
+    override suspend fun getProductByUuid(productUuid: String): Resource<Product> {
+        return try {
+            val response = api.getProductByUuid(tenantUuid, productUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Produk tidak ditemukan")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
     override suspend fun getProductByBarcode(barcode: String): Resource<Product> {
         return try {
             val response = api.getProductByBarcode(tenantUuid, barcode)

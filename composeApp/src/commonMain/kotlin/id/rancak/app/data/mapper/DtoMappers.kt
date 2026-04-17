@@ -47,6 +47,10 @@ import id.rancak.app.data.remote.dto.sale.DeliveryResponseDto
 import id.rancak.app.data.remote.dto.sync.ShiftDto
 import id.rancak.app.data.remote.dto.sync.TableDto
 import id.rancak.app.domain.model.*
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 // ── Auth Mappers ──
 
@@ -497,27 +501,36 @@ fun LowStockDto.toDomain() = LowStock(
 fun StockAlertDto.toDomain() = StockAlert(
     productUuid = productUuid,
     productName = productName,
-    sku = null,
+    sku = sku,
     alertType = alertType,
     currentStock = stock,
     threshold = threshold
 )
 
-fun ExpiringBatchDto.toDomain() = ExpiringBatch(
-    batchUuid = batchUuid,
-    productUuid = productUuid,
-    productName = productName,
-    batchNumber = batchNumber,
-    expiryDate = expiryDate ?: "",
-    quantityRemaining = quantityRemaining,
-    daysUntilExpiry = 0
-)
+fun ExpiringBatchDto.toDomain(): ExpiringBatch {
+    val days = expiryDate?.let {
+        try {
+            val expiry = LocalDate.parse(it)
+            val today = Clock.System.now()
+                .toLocalDateTime(TimeZone.currentSystemDefault()).date
+            (expiry.toEpochDays() - today.toEpochDays()).toInt()
+        } catch (_: Exception) { 0 }
+    } ?: 0
+    return ExpiringBatch(
+        batchUuid = batchUuid,
+        productUuid = productUuid,
+        productName = productName,
+        batchNumber = batchNumber,
+        expiryDate = expiryDate ?: "",
+        quantityRemaining = quantityRemaining,
+        daysUntilExpiry = days
+    )
+}
 
 fun DailyCategoryReportDto.toDomain() = DailyCategoryReport(
-    categoryUuid = null,
     categoryName = categoryName,
     totalSales = totalRevenue,
-    totalTransactions = totalQty.toInt()
+    totalQty = totalQty
 )
 
 // ── Receipt Mapper ──
@@ -535,7 +548,7 @@ fun ReceiptDto.toDomain() = Receipt(
     items = items.map { it.toDomain() },
     subtotal = subtotal,
     discount = discount,
-    surcharge = 0,
+    surcharge = surcharge,
     tax = tax,
     deliveryFee = deliveryFee,
     tip = tip,

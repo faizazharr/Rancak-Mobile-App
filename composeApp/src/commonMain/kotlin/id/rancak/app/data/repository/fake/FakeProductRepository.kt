@@ -20,6 +20,14 @@ class FakeProductRepository : ProductRepository {
         return Resource.Success(result)
     }
 
+    override suspend fun getProductByUuid(productUuid: String): Resource<Product> {
+        val product = demoProducts.firstOrNull { it.uuid == productUuid }
+        return if (product != null)
+            Resource.Success(product)
+        else
+            Resource.Error("Produk tidak ditemukan")
+    }
+
     override suspend fun getProductByBarcode(barcode: String): Resource<Product> {
         val product = demoProducts.firstOrNull { it.barcode == barcode }
         return if (product != null)

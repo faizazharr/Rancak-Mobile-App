@@ -59,9 +59,9 @@ class KdsViewModel(
 
     fun updateOrderStatus(kdsUuid: String, status: KdsStatus) {
         viewModelScope.launch {
-            when (operationsRepository.updateKdsStatus(kdsUuid, status)) {
+            when (val result = operationsRepository.updateKdsStatus(kdsUuid, status)) {
                 is Resource.Success -> loadOrders()
-                is Resource.Error -> { /* show toast */ }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }

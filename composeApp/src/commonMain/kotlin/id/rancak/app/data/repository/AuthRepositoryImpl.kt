@@ -135,5 +135,40 @@ class AuthRepositoryImpl(
             Resource.Error(e.message ?: "Network error")
         }
     }
+
+    override suspend fun changePassword(currentPassword: String, newPassword: String): Resource<Unit> {
+        return try {
+            val response = api.changePassword(
+                id.rancak.app.data.remote.dto.auth.ChangePasswordRequest(currentPassword, newPassword)
+            )
+            if (response.isSuccess) Resource.Success(Unit)
+            else Resource.Error(response.message ?: "Gagal mengubah password")
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getSessions(): Resource<List<Session>> {
+        return try {
+            val response = api.getSessions()
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil daftar sesi")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun revokeSession(sessionId: String): Resource<Unit> {
+        return try {
+            val response = api.revokeSession(sessionId)
+            if (response.isSuccess) Resource.Success(Unit)
+            else Resource.Error(response.message ?: "Gagal menghapus sesi")
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }
 

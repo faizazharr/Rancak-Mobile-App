@@ -14,5 +14,8 @@ interface FinanceRepository {
     suspend fun getShiftSummary(): Resource<ShiftSummary>
     suspend fun getMySalesToday(): Resource<MySalesReport>
     suspend fun getStockReport(): Resource<List<StockReport>>
+    suspend fun getLowStock(): Resource<List<LowStock>>
+    suspend fun getStockAlerts(): Resource<List<StockAlert>>
+    suspend fun getExpiringBatches(days: Int = 7): Resource<List<ExpiringBatch>>
     suspend fun getDailyByCategory(date: String? = null): Resource<List<DailyCategoryReport>>
 }

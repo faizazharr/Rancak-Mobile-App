@@ -74,4 +74,7 @@ class FakeOperationsRepository : OperationsRepository {
 
     override suspend fun syncStatus(): Resource<Boolean> =
         Resource.Success(true)
+
+    override suspend fun getShiftSummaryById(shiftUuid: String): Resource<ShiftSummary> =
+        Resource.Success(demoShiftSummary)
 }
