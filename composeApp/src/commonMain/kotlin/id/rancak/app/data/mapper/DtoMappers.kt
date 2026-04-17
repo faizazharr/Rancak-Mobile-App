@@ -39,6 +39,8 @@ import id.rancak.app.data.remote.dto.product.VariantGroupDto
 import id.rancak.app.data.remote.dto.product.VariantDto
 import id.rancak.app.data.remote.dto.product.ProductBatchDto
 import id.rancak.app.data.remote.dto.sale.QrPaymentDto
+import id.rancak.app.data.remote.dto.sale.RefundResponseDto
+import id.rancak.app.data.remote.dto.sale.RefundItemResponseDto
 import id.rancak.app.data.remote.dto.sale.SaleDto
 import id.rancak.app.data.remote.dto.sale.SaleItemDto
 import id.rancak.app.data.remote.dto.sale.SaleItemAddonDto
@@ -254,6 +256,22 @@ fun QrPaymentDto.toDomain() = QrPayment(
     status       = QrPaymentStatus.from(status),
     expiresAt    = expiresAt,
     usingWebhook = usingWebhook
+)
+
+fun RefundResponseDto.toDomain() = Refund(
+    uuid         = uuid,
+    saleUuid     = saleUuid,
+    refundAmount = refundAmount,
+    reason       = reason,
+    items        = items.map { it.toDomain() },
+    createdAt    = createdAt
+)
+
+fun RefundItemResponseDto.toDomain() = RefundItem(
+    saleItemUuid = saleItemUuid,
+    productName  = productName,
+    qty          = qty,
+    refundAmount = refundAmount
 )
 
 // ── Operations Mappers ──

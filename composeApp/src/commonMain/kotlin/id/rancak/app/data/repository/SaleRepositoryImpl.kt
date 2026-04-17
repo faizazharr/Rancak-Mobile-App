@@ -28,7 +28,7 @@ class SaleRepositoryImpl(
 ) : SaleRepository {
 
     private val tenantUuid: String
-        get() = tokenManager.tenantUuid ?: throw IllegalStateException("No tenant selected")
+        get() = tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")
 
     @OptIn(ExperimentalUuidApi::class)
     override suspend fun createSale(
@@ -80,10 +80,14 @@ class SaleRepositoryImpl(
                 deviceId        = deviceId
             )
             val response = api.createSale(tenantUuid, request, idempotencyKey)
-            if (response.isSuccess && response.data != null) {
+            if ((response.isSuccess || response.statusCode == 409) && response.data != null) {
+                // 409 = idempotency duplicate — treat as success
                 Resource.Success(response.data.toDomain())
+            } else if (response.statusCode == 409) {
+                // 409 tanpa data — penjualan sudah ada
+                Resource.Error(response.message ?: "Penjualan sudah tercatat sebelumnya")
             } else {
-                Resource.Error(response.message ?: "Failed to create sale")
+                Resource.Error(response.message ?: "Gagal membuat penjualan")
             }
         } catch (e: Exception) {
             val networkError = e.message?.let {
@@ -96,6 +100,10 @@ class SaleRepositoryImpl(
             } ?: false
 
             if (networkError) {
+                // QRIS membutuhkan koneksi internet — tidak bisa di-queue offline
+                if (paymentMethod == PaymentMethod.QRIS) {
+                    return Resource.Error("QRIS membutuhkan koneksi internet. Periksa jaringan Anda.")
+                }
                 offlineQueue.enqueue(
                     PendingSale(
                         idempotencyKey  = idempotencyKey,
@@ -121,9 +129,9 @@ class SaleRepositoryImpl(
                     )
                 )
                 syncManager.scheduleSync()
-                Resource.Error("Offline: sale queued for sync (${offlineQueue.size} pending)")
+                Resource.Error("Offline: penjualan tersimpan, akan dikirim saat online (${offlineQueue.size} antrian)")
             } else {
-                Resource.Error(e.message ?: "Network error")
+                Resource.Error(e.message ?: "Kesalahan jaringan")
             }
         }
     }
@@ -143,7 +151,7 @@ class SaleRepositoryImpl(
                 )
                 Resource.Success(sales)
             } else {
-                Resource.Error(response.message ?: "Failed to load sales")
+                Resource.Error(response.message ?: "Gagal memuat daftar penjualan")
             }
         } catch (e: Exception) {
             // Fallback to cached sales
@@ -154,7 +162,7 @@ class SaleRepositoryImpl(
                 }
                 Resource.Success(sales)
             } else {
-                Resource.Error(e.message ?: "Network error")
+                Resource.Error(e.message ?: "Kesalahan jaringan")
             }
         }
     }
@@ -172,14 +180,14 @@ class SaleRepositoryImpl(
                 )
                 Resource.Success(sale)
             } else {
-                Resource.Error(response.message ?: "Sale not found")
+                Resource.Error(response.message ?: "Penjualan tidak ditemukan")
             }
         } catch (e: Exception) {
             val cached = saleDao.findByUuid(saleUuid)
             if (cached != null) {
                 Resource.Success(cached.toDomain(saleDao.getItemsForSale(saleUuid)))
             } else {
-                Resource.Error(e.message ?: "Network error")
+                Resource.Error(e.message ?: "Kesalahan jaringan")
             }
         }
     }
@@ -190,10 +198,10 @@ class SaleRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
-                Resource.Error(response.message ?: "Failed to serve sale")
+                Resource.Error(response.message ?: "Gagal menyajikan pesanan")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -210,7 +218,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal membayar pesanan")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -220,10 +228,10 @@ class SaleRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
-                Resource.Error(response.message ?: "Failed to void sale")
+                Resource.Error(response.message ?: "Gagal membatalkan penjualan")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -233,10 +241,10 @@ class SaleRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
-                Resource.Error(response.message ?: "Failed to cancel sale")
+                Resource.Error(response.message ?: "Gagal membatalkan pesanan")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -264,7 +272,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal melakukan refund")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -274,10 +282,10 @@ class SaleRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
-                Resource.Error(response.message ?: "Failed to move table")
+                Resource.Error(response.message ?: "Gagal memindahkan meja")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -290,7 +298,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal membuat QR QRIS")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -303,7 +311,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengecek status QR")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -317,7 +325,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil struk")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -352,7 +360,8 @@ class SaleRepositoryImpl(
     }
 
     override suspend fun batchSales(sales: List<CartItem>): Resource<Unit> {
-        // Batch sales is used by SyncManager for offline queue — not directly called from UI
+        // Batch upload ditangani oleh SyncManager via POST /tenants/:id/sales/batch.
+        // Method ini hanya placeholder interface — tidak dipanggil langsung dari UI.
         return Resource.Success(Unit)
     }
 
@@ -366,7 +375,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil order board")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 }

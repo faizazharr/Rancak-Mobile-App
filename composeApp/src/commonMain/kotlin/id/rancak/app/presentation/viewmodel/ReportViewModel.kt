@@ -34,10 +34,11 @@ class ReportViewModel(
 
     fun loadReport() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
             when (val result = financeRepository.getShiftSummary()) {
-                is Resource.Success -> _uiState.update { it.copy(summary = result.data, isLoading = false) }
-                is Resource.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
+                is Resource.Success -> _uiState.update { it.copy(summary = result.data) }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
             // Also load my sales today
@@ -52,6 +53,8 @@ class ReportViewModel(
                 is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
+
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 }

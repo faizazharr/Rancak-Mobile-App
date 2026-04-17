@@ -138,15 +138,6 @@ data class MySalesReportDto(
 )
 
 @Serializable
-data class MySaleItemDto(
-    val uuid: String,
-    @SerialName("invoice_no") val invoiceNo: String? = null,
-    val total: Long = 0,
-    @SerialName("payment_method") val paymentMethod: String? = null,
-    @SerialName("created_at") val createdAt: String? = null
-)
-
-@Serializable
 data class StockReportDto(
     @SerialName("product_uuid") val productUuid: String,
     val sku: String? = null,

@@ -126,3 +126,19 @@ enum class PaymentMethod(val value: String) {
             entries.firstOrNull { it.value == value }
     }
 }
+
+data class Refund(
+    val uuid: String,
+    val saleUuid: String,
+    val refundAmount: Long,
+    val reason: String?,
+    val items: List<RefundItem>,
+    val createdAt: String?
+)
+
+data class RefundItem(
+    val saleItemUuid: String,
+    val productName: String,
+    val qty: Double,
+    val refundAmount: Long
+)

@@ -18,7 +18,7 @@ class OperationsRepositoryImpl(
 ) : OperationsRepository {
 
     private val tenantUuid: String
-        get() = tokenManager.tenantUuid ?: throw IllegalStateException("No tenant selected")
+        get() = tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")
 
     override suspend fun getTables(): Resource<List<Table>> {
         return try {
@@ -29,14 +29,14 @@ class OperationsRepositoryImpl(
                 tableDao.upsertAll(tables.map { it.toEntity(now) })
                 Resource.Success(tables)
             } else {
-                Resource.Error(response.message ?: "Failed to load tables")
+                Resource.Error(response.message ?: "Gagal memuat daftar meja")
             }
         } catch (e: Exception) {
             val cached = tableDao.getAll()
             if (cached.isNotEmpty()) {
                 Resource.Success(cached.map { it.toDomain() })
             } else {
-                Resource.Error(e.message ?: "Network error")
+                Resource.Error(e.message ?: "Kesalahan jaringan")
             }
         }
     }
@@ -59,7 +59,7 @@ class OperationsRepositoryImpl(
             if (cached != null) {
                 Resource.Success(cached.toDomain())
             } else {
-                Resource.Error(e.message ?: "Network error")
+                Resource.Error(e.message ?: "Kesalahan jaringan")
             }
         }
     }
@@ -73,10 +73,10 @@ class OperationsRepositoryImpl(
                 shiftDao.upsert(shift.toEntity(now))
                 Resource.Success(shift)
             } else {
-                Resource.Error(response.message ?: "Failed to open shift")
+                Resource.Error(response.message ?: "Gagal membuka shift")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -89,10 +89,10 @@ class OperationsRepositoryImpl(
                 shiftDao.upsert(shift.toEntity(now))
                 Resource.Success(shift)
             } else {
-                Resource.Error(response.message ?: "Failed to close shift")
+                Resource.Error(response.message ?: "Gagal menutup shift")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -102,10 +102,10 @@ class OperationsRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.map { it.toDomain() })
             } else {
-                Resource.Error(response.message ?: "Failed to load KDS orders")
+                Resource.Error(response.message ?: "Gagal memuat pesanan KDS")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -115,10 +115,10 @@ class OperationsRepositoryImpl(
             if (response.isSuccess) {
                 Resource.Success(Unit)
             } else {
-                Resource.Error(response.message ?: "Failed to update status")
+                Resource.Error(response.message ?: "Gagal memperbarui status")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -132,7 +132,7 @@ class OperationsRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil surcharge")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -146,7 +146,7 @@ class OperationsRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil konfigurasi pajak")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -160,7 +160,7 @@ class OperationsRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil aturan diskon")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -174,7 +174,7 @@ class OperationsRepositoryImpl(
                 Resource.Error(response.message ?: "Voucher tidak valid")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -188,7 +188,7 @@ class OperationsRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil preview diskon")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -199,7 +199,7 @@ class OperationsRepositoryImpl(
             if (response.isSuccess) Resource.Success(Unit)
             else Resource.Error(response.message ?: "Gagal sinkronisasi katalog")
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -213,7 +213,7 @@ class OperationsRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengecek status sinkronisasi")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -226,7 +226,7 @@ class OperationsRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil ringkasan shift")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 }

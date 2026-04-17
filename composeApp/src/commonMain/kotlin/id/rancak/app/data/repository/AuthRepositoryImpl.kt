@@ -24,10 +24,10 @@ class AuthRepositoryImpl(
                 tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
                 Resource.Success(result)
             } else {
-                Resource.Error(response.message ?: "Login failed", response.statusCode)
+                Resource.Error(response.message ?: "Login gagal", response.statusCode)
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -42,12 +42,12 @@ class AuthRepositoryImpl(
                 Resource.Error(response.message ?: "Google login gagal", response.statusCode)
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
     override suspend fun refreshToken(): Resource<LoginResult> {
-        val refreshToken = tokenManager.refreshToken ?: return Resource.Error("No refresh token")
+        val refreshToken = tokenManager.refreshToken ?: return Resource.Error("Tidak ada refresh token")
         return try {
             val response = api.refreshToken(RefreshTokenRequest(refreshToken))
             if (response.isSuccess && response.data != null) {
@@ -55,10 +55,10 @@ class AuthRepositoryImpl(
                 tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
                 Resource.Success(result)
             } else {
-                Resource.Error(response.message ?: "Refresh failed")
+                Resource.Error(response.message ?: "Refresh token gagal")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -80,10 +80,10 @@ class AuthRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
-                Resource.Error(response.message ?: "Failed to get user")
+                Resource.Error(response.message ?: "Gagal mengambil data pengguna")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -104,7 +104,7 @@ class AuthRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil data tenant")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -118,7 +118,7 @@ class AuthRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil pengaturan tenant")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -132,7 +132,7 @@ class AuthRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil pengaturan struk")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -144,7 +144,7 @@ class AuthRepositoryImpl(
             if (response.isSuccess) Resource.Success(Unit)
             else Resource.Error(response.message ?: "Gagal mengubah password")
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -157,7 +157,7 @@ class AuthRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil daftar sesi")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -167,7 +167,7 @@ class AuthRepositoryImpl(
             if (response.isSuccess) Resource.Success(Unit)
             else Resource.Error(response.message ?: "Gagal menghapus sesi")
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 }

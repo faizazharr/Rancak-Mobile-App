@@ -12,7 +12,7 @@ class FinanceRepositoryImpl(
 ) : FinanceRepository {
 
     private val tenantUuid: String
-        get() = tokenManager.tenantUuid ?: throw IllegalStateException("No tenant selected")
+        get() = tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")
 
     override suspend fun getCashIns(dateFrom: String?, dateTo: String?): Resource<List<CashIn>> {
         return try {
@@ -20,7 +20,7 @@ class FinanceRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.map { it.toDomain() })
             } else Resource.Error(response.message ?: "Gagal memuat cash in")
-        } catch (e: Exception) { Resource.Error(e.message ?: "Network error") }
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
     override suspend fun createCashIn(amount: Long, source: String, description: String, note: String?): Resource<CashIn> {
@@ -29,7 +29,7 @@ class FinanceRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else Resource.Error(response.message ?: "Gagal membuat cash in")
-        } catch (e: Exception) { Resource.Error(e.message ?: "Network error") }
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
     override suspend fun deleteCashIn(cashInId: String): Resource<Unit> {
@@ -37,7 +37,7 @@ class FinanceRepositoryImpl(
             val response = api.deleteCashIn(tenantUuid, cashInId)
             if (response.isSuccess) Resource.Success(Unit)
             else Resource.Error(response.message ?: "Gagal menghapus")
-        } catch (e: Exception) { Resource.Error(e.message ?: "Network error") }
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
     override suspend fun getExpenses(dateFrom: String?, dateTo: String?): Resource<List<Expense>> {
@@ -46,7 +46,7 @@ class FinanceRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.map { it.toDomain() })
             } else Resource.Error(response.message ?: "Gagal memuat pengeluaran")
-        } catch (e: Exception) { Resource.Error(e.message ?: "Network error") }
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
     override suspend fun createExpense(amount: Long, description: String, note: String?): Resource<Expense> {
@@ -55,7 +55,7 @@ class FinanceRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else Resource.Error(response.message ?: "Gagal membuat pengeluaran")
-        } catch (e: Exception) { Resource.Error(e.message ?: "Network error") }
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
     override suspend fun deleteExpense(expenseId: String): Resource<Unit> {
@@ -63,7 +63,7 @@ class FinanceRepositoryImpl(
             val response = api.deleteExpense(tenantUuid, expenseId)
             if (response.isSuccess) Resource.Success(Unit)
             else Resource.Error(response.message ?: "Gagal menghapus")
-        } catch (e: Exception) { Resource.Error(e.message ?: "Network error") }
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
     override suspend fun getShiftSummary(): Resource<ShiftSummary> {
@@ -72,7 +72,7 @@ class FinanceRepositoryImpl(
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else Resource.Error(response.message ?: "Gagal memuat ringkasan shift")
-        } catch (e: Exception) { Resource.Error(e.message ?: "Network error") }
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
     override suspend fun getMySalesToday(): Resource<MySalesReport> {
@@ -85,7 +85,7 @@ class FinanceRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil laporan penjualan")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -99,7 +99,7 @@ class FinanceRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil laporan stok")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -113,7 +113,7 @@ class FinanceRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil data stok rendah")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -127,7 +127,7 @@ class FinanceRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil alert stok")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -141,7 +141,7 @@ class FinanceRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil batch kadaluarsa")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -155,7 +155,7 @@ class FinanceRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil laporan kategori")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 }

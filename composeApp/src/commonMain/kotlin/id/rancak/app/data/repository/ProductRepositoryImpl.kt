@@ -18,7 +18,7 @@ class ProductRepositoryImpl(
 ) : ProductRepository {
 
     private val tenantUuid: String
-        get() = tokenManager.tenantUuid ?: throw IllegalStateException("No tenant selected")
+        get() = tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")
 
     override suspend fun getProducts(query: String?, categoryId: String?): Resource<List<Product>> {
         val isFiltered = !query.isNullOrBlank() || !categoryId.isNullOrBlank()
@@ -69,7 +69,7 @@ class ProductRepositoryImpl(
                 Resource.Error(response.message ?: "Produk tidak ditemukan")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -121,7 +121,7 @@ class ProductRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil produk favorit")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -135,7 +135,7 @@ class ProductRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil produk 86")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -146,7 +146,7 @@ class ProductRepositoryImpl(
             if (response.isSuccess) Resource.Success(Unit)
             else Resource.Error(response.message ?: "Gagal menandai produk 86")
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -157,7 +157,7 @@ class ProductRepositoryImpl(
             if (response.isSuccess) Resource.Success(Unit)
             else Resource.Error(response.message ?: "Gagal membatalkan produk 86")
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -171,7 +171,7 @@ class ProductRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil data bundle")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 
@@ -185,7 +185,7 @@ class ProductRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal mengambil modifier")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
 }
