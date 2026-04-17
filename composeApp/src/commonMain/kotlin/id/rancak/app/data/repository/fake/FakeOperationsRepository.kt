@@ -53,4 +53,25 @@ class FakeOperationsRepository : OperationsRepository {
             Resource.Success(Unit)
         } else Resource.Error("Order tidak ditemukan")
     }
+
+    override suspend fun getSurcharges(): Resource<List<Surcharge>> =
+        Resource.Success(emptyList())
+
+    override suspend fun getTaxConfigs(): Resource<List<TaxConfig>> =
+        Resource.Success(emptyList())
+
+    override suspend fun getDiscountRules(): Resource<List<DiscountRule>> =
+        Resource.Success(emptyList())
+
+    override suspend fun validateVoucher(code: String, subtotal: Long): Resource<VoucherValidation> =
+        Resource.Error("Tidak tersedia dalam mode demo")
+
+    override suspend fun previewDiscount(total: Long): Resource<DiscountPreview> =
+        Resource.Success(DiscountPreview(emptyList(), 0, total))
+
+    override suspend fun syncCatalog(updatedAfter: String?): Resource<Unit> =
+        Resource.Success(Unit)
+
+    override suspend fun syncStatus(): Resource<Boolean> =
+        Resource.Success(true)
 }

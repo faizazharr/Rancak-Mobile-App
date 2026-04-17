@@ -74,5 +74,47 @@ class FinanceRepositoryImpl(
             } else Resource.Error(response.message ?: "Gagal memuat ringkasan shift")
         } catch (e: Exception) { Resource.Error(e.message ?: "Network error") }
     }
+
+    override suspend fun getMySalesToday(): Resource<MySalesReport> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getMySalesToday(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil laporan penjualan")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getStockReport(): Resource<List<StockReport>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getStockReport(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil laporan stok")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getDailyByCategory(date: String?): Resource<List<DailyCategoryReport>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getDailyByCategory(tenantUuid, date)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil laporan kategori")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }
 

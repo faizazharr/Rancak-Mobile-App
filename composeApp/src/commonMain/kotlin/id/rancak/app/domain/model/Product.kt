@@ -57,3 +57,60 @@ data class ProductBatch(
     val isExhausted: Boolean,
     val isExpired: Boolean
 )
+
+data class FavoriteProduct(
+    val uuid: String,
+    val name: String,
+    val sku: String?,
+    val price: Long,
+    val categoryName: String?,
+    val imageUrl: String?,
+    val stock: Double,
+    val soldCount: Int,
+    val isLowStock: Boolean
+)
+
+data class Product86(
+    val uuid: String,
+    val productUuid: String,
+    val productName: String,
+    val sku: String?,
+    val reason: String?,
+    val date: String,
+    val createdAt: String?
+)
+
+data class StockReport(
+    val productUuid: String,
+    val sku: String?,
+    val name: String,
+    val stock: Double,
+    val stockAlertThreshold: Double?
+)
+
+data class LowStock(
+    val productUuid: String,
+    val productName: String,
+    val sku: String?,
+    val currentStock: Double,
+    val threshold: Double
+)
+
+data class StockAlert(
+    val productUuid: String,
+    val productName: String,
+    val sku: String?,
+    val alertType: String,
+    val currentStock: Double,
+    val threshold: Double?
+)
+
+data class ExpiringBatch(
+    val batchUuid: String,
+    val productUuid: String,
+    val productName: String,
+    val batchNumber: String?,
+    val expiryDate: String,
+    val quantityRemaining: Double,
+    val daysUntilExpiry: Int
+)

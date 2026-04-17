@@ -70,3 +70,49 @@ data class ShiftSummary(
     val totalCashIn: Long,
     val paymentSummary: List<PaymentMethodReport>
 )
+
+data class MySalesReport(
+    val totalSales: Long,
+    val totalTransactions: Int,
+    val cashTotal: Long
+)
+
+data class DailyCategoryReport(
+    val categoryUuid: String?,
+    val categoryName: String,
+    val totalSales: Long,
+    val totalTransactions: Int
+)
+
+data class Receipt(
+    val invoiceNo: String?,
+    val tenantName: String?,
+    val tenantAddress: String?,
+    val tenantPhone: String?,
+    val customerName: String?,
+    val queueNumber: Int?,
+    val orderType: String?,
+    val cashierName: String?,
+    val createdAt: String?,
+    val items: List<ReceiptItemDomain>,
+    val subtotal: Long,
+    val discount: Long,
+    val surcharge: Long,
+    val tax: Long,
+    val deliveryFee: Long,
+    val tip: Long,
+    val adminFee: Long,
+    val total: Long,
+    val paidAmount: Long,
+    val changeAmount: Long,
+    val paymentMethod: String?
+)
+
+data class ReceiptItemDomain(
+    val productName: String,
+    val variantName: String?,
+    val qty: Int,
+    val price: Long,
+    val subtotal: Long,
+    val note: String?
+)

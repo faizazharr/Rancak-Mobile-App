@@ -29,9 +29,9 @@ class TenantPickerViewModel(
     fun loadTenants() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            when (val result = authRepository.getMe()) {
+            when (val result = authRepository.getMyTenants()) {
                 is Resource.Success -> {
-                    val tenants = result.data.tenants
+                    val tenants = result.data
                     _uiState.update { it.copy(tenants = tenants, isLoading = false) }
                     if (tenants.size == 1) {
                         selectTenant(tenants.first())

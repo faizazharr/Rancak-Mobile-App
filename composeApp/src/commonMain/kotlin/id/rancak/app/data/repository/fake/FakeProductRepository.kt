@@ -30,4 +30,22 @@ class FakeProductRepository : ProductRepository {
 
     override suspend fun getCategories(): Resource<List<Category>> =
         Resource.Success(demoCategories)
+
+    override suspend fun getFavoriteProducts(): Resource<List<FavoriteProduct>> =
+        Resource.Success(emptyList())
+
+    override suspend fun get86Products(): Resource<List<Product86>> =
+        Resource.Success(emptyList())
+
+    override suspend fun mark86(productUuid: String): Resource<Unit> =
+        Resource.Success(Unit)
+
+    override suspend fun unmark86(productUuid: String): Resource<Unit> =
+        Resource.Success(Unit)
+
+    override suspend fun getBundles(): Resource<List<Bundle>> =
+        Resource.Success(emptyList())
+
+    override suspend fun getModifiers(productUuid: String): Resource<List<Modifier>> =
+        Resource.Success(emptyList())
 }

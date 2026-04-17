@@ -42,23 +42,23 @@ data class TenantSettings(
 )
 
 data class ReceiptSettings(
-    val logoUrl: String?,
-    val email: String?,
-    val website: String?,
-    val npwp: String?,
-    val receiptHeader: String?,
-    val receiptFooter: String?,
-    val receiptFooter2: String?,
-    val logoPosition: String?,
-    val logoSizePct: Int?,
-    val receiptNameSize: String?,
-    val separatorStyle: String?,
-    val separatorCount: Int?,
-    val footerPosition: String?,
-    val receiptInstagram: String?,
-    val receiptFacebook: String?,
-    val receiptWifiSsid: String?,
-    val receiptWifiPassword: String?
+    val logoUrl: String? = null,
+    val email: String? = null,
+    val website: String? = null,
+    val npwp: String? = null,
+    val receiptHeader: String? = null,
+    val receiptFooter: String? = null,
+    val receiptFooter2: String? = null,
+    val logoPosition: String? = null,
+    val logoSizePct: Int? = null,
+    val receiptNameSize: String? = null,
+    val separatorStyle: String? = null,
+    val separatorCount: Int? = null,
+    val footerPosition: String? = null,
+    val receiptInstagram: String? = null,
+    val receiptFacebook: String? = null,
+    val receiptWifiSsid: String? = null,
+    val receiptWifiPassword: String? = null
 )
 
 data class Session(

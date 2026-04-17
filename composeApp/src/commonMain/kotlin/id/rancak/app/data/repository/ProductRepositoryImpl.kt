@@ -97,6 +97,84 @@ class ProductRepositoryImpl(
             else Resource.Error(e.message ?: "Tidak ada koneksi internet")
         }
     }
+
+    override suspend fun getFavoriteProducts(): Resource<List<FavoriteProduct>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getFavoriteProducts(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil produk favorit")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun get86Products(): Resource<List<Product86>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.get86Products(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil produk 86")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun mark86(productUuid: String): Resource<Unit> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.mark86(tenantUuid, productUuid)
+            if (response.isSuccess) Resource.Success(Unit)
+            else Resource.Error(response.message ?: "Gagal menandai produk 86")
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun unmark86(productUuid: String): Resource<Unit> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.unmark86(tenantUuid, productUuid)
+            if (response.isSuccess) Resource.Success(Unit)
+            else Resource.Error(response.message ?: "Gagal membatalkan produk 86")
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getBundles(): Resource<List<Bundle>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getBundles(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil data bundle")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getModifiers(productUuid: String): Resource<List<Modifier>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getProductModifiers(tenantUuid, productUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil modifier")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }
 
 

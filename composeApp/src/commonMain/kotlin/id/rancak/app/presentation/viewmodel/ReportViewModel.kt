@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 
 data class ReportUiState(
     val summary: ShiftSummary? = null,
+    val mySalesToday: MySalesReport? = null,
+    val dailyByCategory: List<DailyCategoryReport> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val dateFrom: String = "",
@@ -37,6 +39,16 @@ class ReportViewModel(
                 is Resource.Success -> _uiState.update { it.copy(summary = result.data, isLoading = false) }
                 is Resource.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Resource.Loading -> {}
+            }
+            // Also load my sales today
+            when (val result = financeRepository.getMySalesToday()) {
+                is Resource.Success -> _uiState.update { it.copy(mySalesToday = result.data) }
+                else -> {}
+            }
+            // Also load daily by category
+            when (val result = financeRepository.getDailyByCategory()) {
+                is Resource.Success -> _uiState.update { it.copy(dailyByCategory = result.data) }
+                else -> {}
             }
         }
     }

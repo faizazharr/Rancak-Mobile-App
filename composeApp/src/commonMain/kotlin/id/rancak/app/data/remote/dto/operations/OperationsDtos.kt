@@ -67,35 +67,74 @@ data class ModifierDto(
 // ── Voucher ──
 
 @Serializable
-data class VoucherValidationDto(
+data class VoucherDto(
+    val uuid: String,
     val code: String,
-    @SerialName("discount_applied") val discountApplied: Long = 0,
-    val valid: Boolean = true,
-    val message: String? = null
+    val name: String,
+    val description: String? = null,
+    @SerialName("discount_type") val discountType: String,
+    @SerialName("discount_value") val discountValue: String = "0",
+    @SerialName("max_discount") val maxDiscount: String? = null,
+    @SerialName("min_purchase") val minPurchase: String = "0",
+    @SerialName("usage_limit") val usageLimit: Int? = null,
+    @SerialName("usage_count") val usageCount: Int = 0,
+    @SerialName("valid_from") val validFrom: String? = null,
+    @SerialName("valid_until") val validUntil: String? = null,
+    @SerialName("is_active") val isActive: Boolean = true
+)
+
+@Serializable
+data class VoucherValidationDto(
+    val voucher: VoucherDto,
+    @SerialName("discount_applied") val discountApplied: String = "0"
 )
 
 // ── Discount Preview ──
 
 @Serializable
 data class DiscountPreviewDto(
+    @SerialName("applied_rules") val appliedRules: List<AppliedRuleDto> = emptyList(),
     @SerialName("total_discount") val totalDiscount: Long = 0,
-    val rules: List<AppliedRuleDto> = emptyList()
+    @SerialName("final_total") val finalTotal: Long = 0
 )
 
 @Serializable
 data class AppliedRuleDto(
+    val uuid: String,
     val name: String,
+    @SerialName("rule_type") val ruleType: String? = null,
     val discount: Long = 0
+)
+
+// ── Order Board ──
+
+@Serializable
+data class OrderBoardOrderDto(
+    val uuid: String,
+    @SerialName("invoice_no") val invoiceNo: String? = null,
+    @SerialName("queue_number") val queueNumber: Int? = null,
+    @SerialName("order_type") val orderType: String? = null,
+    @SerialName("customer_name") val customerName: String? = null,
+    val status: String? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("served_at") val servedAt: String? = null,
+    val items: List<OrderBoardItemDto> = emptyList()
+)
+
+@Serializable
+data class OrderBoardItemDto(
+    @SerialName("product_name") val productName: String,
+    val qty: Int = 1,
+    val note: String? = null
 )
 
 // ── Reports ──
 
 @Serializable
 data class MySalesReportDto(
-    @SerialName("total_sales") val totalSales: Long = 0,
+    @SerialName("total_sales") val totalSales: String = "0",
     @SerialName("total_transactions") val totalTransactions: Int = 0,
-    @SerialName("average_sale") val averageSale: Long = 0,
-    val items: List<MySaleItemDto> = emptyList()
+    @SerialName("cash_total") val cashTotal: String = "0"
 )
 
 @Serializable
@@ -110,11 +149,10 @@ data class MySaleItemDto(
 @Serializable
 data class StockReportDto(
     @SerialName("product_uuid") val productUuid: String,
-    @SerialName("product_name") val productName: String,
     val sku: String? = null,
+    val name: String,
     val stock: Double = 0.0,
-    val unit: String? = null,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("stock_alert_threshold") val stockAlertThreshold: Double? = null
 )
 
 @Serializable
@@ -122,9 +160,8 @@ data class LowStockDto(
     @SerialName("product_uuid") val productUuid: String,
     @SerialName("product_name") val productName: String,
     val sku: String? = null,
-    val stock: Double = 0.0,
-    @SerialName("min_stock") val minStock: Double = 0.0,
-    val unit: String? = null
+    @SerialName("current_stock") val currentStock: Double = 0.0,
+    val threshold: Double = 0.0
 )
 
 @Serializable

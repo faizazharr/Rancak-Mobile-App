@@ -306,5 +306,33 @@ class SaleRepositoryImpl(
             Resource.Error(e.message ?: "Network error")
         }
     }
+
+    override suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getSaleReceipt(tenantUuid, saleUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil struk")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getOrderBoard(date: String?, includeDone: Boolean): Resource<List<OrderBoardOrder>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getOrderBoard(tenantUuid, date, includeDone)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil order board")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }
 

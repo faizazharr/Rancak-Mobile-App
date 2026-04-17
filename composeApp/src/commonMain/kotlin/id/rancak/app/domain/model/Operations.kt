@@ -93,3 +93,92 @@ enum class KdsItemStatus(val value: String) {
             entries.firstOrNull { it.value == value } ?: PENDING
     }
 }
+
+data class Surcharge(
+    val uuid: String,
+    val orderType: String?,
+    val name: String,
+    val amount: Long,
+    val isPercentage: Boolean,
+    val maxAmount: Long?,
+    val isActive: Boolean,
+    val sortOrder: Int
+)
+
+data class TaxConfig(
+    val uuid: String,
+    val name: String,
+    val rate: Double,
+    val applyTo: String,
+    val sortOrder: Int,
+    val isActive: Boolean
+)
+
+data class DiscountRule(
+    val uuid: String,
+    val name: String,
+    val description: String?,
+    val ruleType: String,
+    val discountType: String,
+    val discountValue: Double,
+    val startTime: String?,
+    val endTime: String?,
+    val applicableDays: List<Int>?,
+    val minPurchaseAmount: Long?,
+    val priority: Int,
+    val stackable: Boolean,
+    val maxDiscount: Long?,
+    val isActive: Boolean
+)
+
+data class VoucherValidation(
+    val voucher: Voucher,
+    val discountApplied: Long
+)
+
+data class Voucher(
+    val uuid: String,
+    val code: String,
+    val name: String,
+    val description: String?,
+    val discountType: String,
+    val discountValue: Long,
+    val maxDiscount: Long?,
+    val minPurchase: Long,
+    val usageLimit: Int?,
+    val usageCount: Int,
+    val validFrom: String?,
+    val validUntil: String?,
+    val isActive: Boolean
+)
+
+data class DiscountPreview(
+    val appliedRules: List<AppliedRule>,
+    val totalDiscount: Long,
+    val finalTotal: Long
+)
+
+data class AppliedRule(
+    val uuid: String,
+    val name: String,
+    val ruleType: String,
+    val discount: Long
+)
+
+data class OrderBoardOrder(
+    val uuid: String,
+    val invoiceNo: String?,
+    val queueNumber: Int?,
+    val orderType: OrderType,
+    val customerName: String?,
+    val status: SaleStatus,
+    val createdAt: String?,
+    val servedAt: String?,
+    val items: List<OrderBoardItem>
+)
+
+data class OrderBoardItem(
+    val productName: String,
+    val qty: Int,
+    val note: String?
+)

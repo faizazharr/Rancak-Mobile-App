@@ -94,5 +94,46 @@ class AuthRepositoryImpl(
     override fun getCurrentTenantName(): String? = tokenManager.tenantName
 
     override fun setTenant(uuid: String, name: String) = tokenManager.setTenant(uuid, name)
+
+    override suspend fun getMyTenants(): Resource<List<Tenant>> {
+        return try {
+            val response = api.getMyTenants()
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil data tenant")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getTenantSettings(): Resource<TenantSettings> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getTenantSettings(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil pengaturan tenant")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getReceiptSettings(): Resource<ReceiptSettings> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getReceiptSettings(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil pengaturan struk")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }
 

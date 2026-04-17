@@ -23,11 +23,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.OrderType
-import id.rancak.app.domain.model.Sale
+import id.rancak.app.domain.model.OrderBoardOrder
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
-import id.rancak.app.presentation.util.formatRupiah
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.viewmodel.OrderBoardViewModel
 import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
@@ -234,7 +234,7 @@ fun OrderBoardScreen(
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun OrderBoardCard(order: Sale, onServe: () -> Unit) {
+private fun OrderBoardCard(order: OrderBoardOrder, onServe: () -> Unit) {
     val (elapsed, _) = rememberElapsed(order.createdAt)
     val headerColor = headerColorForStatus(order.status)
 
@@ -303,7 +303,7 @@ private fun OrderBoardCard(order: Sale, onServe: () -> Unit) {
                 order.items.forEach { item ->
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            item.qty,
+                            item.qty.toString(),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
@@ -316,13 +316,6 @@ private fun OrderBoardCard(order: Sale, onServe: () -> Unit) {
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.Black
                             )
-                            item.variantName?.let {
-                                Text(
-                                    "- $it",
-                                    fontSize = 14.sp,
-                                    color = Color.DarkGray
-                                )
-                            }
                             item.note?.let {
                                 Text(
                                     "- $it",
@@ -334,7 +327,7 @@ private fun OrderBoardCard(order: Sale, onServe: () -> Unit) {
                     }
                 }
 
-                // Total + action hint
+                // Action hint
                 HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
@@ -342,7 +335,7 @@ private fun OrderBoardCard(order: Sale, onServe: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        formatRupiah(order.total),
+                        order.customerName ?: order.invoiceNo ?: "",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black

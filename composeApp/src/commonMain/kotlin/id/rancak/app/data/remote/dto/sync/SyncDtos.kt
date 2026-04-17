@@ -33,7 +33,9 @@ data class SurchargeDto(
     val name: String,
     val amount: String = "0",
     @SerialName("is_percentage") val isPercentage: Boolean = false,
-    @SerialName("max_amount") val maxAmount: String? = null
+    @SerialName("max_amount") val maxAmount: String? = null,
+    @SerialName("is_active") val isActive: Boolean = true,
+    @SerialName("sort_order") val sortOrder: Int = 0
 )
 
 @Serializable
@@ -41,24 +43,27 @@ data class TaxConfigDto(
     val uuid: String,
     val name: String,
     val rate: String,
-    @SerialName("apply_to") val applyTo: String? = null
+    @SerialName("apply_to") val applyTo: String? = null,
+    @SerialName("sort_order") val sortOrder: Int = 0,
+    @SerialName("is_active") val isActive: Boolean = true
 )
 
 @Serializable
 data class DiscountRuleDto(
     val uuid: String,
     val name: String,
+    val description: String? = null,
     @SerialName("rule_type") val ruleType: String? = null,
     @SerialName("discount_type") val discountType: String? = null,
     @SerialName("discount_value") val discountValue: String? = null,
-    @SerialName("min_purchase") val minPurchase: String? = null,
+    @SerialName("start_time") val startTime: String? = null,
+    @SerialName("end_time") val endTime: String? = null,
+    @SerialName("applicable_days") val applicableDays: List<Int>? = null,
+    @SerialName("min_purchase_amount") val minPurchaseAmount: String? = null,
+    val priority: Int = 0,
+    val stackable: Boolean = false,
     @SerialName("max_discount") val maxDiscount: String? = null,
-    @SerialName("start_date") val startDate: String? = null,
-    @SerialName("end_date") val endDate: String? = null,
-    @SerialName("is_active") val isActive: Boolean = true,
-    @SerialName("applies_to") val appliesTo: String? = null,
-    @SerialName("product_uuids") val productUuids: List<String>? = null,
-    @SerialName("category_uuids") val categoryUuids: List<String>? = null
+    @SerialName("is_active") val isActive: Boolean = true
 )
 
 @Serializable

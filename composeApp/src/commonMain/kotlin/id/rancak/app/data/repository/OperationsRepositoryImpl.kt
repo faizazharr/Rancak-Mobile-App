@@ -121,5 +121,100 @@ class OperationsRepositoryImpl(
             Resource.Error(e.message ?: "Network error")
         }
     }
+
+    override suspend fun getSurcharges(): Resource<List<Surcharge>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getSurcharges(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil surcharge")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getTaxConfigs(): Resource<List<TaxConfig>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getTaxConfigs(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil konfigurasi pajak")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getDiscountRules(): Resource<List<DiscountRule>> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.getDiscountRules(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil aturan diskon")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun validateVoucher(code: String, subtotal: Long): Resource<VoucherValidation> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.validateVoucher(tenantUuid, code, subtotal)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Voucher tidak valid")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun previewDiscount(total: Long): Resource<DiscountPreview> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.previewDiscount(tenantUuid, total)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil preview diskon")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun syncCatalog(updatedAfter: String?): Resource<Unit> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.syncCatalog(tenantUuid, updatedAfter)
+            if (response.isSuccess) Resource.Success(Unit)
+            else Resource.Error(response.message ?: "Gagal sinkronisasi katalog")
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun syncStatus(): Resource<Boolean> {
+        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
+        return try {
+            val response = api.syncStatus(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.hasOpenShift)
+            } else {
+                Resource.Error(response.message ?: "Gagal mengecek status sinkronisasi")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
 }
 

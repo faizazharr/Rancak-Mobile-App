@@ -12,4 +12,7 @@ interface FinanceRepository {
     suspend fun deleteExpense(expenseId: String): Resource<Unit>
 
     suspend fun getShiftSummary(): Resource<ShiftSummary>
+    suspend fun getMySalesToday(): Resource<MySalesReport>
+    suspend fun getStockReport(): Resource<List<StockReport>>
+    suspend fun getDailyByCategory(date: String? = null): Resource<List<DailyCategoryReport>>
 }

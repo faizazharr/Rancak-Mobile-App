@@ -70,4 +70,13 @@ class FakeFinanceRepository : FinanceRepository {
 
     override suspend fun getShiftSummary(): Resource<ShiftSummary> =
         Resource.Success(demoShiftSummary)
+
+    override suspend fun getMySalesToday(): Resource<MySalesReport> =
+        Resource.Success(MySalesReport(totalSales = 500000, totalTransactions = 10, cashTotal = 350000))
+
+    override suspend fun getStockReport(): Resource<List<StockReport>> =
+        Resource.Success(emptyList())
+
+    override suspend fun getDailyByCategory(date: String?): Resource<List<DailyCategoryReport>> =
+        Resource.Success(emptyList())
 }

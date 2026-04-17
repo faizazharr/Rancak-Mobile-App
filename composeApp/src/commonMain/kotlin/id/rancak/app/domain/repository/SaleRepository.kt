@@ -37,6 +37,9 @@ interface SaleRepository {
 
     /** Poll the current status of the QRIS payment for the given sale. */
     suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment>
+
+    suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt>
+    suspend fun getOrderBoard(date: String? = null, includeDone: Boolean = false): Resource<List<OrderBoardOrder>>
 }
 
 data class CartItem(

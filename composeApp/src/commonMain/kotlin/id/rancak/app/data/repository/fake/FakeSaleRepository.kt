@@ -164,4 +164,10 @@ class FakeSaleRepository : SaleRepository {
             )
         )
     }
+
+    override suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt> =
+        Resource.Error("Tidak tersedia dalam mode demo")
+
+    override suspend fun getOrderBoard(date: String?, includeDone: Boolean): Resource<List<OrderBoardOrder>> =
+        Resource.Success(emptyList())
 }

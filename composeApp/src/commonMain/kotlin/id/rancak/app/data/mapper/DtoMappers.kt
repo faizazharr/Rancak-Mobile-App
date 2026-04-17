@@ -13,6 +13,26 @@ import id.rancak.app.data.remote.dto.operations.CashInDto
 import id.rancak.app.data.remote.dto.operations.ExpenseDto
 import id.rancak.app.data.remote.dto.operations.ShiftSummaryDto
 import id.rancak.app.data.remote.dto.operations.PaymentMethodReportDto
+import id.rancak.app.data.remote.dto.operations.OrderBoardOrderDto
+import id.rancak.app.data.remote.dto.operations.OrderBoardItemDto
+import id.rancak.app.data.remote.dto.operations.VoucherValidationDto
+import id.rancak.app.data.remote.dto.operations.DiscountPreviewDto
+import id.rancak.app.data.remote.dto.operations.AppliedRuleDto
+import id.rancak.app.data.remote.dto.operations.MySalesReportDto
+import id.rancak.app.data.remote.dto.operations.StockReportDto
+import id.rancak.app.data.remote.dto.operations.LowStockDto
+import id.rancak.app.data.remote.dto.operations.StockAlertDto
+import id.rancak.app.data.remote.dto.operations.ExpiringBatchDto
+import id.rancak.app.data.remote.dto.operations.DailyCategoryReportDto
+import id.rancak.app.data.remote.dto.operations.ReceiptDto
+import id.rancak.app.data.remote.dto.operations.ReceiptItemDto
+import id.rancak.app.data.remote.dto.operations.BundleDto
+import id.rancak.app.data.remote.dto.operations.ModifierDto
+import id.rancak.app.data.remote.dto.product.FavoriteProductDto
+import id.rancak.app.data.remote.dto.product.Product86Dto
+import id.rancak.app.data.remote.dto.sync.SurchargeDto
+import id.rancak.app.data.remote.dto.sync.TaxConfigDto
+import id.rancak.app.data.remote.dto.sync.DiscountRuleDto
 import id.rancak.app.data.remote.dto.product.CategoryDto
 import id.rancak.app.data.remote.dto.product.ProductDto
 import id.rancak.app.data.remote.dto.product.VariantGroupDto
@@ -333,4 +353,221 @@ fun PaymentMethodReportDto.toDomain() = PaymentMethodReport(
     method = method,
     total = total,
     count = count
+)
+
+// ── Pricing Mappers ──
+
+fun SurchargeDto.toDomain() = Surcharge(
+    uuid = uuid,
+    orderType = orderType,
+    name = name,
+    amount = amount.toLongOrNull() ?: 0L,
+    isPercentage = isPercentage,
+    maxAmount = maxAmount?.toLongOrNull(),
+    isActive = isActive,
+    sortOrder = sortOrder
+)
+
+fun TaxConfigDto.toDomain() = TaxConfig(
+    uuid = uuid,
+    name = name,
+    rate = rate.toDoubleOrNull() ?: 0.0,
+    applyTo = applyTo ?: "after_discount",
+    sortOrder = sortOrder,
+    isActive = isActive
+)
+
+fun DiscountRuleDto.toDomain() = DiscountRule(
+    uuid = uuid,
+    name = name,
+    description = description,
+    ruleType = ruleType ?: "always",
+    discountType = discountType ?: "pct",
+    discountValue = discountValue?.toDoubleOrNull() ?: 0.0,
+    startTime = startTime,
+    endTime = endTime,
+    applicableDays = applicableDays,
+    minPurchaseAmount = minPurchaseAmount?.toLongOrNull(),
+    priority = priority,
+    stackable = stackable,
+    maxDiscount = maxDiscount?.toLongOrNull(),
+    isActive = isActive
+)
+
+fun VoucherValidationDto.toDomain() = VoucherValidation(
+    voucher = Voucher(
+        uuid = voucher.uuid,
+        code = voucher.code,
+        name = voucher.name,
+        description = voucher.description,
+        discountType = voucher.discountType,
+        discountValue = voucher.discountValue.toLongOrNull() ?: 0L,
+        maxDiscount = voucher.maxDiscount?.toLongOrNull(),
+        minPurchase = voucher.minPurchase.toLongOrNull() ?: 0L,
+        usageLimit = voucher.usageLimit,
+        usageCount = voucher.usageCount,
+        validFrom = voucher.validFrom,
+        validUntil = voucher.validUntil,
+        isActive = voucher.isActive
+    ),
+    discountApplied = discountApplied.toLongOrNull() ?: 0L
+)
+
+fun DiscountPreviewDto.toDomain() = DiscountPreview(
+    appliedRules = appliedRules.map { it.toDomain() },
+    totalDiscount = totalDiscount,
+    finalTotal = finalTotal
+)
+
+fun AppliedRuleDto.toDomain() = AppliedRule(
+    uuid = uuid,
+    name = name,
+    ruleType = ruleType ?: "",
+    discount = discount
+)
+
+// ── Product Extras ──
+
+fun FavoriteProductDto.toDomain() = FavoriteProduct(
+    uuid = uuid,
+    name = name,
+    sku = sku,
+    price = price.toLongOrNull() ?: 0L,
+    categoryName = categoryName,
+    imageUrl = imageUrl,
+    stock = stock.toDoubleOrNull() ?: 0.0,
+    soldCount = soldCount,
+    isLowStock = isLowStock
+)
+
+fun Product86Dto.toDomain() = Product86(
+    uuid = uuid,
+    productUuid = productUuid,
+    productName = productName,
+    sku = sku,
+    reason = reason,
+    date = date ?: "",
+    createdAt = createdAt
+)
+
+// ── Order Board Mapper ──
+
+fun OrderBoardOrderDto.toDomain() = OrderBoardOrder(
+    uuid = uuid,
+    invoiceNo = invoiceNo,
+    queueNumber = queueNumber,
+    orderType = OrderType.from(orderType),
+    customerName = customerName,
+    status = SaleStatus.from(status),
+    createdAt = createdAt,
+    servedAt = servedAt,
+    items = items.map { it.toDomain() }
+)
+
+fun OrderBoardItemDto.toDomain() = OrderBoardItem(
+    productName = productName,
+    qty = qty,
+    note = note
+)
+
+// ── Report Mappers ──
+
+fun MySalesReportDto.toDomain() = MySalesReport(
+    totalSales = totalSales.toLongOrNull() ?: 0L,
+    totalTransactions = totalTransactions,
+    cashTotal = cashTotal.toLongOrNull() ?: 0L
+)
+
+fun StockReportDto.toDomain() = StockReport(
+    productUuid = productUuid,
+    sku = sku,
+    name = name,
+    stock = stock,
+    stockAlertThreshold = stockAlertThreshold
+)
+
+fun LowStockDto.toDomain() = LowStock(
+    productUuid = productUuid,
+    productName = productName,
+    sku = sku,
+    currentStock = currentStock,
+    threshold = threshold
+)
+
+fun StockAlertDto.toDomain() = StockAlert(
+    productUuid = productUuid,
+    productName = productName,
+    sku = null,
+    alertType = alertType,
+    currentStock = stock,
+    threshold = threshold
+)
+
+fun ExpiringBatchDto.toDomain() = ExpiringBatch(
+    batchUuid = batchUuid,
+    productUuid = productUuid,
+    productName = productName,
+    batchNumber = batchNumber,
+    expiryDate = expiryDate ?: "",
+    quantityRemaining = quantityRemaining,
+    daysUntilExpiry = 0
+)
+
+fun DailyCategoryReportDto.toDomain() = DailyCategoryReport(
+    categoryUuid = null,
+    categoryName = categoryName,
+    totalSales = totalRevenue,
+    totalTransactions = totalQty.toInt()
+)
+
+// ── Receipt Mapper ──
+
+fun ReceiptDto.toDomain() = Receipt(
+    invoiceNo = invoiceNo,
+    tenantName = tenantName,
+    tenantAddress = tenantAddress,
+    tenantPhone = tenantPhone,
+    customerName = customerName,
+    queueNumber = queueNumber,
+    orderType = orderType,
+    cashierName = cashierName,
+    createdAt = createdAt,
+    items = items.map { it.toDomain() },
+    subtotal = subtotal,
+    discount = discount,
+    surcharge = 0,
+    tax = tax,
+    deliveryFee = deliveryFee,
+    tip = tip,
+    adminFee = adminFee,
+    total = total,
+    paidAmount = paidAmount,
+    changeAmount = changeAmount,
+    paymentMethod = paymentMethod
+)
+
+fun ReceiptItemDto.toDomain() = ReceiptItemDomain(
+    productName = name,
+    variantName = variantName,
+    qty = qty.toIntOrNull() ?: 1,
+    price = price,
+    subtotal = subtotal,
+    note = note
+)
+
+// ── Bundle / Modifier Mappers ──
+
+fun BundleDto.toDomain() = Bundle(
+    uuid = uuid,
+    name = name,
+    price = price,
+    isActive = isActive,
+    items = items.map { BundleItem(it.productUuid, it.productName, it.qty) }
+)
+
+fun ModifierDto.toDomain() = Modifier(
+    uuid = uuid,
+    name = name,
+    sortOrder = sortOrder,
+    productUuid = productUuid
 )

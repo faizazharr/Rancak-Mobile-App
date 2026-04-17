@@ -3,7 +3,7 @@ package id.rancak.app.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Resource
-import id.rancak.app.domain.model.Sale
+import id.rancak.app.domain.model.OrderBoardOrder
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.domain.repository.SaleRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,13 +13,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class OrderBoardUiState(
-    val activeOrders: List<Sale> = emptyList(),
-    val completedOrders: List<Sale> = emptyList(),
+    val activeOrders: List<OrderBoardOrder> = emptyList(),
+    val completedOrders: List<OrderBoardOrder> = emptyList(),
     val showCompleted: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null
 ) {
-    val displayOrders: List<Sale>
+    val displayOrders: List<OrderBoardOrder>
         get() = if (showCompleted) completedOrders else activeOrders
 }
 
@@ -37,7 +37,7 @@ class OrderBoardViewModel(
     fun loadOrders() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            when (val result = saleRepository.getSales()) {
+            when (val result = saleRepository.getOrderBoard(includeDone = true)) {
                 is Resource.Success -> {
                     val active = result.data.filter { it.status == SaleStatus.HELD }
                     val completed = result.data.filter { it.status == SaleStatus.PAID }

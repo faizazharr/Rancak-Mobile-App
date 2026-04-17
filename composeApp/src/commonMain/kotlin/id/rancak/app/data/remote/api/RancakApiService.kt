@@ -5,6 +5,8 @@ import id.rancak.app.data.remote.dto.auth.*
 import id.rancak.app.data.remote.dto.operations.*
 import id.rancak.app.data.remote.dto.product.CategoryDto
 import id.rancak.app.data.remote.dto.product.ProductDto
+import id.rancak.app.data.remote.dto.product.FavoriteProductDto
+import id.rancak.app.data.remote.dto.product.Product86Dto
 import id.rancak.app.data.remote.dto.sale.*
 import id.rancak.app.data.remote.dto.sync.*
 import io.ktor.client.*
@@ -88,10 +90,10 @@ class RancakApiService(private val client: HttpClient) {
     suspend fun getProductByBarcode(tenantUuid: String, barcode: String): ApiResponse<ProductDto> =
         client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/barcode/$barcode").body()
 
-    suspend fun getFavoriteProducts(tenantUuid: String): ApiResponse<List<ProductDto>> =
+    suspend fun getFavoriteProducts(tenantUuid: String): ApiResponse<List<FavoriteProductDto>> =
         client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/favorites").body()
 
-    suspend fun get86Products(tenantUuid: String): ApiResponse<List<ProductDto>> =
+    suspend fun get86Products(tenantUuid: String): ApiResponse<List<Product86Dto>> =
         client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/86").body()
 
     suspend fun mark86(tenantUuid: String, productUuid: String): ApiResponse<Unit> =
@@ -281,7 +283,7 @@ class RancakApiService(private val client: HttpClient) {
 
     // ── Order Board ──
 
-    suspend fun getOrderBoard(tenantUuid: String, date: String? = null, includeDone: Boolean = false): ApiResponse<List<SaleDto>> =
+    suspend fun getOrderBoard(tenantUuid: String, date: String? = null, includeDone: Boolean = false): ApiResponse<List<OrderBoardOrderDto>> =
         client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.ORDER_BOARD) {
             date?.let { parameter("date", it) }
             if (includeDone) parameter("include_done", true)

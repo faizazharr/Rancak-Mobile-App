@@ -8,6 +8,9 @@ interface AuthRepository {
     suspend fun refreshToken(): Resource<LoginResult>
     suspend fun logout(): Resource<Unit>
     suspend fun getMe(): Resource<User>
+    suspend fun getMyTenants(): Resource<List<Tenant>>
+    suspend fun getTenantSettings(): Resource<TenantSettings>
+    suspend fun getReceiptSettings(): Resource<ReceiptSettings>
     fun isLoggedIn(): Boolean
     fun getCurrentTenantUuid(): String?
     fun getCurrentTenantName(): String?

@@ -49,4 +49,18 @@ class FakeAuthRepository : AuthRepository {
         tenantUuid = uuid
         tenantName = name
     }
+
+    override suspend fun getMyTenants(): Resource<List<Tenant>> =
+        Resource.Success(demoUser.tenants)
+
+    override suspend fun getTenantSettings(): Resource<TenantSettings> =
+        Resource.Success(TenantSettings(
+            uuid = "demo-tenant", name = "Rancak Demo", address = "Jl. Demo 123",
+            phone = "08123456789", isActive = true, subscriptionStatus = "active",
+            subscriptionPlan = "pro", subscriptionExpiresAt = null,
+            maxUsers = 10, currentUsers = 1
+        ))
+
+    override suspend fun getReceiptSettings(): Resource<ReceiptSettings> =
+        Resource.Success(ReceiptSettings())
 }
