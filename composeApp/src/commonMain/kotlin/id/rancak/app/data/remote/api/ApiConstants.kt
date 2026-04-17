@@ -1,7 +1,13 @@
 package id.rancak.app.data.remote.api
 
 object ApiConstants {
-    const val BASE_URL = "https://api.rancak.id"
+    const val BASE_URL = "https://be-rancak.up.railway.app"
+
+    /**
+     * App-level API key. Required on every request (X-API-Key header).
+     * Rotated manually via backend env var.
+     */
+    const val API_KEY = "rancak-pos-mobile-v1"
 
     // Auth
     const val LOGIN = "/auth/login"

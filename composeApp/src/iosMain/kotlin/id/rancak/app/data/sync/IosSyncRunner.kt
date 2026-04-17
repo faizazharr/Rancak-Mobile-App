@@ -36,7 +36,7 @@ internal suspend fun runIosSync(): Boolean {
             request    = BatchSalesRequest(sales = pending.map { it.toBatchItem() })
         )
 
-        if (response.status == "ok" && response.data != null) {
+        if (response.isSuccess && response.data != null) {
             val data = response.data
             // Hapus item yang berhasil atau sudah ada (idempoten)
             data.results.forEach { result ->
@@ -52,3 +52,4 @@ internal suspend fun runIosSync(): Boolean {
         false  // Network error — akan dicoba lagi saat foreground berikutnya
     }
 }
+

@@ -11,8 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ReportUiState(
-    val summary: ReportSummary? = null,
-    val topProducts: List<ProductReport> = emptyList(),
+    val summary: ShiftSummary? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val dateFrom: String = "",
@@ -32,23 +31,11 @@ class ReportViewModel(
     }
 
     fun loadReport() {
-        val from = _uiState.value.dateFrom
-        val to = _uiState.value.dateTo
-        if (from.isBlank() || to.isBlank()) return
-
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            when (val result = financeRepository.getReportSummary(from, to)) {
+            when (val result = financeRepository.getShiftSummary()) {
                 is Resource.Success -> _uiState.update { it.copy(summary = result.data, isLoading = false) }
                 is Resource.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
-                is Resource.Loading -> {}
-            }
-        }
-
-        viewModelScope.launch {
-            when (val result = financeRepository.getProductReport(from, to)) {
-                is Resource.Success -> _uiState.update { it.copy(topProducts = result.data) }
-                is Resource.Error -> {}
                 is Resource.Loading -> {}
             }
         }

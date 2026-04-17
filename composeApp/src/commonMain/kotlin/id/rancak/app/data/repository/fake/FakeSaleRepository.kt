@@ -37,6 +37,7 @@ class FakeSaleRepository : SaleRepository {
             orderType      = orderType,
             queueNumber    = invoiceCounter,
             status         = if (hold) SaleStatus.HELD else SaleStatus.PAID,
+            customerName   = customerName,
             subtotal       = subtotal,
             discount       = discount,
             surcharge      = 0L,
@@ -48,6 +49,7 @@ class FakeSaleRepository : SaleRepository {
             items          = items.map { cart ->
                 SaleItem(
                     uuid        = "si-${cart.productUuid}",
+                    productUuid = cart.productUuid,
                     productName = cart.productName,
                     qty         = cart.qty.toString(),
                     price       = cart.price,
@@ -98,7 +100,7 @@ class FakeSaleRepository : SaleRepository {
     override suspend fun serveSale(saleUuid: String): Resource<Sale> {
         val idx = demoSales.indexOfFirst { it.uuid == saleUuid }
         return if (idx >= 0) {
-            val updated = demoSales[idx].copy(status = SaleStatus.SERVED)
+            val updated = demoSales[idx].copy(status = SaleStatus.PAID)
             demoSales[idx] = updated
             Resource.Success(updated)
         } else Resource.Error("Transaksi tidak ditemukan")
@@ -141,6 +143,7 @@ class FakeSaleRepository : SaleRepository {
                 qrString     = fakeQrString,
                 amount       = sale?.total ?: 0L,
                 status       = QrPaymentStatus.PENDING,
+                expiresAt    = null,
                 usingWebhook = false
             )
         )
@@ -156,6 +159,7 @@ class FakeSaleRepository : SaleRepository {
                 qrString     = fakeQrString,
                 amount       = sale?.total ?: 0L,
                 status       = QrPaymentStatus.PENDING,
+                expiresAt    = null,
                 usingWebhook = false
             )
         )

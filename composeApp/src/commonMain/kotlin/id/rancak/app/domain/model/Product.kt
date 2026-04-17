@@ -11,10 +11,11 @@ data class Product(
     val description: String?,
     val category: Category?,
     val price: Long,
-    val stock: String?,
+    val stock: Double,
     val unit: String?,
     val imageUrl: String?,
     val isActive: Boolean,
+    val hasExpiry: Boolean = false,
     val updatedAt: String?
 )
 
@@ -29,6 +30,8 @@ data class Category(
 data class VariantGroup(
     val uuid: String,
     val name: String,
+    val isRequired: Boolean = false,
+    val sortOrder: Int = 0,
     val variants: List<Variant>
 )
 
@@ -36,5 +39,21 @@ data class VariantGroup(
 data class Variant(
     val uuid: String,
     val name: String,
-    val priceAdjustment: Long
+    val priceAdjustment: Long,
+    val isDefault: Boolean = false,
+    val isActive: Boolean = true
+)
+
+data class ProductBatch(
+    val uuid: String,
+    val quantityInitial: Double,
+    val quantityRemaining: Double,
+    val quantityUsed: Double,
+    val costPrice: Long?,
+    val expiryDate: String?,
+    val batchNumber: String?,
+    val note: String?,
+    val receivedAt: String?,
+    val isExhausted: Boolean,
+    val isExpired: Boolean
 )

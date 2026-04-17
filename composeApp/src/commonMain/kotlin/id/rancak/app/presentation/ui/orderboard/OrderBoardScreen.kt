@@ -38,7 +38,6 @@ import org.koin.compose.viewmodel.koinViewModel
 
 private fun headerColorForStatus(status: SaleStatus): Color = when (status) {
     SaleStatus.HELD      -> Color(0xFFF57C00)  // Oranye — menunggu antar
-    SaleStatus.SERVED    -> Color(0xFF1565C0)  // Biru — sudah disajikan
     SaleStatus.PAID      -> Color(0xFF2E7D32)  // Hijau — sudah bayar
     else                 -> Color(0xFF757575)  // Abu-abu
 }

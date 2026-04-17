@@ -14,8 +14,7 @@ data class Table(
 enum class TableStatus(val value: String) {
     AVAILABLE("available"),
     OCCUPIED("occupied"),
-    RESERVED("reserved"),
-    MAINTENANCE("maintenance");
+    INACTIVE("inactive");
 
     companion object {
         fun from(value: String?): TableStatus =
@@ -28,10 +27,15 @@ data class Shift(
     val openedAt: String?,
     val closedAt: String?,
     val status: ShiftStatus,
-    val openingCash: Long,
-    val closingCash: Long?,
+    val openingCash: String,
+    val closingCash: String?,
+    val expectedCash: String?,
+    val cashDifference: String?,
+    val cashierName: String?,
     val totalSales: Long?,
-    val totalExpenses: Long?
+    val totalTransactions: Int?,
+    val totalExpenses: Long?,
+    val totalCashIn: Long?
 )
 
 enum class ShiftStatus(val value: String) {
@@ -50,6 +54,8 @@ data class KdsOrder(
     val orderType: OrderType,
     val tableName: String?,
     val queueNumber: Int?,
+    val customerName: String?,
+    val note: String?,
     val status: KdsStatus,
     val items: List<KdsItem>,
     val createdAt: String?

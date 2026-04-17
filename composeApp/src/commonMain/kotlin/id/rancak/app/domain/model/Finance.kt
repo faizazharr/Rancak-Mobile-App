@@ -6,6 +6,10 @@ data class CashIn(
     val source: String?,
     val description: String?,
     val note: String?,
+    val cashierUuid: String?,
+    val cashierName: String?,
+    val shiftUuid: String?,
+    val cashInDate: String?,
     val createdAt: String?
 )
 
@@ -15,8 +19,12 @@ data class Expense(
     val description: String?,
     val note: String?,
     val categoryUuid: String?,
+    val categoryName: String?,
+    val cashierUuid: String?,
+    val cashierName: String?,
     val expenseDate: String?,
-    val createdAt: String?
+    val createdAt: String?,
+    val updatedAt: String?
 )
 
 data class Bundle(
@@ -40,24 +48,25 @@ data class Modifier(
     val productUuid: String?
 )
 
-data class ReportSummary(
-    val totalSales: Long,
-    val totalTransactions: Int,
-    val totalDiscount: Long,
-    val totalTax: Long,
-    val totalNet: Long,
-    val paymentMethods: List<PaymentMethodReport>
-)
-
 data class PaymentMethodReport(
     val method: String,
     val total: Long,
     val count: Int
 )
 
-data class ProductReport(
-    val productUuid: String,
-    val productName: String,
-    val qtySold: Int,
-    val totalRevenue: Long
+data class ShiftSummary(
+    val uuid: String,
+    val openedAt: String?,
+    val closedAt: String?,
+    val status: String,
+    val openingCash: String,
+    val closingCash: String?,
+    val expectedCash: String?,
+    val cashDifference: String?,
+    val cashierName: String?,
+    val totalSales: Long,
+    val totalTransactions: Int,
+    val totalExpenses: Long,
+    val totalCashIn: Long,
+    val paymentSummary: List<PaymentMethodReport>
 )

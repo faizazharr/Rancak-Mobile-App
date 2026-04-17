@@ -104,7 +104,7 @@ fun ShiftScreenContent(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(Modifier.height(12.dp))
-                                SummaryRow("Kas Awal", formatRupiah(uiState.currentShift.openingCash))
+                                SummaryRow("Kas Awal", formatRupiah(uiState.currentShift.openingCash.toLongOrNull() ?: 0L))
                                 uiState.currentShift.totalSales?.let {
                                     SummaryRow("Total Penjualan", formatRupiah(it))
                                 }
@@ -224,10 +224,15 @@ private fun ShiftActivePreview() {
                     openedAt = "2026-04-15T08:00:00",
                     closedAt = null,
                     status = ShiftStatus.OPEN,
-                    openingCash = 500000,
+                    openingCash = "500000",
                     closingCash = null,
+                    expectedCash = null,
+                    cashDifference = null,
+                    cashierName = null,
                     totalSales = 1250000,
-                    totalExpenses = 75000
+                    totalTransactions = null,
+                    totalExpenses = 75000,
+                    totalCashIn = null
                 )
             )
         )

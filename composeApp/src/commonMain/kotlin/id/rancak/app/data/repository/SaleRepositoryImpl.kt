@@ -80,7 +80,7 @@ class SaleRepositoryImpl(
                 deviceId        = deviceId
             )
             val response = api.createSale(tenantUuid, request, idempotencyKey)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Failed to create sale")
@@ -131,7 +131,7 @@ class SaleRepositoryImpl(
     override suspend fun getSales(dateFrom: String?, dateTo: String?): Resource<List<Sale>> {
         return try {
             val response = api.getSales(tenantUuid, dateFrom, dateTo)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val sales = response.data.map { it.toDomain() }
                 // Cache to Room
                 val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
@@ -162,7 +162,7 @@ class SaleRepositoryImpl(
     override suspend fun getSaleDetail(saleUuid: String): Resource<Sale> {
         return try {
             val response = api.getSaleDetail(tenantUuid, saleUuid)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val sale = response.data.toDomain()
                 // Cache to Room
                 val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
@@ -187,7 +187,7 @@ class SaleRepositoryImpl(
     override suspend fun serveSale(saleUuid: String): Resource<Sale> {
         return try {
             val response = api.serveSale(tenantUuid, saleUuid)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Failed to serve sale")
@@ -199,11 +199,15 @@ class SaleRepositoryImpl(
 
     override suspend fun paySale(saleUuid: String, paymentMethod: PaymentMethod, paidAmount: Long): Resource<Sale> {
         return try {
-            val response = api.paySale(tenantUuid, saleUuid, paymentMethod.value, paidAmount)
-            if (response.status == "ok" && response.data != null) {
+            val request = id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(
+                paymentMethod = paymentMethod.value,
+                paidAmount = paidAmount
+            )
+            val response = api.payHeldOrder(tenantUuid, saleUuid, request)
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
-                Resource.Error(response.message ?: "Failed to pay sale")
+                Resource.Error(response.message ?: "Gagal membayar pesanan")
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")
@@ -213,7 +217,7 @@ class SaleRepositoryImpl(
     override suspend fun voidSale(saleUuid: String, reason: String?): Resource<Sale> {
         return try {
             val response = api.voidSale(tenantUuid, saleUuid, reason)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Failed to void sale")
@@ -226,7 +230,7 @@ class SaleRepositoryImpl(
     override suspend fun cancelSale(saleUuid: String, reason: String?): Resource<Sale> {
         return try {
             val response = api.cancelSale(tenantUuid, saleUuid, reason)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Failed to cancel sale")
@@ -238,11 +242,26 @@ class SaleRepositoryImpl(
 
     override suspend fun refundSale(saleUuid: String, amount: Long?, reason: String?): Resource<Sale> {
         return try {
-            val response = api.refundSale(tenantUuid, saleUuid, amount, reason)
-            if (response.status == "ok" && response.data != null) {
-                Resource.Success(response.data.toDomain())
+            // For now, refund all items — caller should provide specific items for per-item refund
+            val saleDetail = api.getSaleDetail(tenantUuid, saleUuid)
+            val items = saleDetail.data?.items?.map {
+                id.rancak.app.data.remote.dto.sale.RefundItemRequest(
+                    saleItemUuid = it.uuid,
+                    qty = it.qty.toDoubleOrNull()?.toInt() ?: 1
+                )
+            } ?: emptyList()
+            val request = id.rancak.app.data.remote.dto.sale.RefundRequest(items = items, reason = reason)
+            val response = api.refundSale(tenantUuid, saleUuid, request)
+            if (response.isSuccess && response.data != null) {
+                // Re-fetch the sale to get updated status
+                val updated = api.getSaleDetail(tenantUuid, saleUuid)
+                if (updated.isSuccess && updated.data != null) {
+                    Resource.Success(updated.data.toDomain())
+                } else {
+                    Resource.Error("Refund berhasil, gagal memuat detail")
+                }
             } else {
-                Resource.Error(response.message ?: "Failed to refund sale")
+                Resource.Error(response.message ?: "Gagal melakukan refund")
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")
@@ -252,7 +271,7 @@ class SaleRepositoryImpl(
     override suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale> {
         return try {
             val response = api.moveTable(tenantUuid, saleUuid, tableUuid)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Failed to move table")
@@ -265,7 +284,7 @@ class SaleRepositoryImpl(
     override suspend fun createQrPayment(saleUuid: String): Resource<QrPayment> {
         return try {
             val response = api.createQrPayment(tenantUuid, saleUuid)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Gagal membuat QR QRIS")
@@ -278,7 +297,7 @@ class SaleRepositoryImpl(
     override suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment> {
         return try {
             val response = api.getQrPaymentStatus(tenantUuid, saleUuid)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Gagal mengecek status QR")
@@ -288,3 +307,4 @@ class SaleRepositoryImpl(
         }
     }
 }
+

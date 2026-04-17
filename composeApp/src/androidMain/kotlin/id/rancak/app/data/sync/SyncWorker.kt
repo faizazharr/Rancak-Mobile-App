@@ -50,7 +50,7 @@ class SyncWorker(
             val batchItems = pending.map { it.toBatchItem() }
             val response = api.batchSales(tenantUuid, BatchSalesRequest(sales = batchItems))
 
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val data = response.data
                 // Remove successfully processed items (created OR duplicate = safe to remove)
                 data.results.forEach { result ->
@@ -70,3 +70,4 @@ class SyncWorker(
     }
 
 }
+

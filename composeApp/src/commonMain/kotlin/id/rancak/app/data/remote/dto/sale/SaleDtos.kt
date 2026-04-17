@@ -62,6 +62,9 @@ data class SplitPaymentRequest(
 data class SaleDto(
     val uuid: String,
     @SerialName("invoice_no") val invoiceNo: String? = null,
+    @SerialName("tenant_uuid") val tenantUuid: String? = null,
+    @SerialName("cashier_uuid") val cashierUuid: String? = null,
+    @SerialName("customer_name") val customerName: String? = null,
     @SerialName("order_type") val orderType: String? = null,
     @SerialName("queue_number") val queueNumber: Int? = null,
     val status: String,
@@ -69,7 +72,9 @@ data class SaleDto(
     val discount: Long = 0,
     val surcharge: Long = 0,
     @SerialName("voucher_discount") val voucherDiscount: Long = 0,
+    @SerialName("voucher_code") val voucherCode: String? = null,
     @SerialName("auto_discount") val autoDiscount: Long = 0,
+    @SerialName("auto_discount_label") val autoDiscountLabel: String? = null,
     val tax: Long = 0,
     @SerialName("delivery_fee") val deliveryFee: Long = 0,
     val tip: Long = 0,
@@ -78,28 +83,103 @@ data class SaleDto(
     @SerialName("payment_method") val paymentMethod: String? = null,
     @SerialName("paid_amount") val paidAmount: Long = 0,
     @SerialName("change_amount") val changeAmount: Long = 0,
-    @SerialName("cashier_uuid") val cashierUuid: String? = null,
     @SerialName("table_uuid") val tableUuid: String? = null,
     val items: List<SaleItemDto> = emptyList(),
     val payments: List<SalePaymentDto> = emptyList(),
-    @SerialName("created_at") val createdAt: String? = null
+    val delivery: DeliveryResponseDto? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("served_at") val servedAt: String? = null
 )
 
 @Serializable
 data class SaleItemDto(
     val uuid: String,
+    @SerialName("product_uuid") val productUuid: String? = null,
     @SerialName("product_name") val productName: String,
+    val sku: String? = null,
     val qty: String,
-    val price: Long,
-    val subtotal: Long,
+    val price: Long = 0,
+    val discount: Long = 0,
+    val subtotal: Long = 0,
     @SerialName("variant_name") val variantName: String? = null,
-    val note: String? = null
+    val note: String? = null,
+    val addons: List<SaleItemAddonDto> = emptyList()
+)
+
+@Serializable
+data class SaleItemAddonDto(
+    val name: String,
+    val price: Long = 0,
+    val qty: Double = 1.0,
+    val subtotal: Long = 0
 )
 
 @Serializable
 data class SalePaymentDto(
+    val uuid: String? = null,
     val method: String,
-    val amount: Long
+    val amount: Long = 0,
+    val note: String? = null
+)
+
+@Serializable
+data class DeliveryResponseDto(
+    val uuid: String? = null,
+    @SerialName("courier_name") val courierName: String? = null,
+    @SerialName("recipient_name") val recipientName: String? = null,
+    val address: String? = null,
+    val lat: Double? = null,
+    val lng: Double? = null,
+    val note: String? = null
+)
+
+@Serializable
+data class DeliveryInputDto(
+    @SerialName("courier_name") val courierName: String,
+    @SerialName("recipient_name") val recipientName: String? = null,
+    val address: String? = null,
+    val lat: Double? = null,
+    val lng: Double? = null,
+    val note: String? = null
+)
+
+/** Pay a held order. */
+@Serializable
+data class PayHeldOrderRequest(
+    @SerialName("payment_method") val paymentMethod: String? = null,
+    @SerialName("paid_amount") val paidAmount: Long? = null,
+    val payments: List<SplitPaymentRequest>? = null
+)
+
+/** Refund request (per-item). */
+@Serializable
+data class RefundItemRequest(
+    @SerialName("sale_item_uuid") val saleItemUuid: String,
+    val qty: Int
+)
+
+@Serializable
+data class RefundRequest(
+    val items: List<RefundItemRequest>,
+    val reason: String? = null
+)
+
+@Serializable
+data class RefundItemResponseDto(
+    @SerialName("sale_item_uuid") val saleItemUuid: String,
+    @SerialName("product_name") val productName: String,
+    val qty: Double = 0.0,
+    @SerialName("refund_amount") val refundAmount: Long = 0
+)
+
+@Serializable
+data class RefundResponseDto(
+    val uuid: String,
+    @SerialName("sale_uuid") val saleUuid: String,
+    @SerialName("refund_amount") val refundAmount: Long = 0,
+    val reason: String? = null,
+    val items: List<RefundItemResponseDto> = emptyList(),
+    @SerialName("created_at") val createdAt: String? = null
 )
 
 @Serializable

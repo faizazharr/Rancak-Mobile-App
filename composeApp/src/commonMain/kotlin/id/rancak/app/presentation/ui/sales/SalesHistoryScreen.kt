@@ -354,7 +354,7 @@ private fun SearchAndFilterBar(
             null              to "Semua",
             SaleStatus.HELD   to "Belum Bayar",
             SaleStatus.PAID   to "Lunas",
-            SaleStatus.SERVED to "Disajikan",
+            SaleStatus.REFUNDED to "Refund",
             SaleStatus.VOID   to "Void"
         )
         Row(
@@ -523,7 +523,7 @@ private fun StatusPill(
         SaleStatus.HELD      -> semantic.warning
         SaleStatus.VOID,
         SaleStatus.CANCELLED -> MaterialTheme.colorScheme.error
-        SaleStatus.SERVED    -> semantic.info
+        SaleStatus.REFUNDED  -> semantic.info
         null                 -> MaterialTheme.colorScheme.outline
     }
     val bgColor  = if (selected) dotColor.copy(alpha = 0.15f)
@@ -651,14 +651,14 @@ private fun SaleCard(
         SaleStatus.PAID                       -> semantic.success
         SaleStatus.HELD                       -> semantic.warning
         SaleStatus.VOID, SaleStatus.CANCELLED -> MaterialTheme.colorScheme.error
-        SaleStatus.SERVED                     -> semantic.info
+        SaleStatus.REFUNDED                   -> semantic.info
     }
     val statusLabel = when (sale.status) {
         SaleStatus.PAID      -> "LUNAS"
         SaleStatus.HELD      -> "BELUM BAYAR"
         SaleStatus.VOID      -> "VOID"
         SaleStatus.CANCELLED -> "BATAL"
-        SaleStatus.SERVED    -> "DISAJIKAN"
+        SaleStatus.REFUNDED  -> "REFUND"
     }
 
     Surface(
@@ -786,14 +786,14 @@ private fun SaleDetailPanel(sale: Sale, modifier: Modifier = Modifier) {
         SaleStatus.PAID                       -> semantic.success
         SaleStatus.HELD                       -> semantic.warning
         SaleStatus.VOID, SaleStatus.CANCELLED -> MaterialTheme.colorScheme.error
-        SaleStatus.SERVED                     -> semantic.info
+        SaleStatus.REFUNDED                   -> semantic.info
     }
     val statusLabel = when (sale.status) {
         SaleStatus.PAID      -> "✓ LUNAS"
         SaleStatus.HELD      -> "⏳ BELUM BAYAR"
         SaleStatus.VOID      -> "✗ VOID"
         SaleStatus.CANCELLED -> "✗ BATAL"
-        SaleStatus.SERVED    -> "✓ DISAJIKAN"
+        SaleStatus.REFUNDED  -> "↩ REFUND"
     }
 
     // ── Receipt wrapper ───────────────────────────────────────────────────────
@@ -1219,7 +1219,7 @@ private fun SalesSummaryPanel(sales: List<Sale>, modifier: Modifier = Modifier) 
     val semantic = RancakColors.semantic
 
     // ── Hitung statistik ─────────────────────────────────────────────────────
-    val paidSales     = sales.filter { it.status == SaleStatus.PAID || it.status == SaleStatus.SERVED }
+    val paidSales     = sales.filter { it.status == SaleStatus.PAID }
     val heldCount     = sales.count  { it.status == SaleStatus.HELD }
     val voidCount     = sales.count  { it.status == SaleStatus.VOID || it.status == SaleStatus.CANCELLED }
     val totalRevenue  = paidSales.sumOf { it.total }

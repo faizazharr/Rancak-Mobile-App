@@ -19,12 +19,12 @@ class AuthRepositoryImpl(
     override suspend fun login(email: String, password: String): Resource<LoginResult> {
         return try {
             val response = api.login(LoginRequest(email, password))
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val result = response.data.toLoginResult()
                 tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
                 Resource.Success(result)
             } else {
-                Resource.Error(response.message ?: "Login failed", response.code)
+                Resource.Error(response.message ?: "Login failed", response.statusCode)
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")
@@ -34,12 +34,12 @@ class AuthRepositoryImpl(
     override suspend fun loginWithGoogle(idToken: String): Resource<LoginResult> {
         return try {
             val response = api.googleLogin(GoogleLoginRequest(idToken))
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val result = response.data.toLoginResult()
                 tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
                 Resource.Success(result)
             } else {
-                Resource.Error(response.message ?: "Google login gagal", response.code)
+                Resource.Error(response.message ?: "Google login gagal", response.statusCode)
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")
@@ -50,7 +50,7 @@ class AuthRepositoryImpl(
         val refreshToken = tokenManager.refreshToken ?: return Resource.Error("No refresh token")
         return try {
             val response = api.refreshToken(RefreshTokenRequest(refreshToken))
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val result = response.data.toLoginResult()
                 tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
                 Resource.Success(result)
@@ -77,7 +77,7 @@ class AuthRepositoryImpl(
     override suspend fun getMe(): Resource<User> {
         return try {
             val response = api.getMe()
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Failed to get user")
@@ -95,3 +95,4 @@ class AuthRepositoryImpl(
 
     override fun setTenant(uuid: String, name: String) = tokenManager.setTenant(uuid, name)
 }
+

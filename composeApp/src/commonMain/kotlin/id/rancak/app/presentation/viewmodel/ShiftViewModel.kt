@@ -57,7 +57,7 @@ class ShiftViewModel(
     }
 
     fun openShift() {
-        val cash = _uiState.value.openingCash.toLongOrNull() ?: 0L
+        val cash = _uiState.value.openingCash
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = operationsRepository.openShift(cash)) {
@@ -80,7 +80,7 @@ class ShiftViewModel(
     }
 
     fun closeShift() {
-        val cash = _uiState.value.closingCash.toLongOrNull() ?: 0L
+        val cash = _uiState.value.closingCash
         val note = _uiState.value.closingNote.takeIf { it.isNotBlank() }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }

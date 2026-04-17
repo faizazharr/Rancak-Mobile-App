@@ -167,7 +167,7 @@ class PaymentViewModel(
                                 }
                                 break
                             }
-                            QrPaymentStatus.EXPIRED -> {
+                            QrPaymentStatus.EXPIRED, QrPaymentStatus.FAILED -> {
                                 _uiState.update {
                                     it.copy(
                                         isQrisPolling = false,

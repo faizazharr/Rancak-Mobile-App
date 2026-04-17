@@ -161,8 +161,8 @@ private fun CashInListPreview() {
     RancakTheme {
         CashInList(
             items = listOf(
-                CashIn(uuid = "1", amount = 500000, source = "Modal", description = "Kas Awal", note = null, createdAt = null),
-                CashIn(uuid = "2", amount = 200000, source = "Pinjaman", description = "Tambahan Modal", note = "Dari owner", createdAt = null)
+                CashIn(uuid = "1", amount = 500000, source = "Modal", description = "Kas Awal", note = null, cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null),
+                CashIn(uuid = "2", amount = 200000, source = "Pinjaman", description = "Tambahan Modal", note = "Dari owner", cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null)
             ),
             onDelete = {}
         )
@@ -175,8 +175,8 @@ private fun ExpenseListPreview() {
     RancakTheme {
         ExpenseList(
             items = listOf(
-                Expense(uuid = "1", amount = 50000, description = "Beli Gas", note = "2 tabung", categoryUuid = null, expenseDate = null, createdAt = null),
-                Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null, categoryUuid = null, expenseDate = null, createdAt = null)
+                Expense(uuid = "1", amount = 50000, description = "Beli Gas", note = "2 tabung", categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null),
+                Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null, categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null)
             ),
             onDelete = {}
         )

@@ -11,22 +11,27 @@ class FakeOperationsRepository : OperationsRepository {
     override suspend fun getCurrentShift(): Resource<Shift?> =
         Resource.Success(demoShift)
 
-    override suspend fun openShift(openingCash: Long): Resource<Shift> {
+    override suspend fun openShift(openingCash: String): Resource<Shift> {
         val shift = Shift(
-            uuid          = "shift-${System.currentTimeMillis()}",
-            openedAt      = "2025-06-14 08:00:00",
-            closedAt      = null,
-            status        = ShiftStatus.OPEN,
-            openingCash   = openingCash,
-            closingCash   = null,
-            totalSales    = 0L,
-            totalExpenses = 0L
+            uuid             = "shift-${System.currentTimeMillis()}",
+            openedAt         = "2025-06-14 08:00:00",
+            closedAt         = null,
+            status           = ShiftStatus.OPEN,
+            openingCash      = openingCash,
+            closingCash      = null,
+            expectedCash     = null,
+            cashDifference   = null,
+            cashierName      = null,
+            totalSales       = 0L,
+            totalTransactions = 0,
+            totalExpenses    = 0L,
+            totalCashIn      = 0L
         )
         demoShift = shift
         return Resource.Success(shift)
     }
 
-    override suspend fun closeShift(closingCash: Long, note: String?): Resource<Shift> {
+    override suspend fun closeShift(closingCash: String, note: String?): Resource<Shift> {
         val current = demoShift
             ?: return Resource.Error("Tidak ada shift aktif")
         val closed = current.copy(

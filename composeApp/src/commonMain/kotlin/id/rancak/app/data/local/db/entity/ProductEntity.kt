@@ -15,7 +15,7 @@ data class ProductEntity(
     val categoryUuid: String?,
     val categoryName: String?,
     val price: Long,
-    val stock: String?,
+    val stock: Double,
     val unit: String?,
     val imageUrl: String?,
     val isActive: Boolean,

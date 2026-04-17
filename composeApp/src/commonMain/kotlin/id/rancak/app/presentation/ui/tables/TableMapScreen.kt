@@ -85,8 +85,7 @@ private fun TableCell(table: Table, onClick: () -> Unit) {
     val bg = when (table.status) {
         TableStatus.AVAILABLE -> semantic.statusAvailable
         TableStatus.OCCUPIED -> semantic.statusOccupied
-        TableStatus.RESERVED -> semantic.statusReserved
-        TableStatus.MAINTENANCE -> semantic.statusMaintenance
+        TableStatus.INACTIVE -> semantic.statusMaintenance
     }
     Box(
         modifier = Modifier

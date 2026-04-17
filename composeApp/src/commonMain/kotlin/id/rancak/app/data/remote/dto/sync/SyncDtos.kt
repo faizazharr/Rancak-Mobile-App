@@ -31,9 +31,9 @@ data class SurchargeDto(
     val uuid: String,
     @SerialName("order_type") val orderType: String? = null,
     val name: String,
-    val amount: Long,
+    val amount: String = "0",
     @SerialName("is_percentage") val isPercentage: Boolean = false,
-    @SerialName("max_amount") val maxAmount: Long? = null
+    @SerialName("max_amount") val maxAmount: String? = null
 )
 
 @Serializable
@@ -48,10 +48,17 @@ data class TaxConfigDto(
 data class DiscountRuleDto(
     val uuid: String,
     val name: String,
-    val type: String? = null,
-    val value: Long? = null,
-    @SerialName("min_purchase") val minPurchase: Long? = null,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("rule_type") val ruleType: String? = null,
+    @SerialName("discount_type") val discountType: String? = null,
+    @SerialName("discount_value") val discountValue: String? = null,
+    @SerialName("min_purchase") val minPurchase: String? = null,
+    @SerialName("max_discount") val maxDiscount: String? = null,
+    @SerialName("start_date") val startDate: String? = null,
+    @SerialName("end_date") val endDate: String? = null,
+    @SerialName("is_active") val isActive: Boolean = true,
+    @SerialName("applies_to") val appliesTo: String? = null,
+    @SerialName("product_uuids") val productUuids: List<String>? = null,
+    @SerialName("category_uuids") val categoryUuids: List<String>? = null
 )
 
 @Serializable
@@ -72,15 +79,20 @@ data class ShiftDto(
     @SerialName("opened_at") val openedAt: String? = null,
     @SerialName("closed_at") val closedAt: String? = null,
     val status: String = "open",
-    @SerialName("opening_cash") val openingCash: Long = 0,
-    @SerialName("closing_cash") val closingCash: Long? = null,
+    @SerialName("opening_cash") val openingCash: String = "0",
+    @SerialName("closing_cash") val closingCash: String? = null,
+    @SerialName("expected_cash") val expectedCash: String? = null,
+    @SerialName("cash_difference") val cashDifference: String? = null,
+    @SerialName("cashier_name") val cashierName: String? = null,
     @SerialName("payment_summary") val paymentSummary: List<PaymentSummaryDto>? = null,
     @SerialName("total_sales") val totalSales: Long? = null,
-    @SerialName("total_expenses") val totalExpenses: Long? = null
+    @SerialName("total_transactions") val totalTransactions: Int? = null,
+    @SerialName("total_expenses") val totalExpenses: Long? = null,
+    @SerialName("total_cash_in") val totalCashIn: Long? = null
 )
 
 @Serializable
 data class PaymentSummaryDto(
     val method: String,
-    val total: Long
+    val total: Long = 0
 )

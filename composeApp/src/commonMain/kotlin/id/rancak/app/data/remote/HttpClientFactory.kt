@@ -38,6 +38,8 @@ fun createHttpClient(tokenManager: TokenManager): HttpClient {
         install(DefaultRequest) {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             header(HttpHeaders.Accept, ContentType.Application.Json)
+            // App-level API key — required on every request by backend
+            header("X-API-Key", ApiConstants.API_KEY)
         }
 
         install(HttpTimeout) {
@@ -71,7 +73,7 @@ fun createHttpClient(tokenManager: TokenManager): HttpClient {
                         }
                         if (response.status.isSuccess()) {
                             val body: ApiResponse<LoginResponse> = response.body()
-                            if (body.status == "ok" && body.data != null) {
+                            if (body.isSuccess && body.data != null) {
                                 tokenManager.saveTokens(
                                     body.data.accessToken,
                                     body.data.refreshToken

@@ -39,7 +39,7 @@ class OrderBoardViewModel(
             _uiState.update { it.copy(isLoading = true) }
             when (val result = saleRepository.getSales()) {
                 is Resource.Success -> {
-                    val active = result.data.filter { it.status == SaleStatus.HELD || it.status == SaleStatus.SERVED }
+                    val active = result.data.filter { it.status == SaleStatus.HELD }
                     val completed = result.data.filter { it.status == SaleStatus.PAID }
                     _uiState.update {
                         it.copy(

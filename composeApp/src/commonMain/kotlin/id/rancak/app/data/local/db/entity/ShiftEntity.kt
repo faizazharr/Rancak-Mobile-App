@@ -11,10 +11,15 @@ data class ShiftEntity(
     val openedAt: String?,
     val closedAt: String?,
     val status: String,
-    val openingCash: Long,
-    val closingCash: Long?,
+    val openingCash: String,
+    val closingCash: String?,
+    val expectedCash: String?,
+    val cashDifference: String?,
+    val cashierName: String?,
     val totalSales: Long?,
+    val totalTransactions: Int?,
     val totalExpenses: Long?,
+    val totalCashIn: Long?,
     val cachedAt: Long = 0L
 )
 
@@ -25,8 +30,13 @@ fun ShiftEntity.toDomain() = Shift(
     status = ShiftStatus.from(status),
     openingCash = openingCash,
     closingCash = closingCash,
+    expectedCash = expectedCash,
+    cashDifference = cashDifference,
+    cashierName = cashierName,
     totalSales = totalSales,
-    totalExpenses = totalExpenses
+    totalTransactions = totalTransactions,
+    totalExpenses = totalExpenses,
+    totalCashIn = totalCashIn
 )
 
 fun Shift.toEntity(cachedAt: Long = 0L) = ShiftEntity(
@@ -36,7 +46,12 @@ fun Shift.toEntity(cachedAt: Long = 0L) = ShiftEntity(
     status = status.value,
     openingCash = openingCash,
     closingCash = closingCash,
+    expectedCash = expectedCash,
+    cashDifference = cashDifference,
+    cashierName = cashierName,
     totalSales = totalSales,
+    totalTransactions = totalTransactions,
     totalExpenses = totalExpenses,
+    totalCashIn = totalCashIn,
     cachedAt = cachedAt
 )

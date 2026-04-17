@@ -23,7 +23,7 @@ class OperationsRepositoryImpl(
     override suspend fun getTables(): Resource<List<Table>> {
         return try {
             val response = api.getTables(tenantUuid)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val tables = response.data.map { it.toDomain() }
                 val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
                 tableDao.upsertAll(tables.map { it.toEntity(now) })
@@ -44,7 +44,7 @@ class OperationsRepositoryImpl(
     override suspend fun getCurrentShift(): Resource<Shift?> {
         return try {
             val response = api.getCurrentShift(tenantUuid)
-            if (response.status == "ok") {
+            if (response.isSuccess) {
                 val shift = response.data?.toDomain()
                 if (shift != null) {
                     val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
@@ -64,10 +64,10 @@ class OperationsRepositoryImpl(
         }
     }
 
-    override suspend fun openShift(openingCash: Long): Resource<Shift> {
+    override suspend fun openShift(openingCash: String): Resource<Shift> {
         return try {
             val response = api.openShift(tenantUuid, openingCash)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val shift = response.data.toDomain()
                 val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
                 shiftDao.upsert(shift.toEntity(now))
@@ -80,10 +80,10 @@ class OperationsRepositoryImpl(
         }
     }
 
-    override suspend fun closeShift(closingCash: Long, note: String?): Resource<Shift> {
+    override suspend fun closeShift(closingCash: String, note: String?): Resource<Shift> {
         return try {
             val response = api.closeShift(tenantUuid, closingCash, note)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val shift = response.data.toDomain()
                 val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
                 shiftDao.upsert(shift.toEntity(now))
@@ -99,7 +99,7 @@ class OperationsRepositoryImpl(
     override suspend fun getKdsOrders(): Resource<List<KdsOrder>> {
         return try {
             val response = api.getKdsOrders(tenantUuid)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.map { it.toDomain() })
             } else {
                 Resource.Error(response.message ?: "Failed to load KDS orders")
@@ -112,7 +112,7 @@ class OperationsRepositoryImpl(
     override suspend fun updateKdsStatus(kdsUuid: String, status: KdsStatus): Resource<Unit> {
         return try {
             val response = api.updateKdsStatus(tenantUuid, kdsUuid, status.value)
-            if (response.status == "ok") {
+            if (response.isSuccess) {
                 Resource.Success(Unit)
             } else {
                 Resource.Error(response.message ?: "Failed to update status")
@@ -122,3 +122,4 @@ class OperationsRepositoryImpl(
         }
     }
 }
+

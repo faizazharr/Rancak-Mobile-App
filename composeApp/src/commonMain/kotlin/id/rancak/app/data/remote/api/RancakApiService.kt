@@ -55,6 +55,17 @@ class RancakApiService(private val client: HttpClient) {
     suspend fun revokeSession(sessionId: String): ApiResponse<Unit> =
         client.delete(ApiConstants.BASE_URL + "${ApiConstants.SESSIONS}/$sessionId").body()
 
+    // ── Tenants ──
+
+    suspend fun getMyTenants(): ApiResponse<List<MyTenantDto>> =
+        client.get(ApiConstants.BASE_URL + "/tenants").body()
+
+    suspend fun getTenantSettings(tenantUuid: String): ApiResponse<TenantSettingsDto> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/settings").body()
+
+    suspend fun getReceiptSettings(tenantUuid: String): ApiResponse<ReceiptSettingsDto> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/receipt-settings").body()
+
     // ── Products ──
 
     suspend fun getProducts(
@@ -135,10 +146,14 @@ class RancakApiService(private val client: HttpClient) {
             setBody(request)
         }.body()
 
-    suspend fun paySale(tenantUuid: String, saleUuid: String, paymentMethod: String, paidAmount: Long): ApiResponse<SaleDto> =
+    suspend fun payHeldOrder(
+        tenantUuid: String,
+        saleUuid: String,
+        request: PayHeldOrderRequest
+    ): ApiResponse<SaleDto> =
         client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/pay") {
             contentType(ContentType.Application.Json)
-            setBody(mapOf("payment_method" to paymentMethod, "paid_amount" to paidAmount))
+            setBody(request)
         }.body()
 
     suspend fun serveSale(tenantUuid: String, saleUuid: String): ApiResponse<SaleDto> =
@@ -156,13 +171,14 @@ class RancakApiService(private val client: HttpClient) {
             setBody(buildMap { reason?.let { put("reason", it) } })
         }.body()
 
-    suspend fun refundSale(tenantUuid: String, saleUuid: String, amount: Long? = null, reason: String? = null): ApiResponse<SaleDto> =
+    suspend fun refundSale(
+        tenantUuid: String,
+        saleUuid: String,
+        request: RefundRequest
+    ): ApiResponse<RefundResponseDto> =
         client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/refund") {
             contentType(ContentType.Application.Json)
-            setBody(buildMap {
-                amount?.let { put("amount", it) }
-                reason?.let { put("reason", it) }
-            })
+            setBody(request)
         }.body()
 
     suspend fun moveTable(tenantUuid: String, saleUuid: String, tableUuid: String): ApiResponse<SaleDto> =
@@ -224,13 +240,13 @@ class RancakApiService(private val client: HttpClient) {
 
     // ── Shifts ──
 
-    suspend fun openShift(tenantUuid: String, openingCash: Long): ApiResponse<ShiftDto> =
+    suspend fun openShift(tenantUuid: String, openingCash: String): ApiResponse<ShiftDto> =
         client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/open") {
             contentType(ContentType.Application.Json)
             setBody(mapOf("opening_cash" to openingCash))
         }.body()
 
-    suspend fun closeShift(tenantUuid: String, closingCash: Long, note: String? = null): ApiResponse<ShiftDto> =
+    suspend fun closeShift(tenantUuid: String, closingCash: String, note: String? = null): ApiResponse<ShiftDto> =
         client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/close") {
             contentType(ContentType.Application.Json)
             setBody(buildMap {
@@ -357,23 +373,32 @@ class RancakApiService(private val client: HttpClient) {
 
     // ── Reports ──
 
-    suspend fun getReportSummary(tenantUuid: String, dateFrom: String, dateTo: String): ApiResponse<ReportSummaryDto> =
-        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/summary") {
-            parameter("date_from", dateFrom)
-            parameter("date_to", dateTo)
+    suspend fun getMySalesToday(tenantUuid: String): ApiResponse<MySalesReportDto> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/my-sales/today").body()
+
+    suspend fun getStockReport(tenantUuid: String): ApiResponse<List<StockReportDto>> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/stock").body()
+
+    suspend fun getLowStock(tenantUuid: String): ApiResponse<List<LowStockDto>> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/low-stock").body()
+
+    suspend fun getStockAlerts(tenantUuid: String): ApiResponse<List<StockAlertDto>> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/stock-alerts").body()
+
+    suspend fun getExpiringBatches(tenantUuid: String, days: Int = 7): ApiResponse<List<ExpiringBatchDto>> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/expiring-batches") {
+            parameter("days", days)
         }.body()
 
-    suspend fun getReportProducts(tenantUuid: String, dateFrom: String, dateTo: String): ApiResponse<List<ProductReportDto>> =
-        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/products") {
-            parameter("date_from", dateFrom)
-            parameter("date_to", dateTo)
+    suspend fun getDailyByCategory(tenantUuid: String, date: String? = null): ApiResponse<List<DailyCategoryReportDto>> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/daily-by-category") {
+            date?.let { parameter("date", it) }
         }.body()
 
-    suspend fun getReportPaymentMethods(tenantUuid: String, dateFrom: String, dateTo: String): ApiResponse<List<PaymentMethodReportDto>> =
-        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/payment-methods") {
-            parameter("date_from", dateFrom)
-            parameter("date_to", dateTo)
-        }.body()
+    // ── Shift Summary by ID ──
+
+    suspend fun getShiftSummaryById(tenantUuid: String, shiftUuid: String): ApiResponse<ShiftSummaryDto> =
+        client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/$shiftUuid/summary").body()
 }
 
 @kotlinx.serialization.Serializable
@@ -383,6 +408,8 @@ data class KdsOrderDto(
     @kotlinx.serialization.SerialName("order_type") val orderType: String? = null,
     @kotlinx.serialization.SerialName("table_name") val tableName: String? = null,
     @kotlinx.serialization.SerialName("queue_number") val queueNumber: Int? = null,
+    @kotlinx.serialization.SerialName("customer_name") val customerName: String? = null,
+    val note: String? = null,
     val status: String,
     val items: List<KdsItemDto> = emptyList(),
     @kotlinx.serialization.SerialName("created_at") val createdAt: String? = null

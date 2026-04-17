@@ -28,15 +28,46 @@ class TokenManager {
     val tenantName: String?
         get() = settings.getStringOrNull(KEY_TENANT_NAME)
 
+    // ── User info ──
+    val userUuid: String?
+        get() = settings.getStringOrNull(KEY_USER_UUID)
+
+    val userName: String?
+        get() = settings.getStringOrNull(KEY_USER_NAME)
+
+    val userEmail: String?
+        get() = settings.getStringOrNull(KEY_USER_EMAIL)
+
+    val userRole: String?
+        get() = settings.getStringOrNull(KEY_USER_ROLE)
+
+    // ── Sync timestamps (for delta sync) ──
+    val lastSyncTime: String?
+        get() = settings.getStringOrNull(KEY_LAST_SYNC_TIME)
+
     fun saveTokens(accessToken: String, refreshToken: String) {
         _accessToken.value = accessToken
         settings[KEY_ACCESS_TOKEN] = accessToken
         settings[KEY_REFRESH_TOKEN] = refreshToken
     }
 
+    fun saveUser(uuid: String, name: String, email: String) {
+        settings[KEY_USER_UUID] = uuid
+        settings[KEY_USER_NAME] = name
+        settings[KEY_USER_EMAIL] = email
+    }
+
     fun setTenant(uuid: String, name: String) {
         settings[KEY_TENANT_UUID] = uuid
         settings[KEY_TENANT_NAME] = name
+    }
+
+    fun setUserRole(role: String) {
+        settings[KEY_USER_ROLE] = role
+    }
+
+    fun saveLastSyncTime(time: String) {
+        settings[KEY_LAST_SYNC_TIME] = time
     }
 
     fun clear() {
@@ -45,6 +76,11 @@ class TokenManager {
         settings.remove(KEY_REFRESH_TOKEN)
         settings.remove(KEY_TENANT_UUID)
         settings.remove(KEY_TENANT_NAME)
+        settings.remove(KEY_USER_UUID)
+        settings.remove(KEY_USER_NAME)
+        settings.remove(KEY_USER_EMAIL)
+        settings.remove(KEY_USER_ROLE)
+        settings.remove(KEY_LAST_SYNC_TIME)
     }
 
     /**
@@ -72,5 +108,10 @@ class TokenManager {
         private const val KEY_TENANT_UUID   = "rancak_tenant_uuid"
         private const val KEY_TENANT_NAME   = "rancak_tenant_name"
         private const val KEY_DEVICE_ID     = "rancak_device_id"
+        private const val KEY_USER_UUID     = "rancak_user_uuid"
+        private const val KEY_USER_NAME     = "rancak_user_name"
+        private const val KEY_USER_EMAIL    = "rancak_user_email"
+        private const val KEY_USER_ROLE     = "rancak_user_role"
+        private const val KEY_LAST_SYNC_TIME = "rancak_last_sync_time"
     }
 }

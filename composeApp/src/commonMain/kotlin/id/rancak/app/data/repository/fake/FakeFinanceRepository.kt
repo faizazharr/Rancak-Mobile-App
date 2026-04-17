@@ -23,6 +23,10 @@ class FakeFinanceRepository : FinanceRepository {
             source      = source,
             description = description,
             note        = note,
+            cashierUuid = null,
+            cashierName = null,
+            shiftUuid   = null,
+            cashInDate  = null,
             createdAt   = "2025-06-14 ${(10..20).random()}:00:00"
         )
         demoCashIns.add(0, cashIn)
@@ -43,13 +47,17 @@ class FakeFinanceRepository : FinanceRepository {
         note: String?
     ): Resource<Expense> {
         val expense = Expense(
-            uuid        = "exp-%03d".format(expenseCounter++),
-            amount      = amount,
-            description = description,
-            note        = note,
+            uuid         = "exp-%03d".format(expenseCounter++),
+            amount       = amount,
+            description  = description,
+            note         = note,
             categoryUuid = null,
-            expenseDate = "2025-06-14",
-            createdAt   = "2025-06-14 ${(10..20).random()}:00:00"
+            categoryName = null,
+            cashierUuid  = null,
+            cashierName  = null,
+            expenseDate  = "2025-06-14",
+            createdAt    = "2025-06-14 ${(10..20).random()}:00:00",
+            updatedAt    = null
         )
         demoExpenses.add(0, expense)
         return Resource.Success(expense)
@@ -60,9 +68,6 @@ class FakeFinanceRepository : FinanceRepository {
         return Resource.Success(Unit)
     }
 
-    override suspend fun getReportSummary(dateFrom: String, dateTo: String): Resource<ReportSummary> =
-        Resource.Success(demoReportSummary)
-
-    override suspend fun getProductReport(dateFrom: String, dateTo: String): Resource<List<ProductReport>> =
-        Resource.Success(demoProductReport)
+    override suspend fun getShiftSummary(): Resource<ShiftSummary> =
+        Resource.Success(demoShiftSummary)
 }

@@ -25,7 +25,7 @@ class ProductRepositoryImpl(
 
         return try {
             val response = api.getProducts(tenantUuid, query, categoryId)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val products = response.data.map { it.toDomain() }
                 // Only cache unfiltered full-list responses
                 if (!isFiltered) {
@@ -63,7 +63,7 @@ class ProductRepositoryImpl(
     override suspend fun getProductByBarcode(barcode: String): Resource<Product> {
         return try {
             val response = api.getProductByBarcode(tenantUuid, barcode)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 // Fallback to local cache
@@ -81,7 +81,7 @@ class ProductRepositoryImpl(
     override suspend fun getCategories(): Resource<List<Category>> {
         return try {
             val response = api.getCategories(tenantUuid)
-            if (response.status == "ok" && response.data != null) {
+            if (response.isSuccess && response.data != null) {
                 val categories = response.data.map { it.toDomain() }
                 categoryDao.deleteAll()
                 categoryDao.upsertAll(categories.map { it.toEntity() })
@@ -98,4 +98,5 @@ class ProductRepositoryImpl(
         }
     }
 }
+
 
