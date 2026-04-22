@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.*
 import id.rancak.app.domain.repository.CartItem
 import id.rancak.app.domain.repository.SaleRepository
+import id.rancak.app.domain.repository.SplitPaymentEntry
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,12 +17,26 @@ import kotlinx.coroutines.launch
 /** Interval polling status QRIS (ms) */
 private const val QRIS_POLL_INTERVAL_MS = 3_000L
 
+/**
+ * Batas atas nominal yang diterima pada input pembayaran (≈ 1 triliun Rupiah).
+ * Mencegah:
+ *  - Integer overflow saat menjumlah pembayaran split atau kembalian.
+ *  - User iseng paste angka jutaan digit yang bisa memperlambat UI.
+ */
+private const val MAX_AMOUNT: Long = 999_999_999_999L
+
 data class PaymentUiState(
     val selectedMethod: PaymentMethod = PaymentMethod.CASH,
     val paidAmount: String = "",
     val isProcessing: Boolean = false,
     val error: String? = null,
     val completedSale: Sale? = null,
+
+    // ── Split-payment ─────────────────────────────────────────────────────────
+    /** True berarti mode pembayaran terbagi aktif. */
+    val isSplitPayment: Boolean = false,
+    /** Daftar entri pembayaran terbagi. */
+    val splitPayments: List<SplitPaymentEntry> = emptyList(),
 
     // ── QRIS-specific ─────────────────────────────────────────────────────────
     /** QR string dari Xendit — non-null berarti tampilkan layar QR. */
@@ -34,6 +49,9 @@ data class PaymentUiState(
     val isQrisPolling: Boolean = false
 ) {
     val paidAmountLong: Long get() = paidAmount.toLongOrNull() ?: 0L
+
+    /** Total semua entri split payment. */
+    val splitPaymentTotal: Long get() = splitPayments.sumOf { it.amount }
 
     /** Apakah sedang dalam layar tunggu QR QRIS. */
     val isQrisWaiting: Boolean get() = qrisQrString != null && completedSale == null
@@ -54,7 +72,12 @@ class PaymentViewModel(
     }
 
     fun setPaidAmount(amount: String) {
-        _uiState.update { it.copy(paidAmount = amount.filter { c -> c.isDigit() }, error = null) }
+        // Hanya simpan digit, lalu clamp ke MAX_AMOUNT untuk cegah overflow.
+        val digitsOnly = amount.filter { c -> c.isDigit() }
+        val clamped = digitsOnly.toLongOrNull()?.let {
+            if (it > MAX_AMOUNT) MAX_AMOUNT.toString() else digitsOnly
+        } ?: digitsOnly
+        _uiState.update { it.copy(paidAmount = clamped, error = null) }
     }
 
     fun processPayment(
@@ -74,6 +97,18 @@ class PaymentViewModel(
         val state = _uiState.value
         if (state.paidAmountLong <= 0 && state.selectedMethod == PaymentMethod.CASH) {
             _uiState.update { it.copy(error = "Masukkan jumlah pembayaran") }
+            return
+        }
+
+        // Validasi diskon tidak boleh melebihi subtotal item.
+        val subtotal = items.sumOf { it.price * it.qty }
+        if (discount < 0 || discount > subtotal) {
+            _uiState.update { it.copy(error = "Diskon tidak valid") }
+            return
+        }
+        // Cegah overflow pada penjumlahan total (defensive — backend juga validasi).
+        if (subtotal > MAX_AMOUNT || state.paidAmountLong > MAX_AMOUNT) {
+            _uiState.update { it.copy(error = "Nominal melebihi batas") }
             return
         }
 
@@ -203,6 +238,137 @@ class PaymentViewModel(
                 error         = null,
                 isProcessing  = false
             )
+        }
+    }
+
+    // ── Split Payment ─────────────────────────────────────────────────────────
+
+    fun toggleSplitPayment() {
+        _uiState.update { state ->
+            state.copy(
+                isSplitPayment = !state.isSplitPayment,
+                splitPayments  = emptyList(),
+                error          = null
+            )
+        }
+    }
+
+    fun addSplitPaymentEntry(method: PaymentMethod, amount: Long) {
+        if (amount <= 0) return
+        _uiState.update { state ->
+            state.copy(splitPayments = state.splitPayments + SplitPaymentEntry(method, amount))
+        }
+    }
+
+    fun removeSplitPaymentEntry(index: Int) {
+        _uiState.update { state ->
+            val updated = state.splitPayments.toMutableList().also { it.removeAt(index) }
+            state.copy(splitPayments = updated)
+        }
+    }
+
+    /**
+     * Proses pembayaran split untuk order baru dari cart.
+     * Validasi: total split harus >= total order.
+     */
+    fun processPaymentWithSplit(
+        items: List<CartItem>,
+        orderTotal: Long,
+        orderType: OrderType,
+        tableUuid: String?,
+        customerName: String?,
+        note: String?,
+        pax: Int = 1,
+        discount: Long = 0,
+        tax: Long = 0,
+        adminFee: Long = 0,
+        deliveryFee: Long = 0,
+        tip: Long = 0,
+        voucherCode: String? = null
+    ) {
+        val state = _uiState.value
+        if (state.splitPayments.isEmpty()) {
+            _uiState.update { it.copy(error = "Tambahkan minimal satu metode pembayaran") }
+            return
+        }
+        if (state.splitPaymentTotal < orderTotal) {
+            _uiState.update { it.copy(error = "Total pembayaran belum mencukupi") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isProcessing = true, error = null) }
+            when (val result = saleRepository.createSaleWithSplitPayment(
+                items       = items,
+                payments    = state.splitPayments,
+                orderType   = orderType,
+                tableUuid   = tableUuid,
+                customerName = customerName?.takeIf { it.isNotBlank() },
+                note        = note?.takeIf { it.isNotBlank() },
+                pax         = pax,
+                discount    = discount,
+                tax         = tax,
+                adminFee    = adminFee,
+                deliveryFee = deliveryFee,
+                tip         = tip,
+                voucherCode = voucherCode?.takeIf { it.isNotBlank() }
+            )) {
+                is Resource.Success ->
+                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                is Resource.Error ->
+                    _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /**
+     * Bayar held order (single method).
+     */
+    fun processHeldOrderPayment(saleUuid: String) {
+        val state = _uiState.value
+        if (state.paidAmountLong <= 0 && state.selectedMethod == PaymentMethod.CASH) {
+            _uiState.update { it.copy(error = "Masukkan jumlah pembayaran") }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isProcessing = true, error = null) }
+            when (val result = saleRepository.paySale(
+                saleUuid      = saleUuid,
+                paymentMethod = state.selectedMethod,
+                paidAmount    = state.paidAmountLong
+            )) {
+                is Resource.Success ->
+                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                is Resource.Error ->
+                    _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /**
+     * Bayar held order dengan split payment.
+     */
+    fun processHeldOrderPaymentWithSplit(saleUuid: String, orderTotal: Long) {
+        val state = _uiState.value
+        if (state.splitPayments.isEmpty()) {
+            _uiState.update { it.copy(error = "Tambahkan minimal satu metode pembayaran") }
+            return
+        }
+        if (state.splitPaymentTotal < orderTotal) {
+            _uiState.update { it.copy(error = "Total pembayaran belum mencukupi") }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isProcessing = true, error = null) }
+            when (val result = saleRepository.paySaleWithSplitPayment(saleUuid, state.splitPayments)) {
+                is Resource.Success ->
+                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                is Resource.Error ->
+                    _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
         }
     }
 

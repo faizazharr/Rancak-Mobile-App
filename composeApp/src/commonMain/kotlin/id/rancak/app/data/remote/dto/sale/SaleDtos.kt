@@ -152,6 +152,19 @@ data class PayHeldOrderRequest(
 )
 
 /** Refund request (per-item). */
+// ── Split Bill ──
+
+@Serializable
+data class SplitBillRequest(
+    @SerialName("item_ids") val itemIds: List<String>
+)
+
+@Serializable
+data class SplitBillResponseDto(
+    val original: SaleDto,
+    @SerialName("new_sale") val newSale: SaleDto
+)
+
 @Serializable
 data class RefundItemRequest(
     @SerialName("sale_item_uuid") val saleItemUuid: String,

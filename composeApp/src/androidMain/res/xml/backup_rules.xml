@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 dan lebih lawas (API ≤30) — legacy full-backup config.
+  Tetap diblokir semua data sensitif (SharedPreferences, DB, file internal).
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" />
+    <exclude domain="database" />
+    <exclude domain="file" />
+    <exclude domain="root" />
+</full-backup-content>

@@ -1,6 +1,7 @@
 package id.rancak.app.data.remote
 
 import android.util.Log
+import id.rancak.app.BuildConfig
 import io.ktor.client.plugins.logging.Logger
 
 actual fun platformHttpLogger(): Logger = object : Logger {
@@ -11,3 +12,5 @@ actual fun platformHttpLogger(): Logger = object : Logger {
         }
     }
 }
+
+actual fun isDebugBuild(): Boolean = BuildConfig.DEBUG

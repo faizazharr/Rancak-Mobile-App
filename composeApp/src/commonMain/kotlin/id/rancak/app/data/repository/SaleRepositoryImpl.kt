@@ -8,6 +8,10 @@ import id.rancak.app.data.local.db.dao.SaleDao
 import id.rancak.app.data.local.db.entity.toEntity
 import id.rancak.app.data.local.db.entity.toDomain
 import id.rancak.app.data.mapper.toDomain
+import id.rancak.app.data.remote.dto.sale.SplitBillRequest
+import id.rancak.app.domain.repository.SplitBillResult
+import id.rancak.app.domain.repository.SplitPaymentEntry
+import id.rancak.app.data.remote.api.splitBill
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.api.*
 import id.rancak.app.data.remote.dto.sale.CreateSaleRequest
@@ -137,6 +141,68 @@ class SaleRepositoryImpl(
         }
     }
 
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun createSaleWithSplitPayment(
+        items: List<CartItem>,
+        payments: List<SplitPaymentEntry>,
+        orderType: OrderType,
+        tableUuid: String?,
+        customerName: String?,
+        note: String?,
+        pax: Int,
+        discount: Long,
+        tax: Long,
+        adminFee: Long,
+        deliveryFee: Long,
+        tip: Long,
+        voucherCode: String?
+    ): Resource<Sale> {
+        val idempotencyKey  = Uuid.random().toString()
+        val deviceCreatedAt = Clock.System.now().toString()
+        val deviceId        = tokenManager.deviceId
+
+        return try {
+            val request = CreateSaleRequest(
+                items = items.map { cartItem ->
+                    SaleItemRequest(
+                        productUuid = cartItem.productUuid,
+                        qty         = cartItem.qty,
+                        variantUuid = cartItem.variantUuid,
+                        note        = cartItem.note
+                    )
+                },
+                payments = payments.map {
+                    id.rancak.app.data.remote.dto.sale.SplitPaymentRequest(
+                        method = it.method.value,
+                        amount = it.amount
+                    )
+                },
+                orderType       = orderType.value,
+                tableUuid       = tableUuid,
+                customerName    = customerName,
+                pax             = pax.takeIf { it > 0 },
+                discount        = discount.takeIf { it > 0 },
+                tax             = tax.takeIf { it > 0 },
+                adminFee        = adminFee.takeIf { it > 0 },
+                deliveryFee     = deliveryFee.takeIf { it > 0 },
+                tip             = tip.takeIf { it > 0 },
+                voucherCode     = voucherCode?.takeIf { it.isNotBlank() },
+                note            = note,
+                hold            = false,
+                deviceCreatedAt = deviceCreatedAt,
+                deviceId        = deviceId
+            )
+            val response = api.createSale(tenantUuid, request, idempotencyKey)
+            if ((response.isSuccess || response.statusCode == 409) && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal membuat penjualan")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
     override suspend fun getSales(dateFrom: String?, dateTo: String?): Resource<List<Sale>> {
         return try {
             val response = api.getSales(tenantUuid, dateFrom, dateTo)
@@ -217,6 +283,49 @@ class SaleRepositoryImpl(
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Gagal membayar pesanan")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun paySaleWithSplitPayment(
+        saleUuid: String,
+        payments: List<SplitPaymentEntry>
+    ): Resource<Sale> {
+        return try {
+            val request = id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(
+                payments = payments.map {
+                    id.rancak.app.data.remote.dto.sale.SplitPaymentRequest(
+                        method = it.method.value,
+                        amount = it.amount
+                    )
+                }
+            )
+            val response = api.payHeldOrder(tenantUuid, saleUuid, request)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal membayar pesanan dengan split payment")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun splitBill(saleUuid: String, itemIds: List<String>): Resource<SplitBillResult> {
+        return try {
+            val request = SplitBillRequest(itemIds = itemIds)
+            val response = api.splitBill(tenantUuid, saleUuid, request)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(
+                    SplitBillResult(
+                        original = response.data.original.toDomain(),
+                        newSale  = response.data.newSale.toDomain()
+                    )
+                )
+            } else {
+                Resource.Error(response.message ?: "Gagal memisahkan tagihan")
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Kesalahan jaringan")

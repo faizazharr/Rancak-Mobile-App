@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import id.rancak.app.domain.repository.AuthRepository
 import id.rancak.app.presentation.ui.auth.LoginScreen
 import id.rancak.app.presentation.ui.splash.SplashScreen
@@ -25,12 +26,14 @@ import id.rancak.app.presentation.ui.cart.CartScreen
 import id.rancak.app.presentation.ui.finance.CashExpenseScreen
 import id.rancak.app.presentation.ui.kds.KdsScreen
 import id.rancak.app.presentation.ui.orderboard.OrderBoardScreen
+import id.rancak.app.presentation.ui.payment.PayHeldOrderScreen
 import id.rancak.app.presentation.ui.payment.PaymentScreen
 import id.rancak.app.presentation.ui.pos.PosScreen
 import id.rancak.app.presentation.ui.reports.ReportScreen
 import id.rancak.app.presentation.ui.sales.SalesHistoryScreen
 import id.rancak.app.presentation.ui.settings.SettingsScreen
 import id.rancak.app.presentation.ui.shift.ShiftScreen
+import id.rancak.app.presentation.ui.splitbill.SplitBillScreen
 import id.rancak.app.presentation.ui.tables.TableMapScreen
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import kotlinx.coroutines.launch
@@ -51,19 +54,24 @@ fun RancakNavHost() {
     val scope = rememberCoroutineScope()
     val authRepository: AuthRepository = koinInject()
 
+    // TODO(role-gating): setelah backend mengembalikan field `role` pada respons
+    // tenant/login, ganti semua UserRole.STAFF di bawah dengan peran yang sesuai
+    // dan uncomment baris filter `visibleDrawerItems`.
     val drawerItems = remember {
         listOf(
-            DrawerItem("Kasir", Icons.Default.PointOfSale, Screen.Pos),
-            DrawerItem("Shift", Icons.Default.AccessTime, Screen.Shift),
-            DrawerItem("Meja", Icons.Default.TableBar, Screen.Tables),
-            DrawerItem("Dapur (KDS)", Icons.Default.Restaurant, Screen.Kds),
-            DrawerItem("Order Board", Icons.Default.Dashboard, Screen.OrderBoard),
+            DrawerItem("Kasir",       Icons.Default.PointOfSale,    Screen.Pos),
+            DrawerItem("Shift",       Icons.Default.AccessTime,     Screen.Shift),
+            DrawerItem("Meja",        Icons.Default.TableBar,       Screen.Tables),
+            DrawerItem("Dapur (KDS)", Icons.Default.Restaurant,     Screen.Kds),
+            DrawerItem("Order Board", Icons.Default.Dashboard,      Screen.OrderBoard),
+            DrawerItem("Riwayat",     Icons.Default.Receipt,        Screen.SalesHistory),
             DrawerItem("Kas & Biaya", Icons.Default.AccountBalance, Screen.CashExpense),
-            DrawerItem("Riwayat", Icons.Default.Receipt, Screen.SalesHistory),
-            DrawerItem("Laporan", Icons.Default.BarChart, Screen.Reports),
-            DrawerItem("Pengaturan", Icons.Default.Settings, Screen.Settings),
+            DrawerItem("Laporan",     Icons.Default.BarChart,       Screen.Reports),
+            DrawerItem("Pengaturan",  Icons.Default.Settings,       Screen.Settings),
         )
     }
+    // Role filtering dinonaktifkan sementara — semua item ditampilkan.
+    val visibleDrawerItems = drawerItems
 
     val showDrawer = remember(navBackStackEntry) {
         val route = navBackStackEntry?.destination?.route
@@ -141,7 +149,7 @@ fun RancakNavHost() {
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     Spacer(Modifier.height(8.dp))
 
-                    drawerItems.forEach { item ->
+                    visibleDrawerItems.forEach { item ->
                         NavigationDrawerItem(
                             icon = { Icon(item.icon, contentDescription = null) },
                             label = { Text(item.label) },
@@ -307,9 +315,37 @@ private fun NavigationContent(
         }
 
         composable<Screen.SalesHistory> {
-            SalesHistoryScreen(onBack = onMenuClick)
+            SalesHistoryScreen(
+                onBack = onMenuClick,
+                onPayHeldOrder = { saleUuid -> navController.navigate(Screen.PayHeldOrder(saleUuid)) },
+                onSplitBill    = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) }
+            )
         }
 
+        composable<Screen.PayHeldOrder> { backStackEntry ->
+            val route: Screen.PayHeldOrder = backStackEntry.toRoute()
+            PayHeldOrderScreen(
+                saleUuid = route.saleUuid,
+                onBack   = { navController.popBackStack() },
+                onPaymentComplete = {
+                    navController.popBackStack(Screen.SalesHistory, inclusive = false)
+                }
+            )
+        }
+
+        composable<Screen.SplitBill> { backStackEntry ->
+            val route: Screen.SplitBill = backStackEntry.toRoute()
+            SplitBillScreen(
+                saleUuid = route.saleUuid,
+                onBack   = { navController.popBackStack() },
+                onSplitComplete = { _, _ ->
+                    navController.popBackStack(Screen.SalesHistory, inclusive = false)
+                }
+            )
+        }
+
+        // TODO(role-gating): wrap dengan RoleGatedScreen(UserRole.OWNER) setelah
+        // backend menyediakan field `role` di respons tenant/login.
         composable<Screen.Reports> {
             ReportScreen(onBack = onMenuClick)
         }

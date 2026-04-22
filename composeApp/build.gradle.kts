@@ -60,6 +60,8 @@ kotlin {
             implementation(libs.androidx.credentials)
             implementation(libs.androidx.credentials.play.services)
             implementation(libs.googleid)
+            // Encrypted storage untuk token auth (TokenManager) dan data sensitif lain
+            implementation(libs.androidx.security.crypto)
         }
         commonMain.dependencies {
             // Compose
@@ -155,6 +157,15 @@ android {
     }
     buildTypes {
         getByName("release") {
+            // Enable R8 full-mode: shrink, obfuscate, optimize.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        getByName("debug") {
             isMinifyEnabled = false
         }
     }

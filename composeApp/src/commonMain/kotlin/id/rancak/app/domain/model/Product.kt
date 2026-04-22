@@ -1,7 +1,9 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 
+@Immutable
 @Serializable
 data class Product(
     val uuid: String,
@@ -19,6 +21,7 @@ data class Product(
     val updatedAt: String?
 )
 
+@Immutable
 @Serializable
 data class Category(
     val uuid: String,

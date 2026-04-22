@@ -46,7 +46,12 @@ import org.koin.compose.koinInject
  * items, totals, and a "Print Ulang" action that opens a [PrintDialog].
  */
 @Composable
-internal fun SaleDetailPanel(sale: Sale, modifier: Modifier = Modifier) {
+internal fun SaleDetailPanel(
+    sale: Sale,
+    onPayHeldOrder: (String) -> Unit = {},
+    onSplitBill: (String) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     val printerManager: PrinterManager = koinInject()
     val settingsStore: SettingsStore   = koinInject()
     var showPrintDialog by remember { mutableStateOf(false) }
@@ -61,6 +66,8 @@ internal fun SaleDetailPanel(sale: Sale, modifier: Modifier = Modifier) {
         outletAddress = outletAddress,
         outletPhone   = outletPhone,
         onRequestPrint = { showPrintDialog = true },
+        onPayHeldOrder = onPayHeldOrder,
+        onSplitBill    = onSplitBill,
         modifier      = modifier
     )
 
@@ -82,6 +89,8 @@ private fun SaleDetailBody(
     outletAddress: String?,
     outletPhone: String?,
     onRequestPrint: () -> Unit,
+    onPayHeldOrder: (String) -> Unit = {},
+    onSplitBill: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val semantic = RancakColors.semantic
@@ -157,8 +166,35 @@ private fun SaleDetailBody(
                 if (canPrint) {
                     ReprintButton(onClick = onRequestPrint)
                 }
+
+                if (sale.status == SaleStatus.HELD) {
+                    HeldOrderActions(
+                        onPay   = { onPayHeldOrder(sale.uuid) },
+                        onSplit = { onSplitBill(sale.uuid) }
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun HeldOrderActions(
+    onPay: () -> Unit,
+    onSplit: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Button(
+            onClick = onPay,
+            modifier = Modifier.weight(1f)
+        ) { Text("Bayar Sekarang") }
+        OutlinedButton(
+            onClick = onSplit,
+            modifier = Modifier.weight(1f)
+        ) { Text("Pisah Tagihan") }
     }
 }
 

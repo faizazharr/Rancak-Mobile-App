@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (API 31) — kontrol eksplisit data yang boleh di-backup.
+  Aturan ini melarang backup SharedPreferences & database (yang menyimpan
+  token auth, cache penjualan, dan device ID) agar tidak tercopy ke
+  cloud/Google Drive backup pengguna.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+    </device-transfer>
+</data-extraction-rules>

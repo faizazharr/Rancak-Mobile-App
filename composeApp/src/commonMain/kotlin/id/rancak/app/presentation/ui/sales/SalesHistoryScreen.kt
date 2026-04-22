@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,7 +43,9 @@ data class SalesHistoryActions(
     val onStatusFilter: (SaleStatus?) -> Unit = {},
     val onCustomRange: (Long, Long) -> Unit = { _, _ -> },
     val onClearFilters: () -> Unit = {},
-    val onSelect: (Sale?) -> Unit = {}
+    val onSelect: (Sale?) -> Unit = {},
+    val onPayHeldOrder: (String) -> Unit = {},
+    val onSplitBill: (String) -> Unit = {}
 )
 
 /**
@@ -57,9 +60,11 @@ data class SalesHistoryActions(
 @Composable
 fun SalesHistoryScreen(
     onBack: () -> Unit,
+    onPayHeldOrder: (String) -> Unit = {},
+    onSplitBill: (String) -> Unit = {},
     viewModel: SalesHistoryViewModel = koinViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.loadSales() }
 
@@ -73,7 +78,9 @@ fun SalesHistoryScreen(
             onStatusFilter  = viewModel::setStatusFilter,
             onCustomRange   = viewModel::setCustomDateRange,
             onClearFilters  = viewModel::clearFilters,
-            onSelect        = viewModel::selectSale
+            onSelect        = viewModel::selectSale,
+            onPayHeldOrder  = onPayHeldOrder,
+            onSplitBill     = onSplitBill
         )
     )
 }
@@ -141,7 +148,12 @@ private fun TabletLayout(
         Box(modifier = Modifier.weight(0.62f).fillMaxHeight()) {
             val selected = uiState.selectedSale
             if (selected != null) {
-                SaleDetailPanel(sale = selected, modifier = Modifier.fillMaxSize())
+                SaleDetailPanel(
+                    sale           = selected,
+                    onPayHeldOrder = actions.onPayHeldOrder,
+                    onSplitBill    = actions.onSplitBill,
+                    modifier       = Modifier.fillMaxSize()
+                )
             } else {
                 SalesSummaryPanel(sales = uiState.sales, modifier = Modifier.fillMaxSize())
             }
@@ -184,7 +196,14 @@ private fun PhoneLayout(
                     }
                 }
             },
-            text = { SaleDetailPanel(sale = sale, modifier = Modifier.fillMaxWidth()) },
+            text = {
+                SaleDetailPanel(
+                    sale           = sale,
+                    onPayHeldOrder = actions.onPayHeldOrder,
+                    onSplitBill    = actions.onSplitBill,
+                    modifier       = Modifier.fillMaxWidth()
+                )
+            },
             confirmButton = {
                 TextButton(onClick = { actions.onSelect(null) }) { Text("Tutup") }
             }

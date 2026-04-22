@@ -31,9 +31,14 @@ fun createHttpClient(tokenManager: TokenManager): HttpClient {
 
         install(Logging) {
             logger = platformHttpLogger()
-            level  = LogLevel.ALL
+            // DEBUG: log semua (memudahkan dev), RELEASE: hanya info minimal
+            // untuk menghindari kebocoran token/PII ke Logcat/console.
+            level  = if (isDebugBuild()) LogLevel.ALL else LogLevel.NONE
             sanitizeHeader { header ->
-                header == HttpHeaders.Authorization || header == "X-API-Key"
+                header == HttpHeaders.Authorization ||
+                    header == "X-API-Key" ||
+                    header == HttpHeaders.Cookie ||
+                    header == HttpHeaders.SetCookie
             }
         }
 

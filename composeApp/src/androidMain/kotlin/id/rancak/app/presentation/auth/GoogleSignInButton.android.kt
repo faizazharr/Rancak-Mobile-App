@@ -15,9 +15,15 @@ import androidx.credentials.exceptions.GetCredentialUnsupportedException
 import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import id.rancak.app.BuildConfig
 import kotlinx.coroutines.launch
 
 private const val TAG = "GoogleSignIn"
+
+/** Log debug-only — tidak akan muncul di release build. */
+private inline fun dlog(message: () -> String) {
+    if (BuildConfig.DEBUG) Log.d(TAG, message())
+}
 
 /**
  * Web Client ID (tipe "Web application") dari Google Cloud Console.
@@ -44,11 +50,8 @@ actual fun GoogleSignInButton(
         onClick = {
             scope.launch {
                 isLoading = true
-                Log.d(TAG, "Tombol Google Sign-In ditekan")
+                dlog { "Tombol Google Sign-In ditekan" }
                 try {
-                    Log.d(TAG, "Context type: ${context::class.simpleName}")
-                    Log.d(TAG, "Membuat GetSignInWithGoogleOption dengan Web Client ID: $GOOGLE_WEB_CLIENT_ID")
-
                     val signInOption = GetSignInWithGoogleOption
                         .Builder(GOOGLE_WEB_CLIENT_ID)
                         .build()
@@ -57,64 +60,40 @@ actual fun GoogleSignInButton(
                         .addCredentialOption(signInOption)
                         .build()
 
-                    Log.d(TAG, "Memanggil credentialManager.getCredential(...)")
                     val result = credentialManager.getCredential(context, request)
                     val credential = result.credential
-
-                    Log.d(TAG, "Credential diterima: type=${credential.type}")
 
                     if (credential is CustomCredential &&
                         credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
                     ) {
                         val googleToken = GoogleIdTokenCredential.createFrom(credential.data)
-                        Log.d(TAG, "ID Token berhasil didapat (length=${googleToken.idToken.length})")
-                        Log.d(TAG, "Account ID (email): ${googleToken.id}")
-                        Log.d(TAG, "Display name: ${googleToken.displayName}")
-
-                        // Decode JWT payload untuk verifikasi claims
-                        try {
-                            val parts = googleToken.idToken.split(".")
-                            if (parts.size == 3) {
-                                val payloadBytes = android.util.Base64.decode(
-                                    parts[1], android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING
-                                )
-                                val payload = String(payloadBytes)
-                                // Log hanya claim penting (bukan full token untuk keamanan)
-                                val emailMatch = Regex("\"email\":\"([^\"]+)\"").find(payload)
-                                val audMatch = Regex("\"aud\":\"([^\"]+)\"").find(payload)
-                                val expMatch = Regex("\"exp\":(\\d+)").find(payload)
-                                Log.d(TAG, "JWT claims — email=${emailMatch?.groupValues?.get(1)}, aud=${audMatch?.groupValues?.get(1)}, exp=${expMatch?.groupValues?.get(1)}")
-                            }
-                        } catch (e: Exception) {
-                            Log.w(TAG, "Gagal decode JWT payload: ${e.message}")
-                        }
-
+                        dlog { "ID Token diterima (length=${googleToken.idToken.length})" }
                         onIdToken(googleToken.idToken)
                     } else {
-                        Log.w(TAG, "Credential type tidak dikenali: ${credential.type}")
+                        Log.w(TAG, "Credential type tidak dikenali")
                         onError("Tipe credential tidak dikenali")
                     }
                 } catch (e: GetCredentialCancellationException) {
-                    Log.d(TAG, "User membatalkan Google Sign-In")
+                    dlog { "User membatalkan Google Sign-In" }
                     // Dibatalkan user — tidak perlu tampilkan error
                 } catch (e: NoCredentialException) {
-                    Log.e(TAG, "NoCredentialException: ${e.message}", e)
+                    Log.w(TAG, "NoCredentialException")
                     onError("Tidak ada akun Google yang tersedia. Tambahkan akun Google di Pengaturan perangkat.")
                 } catch (e: GetCredentialUnsupportedException) {
-                    Log.e(TAG, "GetCredentialUnsupportedException: ${e.message}", e)
+                    Log.w(TAG, "GetCredentialUnsupportedException")
                     onError("Google Sign-In tidak didukung di perangkat ini. Pastikan Google Play Services ter-install.")
                 } catch (e: GetCredentialProviderConfigurationException) {
-                    Log.e(TAG, "GetCredentialProviderConfigurationException: ${e.message}", e)
+                    Log.w(TAG, "GetCredentialProviderConfigurationException")
                     onError("Konfigurasi Google Sign-In belum lengkap. Hubungi tim pengembang.")
                 } catch (e: GetCredentialInterruptedException) {
-                    Log.e(TAG, "GetCredentialInterruptedException: ${e.message}", e)
+                    Log.w(TAG, "GetCredentialInterruptedException")
                     onError("Google Sign-In dibatalkan. Silakan coba lagi.")
                 } catch (e: GetCredentialException) {
-                    Log.e(TAG, "GetCredentialException [${e::class.simpleName}]: type=${e.type} msg=${e.message}", e)
+                    Log.w(TAG, "GetCredentialException type=${e.type}")
                     onError("Google Sign-In gagal. Pastikan koneksi internet tersambung dan coba lagi.")
                 } catch (e: Exception) {
-                    Log.e(TAG, "Exception tidak terduga [${e::class.simpleName}]: ${e.message}", e)
-                    onError("Terjadi kesalahan: ${e.message}")
+                    Log.e(TAG, "Exception tidak terduga [${e::class.simpleName}]")
+                    onError("Terjadi kesalahan saat login. Silakan coba lagi.")
                 } finally {
                     isLoading = false
                 }

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -31,8 +32,8 @@ fun CartScreen(
     cartViewModel: CartViewModel,
     shiftViewModel: ShiftViewModel = koinViewModel()
 ) {
-    val uiState    by cartViewModel.uiState.collectAsState()
-    val shiftState by shiftViewModel.uiState.collectAsState()
+    val uiState    by cartViewModel.uiState.collectAsStateWithLifecycle()
+    val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
     val hasOpenShift = shiftState.currentShift != null
 
     LaunchedEffect(Unit) { shiftViewModel.loadCurrentShift() }

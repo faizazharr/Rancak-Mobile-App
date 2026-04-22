@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,7 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import id.rancak.app.data.security.DeviceIntegrity
 import id.rancak.app.presentation.components.ErrorBanner
+import id.rancak.app.presentation.components.DeviceIntegrityWarningDialog
 import id.rancak.app.presentation.ui.auth.components.PhoneLoginLayout
 import id.rancak.app.presentation.ui.auth.components.TabletLoginLayout
 import id.rancak.app.presentation.viewmodel.LoginViewModel
@@ -32,9 +34,19 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     viewModel: LoginViewModel = koinViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var passwordVisible by remember { mutableStateOf(false) }
     var showEmailForm   by remember { mutableStateOf(false) }
+
+    // ── Device integrity check (soft-warn only) ───────────────────────────
+    // Deteksi rooted/jailbroken device sekali per layar login. Hasil di-
+    // cache di remember agar tidak re-run setiap recomposition. User tetap
+    // boleh login — ini hanya peringatan, bukan blokir.
+    val isCompromised = remember { DeviceIntegrity.isCompromised() }
+    var showIntegrityWarning by remember { mutableStateOf(isCompromised) }
+    if (showIntegrityWarning) {
+        DeviceIntegrityWarningDialog(onDismiss = { showIntegrityWarning = false })
+    }
 
     LaunchedEffect(uiState.isLoggedIn) {
         if (uiState.isLoggedIn) onLoginSuccess()

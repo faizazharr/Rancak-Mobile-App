@@ -1,6 +1,7 @@
 package id.rancak.app
 
 import android.app.Application
+import id.rancak.app.data.local.SecureContextHolder
 import id.rancak.app.di.appModules
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -21,6 +22,10 @@ class RancakApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Wajib: pasang appContext SEBELUM Koin load modul — createSecureSettings()
+        // butuh context untuk membuat EncryptedSharedPreferences.
+        SecureContextHolder.appContext = applicationContext
 
         startKoin {
             androidLogger(Level.ERROR)

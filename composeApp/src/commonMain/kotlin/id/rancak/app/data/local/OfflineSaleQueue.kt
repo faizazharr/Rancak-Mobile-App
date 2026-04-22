@@ -16,6 +16,10 @@ import kotlinx.serialization.json.Json
  */
 class OfflineSaleQueue(private val settings: Settings) {
 
+    init {
+        migrateFromLegacy()
+    }
+
     private val json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
@@ -56,7 +60,29 @@ class OfflineSaleQueue(private val settings: Settings) {
         settings[KEY_QUEUE] = json.encodeToString(sales)
     }
 
+    /**
+     * Pindahkan antrian offline dari storage plain (versi lama app) ke
+     * storage terenkripsi. Hanya sekali — setelah selesai, flag
+     * [KEY_MIGRATION_DONE] di-set.
+     */
+    private fun migrateFromLegacy() {
+        if (settings.getBoolean(KEY_MIGRATION_DONE, false)) return
+        try {
+            val legacy = Settings()
+            legacy.getStringOrNull(KEY_QUEUE)?.let { raw ->
+                if (settings.getStringOrNull(KEY_QUEUE) == null) {
+                    settings[KEY_QUEUE] = raw
+                }
+                legacy.remove(KEY_QUEUE)
+            }
+        } catch (_: Throwable) {
+            // Best-effort, jangan gagalkan init.
+        }
+        settings[KEY_MIGRATION_DONE] = true
+    }
+
     companion object {
         private const val KEY_QUEUE = "rancak_offline_sale_queue"
+        private const val KEY_MIGRATION_DONE = "rancak_offline_queue_migration_done"
     }
 }

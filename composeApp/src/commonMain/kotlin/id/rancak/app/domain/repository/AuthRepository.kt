@@ -19,4 +19,6 @@ interface AuthRepository {
     fun getCurrentTenantName(): String?
     fun setTenant(uuid: String, name: String)
     fun setUserRole(role: String)
+    /** Peran user saat ini. STAFF sebagai fallback aman bila belum ter-set. */
+    fun getUserRole(): UserRole
 }

@@ -23,9 +23,33 @@ interface SaleRepository {
         voucherCode: String? = null
     ): Resource<Sale>
 
+    /** Split payment: kirim beberapa metode bayar sekaligus. */
+    suspend fun createSaleWithSplitPayment(
+        items: List<CartItem>,
+        payments: List<SplitPaymentEntry>,
+        orderType: OrderType,
+        tableUuid: String?,
+        customerName: String?,
+        note: String?,
+        pax: Int = 1,
+        discount: Long = 0,
+        tax: Long = 0,
+        adminFee: Long = 0,
+        deliveryFee: Long = 0,
+        tip: Long = 0,
+        voucherCode: String? = null
+    ): Resource<Sale>
+
     suspend fun getSales(dateFrom: String? = null, dateTo: String? = null): Resource<List<Sale>>
     suspend fun getSaleDetail(saleUuid: String): Resource<Sale>
     suspend fun paySale(saleUuid: String, paymentMethod: PaymentMethod, paidAmount: Long): Resource<Sale>
+
+    /** Bayar held order dengan split payment. */
+    suspend fun paySaleWithSplitPayment(saleUuid: String, payments: List<SplitPaymentEntry>): Resource<Sale>
+
+    /** Pisahkan item dari held order ke transaksi baru (split bill). */
+    suspend fun splitBill(saleUuid: String, itemIds: List<String>): Resource<SplitBillResult>
+
     suspend fun serveSale(saleUuid: String): Resource<Sale>
     suspend fun voidSale(saleUuid: String, reason: String? = null): Resource<Sale>
     suspend fun cancelSale(saleUuid: String, reason: String? = null): Resource<Sale>
@@ -58,3 +82,16 @@ data class CartItem(
 ) {
     val subtotal: Long get() = price * qty
 }
+
+/** Satu metode bayar dalam split payment. */
+data class SplitPaymentEntry(
+    val method: PaymentMethod,
+    val amount: Long,
+    val note: String? = null
+)
+
+/** Hasil split bill — transaksi asal + transaksi baru. */
+data class SplitBillResult(
+    val original: Sale,
+    val newSale: Sale
+)

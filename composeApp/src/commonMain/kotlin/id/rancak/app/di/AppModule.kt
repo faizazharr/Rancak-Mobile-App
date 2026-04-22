@@ -4,6 +4,7 @@ import com.russhwolf.settings.Settings
 import id.rancak.app.data.local.OfflineSaleQueue
 import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.local.TokenManager
+import id.rancak.app.data.local.createSecureSettings
 import id.rancak.app.data.local.db.AppDatabase
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.createHttpClient
@@ -27,11 +28,22 @@ val databaseModule = module {
 }
 
 val dataModule = module {
-    single { TokenManager() }
+    // Secure settings (encrypted storage) — dipakai TokenManager untuk
+    // menyimpan token auth + user info. Android: EncryptedSharedPreferences,
+    // iOS: Keychain. Dua namespace terpisah supaya auth data & offline queue
+    // tidak bercampur di storage yang sama.
+    single<Settings>(qualifier = org.koin.core.qualifier.named("secure-auth")) {
+        createSecureSettings(namespace = "auth")
+    }
+    single<Settings>(qualifier = org.koin.core.qualifier.named("secure-queue")) {
+        createSecureSettings(namespace = "offline_queue")
+    }
+    single { TokenManager(get(qualifier = org.koin.core.qualifier.named("secure-auth"))) }
     single { createHttpClient(get()) }
     single { RancakApiService(get()) }
-    // Offline queue — persisted via multiplatform-settings
-    single { OfflineSaleQueue(Settings()) }
+    // Offline queue — disimpan di encrypted storage (berisi data transaksi
+    // yang belum ter-sync; sensitif karena memuat item, harga, customer).
+    single { OfflineSaleQueue(get(qualifier = org.koin.core.qualifier.named("secure-queue"))) }
     // Expose SyncManager as SyncScheduler so SaleRepositoryImpl stays platform-agnostic
     single<SyncScheduler> { get<id.rancak.app.data.sync.SyncManager>() }
 }
@@ -56,6 +68,7 @@ val viewModelModule = module {
     viewModelOf(::TableViewModel)
     viewModelOf(::KdsViewModel)
     viewModelOf(::SalesHistoryViewModel)
+    viewModelOf(::SplitBillViewModel)
     viewModelOf(::OrderBoardViewModel)
     viewModelOf(::ReportViewModel)
     viewModelOf(::CashExpenseViewModel)

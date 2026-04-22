@@ -1,5 +1,8 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class Sale(
     val uuid: String,
     val invoiceNo: String?,
@@ -29,6 +32,7 @@ data class Sale(
     val servedAt: String? = null
 )
 
+@Immutable
 data class SaleItem(
     val uuid: String,
     val productUuid: String?,
@@ -42,6 +46,7 @@ data class SaleItem(
     val addons: List<SaleItemAddon> = emptyList()
 )
 
+@Immutable
 data class SaleItemAddon(
     val name: String,
     val price: Long,
@@ -49,6 +54,7 @@ data class SaleItemAddon(
     val subtotal: Long
 )
 
+@Immutable
 data class SalePayment(
     val uuid: String?,
     val method: String,
@@ -56,6 +62,7 @@ data class SalePayment(
     val note: String?
 )
 
+@Immutable
 data class Delivery(
     val uuid: String?,
     val courierName: String?,

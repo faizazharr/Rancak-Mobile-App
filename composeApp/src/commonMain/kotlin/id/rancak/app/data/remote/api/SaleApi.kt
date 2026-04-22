@@ -10,6 +10,8 @@ import id.rancak.app.data.remote.dto.sale.QrPaymentDto
 import id.rancak.app.data.remote.dto.sale.RefundRequest
 import id.rancak.app.data.remote.dto.sale.RefundResponseDto
 import id.rancak.app.data.remote.dto.sale.SaleDto
+import id.rancak.app.data.remote.dto.sale.SplitBillRequest
+import id.rancak.app.data.remote.dto.sale.SplitBillResponseDto
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
@@ -102,9 +104,20 @@ suspend fun RancakApiService.moveTable(tenantUuid: String, saleUuid: String, tab
         setBody(mapOf("table_uuid" to tableUuid))
     }.body()
 
-// ── QR payments ──
+// ── Split Bill ──
 
-/** Create (or retrieve existing) Xendit QRIS QR for a pending sale. */
+/** Pisahkan beberapa item dari held order ke transaksi baru (POST /sales/:id/split). */
+suspend fun RancakApiService.splitBill(
+    tenantUuid: String,
+    saleUuid: String,
+    request: SplitBillRequest
+): ApiResponse<SplitBillResponseDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/split") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+// ── QR payments ──
 suspend fun RancakApiService.createQrPayment(tenantUuid: String, saleUuid: String): ApiResponse<QrPaymentDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.qrPayment(saleUuid)) {
         contentType(ContentType.Application.Json)

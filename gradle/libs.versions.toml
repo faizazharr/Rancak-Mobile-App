@@ -33,6 +33,7 @@ guava = "33.4.0-android"
 ksp = "2.3.6"
 room = "2.7.1"
 sqlite = "2.5.1"
+androidxSecurity = "1.1.0-alpha07"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -113,6 +114,9 @@ qrose = { module = "io.github.alexzhirkevich:qrose", version.ref = "qrose" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
 androidx-credentials-play-services = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
 googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
+
+# AndroidX Security — EncryptedSharedPreferences untuk TokenManager terenkripsi.
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidxSecurity" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

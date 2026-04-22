@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -53,9 +54,9 @@ fun PosScreen(
     shiftViewModel: ShiftViewModel = koinViewModel(),
     cartViewModel: CartViewModel
 ) {
-    val uiState    by posViewModel.uiState.collectAsState()
-    val cartState  by cartViewModel.uiState.collectAsState()
-    val shiftState by shiftViewModel.uiState.collectAsState()
+    val uiState    by posViewModel.uiState.collectAsStateWithLifecycle()
+    val cartState  by cartViewModel.uiState.collectAsStateWithLifecycle()
+    val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
     val authRepo: AuthRepository = koinInject()
     val outletName = remember { authRepo.getCurrentTenantName() ?: "" }
     var showScanner by remember { mutableStateOf(false) }

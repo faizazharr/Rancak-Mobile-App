@@ -8,11 +8,23 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Manages authentication tokens with persistent storage via multiplatform-settings.
- * On Android: backed by SharedPreferences.
- * On iOS: backed by NSUserDefaults.
- * Tokens survive app restarts — no re-login required after closing the app.
+ *
+ * Storage:
+ *  - Android → EncryptedSharedPreferences (AES-256 GCM, MasterKey via Android Keystore).
+ *  - iOS     → KeychainSettings (Keychain Services).
+ *
+ * Token & user info selamat dari app restart tanpa re-login. Data terenkripsi
+ * at-rest; hanya dapat dibaca oleh app ini di device yang sama.
+ *
+ * **Migrasi:** Saat pertama kali dijalankan setelah upgrade dari versi yang
+ * menyimpan token plain, [migrateFromLegacy] memindahkan nilai lama dari
+ * `Settings()` default ke secure storage kemudian menghapus yang plain.
  */
-class TokenManager(private val settings: Settings = Settings()) {
+class TokenManager(private val settings: Settings) {
+
+    init {
+        migrateFromLegacy()
+    }
 
     private val _accessToken = MutableStateFlow<String?>(settings.getStringOrNull(KEY_ACCESS_TOKEN))
     val accessToken: StateFlow<String?> = _accessToken.asStateFlow()
@@ -100,6 +112,38 @@ class TokenManager(private val settings: Settings = Settings()) {
     val isLoggedIn: Boolean
         get() = _accessToken.value != null
 
+    /**
+     * Pindahkan token + user info dari storage plain (versi lama app) ke
+     * storage terenkripsi. Hanya berjalan sekali — setelah sukses, flag
+     * [KEY_MIGRATION_DONE] di-set agar tidak dipanggil lagi.
+     *
+     * Semua akses ke `Settings()` plain dibungkus try/catch supaya error
+     * pada platform tertentu (iOS tanpa NSUserDefaults lama, dll.) tidak
+     * memblokir app.
+     */
+    private fun migrateFromLegacy() {
+        if (settings.getBoolean(KEY_MIGRATION_DONE, false)) return
+        try {
+            val legacy = Settings()
+            val keysToMigrate = listOf(
+                KEY_ACCESS_TOKEN, KEY_REFRESH_TOKEN, KEY_TENANT_UUID, KEY_TENANT_NAME,
+                KEY_USER_UUID, KEY_USER_NAME, KEY_USER_EMAIL, KEY_USER_ROLE,
+                KEY_DEVICE_ID, KEY_LAST_SYNC_TIME
+            )
+            keysToMigrate.forEach { key ->
+                legacy.getStringOrNull(key)?.let { value ->
+                    if (settings.getStringOrNull(key) == null) {
+                        settings[key] = value
+                    }
+                    legacy.remove(key)
+                }
+            }
+        } catch (_: Throwable) {
+            // Migration bersifat best-effort — jangan gagalkan init.
+        }
+        settings[KEY_MIGRATION_DONE] = true
+    }
+
     companion object {
         private const val KEY_ACCESS_TOKEN  = "rancak_access_token"
         private const val KEY_REFRESH_TOKEN = "rancak_refresh_token"
@@ -111,5 +155,6 @@ class TokenManager(private val settings: Settings = Settings()) {
         private const val KEY_USER_EMAIL    = "rancak_user_email"
         private const val KEY_USER_ROLE     = "rancak_user_role"
         private const val KEY_LAST_SYNC_TIME = "rancak_last_sync_time"
+        private const val KEY_MIGRATION_DONE = "rancak_secure_migration_done"
     }
 }
