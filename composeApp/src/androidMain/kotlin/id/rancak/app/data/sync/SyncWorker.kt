@@ -6,6 +6,7 @@ import androidx.work.WorkerParameters
 import id.rancak.app.data.local.OfflineSaleQueue
 import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.remote.api.RancakApiService
+import id.rancak.app.data.remote.api.batchSales
 import id.rancak.app.data.local.toBatchItem
 import id.rancak.app.data.remote.dto.sale.BatchSalesRequest
 import org.koin.core.component.KoinComponent
