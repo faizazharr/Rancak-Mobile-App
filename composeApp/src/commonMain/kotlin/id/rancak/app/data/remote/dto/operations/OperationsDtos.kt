@@ -186,9 +186,9 @@ data class DailyCategoryReportDto(
 
 @Serializable
 data class PaymentMethodReportDto(
-    val method: String,
-    val total: Long = 0,
-    val count: Int = 0
+    @SerialName("payment_method") val method: String,
+    @SerialName("transaction_count") val count: Int = 0,
+    val total: Long = 0
 )
 
 // ── Shift Summary ──
@@ -206,10 +206,21 @@ data class ShiftSummaryDto(
     @SerialName("cashier_name") val cashierName: String? = null,
     @SerialName("total_sales") val totalSales: Long = 0,
     @SerialName("total_transactions") val totalTransactions: Int = 0,
+    @SerialName("void_transactions") val voidTransactions: Int = 0,
+    @SerialName("gross_total") val grossTotal: Long = 0,
+    @SerialName("total_discount") val totalDiscount: Long = 0,
+    @SerialName("total_tax") val totalTax: Long = 0,
+    @SerialName("net_total") val netTotal: Long = 0,
     @SerialName("total_expenses") val totalExpenses: Long = 0,
     @SerialName("total_cash_in") val totalCashIn: Long = 0,
+    @SerialName("payment_breakdown") val paymentBreakdown: List<PaymentMethodReportDto> = emptyList(),
+    // Backward compat alias — older endpoints may still return `payment_summary`.
     @SerialName("payment_summary") val paymentSummary: List<PaymentMethodReportDto> = emptyList()
-)
+) {
+    /** Unified accessor: prefer `payment_breakdown` (new schema) else fallback. */
+    val payments: List<PaymentMethodReportDto>
+        get() = if (paymentBreakdown.isNotEmpty()) paymentBreakdown else paymentSummary
+}
 
 // ── Receipt ──
 

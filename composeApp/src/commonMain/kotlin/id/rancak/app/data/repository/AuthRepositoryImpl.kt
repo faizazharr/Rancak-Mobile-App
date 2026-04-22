@@ -95,6 +95,8 @@ class AuthRepositoryImpl(
 
     override fun setTenant(uuid: String, name: String) = tokenManager.setTenant(uuid, name)
 
+    override fun setUserRole(role: String) = tokenManager.setUserRole(role)
+
     override suspend fun getMyTenants(): Resource<List<Tenant>> {
         return try {
             val response = api.getMyTenants()

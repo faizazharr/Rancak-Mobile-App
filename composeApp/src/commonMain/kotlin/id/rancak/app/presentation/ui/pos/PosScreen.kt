@@ -45,6 +45,7 @@ import id.rancak.app.presentation.viewmodel.CartUiState
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.PosUiState
 import id.rancak.app.presentation.viewmodel.PosViewModel
+import id.rancak.app.presentation.viewmodel.ShiftViewModel
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.delay
 import kotlin.time.Clock
@@ -76,17 +77,22 @@ fun PosScreen(
     onMenuClick: () -> Unit,
     onSaveClick: () -> Unit = {},
     posViewModel: PosViewModel = koinViewModel(),
+    shiftViewModel: ShiftViewModel = koinViewModel(),
     cartViewModel: CartViewModel
 ) {
-    val uiState   by posViewModel.uiState.collectAsState()
-    val cartState by cartViewModel.uiState.collectAsState()
+    val uiState    by posViewModel.uiState.collectAsState()
+    val cartState  by cartViewModel.uiState.collectAsState()
+    val shiftState by shiftViewModel.uiState.collectAsState()
     val authRepo: AuthRepository = koinInject()
     val outletName = remember { authRepo.getCurrentTenantName() ?: "" }
     var showScanner by remember { mutableStateOf(false) }
 
+    val hasOpenShift = shiftState.currentShift != null
+
     LaunchedEffect(Unit) {
         posViewModel.loadProducts()
         posViewModel.loadCategories()
+        shiftViewModel.loadCurrentShift()
     }
 
     if (showScanner) {
@@ -117,6 +123,7 @@ fun PosScreen(
                 onCartClick      = onCartClick,
                 onCheckoutClick  = onCheckoutClick,
                 onSaveClick      = onSaveClick,
+                hasOpenShift     = hasOpenShift,
                 onSearchChange   = posViewModel::onSearchQueryChange,
                 onCategorySelect = posViewModel::onCategorySelected,
                 onRefresh        = posViewModel::refresh,
@@ -145,6 +152,7 @@ fun PosScreen(
                 cartState        = cartState,
                 cartQtyMap       = cartQtyMap,
                 outletName       = outletName,
+                hasOpenShift     = hasOpenShift,
                 onMenuClick      = onMenuClick,
                 onCartClick      = onCartClick,
                 onSearchChange   = posViewModel::onSearchQueryChange,
@@ -167,6 +175,7 @@ private fun PhoneLayout(
     cartState: CartUiState,
     cartQtyMap: Map<String, Int>,
     outletName: String,
+    hasOpenShift: Boolean,
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
     onSearchChange: (String) -> Unit,
@@ -181,12 +190,13 @@ private fun PhoneLayout(
     Scaffold(
         topBar = {
             PosTopBar(
-                outletName = outletName,
-                hasCart    = hasCart,
-                itemCount  = cartState.itemCount,
-                onMenuClick = onMenuClick,
-                onCartClick = onCartClick,
-                showCart    = true
+                outletName   = outletName,
+                hasCart      = hasCart,
+                itemCount    = cartState.itemCount,
+                hasOpenShift = hasOpenShift,
+                onMenuClick  = onMenuClick,
+                onCartClick  = onCartClick,
+                showCart     = true
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -238,6 +248,7 @@ private fun SplitLayout(
     cartState: CartUiState,
     cartQtyMap: Map<String, Int>,
     outletName: String,
+    hasOpenShift: Boolean,
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
     onCheckoutClick: () -> Unit,
@@ -270,12 +281,13 @@ private fun SplitLayout(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             PosTopBar(
-                outletName  = outletName,
-                hasCart     = false,
-                itemCount   = 0,
-                onMenuClick = onMenuClick,
-                onCartClick = {},
-                showCart    = false
+                outletName   = outletName,
+                hasCart      = false,
+                itemCount    = 0,
+                hasOpenShift = hasOpenShift,
+                onMenuClick  = onMenuClick,
+                onCartClick  = {},
+                showCart     = false
             )
             PosSearchBar(
                 query         = uiState.searchQuery,
@@ -314,7 +326,7 @@ private fun SplitLayout(
             onTip           = onTip,
             onVoucherCode   = onVoucherCode,
             onSaveClick     = onSaveClick,
-            onCheckoutClick = onCheckoutClick,
+            onCheckoutClick = { if (hasOpenShift) onCheckoutClick() },
             modifier        = Modifier
                 .fillMaxHeight()
                 .weight(0.42f)
@@ -332,6 +344,7 @@ private fun PosTopBar(
     outletName: String,
     hasCart: Boolean,
     itemCount: Int,
+    hasOpenShift: Boolean,
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
     showCart: Boolean = true
@@ -391,7 +404,7 @@ private fun PosTopBar(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color.White.copy(0.16f))
+                    .background(Color.White.copy(if (hasOpenShift) 0.16f else 0.28f))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Row(
@@ -402,10 +415,10 @@ private fun PosTopBar(
                         Modifier
                             .size(7.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF4ADE80))
+                            .background(if (hasOpenShift) Color(0xFF4ADE80) else Color(0xFFFF4444))
                     )
                     Text(
-                        "Shift Buka",
+                        if (hasOpenShift) "Shift Buka" else "Shift Tutup",
                         style      = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
                         color      = Color.White

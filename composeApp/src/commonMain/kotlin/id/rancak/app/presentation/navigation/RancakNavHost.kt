@@ -181,9 +181,12 @@ fun RancakNavHost() {
                         label = { Text("Keluar") },
                         selected = false,
                         onClick = {
-                            scope.launch { drawerState.close() }
-                            navController.navigate(Screen.Login) {
-                                popUpTo(0) { inclusive = true }
+                            scope.launch {
+                                drawerState.close()
+                                authRepository.logout()
+                                navController.navigate(Screen.Login) {
+                                    popUpTo(0) { inclusive = true }
+                                }
                             }
                         },
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
@@ -207,6 +210,7 @@ private fun NavigationContent(
     // and PaymentScreen all share the SAME instance — items added in PosScreen
     // are visible in CartScreen and PaymentScreen.
     val cartViewModel: CartViewModel = koinViewModel()
+    val authRepository: AuthRepository = koinInject()
 
     NavHost(
         navController = navController,
@@ -215,7 +219,15 @@ private fun NavigationContent(
         composable<Screen.Splash> {
             SplashScreen(
                 onFinished = {
-                    navController.navigate(Screen.Login) {
+                    val destination = when {
+                        authRepository.isLoggedIn() && authRepository.getCurrentTenantUuid() != null ->
+                            Screen.Pos
+                        authRepository.isLoggedIn() ->
+                            Screen.TenantPicker
+                        else ->
+                            Screen.Login
+                    }
+                    navController.navigate(destination) {
                         popUpTo(Screen.Splash) { inclusive = true }
                     }
                 }

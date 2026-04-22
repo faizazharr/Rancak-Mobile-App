@@ -8,19 +8,13 @@ import id.rancak.app.data.local.db.AppDatabase
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.createHttpClient
 import id.rancak.app.data.repository.*
-import id.rancak.app.data.repository.fake.*
 import id.rancak.app.domain.repository.*
+import id.rancak.app.data.sync.SyncScheduler
 import id.rancak.app.presentation.viewmodel.*
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Set DEMO_MODE = true  → pakai data dummy (tidak butuh server)
-// Set DEMO_MODE = false → pakai API backend sungguhan
-// ─────────────────────────────────────────────────────────────────────────────
-const val DEMO_MODE = true
 
 // DAOs exposed from the platform-provided AppDatabase singleton
 val databaseModule = module {
@@ -38,18 +32,11 @@ val dataModule = module {
     single { RancakApiService(get()) }
     // Offline queue — persisted via multiplatform-settings
     single { OfflineSaleQueue(Settings()) }
+    // Expose SyncManager as SyncScheduler so SaleRepositoryImpl stays platform-agnostic
+    single<SyncScheduler> { get<id.rancak.app.data.sync.SyncManager>() }
 }
 
-// Repository dengan data dummy (tidak butuh koneksi)
-val demoRepositoryModule = module {
-    single<AuthRepository>       { FakeAuthRepository() }
-    single<ProductRepository>    { FakeProductRepository() }
-    single<SaleRepository>       { FakeSaleRepository() }
-    single<OperationsRepository> { FakeOperationsRepository() }
-    single<FinanceRepository>    { FakeFinanceRepository() }
-}
-
-// Repository dengan API sungguhan
+// Repository bindings — semua memakai API backend sungguhan
 val repositoryModule = module {
     singleOf(::AuthRepositoryImpl) bind AuthRepository::class
     single<ProductRepository> { ProductRepositoryImpl(get(), get(), get(), get()) }
@@ -75,10 +62,10 @@ val viewModelModule = module {
     viewModelOf(::SettingsViewModel)
 }
 
-val appModules = if (DEMO_MODE) {
-    // Demo: skip dataModule (tidak perlu Ktor / API service)
-    // databaseModule included so CartViewModel always gets CartDao
-    listOf(databaseModule, demoRepositoryModule, viewModelModule, platformModule)
-} else {
-    listOf(databaseModule, dataModule, repositoryModule, viewModelModule, platformModule)
-}
+val appModules = listOf(
+    databaseModule,
+    dataModule,
+    repositoryModule,
+    viewModelModule,
+    platformModule,
+)

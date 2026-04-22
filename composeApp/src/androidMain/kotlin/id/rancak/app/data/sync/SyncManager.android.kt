@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 
-actual class SyncManager(private val context: Context) {
+actual class SyncManager(private val context: Context) : SyncScheduler {
 
-    actual fun scheduleSync() {
+    actual override fun scheduleSync() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()

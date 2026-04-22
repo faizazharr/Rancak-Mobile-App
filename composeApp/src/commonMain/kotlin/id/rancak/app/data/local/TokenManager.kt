@@ -12,9 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * On iOS: backed by NSUserDefaults.
  * Tokens survive app restarts — no re-login required after closing the app.
  */
-class TokenManager {
-
-    private val settings = Settings()
+class TokenManager(private val settings: Settings = Settings()) {
 
     private val _accessToken = MutableStateFlow<String?>(settings.getStringOrNull(KEY_ACCESS_TOKEN))
     val accessToken: StateFlow<String?> = _accessToken.asStateFlow()

@@ -29,13 +29,13 @@ import platform.UIKit.UIApplicationDidBecomeActiveNotification
  *     <string>id.rancak.app.sync</string>
  *   </array>
  */
-actual class SyncManager {
+actual class SyncManager : SyncScheduler {
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var activeSyncJob: Job? = null
     private var foregroundObserver: NSObjectProtocol? = null
 
-    actual fun scheduleSync() {
+    actual override fun scheduleSync() {
         // 1. Langsung coba sync sekarang
         triggerSync()
 

@@ -18,4 +18,5 @@ interface AuthRepository {
     fun getCurrentTenantUuid(): String?
     fun getCurrentTenantName(): String?
     fun setTenant(uuid: String, name: String)
+    fun setUserRole(role: String)
 }

@@ -11,7 +11,7 @@ import id.rancak.app.data.mapper.toDomain
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.dto.sale.CreateSaleRequest
 import id.rancak.app.data.remote.dto.sale.SaleItemRequest
-import id.rancak.app.data.sync.SyncManager
+import id.rancak.app.data.sync.SyncScheduler
 import id.rancak.app.domain.model.*
 import id.rancak.app.domain.repository.CartItem
 import id.rancak.app.domain.repository.SaleRepository
@@ -23,7 +23,7 @@ class SaleRepositoryImpl(
     private val api: RancakApiService,
     private val tokenManager: TokenManager,
     private val offlineQueue: OfflineSaleQueue,
-    private val syncManager: SyncManager,
+    private val syncManager: SyncScheduler,
     private val saleDao: SaleDao
 ) : SaleRepository {
 

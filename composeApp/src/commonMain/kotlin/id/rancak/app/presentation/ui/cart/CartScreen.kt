@@ -20,6 +20,7 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartUiState
 import id.rancak.app.presentation.viewmodel.CartViewModel
+import id.rancak.app.presentation.viewmodel.ShiftViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -27,14 +28,20 @@ import org.koin.compose.viewmodel.koinViewModel
 fun CartScreen(
     onBack: () -> Unit,
     onCheckout: () -> Unit,
-    cartViewModel: CartViewModel
+    cartViewModel: CartViewModel,
+    shiftViewModel: ShiftViewModel = koinViewModel()
 ) {
-    val uiState by cartViewModel.uiState.collectAsState()
+    val uiState    by cartViewModel.uiState.collectAsState()
+    val shiftState by shiftViewModel.uiState.collectAsState()
+    val hasOpenShift = shiftState.currentShift != null
+
+    LaunchedEffect(Unit) { shiftViewModel.loadCurrentShift() }
 
     CartScreenContent(
         uiState    = uiState,
         onBack     = onBack,
         onCheckout = onCheckout,
+        hasOpenShift = hasOpenShift,
         onClearCart = cartViewModel::clearCart,
         onSetOrderType = { cartViewModel.setOrderType(it) },
         onUpdateQty = { productUuid, variantUuid, qty ->
@@ -51,6 +58,7 @@ fun CartScreenContent(
     uiState: CartUiState,
     onBack: () -> Unit = {},
     onCheckout: () -> Unit = {},
+    hasOpenShift: Boolean = true,
     onClearCart: () -> Unit = {},
     onSetOrderType: (OrderType) -> Unit = {},
     onUpdateQty: (String, String?, Int) -> Unit = { _, _, _ -> },
@@ -101,6 +109,7 @@ fun CartScreenContent(
                         RancakButton(
                             text = "Bayar",
                             onClick = onCheckout,
+                            enabled = hasOpenShift,
                             modifier = Modifier.width(120.dp)
                         )
                     }

@@ -7,9 +7,9 @@ package id.rancak.app.data.sync
  *          with a CONNECTED network constraint.
  * iOS:     triggers a coroutine-based sync on the next app foreground.
  */
-expect class SyncManager {
+expect class SyncManager : SyncScheduler {
     /** Enqueue a one-time background sync task (deduplicated by work name). */
-    fun scheduleSync()
+    override fun scheduleSync()
 
     /** Cancel any pending sync task. */
     fun cancelSync()

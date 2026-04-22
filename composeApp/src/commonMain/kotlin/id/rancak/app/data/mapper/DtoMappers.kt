@@ -368,7 +368,7 @@ fun ShiftSummaryDto.toDomain() = ShiftSummary(
     totalTransactions = totalTransactions,
     totalExpenses = totalExpenses,
     totalCashIn = totalCashIn,
-    paymentSummary = paymentSummary.map { it.toDomain() }
+    paymentSummary = payments.map { it.toDomain() }
 )
 
 fun PaymentMethodReportDto.toDomain() = PaymentMethodReport(

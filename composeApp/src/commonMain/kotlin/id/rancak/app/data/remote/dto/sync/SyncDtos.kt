@@ -98,6 +98,7 @@ data class ShiftDto(
 
 @Serializable
 data class PaymentSummaryDto(
-    val method: String,
+    @SerialName("payment_method") val method: String,
+    @SerialName("transaction_count") val transactionCount: Int = 0,
     val total: Long = 0
 )
