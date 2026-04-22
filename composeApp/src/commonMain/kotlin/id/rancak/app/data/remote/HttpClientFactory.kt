@@ -30,9 +30,11 @@ fun createHttpClient(tokenManager: TokenManager): HttpClient {
         }
 
         install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.HEADERS
-            sanitizeHeader { header -> header == HttpHeaders.Authorization }
+            logger = platformHttpLogger()
+            level  = LogLevel.ALL
+            sanitizeHeader { header ->
+                header == HttpHeaders.Authorization || header == "X-API-Key"
+            }
         }
 
         install(DefaultRequest) {

@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.ui.auth.components.PhoneLoginLayout
 import id.rancak.app.presentation.ui.auth.components.TabletLoginLayout
@@ -50,6 +51,7 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
+                .zIndex(10f)
         ) {
             ErrorBanner(
                 error     = uiState.error,

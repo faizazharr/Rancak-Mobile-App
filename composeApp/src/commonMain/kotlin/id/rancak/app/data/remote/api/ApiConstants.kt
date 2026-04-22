@@ -4,10 +4,12 @@ object ApiConstants {
     const val BASE_URL = "https://be-rancak.up.railway.app"
 
     /**
-     * App-level API key. Required on every request (X-API-Key header).
-     * Rotated manually via backend env var.
+     * App-level API key — platform-specific via expect/actual [rancakApiKey].
+     * Android: injected from local.properties via BuildConfig.
+     * iOS: read from Info.plist key "RancakApiKey".
+     * Never hardcode this value here.
      */
-    const val API_KEY = "rancak-pos-mobile-v1"
+    val API_KEY: String get() = id.rancak.app.data.remote.rancakApiKey
 
     // Auth
     const val LOGIN = "/auth/login"

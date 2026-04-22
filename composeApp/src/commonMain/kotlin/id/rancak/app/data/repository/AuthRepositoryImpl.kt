@@ -25,10 +25,15 @@ class AuthRepositoryImpl(
                 tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
                 Resource.Success(result)
             } else {
-                Resource.Error(response.message ?: "Login gagal", response.statusCode)
+                val msg = when (response.statusCode) {
+                    401 -> "Email atau password salah. Pastikan akun Anda sudah terdaftar di sistem."
+                    403 -> "Akun Anda tidak memiliki akses ke aplikasi ini."
+                    else -> response.message ?: "Login gagal. Coba lagi."
+                }
+                Resource.Error(msg, response.statusCode)
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -40,10 +45,15 @@ class AuthRepositoryImpl(
                 tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
                 Resource.Success(result)
             } else {
-                Resource.Error(response.message ?: "Google login gagal", response.statusCode)
+                val msg = when (response.statusCode) {
+                    401 -> "Akun Google Anda belum terdaftar di sistem. Hubungi admin untuk mendaftarkan email Anda."
+                    403 -> "Akun Anda tidak memiliki akses ke aplikasi ini."
+                    else -> response.message ?: "Login dengan Google gagal. Coba lagi."
+                }
+                Resource.Error(msg, response.statusCode)
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -172,6 +182,34 @@ class AuthRepositoryImpl(
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Kesalahan jaringan")
         }
+    }
+}
+
+/**
+ * Mengubah exception jaringan menjadi pesan yang ramah pengguna dalam Bahasa Indonesia.
+ * Menghindari pesan raw seperti "java.net.UnknownHostException: Unable to resolve host…"
+ */
+private fun Exception.toNetworkMessage(): String {
+    val msg = message ?: ""
+    return when {
+        msg.contains("UnknownHostException", ignoreCase = true) ||
+        msg.contains("Unable to resolve", ignoreCase = true) ||
+        msg.contains("No address associated", ignoreCase = true) ||
+        msg.contains("nodename nor servname", ignoreCase = true) ->
+            "Tidak ada koneksi internet. Periksa jaringan Anda."
+        msg.contains("SocketTimeoutException", ignoreCase = true) ||
+        msg.contains("TimeoutException", ignoreCase = true) ||
+        msg.contains("timed out", ignoreCase = true) ||
+        msg.contains("timeout", ignoreCase = true) ->
+            "Koneksi timeout. Coba lagi."
+        msg.contains("ConnectException", ignoreCase = true) ||
+        msg.contains("Connection refused", ignoreCase = true) ||
+        msg.contains("Failed to connect", ignoreCase = true) ->
+            "Gagal terhubung ke server. Coba lagi."
+        msg.contains("SSLException", ignoreCase = true) ||
+        msg.contains("certificate", ignoreCase = true) ->
+            "Masalah keamanan koneksi. Coba lagi."
+        else -> "Terjadi kesalahan. Coba lagi."
     }
 }
 

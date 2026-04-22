@@ -5,3 +5,7 @@ PRODUCT_BUNDLE_IDENTIFIER=id.rancak.app.Rancak$(TEAM_ID)
 
 CURRENT_PROJECT_VERSION=1
 MARKETING_VERSION=1.0
+
+// API key injected at build time — override in a gitignored Local.xcconfig or CI env var.
+// RANCAK_API_KEY = your_key_here
+RANCAK_API_KEY =

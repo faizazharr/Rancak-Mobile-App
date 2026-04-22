@@ -137,7 +137,19 @@ internal fun EmailFormStep(
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+
+        if (uiState.error != null) {
+            Text(
+                text     = uiState.error,
+                color    = MaterialTheme.colorScheme.error,
+                style    = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+        } else {
+            Spacer(Modifier.height(16.dp))
+        }
 
         RancakButton(
             text      = "Masuk",

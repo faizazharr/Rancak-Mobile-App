@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -128,12 +129,24 @@ android {
     namespace = "id.rancak.app"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    val localProps = Properties().apply {
+        val f = rootProject.file("local.properties")
+        if (f.exists()) load(f.inputStream())
+    }
+    val rancakApiKey: String = localProps.getProperty("RANCAK_API_KEY")
+        ?: error("RANCAK_API_KEY is missing from local.properties")
+
     defaultConfig {
         applicationId = "id.rancak.app"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "RANCAK_API_KEY", "\"$rancakApiKey\"")
+    }
+    buildFeatures {
+        buildConfig = true
     }
     packaging {
         resources {
