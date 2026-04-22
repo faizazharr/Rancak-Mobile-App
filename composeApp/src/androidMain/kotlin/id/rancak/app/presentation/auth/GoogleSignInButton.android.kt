@@ -24,7 +24,7 @@ private const val TAG = "GoogleSignIn"
  * BUKAN Android/iOS client ID — harus Web client ID agar backend bisa verifikasi token.
  */
 private const val GOOGLE_WEB_CLIENT_ID =
-    "222680436513-fhn5h2h047ovbrlssr0v9jflo2i60g99.apps.googleusercontent.com"
+    "222680436513-jmpqs7vrht86n168nrmhemg3neenvqdu.apps.googleusercontent.com"
 
 @Composable
 actual fun GoogleSignInButton(
@@ -68,6 +68,27 @@ actual fun GoogleSignInButton(
                     ) {
                         val googleToken = GoogleIdTokenCredential.createFrom(credential.data)
                         Log.d(TAG, "ID Token berhasil didapat (length=${googleToken.idToken.length})")
+                        Log.d(TAG, "Account ID (email): ${googleToken.id}")
+                        Log.d(TAG, "Display name: ${googleToken.displayName}")
+
+                        // Decode JWT payload untuk verifikasi claims
+                        try {
+                            val parts = googleToken.idToken.split(".")
+                            if (parts.size == 3) {
+                                val payloadBytes = android.util.Base64.decode(
+                                    parts[1], android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING
+                                )
+                                val payload = String(payloadBytes)
+                                // Log hanya claim penting (bukan full token untuk keamanan)
+                                val emailMatch = Regex("\"email\":\"([^\"]+)\"").find(payload)
+                                val audMatch = Regex("\"aud\":\"([^\"]+)\"").find(payload)
+                                val expMatch = Regex("\"exp\":(\\d+)").find(payload)
+                                Log.d(TAG, "JWT claims — email=${emailMatch?.groupValues?.get(1)}, aud=${audMatch?.groupValues?.get(1)}, exp=${expMatch?.groupValues?.get(1)}")
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Gagal decode JWT payload: ${e.message}")
+                        }
+
                         onIdToken(googleToken.idToken)
                     } else {
                         Log.w(TAG, "Credential type tidak dikenali: ${credential.type}")
