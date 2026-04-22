@@ -22,6 +22,7 @@ import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.viewmodel.TableUiState
 import id.rancak.app.presentation.viewmodel.TableViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -34,9 +35,25 @@ fun TableMapScreen(
     viewModel: TableViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
     LaunchedEffect(Unit) { viewModel.loadTables() }
 
+    TableMapScreenContent(
+        uiState       = uiState,
+        onBack        = onBack,
+        onRetry       = viewModel::loadTables,
+        onTableSelect = onTableSelect
+    )
+}
+
+/** Pure-UI content — tanpa ViewModel, aman di-preview. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TableMapScreenContent(
+    uiState: TableUiState,
+    onBack: () -> Unit,
+    onRetry: () -> Unit,
+    onTableSelect: ((String) -> Unit)? = null
+) {
     Scaffold(
         topBar = {
             RancakTopBar(
@@ -49,7 +66,7 @@ fun TableMapScreen(
     ) { padding ->
         when {
             uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
-            uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = viewModel::loadTables, modifier = Modifier.padding(padding))
+            uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = onRetry, modifier = Modifier.padding(padding))
             uiState.tables.isEmpty() -> EmptyScreen("Belum ada meja", Modifier.padding(padding))
             else -> {
                 val areas = uiState.tables.groupBy { it.area ?: "Umum" }
@@ -127,6 +144,25 @@ private fun TableCellOccupiedPreview() {
         TableCell(
             table = Table(uuid = "2", name = "B3", area = "Outdoor", capacity = 6, status = TableStatus.OCCUPIED, isActive = true, sortOrder = 2, activeSaleUuid = "sale-1"),
             onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Table Map – Full Screen", widthDp = 600, heightDp = 800)
+@Composable
+private fun TableMapScreenPreview() {
+    val tables = listOf(
+        Table(uuid = "t1", name = "Meja 1", area = "Indoor", capacity = 4, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 1, activeSaleUuid = null),
+        Table(uuid = "t2", name = "Meja 2", area = "Indoor", capacity = 2, status = TableStatus.OCCUPIED,  isActive = true, sortOrder = 2, activeSaleUuid = "sale-1"),
+        Table(uuid = "t3", name = "Meja 3", area = "Indoor", capacity = 4, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 3, activeSaleUuid = null),
+        Table(uuid = "t4", name = "Meja 4", area = "Outdoor",capacity = 6, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 4, activeSaleUuid = null),
+        Table(uuid = "t5", name = "Meja 5", area = "Outdoor",capacity = 2, status = TableStatus.INACTIVE,  isActive = false, sortOrder = 5, activeSaleUuid = null)
+    )
+    RancakTheme {
+        TableMapScreenContent(
+            uiState = TableUiState(tables = tables),
+            onBack  = {},
+            onRetry = {}
         )
     }
 }

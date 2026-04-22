@@ -116,3 +116,39 @@ fun PaymentScreen(
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Preview — memanggil PaymentFormContent (state default) di dalam Scaffold
+// yang identik dengan PaymentScreen. Tidak menduplikasi logika "when".
+// ─────────────────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@androidx.compose.ui.tooling.preview.Preview(name = "Payment – Form", widthDp = 390, heightDp = 844)
+@Composable
+private fun PaymentScreenFormPreview() {
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        Scaffold(
+            topBar = {
+                RancakTopBar(
+                    title    = "Pembayaran",
+                    icon     = Icons.Default.PointOfSale,
+                    subtitle = "Pilih metode & masukkan jumlah bayar",
+                    onBack   = {}
+                )
+            }
+        ) { padding ->
+            PaymentFormContent(
+                itemCount          = 3,
+                subtotal           = 55_000,
+                selectedMethod     = PaymentMethod.CASH,
+                onSelectMethod     = {},
+                paidAmount         = "60000",
+                onPaidAmountChange = {},
+                isCashSelected     = true,
+                isProcessing       = false,
+                onProcessPayment   = {},
+                modifier           = Modifier.fillMaxSize().padding(padding)
+            )
+        }
+    }
+}

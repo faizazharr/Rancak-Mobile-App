@@ -89,3 +89,47 @@ fun LoginScreen(
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Preview — memanggil layout yang sama dengan yang dirender oleh LoginScreen
+// ─────────────────────────────────────────────────────────────────────────────
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Login – Phone",  widthDp = 390, heightDp = 844)
+@Composable
+private fun LoginScreenPhonePreview() {
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        PhoneLoginLayout(
+            uiState          = id.rancak.app.presentation.viewmodel.LoginUiState(),
+            showEmailForm    = false,
+            passwordVisible  = false,
+            onPasswordToggle = {},
+            onEmailChange    = {},
+            onPasswordChange = {},
+            onLogin          = {},
+            onGoogleToken    = {},
+            onGoogleError    = {},
+            onShowEmailForm  = {},
+            onBackToOptions  = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Login – Tablet", widthDp = 1024, heightDp = 768)
+@Composable
+private fun LoginScreenTabletPreview() {
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        TabletLoginLayout(
+            uiState          = id.rancak.app.presentation.viewmodel.LoginUiState(),
+            showEmailForm    = false,
+            passwordVisible  = false,
+            onPasswordToggle = {},
+            onEmailChange    = {},
+            onPasswordChange = {},
+            onLogin          = {},
+            onGoogleToken    = {},
+            onGoogleError    = {},
+            onShowEmailForm  = {},
+            onBackToOptions  = {}
+        )
+    }
+}

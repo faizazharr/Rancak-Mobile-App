@@ -22,9 +22,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 import id.rancak.app.domain.model.*
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.viewmodel.KdsUiState
 import id.rancak.app.presentation.viewmodel.KdsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -60,15 +63,34 @@ fun KdsScreen(
     viewModel: KdsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var page by remember { mutableStateOf(0) }
-
     LaunchedEffect(Unit) { viewModel.loadOrders() }
+
+    KdsScreenContent(
+        uiState       = uiState,
+        onBack        = onBack,
+        onReload      = viewModel::loadOrders,
+        onToggleTab   = viewModel::toggleTab,
+        onAdvance     = { uuid, next -> viewModel.updateOrderStatus(uuid, next) }
+    )
+}
+
+/** Pure-UI content — tidak mengakses ViewModel, aman di-preview. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun KdsScreenContent(
+    uiState: KdsUiState,
+    onBack: () -> Unit,
+    onReload: () -> Unit,
+    onToggleTab: (Boolean) -> Unit,
+    onAdvance: (String, KdsStatus) -> Unit
+) {
+    var page by remember { mutableStateOf(0) }
 
     // Reset page when switching tabs
     LaunchedEffect(uiState.showCompleted) { page = 0 }
 
-    val orders = uiState.displayOrders
-    val totalPages = ((orders.size + PAGE_SIZE - 1) / PAGE_SIZE).coerceAtLeast(1)
+    val orders      = uiState.displayOrders
+    val totalPages  = ((orders.size + PAGE_SIZE - 1) / PAGE_SIZE).coerceAtLeast(1)
     val pagedOrders = orders.drop(page * PAGE_SIZE).take(PAGE_SIZE)
 
     Scaffold(
@@ -79,7 +101,7 @@ fun KdsScreen(
                 subtitle = "Antrian pesanan dapur",
                 onMenu = onBack,
                 actions = {
-                    IconButton(onClick = viewModel::loadOrders) {
+                    IconButton(onClick = onReload) {
                         Icon(Icons.Default.Refresh, "Refresh")
                     }
                 }
@@ -96,7 +118,7 @@ fun KdsScreen(
                 uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
                 uiState.error != null -> ErrorScreen(
                     uiState.error!!,
-                    onRetry = viewModel::loadOrders,
+                    onRetry = onReload,
                     modifier = Modifier.weight(1f)
                 )
                 orders.isEmpty() -> Box(
@@ -121,9 +143,7 @@ fun KdsScreen(
                         items(pagedOrders, key = { it.uuid }) { order ->
                             KdsOrderCard(
                                 order = order,
-                                onAdvance = { next ->
-                                    viewModel.updateOrderStatus(order.uuid, next)
-                                }
+                                onAdvance = { next -> onAdvance(order.uuid, next) }
                             )
                         }
                     }
@@ -143,7 +163,7 @@ fun KdsScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
                             selected = !uiState.showCompleted,
-                            onClick = { viewModel.toggleTab(false) },
+                            onClick = { onToggleTab(false) },
                             label = {
                                 Text(
                                     "${uiState.activeOrders.size} Aktif",
@@ -157,7 +177,7 @@ fun KdsScreen(
                         )
                         FilterChip(
                             selected = uiState.showCompleted,
-                            onClick = { viewModel.toggleTab(true) },
+                            onClick = { onToggleTab(true) },
                             label = { Text("Selesai") },
                             leadingIcon = if (uiState.showCompleted) {
                                 { Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp)) }
@@ -359,5 +379,66 @@ private fun KdsOrderCard(order: KdsOrder, onAdvance: (KdsStatus) -> Unit) {
                 }
             }
         }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Previews — memanggil KdsScreenContent langsung, tidak menduplikasi UI
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Preview(name = "KDS – Empty",  widthDp = 1024, heightDp = 768)
+@Composable
+private fun KdsScreenEmptyPreview() {
+    RancakTheme {
+        KdsScreenContent(
+            uiState     = KdsUiState(),
+            onBack      = {},
+            onReload    = {},
+            onToggleTab = {},
+            onAdvance   = { _, _ -> }
+        )
+    }
+}
+
+@Preview(name = "KDS – With Orders", widthDp = 1024, heightDp = 768)
+@Composable
+private fun KdsScreenWithOrdersPreview() {
+    val sample = listOf(
+        KdsOrder(
+            uuid = "1", invoiceNo = "ORD-001", orderType = OrderType.DINE_IN,
+            tableName = "Meja 3", queueNumber = 1, customerName = "Andi",
+            note = null, status = KdsStatus.NEW,
+            items = listOf(
+                KdsItem("i1", "Nasi Goreng", "2", null, null, KdsItemStatus.PENDING)
+            ),
+            createdAt = "2026-01-01T10:15:00"
+        ),
+        KdsOrder(
+            uuid = "2", invoiceNo = "ORD-002", orderType = OrderType.TAKEAWAY,
+            tableName = null, queueNumber = 2, customerName = "Budi",
+            note = "Tidak pedas", status = KdsStatus.COOKING,
+            items = listOf(
+                KdsItem("i2", "Mie Ayam", "1", null, null, KdsItemStatus.COOKING)
+            ),
+            createdAt = "2026-01-01T10:20:00"
+        ),
+        KdsOrder(
+            uuid = "3", invoiceNo = "ORD-003", orderType = OrderType.DINE_IN,
+            tableName = "Meja 5", queueNumber = 3, customerName = null,
+            note = null, status = KdsStatus.READY,
+            items = listOf(
+                KdsItem("i3", "Es Teh", "4", null, null, KdsItemStatus.READY)
+            ),
+            createdAt = "2026-01-01T10:25:00"
+        )
+    )
+    RancakTheme {
+        KdsScreenContent(
+            uiState     = KdsUiState(activeOrders = sample),
+            onBack      = {},
+            onReload    = {},
+            onToggleTab = {},
+            onAdvance   = { _, _ -> }
+        )
     }
 }

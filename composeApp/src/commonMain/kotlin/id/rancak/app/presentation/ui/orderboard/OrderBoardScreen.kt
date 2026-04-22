@@ -20,14 +20,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.OrderBoardOrder
+import id.rancak.app.domain.model.OrderBoardItem
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
-import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.viewmodel.OrderBoardUiState
 import id.rancak.app.presentation.viewmodel.OrderBoardViewModel
 import kotlin.time.Clock
 import org.koin.compose.viewmodel.koinViewModel
@@ -87,15 +90,34 @@ fun OrderBoardScreen(
     viewModel: OrderBoardViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var page by remember { mutableStateOf(0) }
-
     LaunchedEffect(Unit) { viewModel.loadOrders() }
+
+    OrderBoardScreenContent(
+        uiState     = uiState,
+        onBack      = onBack,
+        onReload    = viewModel::loadOrders,
+        onToggleTab = viewModel::toggleTab,
+        onServe     = viewModel::serveOrder
+    )
+}
+
+/** Pure-UI content — tanpa ViewModel, aman di-preview. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OrderBoardScreenContent(
+    uiState: OrderBoardUiState,
+    onBack: () -> Unit,
+    onReload: () -> Unit,
+    onToggleTab: (Boolean) -> Unit,
+    onServe: (String) -> Unit
+) {
+    var page by remember { mutableStateOf(0) }
 
     // Reset page when switching tabs
     LaunchedEffect(uiState.showCompleted) { page = 0 }
 
-    val orders = uiState.displayOrders
-    val totalPages = ((orders.size + PAGE_SIZE - 1) / PAGE_SIZE).coerceAtLeast(1)
+    val orders      = uiState.displayOrders
+    val totalPages  = ((orders.size + PAGE_SIZE - 1) / PAGE_SIZE).coerceAtLeast(1)
     val pagedOrders = orders.drop(page * PAGE_SIZE).take(PAGE_SIZE)
 
     Scaffold(
@@ -106,7 +128,7 @@ fun OrderBoardScreen(
                 subtitle = "Status pesanan aktif",
                 onMenu = onBack,
                 actions = {
-                    IconButton(onClick = viewModel::loadOrders) {
+                    IconButton(onClick = onReload) {
                         Icon(Icons.Default.Refresh, "Refresh")
                     }
                 }
@@ -123,7 +145,7 @@ fun OrderBoardScreen(
                 uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
                 uiState.error != null -> ErrorScreen(
                     uiState.error!!,
-                    onRetry = viewModel::loadOrders,
+                    onRetry = onReload,
                     modifier = Modifier.weight(1f)
                 )
                 orders.isEmpty() -> Box(
@@ -148,7 +170,7 @@ fun OrderBoardScreen(
                         items(pagedOrders, key = { it.uuid }) { order ->
                             OrderBoardCard(
                                 order = order,
-                                onServe = { viewModel.serveOrder(order.uuid) }
+                                onServe = { onServe(order.uuid) }
                             )
                         }
                     }
@@ -167,7 +189,7 @@ fun OrderBoardScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
                             selected = !uiState.showCompleted,
-                            onClick = { viewModel.toggleTab(false) },
+                            onClick = { onToggleTab(false) },
                             label = {
                                 Text(
                                     "${uiState.activeOrders.size} Aktif",
@@ -181,7 +203,7 @@ fun OrderBoardScreen(
                         )
                         FilterChip(
                             selected = uiState.showCompleted,
-                            onClick = { viewModel.toggleTab(true) },
+                            onClick = { onToggleTab(true) },
                             label = { Text("Selesai") },
                             leadingIcon = if (uiState.showCompleted) {
                                 { Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp)) }
@@ -351,5 +373,53 @@ private fun OrderBoardCard(order: OrderBoardOrder, onServe: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Previews
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Preview(name = "Order Board – Empty", widthDp = 1024, heightDp = 768)
+@Composable
+private fun OrderBoardScreenEmptyPreview() {
+    RancakTheme {
+        OrderBoardScreenContent(
+            uiState     = OrderBoardUiState(),
+            onBack      = {},
+            onReload    = {},
+            onToggleTab = {},
+            onServe     = {}
+        )
+    }
+}
+
+@Preview(name = "Order Board – With Orders", widthDp = 1024, heightDp = 768)
+@Composable
+private fun OrderBoardScreenWithOrdersPreview() {
+    val sample = listOf(
+        OrderBoardOrder(
+            uuid = "1", invoiceNo = "INV-001", queueNumber = 1,
+            orderType = OrderType.DINE_IN, customerName = "Andi",
+            status = SaleStatus.HELD, createdAt = "2026-01-01T10:15:00",
+            servedAt = null,
+            items = listOf(OrderBoardItem("Nasi Goreng", 2, null))
+        ),
+        OrderBoardOrder(
+            uuid = "2", invoiceNo = "INV-002", queueNumber = 2,
+            orderType = OrderType.TAKEAWAY, customerName = "Budi",
+            status = SaleStatus.PAID, createdAt = "2026-01-01T10:20:00",
+            servedAt = null,
+            items = listOf(OrderBoardItem("Mie Ayam", 1, "Tidak pedas"))
+        )
+    )
+    RancakTheme {
+        OrderBoardScreenContent(
+            uiState     = OrderBoardUiState(activeOrders = sample),
+            onBack      = {},
+            onReload    = {},
+            onToggleTab = {},
+            onServe     = {}
+        )
     }
 }

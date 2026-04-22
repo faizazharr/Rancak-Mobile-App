@@ -292,3 +292,16 @@ private fun dotSpec(offsetMs: Int): InfiniteRepeatableSpec<Float> =
         repeatMode         = RepeatMode.Reverse,
         initialStartOffset = StartOffset(offsetMs)
     )
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Preview — SplashScreen tidak bergantung ViewModel, jadi langsung dipanggil.
+// Auto-navigate dinonaktifkan pada preview karena tidak ada host runtime.
+// ─────────────────────────────────────────────────────────────────────────────
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Splash", widthDp = 390, heightDp = 844)
+@Composable
+private fun SplashScreenPreview() {
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        SplashScreen(onFinished = {})
+    }
+}

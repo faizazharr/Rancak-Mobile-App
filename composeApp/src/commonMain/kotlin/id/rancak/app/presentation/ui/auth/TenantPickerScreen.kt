@@ -68,3 +68,42 @@ fun TenantPickerScreen(
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Preview — memanggil layout yang sama dengan yang dipakai TenantPickerScreen
+// ─────────────────────────────────────────────────────────────────────────────
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Tenant – Phone",   widthDp = 390, heightDp = 844)
+@Composable
+private fun TenantPickerScreenPhonePreview() {
+    val tenants = listOf(
+        id.rancak.app.domain.model.Tenant("1", "Warung Rancak"),
+        id.rancak.app.domain.model.Tenant("2", "Cafe Sederhana"),
+        id.rancak.app.domain.model.Tenant("3", "Kedai Kopi")
+    )
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        id.rancak.app.presentation.ui.auth.components.TenantPickerPortrait(
+            tenants        = tenants,
+            selectedTenant = null,
+            onSelectTenant = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Tenant – Tablet", widthDp = 1024, heightDp = 768)
+@Composable
+private fun TenantPickerScreenTabletPreview() {
+    val tenants = listOf(
+        id.rancak.app.domain.model.Tenant("1", "Warung Rancak"),
+        id.rancak.app.domain.model.Tenant("2", "Cafe Sederhana"),
+        id.rancak.app.domain.model.Tenant("3", "Kedai Kopi"),
+        id.rancak.app.domain.model.Tenant("4", "Toko Serba Ada")
+    )
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        id.rancak.app.presentation.ui.auth.components.TenantPickerLandscape(
+            tenants        = tenants,
+            selectedTenant = null,
+            onSelectTenant = {}
+        )
+    }
+}

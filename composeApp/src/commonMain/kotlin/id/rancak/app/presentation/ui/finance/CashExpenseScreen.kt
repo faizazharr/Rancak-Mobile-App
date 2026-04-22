@@ -19,9 +19,25 @@ import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import id.rancak.app.presentation.viewmodel.CashExpenseUiState
 import id.rancak.app.presentation.viewmodel.CashExpenseViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
+
+/** Semua callback dari [CashExpenseViewModel] — memudahkan preview. */
+data class CashExpenseActions(
+    val onRetry: () -> Unit = {},
+    val onToggleCashInForm: () -> Unit = {},
+    val onToggleExpenseForm: () -> Unit = {},
+    val onAmountChange: (String) -> Unit = {},
+    val onSourceChange: (String) -> Unit = {},
+    val onDescriptionChange: (String) -> Unit = {},
+    val onNoteChange: (String) -> Unit = {},
+    val onSubmitCashIn: () -> Unit = {},
+    val onSubmitExpense: () -> Unit = {},
+    val onDeleteCashIn: (String) -> Unit = {},
+    val onDeleteExpense: (String) -> Unit = {}
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,9 +46,36 @@ fun CashExpenseScreen(
     viewModel: CashExpenseViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableStateOf(0) }
-
     LaunchedEffect(Unit) { viewModel.loadAll() }
+
+    CashExpenseScreenContent(
+        uiState = uiState,
+        onBack  = onBack,
+        actions = CashExpenseActions(
+            onRetry              = viewModel::loadAll,
+            onToggleCashInForm   = viewModel::toggleCashInForm,
+            onToggleExpenseForm  = viewModel::toggleExpenseForm,
+            onAmountChange       = viewModel::onAmountChange,
+            onSourceChange       = viewModel::onSourceChange,
+            onDescriptionChange  = viewModel::onDescriptionChange,
+            onNoteChange         = viewModel::onNoteChange,
+            onSubmitCashIn       = viewModel::submitCashIn,
+            onSubmitExpense      = viewModel::submitExpense,
+            onDeleteCashIn       = viewModel::deleteCashIn,
+            onDeleteExpense      = viewModel::deleteExpense
+        )
+    )
+}
+
+/** Pure-UI content — tanpa ViewModel, aman di-preview. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CashExpenseScreenContent(
+    uiState: CashExpenseUiState,
+    onBack: () -> Unit,
+    actions: CashExpenseActions
+) {
+    var selectedTab by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -45,7 +88,7 @@ fun CashExpenseScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                if (selectedTab == 0) viewModel.toggleCashInForm() else viewModel.toggleExpenseForm()
+                if (selectedTab == 0) actions.onToggleCashInForm() else actions.onToggleExpenseForm()
             }) {
                 Icon(Icons.Default.Add, "Tambah")
             }
@@ -59,14 +102,14 @@ fun CashExpenseScreen(
 
             when {
                 uiState.isLoading -> LoadingScreen()
-                uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = viewModel::loadAll)
+                uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = actions.onRetry)
                 else -> {
                     if (selectedTab == 0) {
-                        if (uiState.showCashInForm) CashInForm(uiState, viewModel)
-                        CashInList(uiState.cashIns, onDelete = viewModel::deleteCashIn)
+                        if (uiState.showCashInForm) CashInForm(uiState, actions)
+                        CashInList(uiState.cashIns, onDelete = actions.onDeleteCashIn)
                     } else {
-                        if (uiState.showExpenseForm) ExpenseForm(uiState, viewModel)
-                        ExpenseList(uiState.expenses, onDelete = viewModel::deleteExpense)
+                        if (uiState.showExpenseForm) ExpenseForm(uiState, actions)
+                        ExpenseList(uiState.expenses, onDelete = actions.onDeleteExpense)
                     }
                 }
             }
@@ -76,19 +119,19 @@ fun CashExpenseScreen(
 
 @Composable
 private fun CashInForm(
-    uiState: id.rancak.app.presentation.viewmodel.CashExpenseUiState,
-    viewModel: CashExpenseViewModel
+    uiState: CashExpenseUiState,
+    actions: CashExpenseActions
 ) {
     Card(Modifier.fillMaxWidth().padding(12.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Tambah Kas Masuk", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            RancakTextField(value = uiState.formAmount, onValueChange = viewModel::onAmountChange, label = "Jumlah (Rp)")
-            RancakTextField(value = uiState.formSource, onValueChange = viewModel::onSourceChange, label = "Sumber")
-            RancakTextField(value = uiState.formDescription, onValueChange = viewModel::onDescriptionChange, label = "Keterangan")
-            RancakTextField(value = uiState.formNote, onValueChange = viewModel::onNoteChange, label = "Catatan (opsional)")
+            RancakTextField(value = uiState.formAmount,      onValueChange = actions.onAmountChange,      label = "Jumlah (Rp)")
+            RancakTextField(value = uiState.formSource,      onValueChange = actions.onSourceChange,      label = "Sumber")
+            RancakTextField(value = uiState.formDescription, onValueChange = actions.onDescriptionChange, label = "Keterangan")
+            RancakTextField(value = uiState.formNote,        onValueChange = actions.onNoteChange,        label = "Catatan (opsional)")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RancakOutlinedButton("Batal", onClick = viewModel::toggleCashInForm, modifier = Modifier.weight(1f))
-                RancakButton("Simpan", onClick = viewModel::submitCashIn, modifier = Modifier.weight(1f))
+                RancakOutlinedButton("Batal",  onClick = actions.onToggleCashInForm, modifier = Modifier.weight(1f))
+                RancakButton       ("Simpan", onClick = actions.onSubmitCashIn,     modifier = Modifier.weight(1f))
             }
         }
     }
@@ -96,18 +139,18 @@ private fun CashInForm(
 
 @Composable
 private fun ExpenseForm(
-    uiState: id.rancak.app.presentation.viewmodel.CashExpenseUiState,
-    viewModel: CashExpenseViewModel
+    uiState: CashExpenseUiState,
+    actions: CashExpenseActions
 ) {
     Card(Modifier.fillMaxWidth().padding(12.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Tambah Pengeluaran", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            RancakTextField(value = uiState.formAmount, onValueChange = viewModel::onAmountChange, label = "Jumlah (Rp)")
-            RancakTextField(value = uiState.formDescription, onValueChange = viewModel::onDescriptionChange, label = "Keterangan")
-            RancakTextField(value = uiState.formNote, onValueChange = viewModel::onNoteChange, label = "Catatan (opsional)")
+            RancakTextField(value = uiState.formAmount,      onValueChange = actions.onAmountChange,      label = "Jumlah (Rp)")
+            RancakTextField(value = uiState.formDescription, onValueChange = actions.onDescriptionChange, label = "Keterangan")
+            RancakTextField(value = uiState.formNote,        onValueChange = actions.onNoteChange,        label = "Catatan (opsional)")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RancakOutlinedButton("Batal", onClick = viewModel::toggleExpenseForm, modifier = Modifier.weight(1f))
-                RancakButton("Simpan", onClick = viewModel::submitExpense, modifier = Modifier.weight(1f))
+                RancakOutlinedButton("Batal",  onClick = actions.onToggleExpenseForm, modifier = Modifier.weight(1f))
+                RancakButton       ("Simpan", onClick = actions.onSubmitExpense,     modifier = Modifier.weight(1f))
             }
         }
     }
@@ -179,6 +222,29 @@ private fun ExpenseListPreview() {
                 Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null, categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null)
             ),
             onDelete = {}
+        )
+    }
+}
+
+@Preview(name = "Cash & Expense – Full Screen", widthDp = 390, heightDp = 844)
+@Composable
+private fun CashExpenseScreenPreview() {
+    RancakTheme {
+        CashExpenseScreenContent(
+            uiState = CashExpenseUiState(
+                cashIns = listOf(
+                    CashIn(uuid = "1", amount = 500_000, source = "Modal",
+                        description = "Kas Awal", note = null,
+                        cashierUuid = null, cashierName = null, shiftUuid = null,
+                        cashInDate = null, createdAt = null),
+                    CashIn(uuid = "2", amount = 200_000, source = "Pinjaman",
+                        description = "Tambahan Modal", note = "Dari owner",
+                        cashierUuid = null, cashierName = null, shiftUuid = null,
+                        cashInDate = null, createdAt = null)
+                )
+            ),
+            onBack  = {},
+            actions = CashExpenseActions()
         )
     }
 }

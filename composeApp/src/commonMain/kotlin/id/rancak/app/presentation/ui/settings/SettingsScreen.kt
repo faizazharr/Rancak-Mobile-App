@@ -457,3 +457,23 @@ private fun PhoneLayout(
         item { Spacer(Modifier.height(16.dp)) }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Preview — memanggil SettingsScreenContent dengan state default
+// ─────────────────────────────────────────────────────────────────────────────
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Settings – Phone",  widthDp = 390, heightDp = 844)
+@Composable
+private fun SettingsScreenPhonePreview() {
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        SettingsScreenContent(uiState = SettingsUiState())
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Settings – Tablet", widthDp = 1024, heightDp = 768)
+@Composable
+private fun SettingsScreenTabletPreview() {
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        SettingsScreenContent(uiState = SettingsUiState())
+    }
+}

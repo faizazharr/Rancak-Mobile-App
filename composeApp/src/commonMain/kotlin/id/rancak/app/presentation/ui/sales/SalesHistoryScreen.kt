@@ -17,13 +17,33 @@ import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.sales.components.SaleCard
 import id.rancak.app.presentation.ui.sales.components.SaleDetailPanel
 import id.rancak.app.presentation.ui.sales.components.SalesSummaryPanel
 import id.rancak.app.presentation.ui.sales.components.SearchAndFilterBar
 import id.rancak.app.presentation.viewmodel.DateFilter
+import id.rancak.app.presentation.viewmodel.SalesHistoryUiState
 import id.rancak.app.presentation.viewmodel.SalesHistoryViewModel
+import id.rancak.app.domain.model.Sale
+import id.rancak.app.domain.model.SaleStatus
+import id.rancak.app.domain.model.PaymentMethod
+import id.rancak.app.domain.model.OrderType
+import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
+
+/**
+ * Bundel callback dari [SalesHistoryViewModel] — dipakai oleh layout phone/
+ * tablet sehingga keduanya bisa dirender tanpa Koin untuk keperluan preview.
+ */
+data class SalesHistoryActions(
+    val onSearch: (String) -> Unit = {},
+    val onDateFilter: (DateFilter) -> Unit = {},
+    val onStatusFilter: (SaleStatus?) -> Unit = {},
+    val onCustomRange: (Long, Long) -> Unit = { _, _ -> },
+    val onClearFilters: () -> Unit = {},
+    val onSelect: (Sale?) -> Unit = {}
+)
 
 /**
  * Entry point for the **Riwayat Penjualan** flow.
@@ -43,6 +63,30 @@ fun SalesHistoryScreen(
 
     LaunchedEffect(Unit) { viewModel.loadSales() }
 
+    SalesHistoryScreenContent(
+        uiState   = uiState,
+        onBack    = onBack,
+        onRetry   = viewModel::loadSales,
+        actions   = SalesHistoryActions(
+            onSearch        = viewModel::setSearchQuery,
+            onDateFilter    = viewModel::setDateFilter,
+            onStatusFilter  = viewModel::setStatusFilter,
+            onCustomRange   = viewModel::setCustomDateRange,
+            onClearFilters  = viewModel::clearFilters,
+            onSelect        = viewModel::selectSale
+        )
+    )
+}
+
+/** Pure-UI content — tanpa ViewModel, aman di-preview. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SalesHistoryScreenContent(
+    uiState: SalesHistoryUiState,
+    onBack: () -> Unit,
+    onRetry: () -> Unit,
+    actions: SalesHistoryActions
+) {
     Scaffold(
         topBar = {
             RancakTopBar(
@@ -57,7 +101,7 @@ fun SalesHistoryScreen(
             uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
             uiState.error != null -> ErrorScreen(
                 uiState.error!!,
-                onRetry  = viewModel::loadSales,
+                onRetry  = onRetry,
                 modifier = Modifier.padding(padding)
             )
             uiState.allSales.isEmpty() -> EmptyScreen(
@@ -66,8 +110,8 @@ fun SalesHistoryScreen(
             )
             else -> BoxWithConstraints(modifier = Modifier.padding(padding).fillMaxSize()) {
                 val isTablet = maxWidth >= 600.dp
-                if (isTablet) TabletLayout(uiState, viewModel)
-                else          PhoneLayout(uiState, viewModel)
+                if (isTablet) TabletLayout(uiState, actions)
+                else          PhoneLayout(uiState, actions)
             }
         }
     }
@@ -77,16 +121,16 @@ fun SalesHistoryScreen(
 
 @Composable
 private fun TabletLayout(
-    uiState: id.rancak.app.presentation.viewmodel.SalesHistoryUiState,
-    viewModel: SalesHistoryViewModel
+    uiState: SalesHistoryUiState,
+    actions: SalesHistoryActions
 ) {
     Row(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(0.38f).fillMaxHeight()) {
-            SalesFilterBar(uiState, viewModel)
+            SalesFilterBar(uiState, actions)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             SalesList(
                 uiState       = uiState,
-                viewModel     = viewModel,
+                actions       = actions,
                 reflectSelect = true,
                 modifier      = Modifier.weight(1f).fillMaxHeight()
             )
@@ -107,15 +151,15 @@ private fun TabletLayout(
 
 @Composable
 private fun PhoneLayout(
-    uiState: id.rancak.app.presentation.viewmodel.SalesHistoryUiState,
-    viewModel: SalesHistoryViewModel
+    uiState: SalesHistoryUiState,
+    actions: SalesHistoryActions
 ) {
     Column(Modifier.fillMaxSize()) {
-        SalesFilterBar(uiState, viewModel)
+        SalesFilterBar(uiState, actions)
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
         SalesList(
             uiState       = uiState,
-            viewModel     = viewModel,
+            actions       = actions,
             reflectSelect = false,
             modifier      = Modifier.weight(1f).fillMaxSize()
         )
@@ -123,7 +167,7 @@ private fun PhoneLayout(
 
     uiState.selectedSale?.let { sale ->
         AlertDialog(
-            onDismissRequest = { viewModel.selectSale(null) },
+            onDismissRequest = { actions.onSelect(null) },
             title = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -135,14 +179,14 @@ private fun PhoneLayout(
                         style      = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    IconButton(onClick = { viewModel.selectSale(null) }) {
+                    IconButton(onClick = { actions.onSelect(null) }) {
                         Icon(Icons.Default.Close, "Tutup")
                     }
                 }
             },
             text = { SaleDetailPanel(sale = sale, modifier = Modifier.fillMaxWidth()) },
             confirmButton = {
-                TextButton(onClick = { viewModel.selectSale(null) }) { Text("Tutup") }
+                TextButton(onClick = { actions.onSelect(null) }) { Text("Tutup") }
             }
         )
     }
@@ -153,8 +197,8 @@ private fun PhoneLayout(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SalesFilterBar(
-    uiState: id.rancak.app.presentation.viewmodel.SalesHistoryUiState,
-    viewModel: SalesHistoryViewModel
+    uiState: SalesHistoryUiState,
+    actions: SalesHistoryActions
 ) {
     SearchAndFilterBar(
         query             = uiState.searchQuery,
@@ -162,11 +206,11 @@ private fun SalesFilterBar(
         statusFilter      = uiState.statusFilter,
         customDateFrom    = uiState.customDateFrom,
         customDateTo      = uiState.customDateTo,
-        onQueryChange     = viewModel::setSearchQuery,
-        onDateFilter      = viewModel::setDateFilter,
-        onStatusFilter    = viewModel::setStatusFilter,
-        onCustomDateRange = viewModel::setCustomDateRange,
-        onClear           = viewModel::clearFilters,
+        onQueryChange     = actions.onSearch,
+        onDateFilter      = actions.onDateFilter,
+        onStatusFilter    = actions.onStatusFilter,
+        onCustomDateRange = actions.onCustomRange,
+        onClear           = actions.onClearFilters,
         hasActiveFilter   = uiState.searchQuery.isNotBlank() ||
                             uiState.dateFilter != DateFilter.ALL ||
                             uiState.statusFilter != null
@@ -175,14 +219,14 @@ private fun SalesFilterBar(
 
 @Composable
 private fun SalesList(
-    uiState: id.rancak.app.presentation.viewmodel.SalesHistoryUiState,
-    viewModel: SalesHistoryViewModel,
+    uiState: SalesHistoryUiState,
+    actions: SalesHistoryActions,
     reflectSelect: Boolean,
     modifier: Modifier = Modifier
 ) {
     if (uiState.sales.isEmpty()) {
         NoResultsBox(
-            onClear  = viewModel::clearFilters,
+            onClear  = actions.onClearFilters,
             modifier = modifier
         )
     } else {
@@ -195,7 +239,7 @@ private fun SalesList(
                 SaleCard(
                     sale       = sale,
                     isSelected = reflectSelect && sale.uuid == uiState.selectedSale?.uuid,
-                    onClick    = { viewModel.selectSale(sale) }
+                    onClick    = { actions.onSelect(sale) }
                 )
             }
         }
@@ -229,5 +273,67 @@ private fun NoResultsBox(
             )
             TextButton(onClick = onClear) { Text("Reset Filter") }
         }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Previews — memanggil SalesHistoryScreenContent langsung
+// ─────────────────────────────────────────────────────────────────────────────
+
+private val previewSales = listOf(
+    Sale(
+        uuid = "s1", invoiceNo = "INV-001", orderType = OrderType.DINE_IN,
+        queueNumber = 1, status = SaleStatus.PAID, customerName = "Andi",
+        subtotal = 50_000, discount = 0, surcharge = 0,
+        tax = 5_000, total = 55_000, paymentMethod = PaymentMethod.CASH,
+        paidAmount = 60_000, changeAmount = 5_000,
+        items = emptyList(), createdAt = "2026-01-01T10:00:00"
+    ),
+    Sale(
+        uuid = "s2", invoiceNo = "INV-002", orderType = OrderType.TAKEAWAY,
+        queueNumber = 2, status = SaleStatus.PAID, customerName = "Budi",
+        subtotal = 30_000, discount = 0, surcharge = 0,
+        tax = 3_000, total = 33_000, paymentMethod = PaymentMethod.QRIS,
+        paidAmount = 33_000, changeAmount = 0,
+        items = emptyList(), createdAt = "2026-01-01T11:00:00"
+    )
+)
+
+@Preview(name = "Sales – Empty", widthDp = 390, heightDp = 844)
+@Composable
+private fun SalesHistoryEmptyPreview() {
+    RancakTheme {
+        SalesHistoryScreenContent(
+            uiState = SalesHistoryUiState(),
+            onBack  = {},
+            onRetry = {},
+            actions = SalesHistoryActions()
+        )
+    }
+}
+
+@Preview(name = "Sales – Phone", widthDp = 390, heightDp = 844)
+@Composable
+private fun SalesHistoryPhonePreview() {
+    RancakTheme {
+        SalesHistoryScreenContent(
+            uiState = SalesHistoryUiState(allSales = previewSales, sales = previewSales),
+            onBack  = {},
+            onRetry = {},
+            actions = SalesHistoryActions()
+        )
+    }
+}
+
+@Preview(name = "Sales – Tablet", widthDp = 1024, heightDp = 768)
+@Composable
+private fun SalesHistoryTabletPreview() {
+    RancakTheme {
+        SalesHistoryScreenContent(
+            uiState = SalesHistoryUiState(allSales = previewSales, sales = previewSales),
+            onBack  = {},
+            onRetry = {},
+            actions = SalesHistoryActions()
+        )
     }
 }

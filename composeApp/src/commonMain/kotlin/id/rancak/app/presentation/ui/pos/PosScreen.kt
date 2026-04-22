@@ -298,3 +298,88 @@ private fun SplitLayout(
         )
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Previews — memanggil PhoneLayout / SplitLayout apa adanya
+// ─────────────────────────────────────────────────────────────────────────────
+
+private val previewCategory = Category(
+    uuid = "c1", name = "Makanan", description = null
+)
+
+private val previewProducts = listOf(
+    Product(
+        uuid = "p1", sku = "SKU-1", barcode = null, name = "Nasi Goreng",
+        description = null, category = previewCategory, price = 25_000,
+        stock = 12.0, unit = "porsi", imageUrl = null, isActive = true,
+        updatedAt = null
+    ),
+    Product(
+        uuid = "p2", sku = "SKU-2", barcode = null, name = "Mie Goreng",
+        description = null, category = previewCategory, price = 22_000,
+        stock = 8.0, unit = "porsi", imageUrl = null, isActive = true,
+        updatedAt = null
+    ),
+    Product(
+        uuid = "p3", sku = "SKU-3", barcode = null, name = "Es Teh",
+        description = null, category = previewCategory, price = 5_000,
+        stock = 50.0, unit = "gelas", imageUrl = null, isActive = true,
+        updatedAt = null
+    )
+)
+
+@androidx.compose.ui.tooling.preview.Preview(name = "POS – Phone", widthDp = 390, heightDp = 844)
+@Composable
+private fun PosScreenPhonePreview() {
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        PhoneLayout(
+            uiState          = PosUiState(products = previewProducts, categories = listOf(previewCategory)),
+            cartState        = CartUiState(),
+            cartQtyMap       = emptyMap(),
+            outletName       = "Warung Rancak",
+            hasOpenShift     = true,
+            onMenuClick      = {},
+            onCartClick      = {},
+            onSearchChange   = {},
+            onCategorySelect = {},
+            onRefresh        = {},
+            onAdd            = {},
+            onScanClick      = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "POS – Tablet", widthDp = 1024, heightDp = 768)
+@Composable
+private fun PosScreenTabletPreview() {
+    id.rancak.app.presentation.designsystem.RancakTheme {
+        SplitLayout(
+            uiState          = PosUiState(products = previewProducts, categories = listOf(previewCategory)),
+            cartState        = CartUiState(),
+            cartQtyMap       = emptyMap(),
+            outletName       = "Warung Rancak",
+            hasOpenShift     = true,
+            onMenuClick      = {},
+            onCartClick      = {},
+            onCheckoutClick  = {},
+            onSaveClick      = {},
+            onSearchChange   = {},
+            onCategorySelect = {},
+            onRefresh        = {},
+            onAdd            = {},
+            onUpdateQty      = { _, _ -> },
+            onUpdateNote     = { _, _ -> },
+            onClearCart      = {},
+            onOrderType      = {},
+            onCustomerName   = {},
+            onPax            = {},
+            onDiscount       = {},
+            onTax            = {},
+            onAdminFee       = {},
+            onDeliveryFee    = {},
+            onTip            = {},
+            onVoucherCode    = {},
+            onScanClick      = {}
+        )
+    }
+}
