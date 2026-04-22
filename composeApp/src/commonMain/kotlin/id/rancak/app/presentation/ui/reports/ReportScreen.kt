@@ -52,7 +52,6 @@ import org.koin.compose.viewmodel.koinViewModel
 // Entry point — Scaffold + period selector + konten laporan.
 // ─────────────────────────────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportScreen(
     onBack: () -> Unit,
@@ -69,6 +68,35 @@ fun ReportScreen(
         }
     }
 
+    ReportScreenContent(
+        uiState        = uiState,
+        selectedPeriod = selectedPeriod,
+        onBack         = onBack,
+        onPeriodSelect = { period ->
+            selectedPeriod = period
+            if (period != ReportPeriod.CUSTOM) {
+                period.toDateRange()?.let { (from, to) ->
+                    viewModel.setDateRange(from, to)
+                }
+            }
+        },
+        onRetry        = viewModel::loadReport
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pure UI body — responsive layout tablet/phone untuk kartu-kartu laporan.
+// ─────────────────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun ReportScreenContent(
+    uiState: ReportUiState,
+    selectedPeriod: ReportPeriod = ReportPeriod.THIS_MONTH,
+    onBack: () -> Unit = {},
+    onPeriodSelect: (ReportPeriod) -> Unit = {},
+    onRetry: () -> Unit = {}
+) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -89,33 +117,22 @@ fun ReportScreen(
         ) {
             PeriodSelectorRow(
                 selected = selectedPeriod,
-                onSelect = { period ->
-                    selectedPeriod = period
-                    if (period != ReportPeriod.CUSTOM) {
-                        period.toDateRange()?.let { (from, to) ->
-                            viewModel.setDateRange(from, to)
-                        }
-                    }
-                }
+                onSelect = onPeriodSelect
             )
             HorizontalDivider()
 
             val error = uiState.error
             when {
                 uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
-                error != null     -> ErrorScreen(error, onRetry = viewModel::loadReport, modifier = Modifier.weight(1f))
-                else              -> ReportScreenContent(uiState = uiState, modifier = Modifier.weight(1f))
+                error != null     -> ErrorScreen(error, onRetry = onRetry, modifier = Modifier.weight(1f))
+                else              -> ReportBody(uiState = uiState, modifier = Modifier.weight(1f))
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Pure UI body — responsive layout tablet/phone untuk kartu-kartu laporan.
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
-private fun ReportScreenContent(
+private fun ReportBody(
     uiState: ReportUiState,
     modifier: Modifier = Modifier
 ) {
@@ -192,13 +209,17 @@ private fun TabletLayout(uiState: ReportUiState) {
 
 @Composable
 private fun PhoneLayout(uiState: ReportUiState) {
-    LazyColumn(
-        modifier            = Modifier.fillMaxSize(),
-        contentPadding      = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        val summary = uiState.summary
-        if (summary != null) {
+    val summary = uiState.summary
+    if (summary == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            EmptySummaryPlaceholder()
+        }
+    } else {
+        LazyColumn(
+            modifier            = Modifier.fillMaxSize(),
+            contentPadding      = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             item { KpiCardsGrid(summary) }
             item { FinancialBreakdownCard(summary) }
             if (summary.paymentSummary.isNotEmpty()) {
@@ -224,37 +245,56 @@ private fun PhoneLayout(uiState: ReportUiState) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Preview — hanya body pure-UI tanpa Koin.
+// Preview — full screen: Scaffold + TopBar + PeriodSelector + body.
 // ─────────────────────────────────────────────────────────────────────────────
 
-@Preview
+private val previewSummary = ShiftSummary(
+    uuid              = "shift-preview",
+    openedAt          = "2026-04-18 08:00:00",
+    closedAt          = null,
+    status            = "open",
+    openingCash       = "500000",
+    closingCash       = null,
+    expectedCash      = null,
+    cashDifference    = null,
+    cashierName       = "Admin Demo",
+    totalSales        = 8_750_000L,
+    totalTransactions = 64,
+    totalExpenses     = 325_000L,
+    totalCashIn       = 500_000L,
+    paymentSummary    = listOf(
+        PaymentMethodReport("cash",  4_500_000L, 32),
+        PaymentMethodReport("qris",  2_800_000L, 22),
+        PaymentMethodReport("card",  1_450_000L, 10)
+    )
+)
+
+@Preview(name = "Report – Phone",  widthDp = 390, heightDp = 844)
 @Composable
-private fun ReportScreenPreview() {
+private fun ReportScreenPhonePreview() {
     RancakTheme {
-        val mockState = ReportUiState(
-            summary = ShiftSummary(
-                uuid              = "shift-preview",
-                openedAt          = "2026-04-18 08:00:00",
-                closedAt          = null,
-                status            = "open",
-                openingCash       = "500000",
-                closingCash       = null,
-                expectedCash      = null,
-                cashDifference    = null,
-                cashierName       = "Admin Demo",
-                totalSales        = 8_750_000L,
-                totalTransactions = 64,
-                totalExpenses     = 325_000L,
-                totalCashIn       = 500_000L,
-                paymentSummary    = listOf(
-                    PaymentMethodReport("cash", 4_500_000, 32),
-                    PaymentMethodReport("qris", 2_800_000, 22),
-                    PaymentMethodReport("card", 1_450_000, 10)
-                )
+        ReportScreenContent(
+            uiState = ReportUiState(
+                summary  = previewSummary,
+                dateFrom = "2026-04-01",
+                dateTo   = "2026-04-30"
             ),
-            dateFrom = "2026-04-01",
-            dateTo   = "2026-04-15"
+            selectedPeriod = ReportPeriod.THIS_MONTH
         )
-        ReportScreenContent(uiState = mockState, modifier = Modifier.fillMaxSize())
+    }
+}
+
+@Preview(name = "Report – Tablet", widthDp = 1024, heightDp = 768)
+@Composable
+private fun ReportScreenTabletPreview() {
+    RancakTheme {
+        ReportScreenContent(
+            uiState = ReportUiState(
+                summary  = previewSummary,
+                dateFrom = "2026-04-01",
+                dateTo   = "2026-04-30"
+            ),
+            selectedPeriod = ReportPeriod.THIS_MONTH
+        )
     }
 }
