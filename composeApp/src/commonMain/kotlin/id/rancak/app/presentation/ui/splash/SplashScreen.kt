@@ -18,8 +18,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.rancak.app.presentation.navigation.Screen
+import id.rancak.app.presentation.viewmodel.SplashDestination
+import id.rancak.app.presentation.viewmodel.SplashViewModel
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
 import rancak.composeapp.generated.resources.Res
 import rancak.composeapp.generated.resources.tias_logo
 
@@ -32,12 +37,22 @@ private val AuroraAmber = Color(0xFFFF8C42)   // warm amber accent — warmth
 private val AuroraViolet = Color(0xFF7B3FE4)  // violet hint — luxury
 
 @Composable
-fun SplashScreen(onFinished: () -> Unit) {
+fun SplashScreen(
+    onNavigate: (Screen) -> Unit,
+    viewModel: SplashViewModel = koinViewModel()
+) {
+    val destination by viewModel.destination.collectAsStateWithLifecycle()
 
-    // ── Auto-navigate after 2.8 s ─────────────────────────────────────────────
-    LaunchedEffect(Unit) {
-        delay(2_800L)
-        onFinished()
+    // ── Navigasi otomatis setelah ViewModel menyelesaikan validasi ────────────
+    LaunchedEffect(destination) {
+        val dest = destination ?: return@LaunchedEffect
+        onNavigate(
+            when (dest) {
+                SplashDestination.LOGIN         -> Screen.Login
+                SplashDestination.TENANT_PICKER -> Screen.TenantPicker
+                SplashDestination.POS           -> Screen.Pos
+            }
+        )
     }
 
     // ── Entrance: logo + text scale + fade ────────────────────────────────────
@@ -294,14 +309,13 @@ private fun dotSpec(offsetMs: Int): InfiniteRepeatableSpec<Float> =
     )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Preview — SplashScreen tidak bergantung ViewModel, jadi langsung dipanggil.
-// Auto-navigate dinonaktifkan pada preview karena tidak ada host runtime.
+// Preview — gunakan overload tanpa ViewModel agar tidak butuh Koin runtime.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @androidx.compose.ui.tooling.preview.Preview(name = "Splash", widthDp = 390, heightDp = 844)
 @Composable
 private fun SplashScreenPreview() {
     id.rancak.app.presentation.designsystem.RancakTheme {
-        SplashScreen(onFinished = {})
+        SplashScreen(onNavigate = {})
     }
 }

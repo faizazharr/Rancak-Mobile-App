@@ -60,6 +60,7 @@ val repositoryModule = module {
 val viewModelModule = module {
     single { SettingsStore() }
     viewModelOf(::LoginViewModel)
+    viewModelOf(::SplashViewModel)
     viewModelOf(::TenantPickerViewModel)
     viewModelOf(::PosViewModel)
     viewModelOf(::CartViewModel)

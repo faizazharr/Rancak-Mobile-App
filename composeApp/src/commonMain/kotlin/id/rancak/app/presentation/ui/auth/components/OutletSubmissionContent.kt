@@ -1,6 +1,5 @@
 package id.rancak.app.presentation.ui.auth.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -11,25 +10,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AddBusiness
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -41,8 +29,16 @@ import id.rancak.app.presentation.viewmodel.BusinessType
 import id.rancak.app.presentation.viewmodel.OutletSubmissionFormState
 
 /**
- * Konten yang ditampilkan ketika pengguna belum memiliki outlet.
- * Tiga state: empty (CTA), form pengajuan, dan sukses.
+ * Konten untuk kondisi outlet kosong.
+ *
+ * Tiga state:
+ * - Empty  : tampilan "Belum Ada Outlet" dengan CTA pengajuan
+ * - Form   : form pengajuan bergaya gradient header + white sheet
+ * - Sukses : konfirmasi pengajuan berhasil
+ *
+ * Semua state menggunakan visual language yang sama dengan
+ * [TenantPickerPortrait] — gradient primary, dekorasi lingkaran,
+ * tipografi putih di atas gradient.
  */
 @Composable
 internal fun OutletSubmissionContent(
@@ -60,7 +56,10 @@ internal fun OutletSubmissionContent(
     modifier: Modifier = Modifier
 ) {
     when {
-        state.isSubmitted -> SubmissionSuccess(onReset = onReset, modifier = modifier)
+        state.isSubmitted -> SubmissionSuccess(
+            onReset  = onReset,
+            modifier = modifier
+        )
         state.isFormOpen  -> SubmissionForm(
             state                = state,
             onBack               = onCloseForm,
@@ -73,8 +72,56 @@ internal fun OutletSubmissionContent(
             onSubmit             = onSubmit,
             modifier             = modifier
         )
-        else -> EmptyOutletState(onOpenForm = onOpenForm, modifier = modifier)
+        else -> EmptyOutletState(
+            onOpenForm = onOpenForm,
+            modifier   = modifier
+        )
     }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers bersama
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun gradientColors(): Pair<Color, Color> {
+    val primary = MaterialTheme.colorScheme.primary
+    val dark    = Color(
+        red   = (primary.red   * 0.55f).coerceIn(0f, 1f),
+        green = (primary.green * 0.55f).coerceIn(0f, 1f),
+        blue  = (primary.blue  * 0.55f).coerceIn(0f, 1f)
+    )
+    return primary to dark
+}
+
+@Composable
+private fun GradientBackground(modifier: Modifier = Modifier) {
+    val (primary, dark) = gradientColors()
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(primary, dark)))
+    )
+}
+
+/** Lingkaran dekoratif semi-transparan persis seperti di TenantPickerPortrait. */
+@Composable
+private fun BoxScope.PortraitDecorations() {
+    Box(
+        modifier = Modifier
+            .size(260.dp)
+            .offset(x = (-60).dp, y = (-40).dp)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.07f))
+    )
+    Box(
+        modifier = Modifier
+            .size(200.dp)
+            .align(Alignment.TopEnd)
+            .offset(x = 60.dp, y = 80.dp)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.05f))
+    )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,114 +133,120 @@ private fun EmptyOutletState(
     onOpenForm: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val primary = MaterialTheme.colorScheme.primary
+    Box(modifier = modifier.fillMaxSize()) {
+        GradientBackground()
+        PortraitDecorations()
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
+        Column(
             modifier = Modifier
-                .size(140.dp)
-                .clip(CircleShape)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            primary.copy(alpha = 0.18f),
-                            primary.copy(alpha = 0.06f)
-                        )
-                    )
-                )
-                .border(1.dp, primary.copy(alpha = 0.25f), CircleShape),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .systemBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                Icons.Default.Storefront,
-                contentDescription = null,
-                tint = primary,
-                modifier = Modifier.size(64.dp)
-            )
-        }
-
-        Spacer(Modifier.height(28.dp))
-
-        Text(
-            "Belum Ada Outlet",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(10.dp))
-        Text(
-            "Anda belum memiliki outlet yang terdaftar.\n" +
-                "Ajukan outlet baru untuk mulai menggunakan Rancak POS.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(28.dp))
-
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            // Ikon outlet — glass style persis header TenantPickerPortrait
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(Color.White.copy(alpha = 0.18f))
+                    .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(22.dp)),
+                contentAlignment = Alignment.Center
             ) {
-                InfoStepRow(number = "1", text = "Isi data outlet & jenis usaha")
-                InfoStepRow(number = "2", text = "Tim Rancak meninjau pengajuan Anda")
-                InfoStepRow(number = "3", text = "Outlet aktif & siap digunakan")
+                Icon(
+                    Icons.Default.Storefront,
+                    contentDescription = null,
+                    tint     = Color.White,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                "Belum Ada Outlet",
+                style      = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color      = Color.White,
+                textAlign  = TextAlign.Center
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Anda belum memiliki outlet yang terdaftar.\nAjukan outlet baru untuk mulai menggunakan Rancak POS.",
+                style     = MaterialTheme.typography.bodyMedium,
+                color     = Color.White.copy(alpha = 0.75f),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            // Info card — glass style
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Color.White.copy(alpha = 0.12f))
+                    .border(1.dp, Color.White.copy(alpha = 0.20f), RoundedCornerShape(18.dp))
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Text(
+                    "Cara Pengajuan",
+                    style      = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color      = Color.White.copy(alpha = 0.90f)
+                )
+                InfoStep(number = "1", text = "Isi data outlet dan jenis usaha Anda")
+                InfoStep(number = "2", text = "Tim Rancak meninjau pengajuan")
+                InfoStep(number = "3", text = "Outlet aktif dan siap digunakan")
+            }
+
+            Spacer(Modifier.height(28.dp))
+
+            // Tombol CTA — putih di atas gradient
+            Button(
+                onClick  = onOpenForm,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape  = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor   = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Ajukan Outlet Baru", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
             }
         }
-
-        Spacer(Modifier.height(28.dp))
-
-        RancakButton(
-            text = "Ajukan Outlet Baru",
-            onClick = onOpenForm,
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
 
 @Composable
-private fun InfoStepRow(number: String, text: String) {
+private fun InfoStep(number: String, text: String) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(28.dp)
+                .size(26.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary),
+                .background(Color.White.copy(alpha = 0.25f))
+                .border(1.dp, Color.White.copy(alpha = 0.40f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                number,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
+            Text(number, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.White)
         }
-        Text(
-            text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Text(text, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.85f))
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Form
+// Form pengajuan — gradient header + white bottom sheet
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -209,182 +262,213 @@ private fun SubmissionForm(
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        FormHeader(onBack = onBack)
+    Box(modifier = modifier.fillMaxSize()) {
+        GradientBackground()
+        PortraitDecorations()
 
-        FormSection(title = "Identitas Outlet", icon = Icons.Default.Storefront) {
-            RancakTextField(
-                value = state.name,
-                onValueChange = onNameChange,
-                label = "Nama Outlet",
-                placeholder = "Contoh: Warung Kopi Sinar",
-                leadingIcon = { Icon(Icons.Default.Storefront, null) }
-            )
-            RancakTextField(
-                value = state.phone,
-                onValueChange = onPhoneChange,
-                label = "Nomor Telepon",
-                placeholder = "08xxxxxxxxxx",
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                leadingIcon = { Icon(Icons.Default.Phone, null) }
-            )
-        }
-
-        FormSection(title = "Lokasi", icon = Icons.Default.LocationOn) {
-            RancakTextField(
-                value = state.address,
-                onValueChange = onAddressChange,
-                label = "Alamat Lengkap",
-                placeholder = "Jalan, RT/RW, Kelurahan, Kota",
-                singleLine = false,
-                minLines = 2,
-                maxLines = 4,
-                leadingIcon = { Icon(Icons.Default.LocationOn, null) }
-            )
-            RancakTextField(
-                value = state.gmapsUrl,
-                onValueChange = onGmapsChange,
-                label = "Link Google Maps (opsional)",
-                placeholder = "https://maps.google.com/...",
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                leadingIcon = { Icon(Icons.Default.Map, null) }
-            )
-        }
-
-        FormSection(title = "Legalitas & Jenis Usaha", icon = Icons.Default.Description) {
-            RancakTextField(
-                value = state.nib,
-                onValueChange = onNibChange,
-                label = "NIB (Nomor Induk Berusaha)",
-                placeholder = "13 digit NIB",
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                leadingIcon = { Icon(Icons.Default.Description, null) }
-            )
-            BusinessTypeDropdown(
-                selected = state.businessType,
-                onSelect = onBusinessTypeChange
-            )
-        }
-
-        state.error?.let { msg ->
-            Surface(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = msg,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(12.dp)
-                )
-            }
-        }
-
-        RancakButton(
-            text = "Kirim Pengajuan",
-            onClick = onSubmit,
-            isLoading = state.isSubmitting,
-            enabled = state.isValid,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(8.dp))
-    }
-}
-
-@Composable
-private fun FormHeader(onBack: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.size(40.dp)
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Kembali",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                "Pengajuan Outlet Baru",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                "Lengkapi data di bawah ini",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Box(
+        Column(
             modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .systemBarsPadding()
         ) {
-            Icon(
-                Icons.Default.AddBusiness,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(22.dp)
-            )
+            // ── Gradient header ───────────────────────────────────────────────
+            Row(
+                modifier              = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                // Tombol kembali — glass style
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.18f))
+                        .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Kembali",
+                            tint     = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Pengajuan Outlet",
+                        style      = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color      = Color.White
+                    )
+                    Text(
+                        "Lengkapi data di bawah ini",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.70f)
+                    )
+                }
+
+                // Brand icon — glass
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.18f))
+                        .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Storefront, null, Modifier.size(22.dp), tint = Color.White)
+                }
+            }
+
+            Spacer(Modifier.height(4.dp))
+
+            // ── White sheet ───────────────────────────────────────────────────
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape    = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                color    = MaterialTheme.colorScheme.background,
+                tonalElevation = 0.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .imePadding()
+                        .padding(horizontal = 20.dp, vertical = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Identitas Outlet
+                    FormSection(
+                        title  = "Identitas Outlet",
+                        icon   = Icons.Default.Storefront
+                    ) {
+                        RancakTextField(
+                            value         = state.name,
+                            onValueChange = onNameChange,
+                            label         = "Nama Outlet",
+                            placeholder   = "Contoh: Warung Kopi Sinar",
+                            leadingIcon   = { Icon(Icons.Default.Storefront, null, Modifier.size(20.dp)) }
+                        )
+                        RancakTextField(
+                            value          = state.phone,
+                            onValueChange  = onPhoneChange,
+                            label          = "Nomor Telepon",
+                            placeholder    = "08xxxxxxxxxx",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                            leadingIcon    = { Icon(Icons.Default.Phone, null, Modifier.size(20.dp)) }
+                        )
+                    }
+
+                    // Lokasi
+                    FormSection(
+                        title = "Lokasi",
+                        icon  = Icons.Default.LocationOn
+                    ) {
+                        RancakTextField(
+                            value         = state.address,
+                            onValueChange = onAddressChange,
+                            label         = "Alamat Lengkap",
+                            placeholder   = "Jalan, RT/RW, Kelurahan, Kota",
+                            singleLine    = false,
+                            minLines      = 2,
+                            maxLines      = 4,
+                            leadingIcon   = { Icon(Icons.Default.LocationOn, null, Modifier.size(20.dp)) }
+                        )
+                        RancakTextField(
+                            value          = state.gmapsUrl,
+                            onValueChange  = onGmapsChange,
+                            label          = "Link Google Maps (opsional)",
+                            placeholder    = "https://maps.google.com/...",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                            leadingIcon    = { Icon(Icons.Default.Map, null, Modifier.size(20.dp)) }
+                        )
+                    }
+
+                    // Legalitas & Jenis Usaha
+                    FormSection(
+                        title = "Legalitas & Jenis Usaha",
+                        icon  = Icons.Default.Description
+                    ) {
+                        RancakTextField(
+                            value          = state.nib,
+                            onValueChange  = onNibChange,
+                            label          = "NIB (Nomor Induk Berusaha)",
+                            placeholder    = "13 digit NIB",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            leadingIcon    = { Icon(Icons.Default.Description, null, Modifier.size(20.dp)) }
+                        )
+                        BusinessTypeDropdown(
+                            selected = state.businessType,
+                            onSelect = onBusinessTypeChange
+                        )
+                    }
+
+                    // Error
+                    if (state.error != null) {
+                        Surface(
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text     = state.error,
+                                style    = MaterialTheme.typography.bodySmall,
+                                color    = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+
+                    RancakButton(
+                        text      = "Kirim Pengajuan",
+                        onClick   = onSubmit,
+                        isLoading = state.isSubmitting,
+                        enabled   = state.isValid,
+                        modifier  = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
         }
     }
 }
 
+/** Kelompok form dengan label judul section bergaya labelLarge + divider tipis. */
 @Composable
 private fun FormSection(
-    title: String,
-    icon: ImageVector,
+    title:   String,
+    icon:    ImageVector,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            content()
+            Icon(
+                icon,
+                contentDescription = null,
+                tint     = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                title,
+                style      = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.primary
+            )
         }
+        HorizontalDivider(
+            color     = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            thickness = 0.5.dp
+        )
+        content()
     }
 }
 
@@ -397,26 +481,26 @@ private fun BusinessTypeDropdown(
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
+        expanded          = expanded,
+        onExpandedChange  = { expanded = !expanded }
     ) {
         RancakTextField(
-            value = selected?.label ?: "",
+            value         = selected?.label ?: "",
             onValueChange = {},
-            label = "Jenis Usaha",
-            placeholder = "Pilih jenis usaha",
-            readOnly = true,
-            leadingIcon = { Icon(Icons.Default.Category, null) },
-            trailingIcon = { Icon(Icons.Default.ArrowDropDown, null) },
-            modifier = Modifier.menuAnchor()
+            label         = "Jenis Usaha",
+            placeholder   = "Pilih jenis usaha",
+            readOnly      = true,
+            leadingIcon   = { Icon(Icons.Default.Category, null, Modifier.size(20.dp)) },
+            trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier      = Modifier.menuAnchor()
         )
         ExposedDropdownMenu(
-            expanded = expanded,
+            expanded         = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            BusinessType.values().forEach { type ->
+            BusinessType.entries.forEach { type ->
                 DropdownMenuItem(
-                    text = { Text(type.label) },
+                    text    = { Text(type.label) },
                     onClick = {
                         onSelect(type)
                         expanded = false
@@ -433,52 +517,69 @@ private fun BusinessTypeDropdown(
 
 @Composable
 private fun SubmissionSuccess(
-    onReset: () -> Unit,
+    onReset:  () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
+    Box(modifier = modifier.fillMaxSize()) {
+        GradientBackground()
+        PortraitDecorations()
+
+        Column(
             modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .systemBarsPadding()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                Icons.Default.CheckCircle,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(72.dp)
+            // Ikon sukses — glass circle
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.18f))
+                    .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint     = Color.White,
+                    modifier = Modifier.size(52.dp)
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                "Pengajuan Terkirim!",
+                style      = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color      = Color.White,
+                textAlign  = TextAlign.Center
             )
-        }
-        Spacer(Modifier.height(20.dp))
-        Text(
-            "Pengajuan Terkirim",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(10.dp))
-        Text(
-            "Pengajuan outlet Anda sedang kami tinjau.\n" +
-                "Anda akan dihubungi melalui kontak yang didaftarkan.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(28.dp))
-        OutlinedButton(
-            onClick = onReset,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Text("Ajukan Outlet Lain")
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "Pengajuan Anda sedang kami tinjau.\nAnda akan dihubungi melalui kontak yang didaftarkan.",
+                style     = MaterialTheme.typography.bodyMedium,
+                color     = Color.White.copy(alpha = 0.75f),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            // Tombol ajukan lagi — white outlined di atas gradient
+            OutlinedButton(
+                onClick  = onReset,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape  = MaterialTheme.shapes.medium,
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.70f)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+            ) {
+                Text("Ajukan Outlet Lain", style = MaterialTheme.typography.labelLarge)
+            }
         }
     }
 }

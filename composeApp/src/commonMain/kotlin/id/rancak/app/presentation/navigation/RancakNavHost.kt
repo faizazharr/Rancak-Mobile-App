@@ -226,15 +226,7 @@ private fun NavigationContent(
     ) {
         composable<Screen.Splash> {
             SplashScreen(
-                onFinished = {
-                    val destination = when {
-                        authRepository.isLoggedIn() && authRepository.getCurrentTenantUuid() != null ->
-                            Screen.Pos
-                        authRepository.isLoggedIn() ->
-                            Screen.TenantPicker
-                        else ->
-                            Screen.Login
-                    }
+                onNavigate = { destination ->
                     navController.navigate(destination) {
                         popUpTo(Screen.Splash) { inclusive = true }
                     }
