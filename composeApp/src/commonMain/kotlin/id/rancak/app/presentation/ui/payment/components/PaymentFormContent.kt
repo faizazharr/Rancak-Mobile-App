@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CallSplit
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
@@ -42,6 +44,8 @@ internal fun PaymentFormContent(
     isCashSelected: Boolean,
     isProcessing: Boolean,
     onProcessPayment: () -> Unit,
+    isSplit: Boolean = false,
+    onToggleMode: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val changeAmount = remember(paidAmount, subtotal) {
@@ -67,6 +71,8 @@ internal fun PaymentFormContent(
             subtotal       = subtotal,
             isCashSelected = isCashSelected,
             changeAmount   = changeAmount,
+            isSplit        = isSplit,
+            onToggleMode   = onToggleMode,
             modifier       = Modifier.weight(0.42f).fillMaxHeight()
         )
         PaymentInputColumn(
@@ -91,6 +97,8 @@ private fun OrderSummaryColumn(
     subtotal: Long,
     isCashSelected: Boolean,
     changeAmount: Long,
+    isSplit: Boolean,
+    onToggleMode: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -100,6 +108,39 @@ private fun OrderSummaryColumn(
         HeroTotalCard(itemCount, subtotal)
         SummaryCard(itemCount, subtotal)
         if (isCashSelected && changeAmount > 0) ChangeDueCard(changeAmount)
+        Spacer(Modifier.weight(1f))
+        PaymentModeToggleColumn(isSplit = isSplit, onToggle = onToggleMode)
+    }
+}
+
+@Composable
+private fun PaymentModeToggleColumn(isSplit: Boolean, onToggle: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            "Mode Pembayaran",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            AssistChip(
+                onClick = { if (isSplit) onToggle() },
+                label = { Text("Tunggal") },
+                leadingIcon = { Icon(Icons.Default.Payments, null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.weight(1f),
+                colors = if (!isSplit) AssistChipDefaults.assistChipColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ) else AssistChipDefaults.assistChipColors()
+            )
+            AssistChip(
+                onClick = { if (!isSplit) onToggle() },
+                label = { Text("Terpisah") },
+                leadingIcon = { Icon(Icons.Default.CallSplit, null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.weight(1f),
+                colors = if (isSplit) AssistChipDefaults.assistChipColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ) else AssistChipDefaults.assistChipColors()
+            )
+        }
     }
 }
 
@@ -232,36 +273,44 @@ private fun PaymentInputColumn(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState()),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        MethodSelector(selectedMethod = selectedMethod, onSelectMethod = onSelectMethod)
+        // Area scroll untuk metode + input + numpad
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            MethodSelector(selectedMethod = selectedMethod, onSelectMethod = onSelectMethod)
 
-        if (isCashSelected) {
-            PaidAmountDisplay(
-                paidAmount = paidAmount,
-                onClear    = { onPaidAmountChange("") }
-            )
-            QuickAmountRow(
-                quickAmounts = quickAmounts,
-                paidAmount   = paidAmount,
-                onSelect     = { onPaidAmountChange(it.toString()) }
-            )
-            PaymentNumpad(
-                onKey = { key ->
-                    val current = paidAmount
-                    val next = when (key) {
-                        "⌫"   -> current.dropLast(1)
-                        "000" -> if (current.isEmpty()) current else (current + "000").take(10)
-                        else  -> if (current.isEmpty() && key == "0") current
-                                 else (current + key).take(10)
+            if (isCashSelected) {
+                PaidAmountDisplay(
+                    paidAmount = paidAmount,
+                    onClear    = { onPaidAmountChange("") }
+                )
+                QuickAmountRow(
+                    quickAmounts = quickAmounts,
+                    paidAmount   = paidAmount,
+                    onSelect     = { onPaidAmountChange(it.toString()) }
+                )
+                PaymentNumpad(
+                    onKey = { key ->
+                        val current = paidAmount
+                        val next = when (key) {
+                            "⌫"   -> current.dropLast(1)
+                            "000" -> if (current.isEmpty()) current else (current + "000").take(10)
+                            else  -> if (current.isEmpty() && key == "0") current
+                                     else (current + key).take(10)
+                        }
+                        onPaidAmountChange(next)
                     }
-                    onPaidAmountChange(next)
-                }
-            )
+                )
+            }
         }
 
-        Spacer(Modifier.height(4.dp))
+        // Tombol sticky di bawah — selalu terlihat
         RancakButton(
             text      = "Proses Pembayaran",
             onClick   = onProcessPayment,

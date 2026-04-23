@@ -98,12 +98,6 @@ fun PaymentScreen(
                 )
 
                 else -> Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-                    // Toggle split vs single payment
-                    PaymentModeToggle(
-                        isSplit = paymentState.isSplitPayment,
-                        onToggle = paymentViewModel::toggleSplitPayment
-                    )
-
                     if (paymentState.isSplitPayment) {
                         SplitPaymentPanel(
                             itemCount       = cartState.itemCount,
@@ -112,6 +106,8 @@ fun PaymentScreen(
                             isProcessing    = paymentState.isProcessing,
                             onAddPayment    = paymentViewModel::addSplitPaymentEntry,
                             onRemovePayment = paymentViewModel::removeSplitPaymentEntry,
+                            isSplit         = paymentState.isSplitPayment,
+                            onToggleMode    = paymentViewModel::toggleSplitPayment,
                             onProcess       = {
                                 paymentViewModel.processPaymentWithSplit(
                                     items        = cartState.items,
@@ -141,6 +137,8 @@ fun PaymentScreen(
                             onPaidAmountChange = paymentViewModel::setPaidAmount,
                             isCashSelected     = paymentState.selectedMethod == PaymentMethod.CASH,
                             isProcessing       = paymentState.isProcessing,
+                            isSplit            = paymentState.isSplitPayment,
+                            onToggleMode       = paymentViewModel::toggleSplitPayment,
                             onProcessPayment   = {
                                 paymentViewModel.processPayment(
                                     items        = cartState.items,
@@ -165,39 +163,6 @@ fun PaymentScreen(
         }
     }
 }
-
-@Composable
-private fun PaymentModeToggle(
-    isSplit: Boolean,
-    onToggle: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        AssistChip(
-            onClick = { if (isSplit) onToggle() },
-            label = { Text("Bayar Tunggal") },
-            leadingIcon = { Icon(Icons.Default.Payments, null) },
-            colors = if (!isSplit) AssistChipDefaults.assistChipColors(
-                containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer
-            ) else AssistChipDefaults.assistChipColors()
-        )
-        AssistChip(
-            onClick = { if (!isSplit) onToggle() },
-            label = { Text("Bayar Terpisah") },
-            leadingIcon = { Icon(Icons.Default.CallSplit, null) },
-            colors = if (isSplit) AssistChipDefaults.assistChipColors(
-                containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer
-            ) else AssistChipDefaults.assistChipColors()
-        )
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Preview — memanggil PaymentFormContent (state default) di dalam Scaffold
-// yang identik dengan PaymentScreen. Tidak menduplikasi logika "when".
-// ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @androidx.compose.ui.tooling.preview.Preview(name = "Payment – Form", widthDp = 390, heightDp = 844)

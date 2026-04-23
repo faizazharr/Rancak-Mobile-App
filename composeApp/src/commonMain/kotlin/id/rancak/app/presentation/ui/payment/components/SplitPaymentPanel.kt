@@ -7,7 +7,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CallSplit
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,6 +39,8 @@ internal fun SplitPaymentPanel(
     onAddPayment: (PaymentMethod, Long) -> Unit,
     onRemovePayment: (Int) -> Unit,
     onProcess: () -> Unit,
+    isSplit: Boolean = true,
+    onToggleMode: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val paidSoFar = splitPayments.sumOf { it.amount }
@@ -111,56 +116,94 @@ internal fun SplitPaymentPanel(
                     )
                 }
             }
-        }
 
-        // ── Right: Entry list + add form ──────────────────────────────────────
-        Column(
-            modifier = Modifier.weight(0.58f).fillMaxHeight().verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                "Daftar Pembayaran",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
-            )
+            Spacer(Modifier.weight(1f))
 
-            if (splitPayments.isEmpty()) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        "Belum ada pembayaran. Tambahkan minimal satu metode di bawah.",
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            // ── Mode toggle (di kiri bawah) ───────────────────────────────────
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    "Mode Pembayaran",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    AssistChip(
+                        onClick = { if (isSplit) onToggleMode() },
+                        label = { Text("Tunggal") },
+                        leadingIcon = { Icon(Icons.Default.Payments, null, modifier = Modifier.size(16.dp)) },
+                        modifier = Modifier.weight(1f),
+                        colors = if (!isSplit) AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        ) else AssistChipDefaults.assistChipColors()
+                    )
+                    AssistChip(
+                        onClick = { if (!isSplit) onToggleMode() },
+                        label = { Text("Terpisah") },
+                        leadingIcon = { Icon(Icons.Default.CallSplit, null, modifier = Modifier.size(16.dp)) },
+                        modifier = Modifier.weight(1f),
+                        colors = if (isSplit) AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        ) else AssistChipDefaults.assistChipColors()
                     )
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 200.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    itemsIndexed(splitPayments) { index, entry ->
-                        SplitPaymentRow(
-                            index = index,
-                            entry = entry,
-                            onRemove = { onRemovePayment(index) }
+            }
+        }
+
+        // ── Right: Entry list + add form + sticky button ─────────────────────
+        Column(
+            modifier = Modifier.weight(0.58f).fillMaxHeight(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Daftar Pembayaran",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                if (splitPayments.isEmpty()) {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "Belum ada pembayaran. Tambahkan minimal satu metode di bawah.",
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.heightIn(max = 200.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        itemsIndexed(splitPayments) { index, entry ->
+                            SplitPaymentRow(
+                                index = index,
+                                entry = entry,
+                                onRemove = { onRemovePayment(index) }
+                            )
+                        }
+                    }
                 }
+
+                HorizontalDivider()
+
+                AddPaymentForm(
+                    maxAmount = remaining.takeIf { it > 0 } ?: 0L,
+                    onAdd = onAddPayment
+                )
             }
 
-            HorizontalDivider()
-
-            AddPaymentForm(
-                maxAmount = remaining.takeIf { it > 0 } ?: 0L,
-                onAdd = onAddPayment
-            )
-
-            Spacer(Modifier.height(4.dp))
+            // Tombol sticky di bawah — selalu terlihat
             RancakButton(
                 text = "Proses Pembayaran",
                 onClick = onProcess,
@@ -247,28 +290,68 @@ private fun AddPaymentForm(
             }
         }
 
-        OutlinedTextField(
-            value = amountText,
-            onValueChange = { input -> amountText = input.filter { it.isDigit() } },
-            label = { Text("Jumlah") },
-            placeholder = {
-                Text(if (maxAmount > 0) "Sisa: ${formatRupiah(maxAmount)}" else "Rp 0")
-            },
-            singleLine = true,
+        // Amount display — same pattern as single payment
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.fillMaxWidth()
-        )
-
-        if (maxAmount > 0) {
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                TextButton(
-                    onClick = { amountText = maxAmount.toString() },
-                    modifier = Modifier.weight(1f)
-                ) { Text("Isi Sisa (${formatRupiah(maxAmount)})") }
+                Column {
+                    Text(
+                        "Jumlah Bayar",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = if (amountText.isEmpty()) "Rp 0"
+                               else formatRupiah(amountText.toLongOrNull() ?: 0L),
+                        style      = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color      = if (amountText.isEmpty())
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                if (amountText.isNotEmpty()) {
+                    IconButton(onClick = { amountText = "" }, modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            Icons.Default.Clear,
+                            contentDescription = "Hapus",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
             }
         }
+
+        if (maxAmount > 0) {
+            FilledTonalButton(
+                onClick = { amountText = maxAmount.toString() },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Isi Sisa (${formatRupiah(maxAmount)})") }
+        }
+
+        PaymentNumpad(
+            onKey = { key ->
+                val current = amountText
+                val next = when (key) {
+                    "⌫"   -> current.dropLast(1)
+                    "000" -> if (current.isEmpty()) current else (current + "000").take(10)
+                    else  -> if (current.isEmpty() && key == "0") current
+                             else (current + key).take(10)
+                }
+                amountText = next
+            }
+        )
 
         RancakButton(
             text = "Tambah",

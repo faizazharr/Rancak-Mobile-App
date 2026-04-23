@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Tenant
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
+import id.rancak.app.presentation.ui.auth.components.OutletSubmissionContent
 import id.rancak.app.presentation.ui.auth.components.TenantPickerLandscape
 import id.rancak.app.presentation.ui.auth.components.TenantPickerPortrait
 import id.rancak.app.presentation.viewmodel.TenantPickerViewModel
@@ -23,6 +24,7 @@ import org.koin.compose.viewmodel.koinViewModel
  * [TenantPickerViewModel] lalu menampilkan layout portrait atau landscape.
  *
  * Tap kartu outlet langsung memilih + konfirmasi (tanpa tombol terpisah).
+ * Jika pengguna belum memiliki outlet, tampilkan form pengajuan outlet.
  */
 @Composable
 fun TenantPickerScreen(
@@ -48,6 +50,18 @@ fun TenantPickerScreen(
                 message  = uiState.error!!,
                 onRetry  = viewModel::loadTenants,
                 modifier = Modifier.padding(padding)
+            )
+            uiState.tenants.isEmpty() -> OutletSubmissionContent(
+                state                = uiState.submission,
+                onNameChange         = viewModel::updateSubmissionName,
+                onPhoneChange        = viewModel::updateSubmissionPhone,
+                onAddressChange      = viewModel::updateSubmissionAddress,
+                onGmapsChange        = viewModel::updateSubmissionGmapsUrl,
+                onNibChange          = viewModel::updateSubmissionNib,
+                onBusinessTypeChange = viewModel::updateSubmissionBusinessType,
+                onSubmit             = viewModel::submitOutletRequest,
+                onReset              = viewModel::resetSubmission,
+                modifier             = Modifier.padding(padding).fillMaxSize()
             )
             else -> BoxWithConstraints(modifier = Modifier.padding(padding).fillMaxSize()) {
                 val isWide = maxWidth > maxHeight || maxWidth >= 600.dp
