@@ -53,6 +53,8 @@ fun TenantPickerScreen(
             )
             uiState.tenants.isEmpty() -> OutletSubmissionContent(
                 state                = uiState.submission,
+                onOpenForm           = viewModel::openSubmissionForm,
+                onCloseForm          = viewModel::closeSubmissionForm,
                 onNameChange         = viewModel::updateSubmissionName,
                 onPhoneChange        = viewModel::updateSubmissionPhone,
                 onAddressChange      = viewModel::updateSubmissionAddress,

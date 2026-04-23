@@ -26,6 +26,7 @@ enum class BusinessType(val label: String) {
 
 /** State form pengajuan outlet. */
 data class OutletSubmissionFormState(
+    val isFormOpen: Boolean = false,
     val name: String = "",
     val phone: String = "",
     val address: String = "",
@@ -114,6 +115,12 @@ class TenantPickerViewModel(
 
     fun updateSubmissionBusinessType(value: BusinessType) =
         _uiState.update { it.copy(submission = it.submission.copy(businessType = value, error = null)) }
+
+    fun openSubmissionForm() =
+        _uiState.update { it.copy(submission = it.submission.copy(isFormOpen = true, error = null)) }
+
+    fun closeSubmissionForm() =
+        _uiState.update { it.copy(submission = it.submission.copy(isFormOpen = false, error = null)) }
 
     fun resetSubmission() =
         _uiState.update { it.copy(submission = OutletSubmissionFormState()) }
