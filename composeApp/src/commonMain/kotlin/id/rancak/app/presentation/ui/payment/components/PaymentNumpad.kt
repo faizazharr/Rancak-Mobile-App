@@ -37,7 +37,7 @@ internal fun PaymentNumpad(
     ) {
         keys.forEach { row ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 row.forEach { key -> PaymentNumpadKey(key = key, onClick = { onKey(key) }) }
@@ -52,7 +52,7 @@ private fun RowScope.PaymentNumpadKey(key: String, onClick: () -> Unit) {
     val isBackspace = key == "⌫"
     ElevatedButton(
         onClick  = onClick,
-        modifier = Modifier.weight(1f).height(56.dp),
+        modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp),
         shape    = MaterialTheme.shapes.medium,
         colors   = ButtonDefaults.elevatedButtonColors(
             containerColor = if (isBackspace)

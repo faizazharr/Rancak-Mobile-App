@@ -280,38 +280,34 @@ private fun PaymentInputColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Area scroll untuk metode + input + numpad
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            MethodSelector(selectedMethod = selectedMethod, onSelectMethod = onSelectMethod)
+        MethodSelector(selectedMethod = selectedMethod, onSelectMethod = onSelectMethod)
 
-            if (isCashSelected) {
-                PaidAmountDisplay(
-                    paidAmount = paidAmount,
-                    onClear    = { onPaidAmountChange("") }
-                )
-                QuickAmountRow(
-                    quickAmounts = quickAmounts,
-                    paidAmount   = paidAmount,
-                    onSelect     = { onPaidAmountChange(it.toString()) }
-                )
-                PaymentNumpad(
-                    onKey = { key ->
-                        val current = paidAmount
-                        val next = when (key) {
-                            "⌫"   -> current.dropLast(1)
-                            "000" -> if (current.isEmpty()) current else (current + "000").take(10)
-                            else  -> if (current.isEmpty() && key == "0") current
-                                     else (current + key).take(10)
-                        }
-                        onPaidAmountChange(next)
+        if (isCashSelected) {
+            PaidAmountDisplay(
+                paidAmount = paidAmount,
+                onClear    = { onPaidAmountChange("") }
+            )
+            QuickAmountRow(
+                quickAmounts = quickAmounts,
+                paidAmount   = paidAmount,
+                onSelect     = { onPaidAmountChange(it.toString()) }
+            )
+            // Numpad mengisi sisa tinggi kolom — tidak pernah keluar dari viewport
+            PaymentNumpad(
+                modifier = Modifier.weight(1f),
+                onKey = { key ->
+                    val current = paidAmount
+                    val next = when (key) {
+                        "⌫"   -> current.dropLast(1)
+                        "000" -> if (current.isEmpty()) current else (current + "000").take(10)
+                        else  -> if (current.isEmpty() && key == "0") current
+                                 else (current + key).take(10)
                     }
-                )
-            }
+                    onPaidAmountChange(next)
+                }
+            )
+        } else {
+            Spacer(Modifier.weight(1f))
         }
 
         // Tombol sticky di bawah — selalu terlihat
