@@ -251,6 +251,11 @@ private fun NavigationContent(
                     navController.navigate(Screen.Pos) {
                         popUpTo(Screen.TenantPicker) { inclusive = true }
                     }
+                },
+                onLoggedOut = {
+                    navController.navigate(Screen.Login) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }

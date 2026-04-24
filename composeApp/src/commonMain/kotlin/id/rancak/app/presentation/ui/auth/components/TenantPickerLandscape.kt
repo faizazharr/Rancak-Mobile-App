@@ -10,10 +10,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Store
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,7 +37,8 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 internal fun TenantPickerLandscape(
     tenants: List<Tenant>,
     selectedTenant: Tenant?,
-    onSelectTenant: (Tenant) -> Unit
+    onSelectTenant: (Tenant) -> Unit,
+    onAddOutlet: (() -> Unit)? = null
 ) {
     val primary     = MaterialTheme.colorScheme.primary
     val primaryDark = Color(
@@ -107,6 +112,20 @@ internal fun TenantPickerLandscape(
                         fontWeight = FontWeight.SemiBold,
                         color      = Color.White
                     )
+                }
+
+                if (onAddOutlet != null) {
+                    Spacer(Modifier.height(16.dp))
+                    OutlinedButton(
+                        onClick  = onAddOutlet,
+                        border   = BorderStroke(1.dp, Color.White.copy(alpha = 0.40f)),
+                        shape    = MaterialTheme.shapes.medium,
+                        colors   = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Ajukan Outlet Baru", style = MaterialTheme.typography.labelSmall)
+                    }
                 }
             }
         }

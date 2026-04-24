@@ -53,6 +53,7 @@ internal fun OutletSubmissionContent(
     onBusinessTypeChange: (BusinessType) -> Unit,
     onSubmit: () -> Unit,
     onReset: () -> Unit,
+    onLogout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     when {
@@ -74,6 +75,7 @@ internal fun OutletSubmissionContent(
         )
         else -> EmptyOutletState(
             onOpenForm = onOpenForm,
+            onLogout   = onLogout,
             modifier   = modifier
         )
     }
@@ -131,6 +133,7 @@ private fun BoxScope.PortraitDecorations() {
 @Composable
 private fun EmptyOutletState(
     onOpenForm: () -> Unit,
+    onLogout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -220,6 +223,27 @@ private fun EmptyOutletState(
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Ajukan Outlet Baru", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // Tombol logout — ganti akun jika tersangkut
+            TextButton(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Default.Logout,
+                    contentDescription = null,
+                    tint     = Color.White.copy(alpha = 0.65f),
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Keluar / Ganti Akun",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White.copy(alpha = 0.65f)
+                )
             }
         }
     }

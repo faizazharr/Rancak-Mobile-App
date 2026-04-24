@@ -125,6 +125,10 @@ class TenantPickerViewModel(
     fun resetSubmission() =
         _uiState.update { it.copy(submission = OutletSubmissionFormState()) }
 
+    fun logout() {
+        viewModelScope.launch { authRepository.logout() }
+    }
+
     /**
      * Kirim pengajuan outlet baru. Sementara backend belum tersedia,
      * fungsi ini menyimulasi proses submit dan menampilkan status sukses.

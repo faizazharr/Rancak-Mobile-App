@@ -29,6 +29,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun TenantPickerScreen(
     onTenantSelected: () -> Unit,
+    onLoggedOut: () -> Unit = {},
     viewModel: TenantPickerViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -51,7 +52,10 @@ fun TenantPickerScreen(
                 onRetry  = viewModel::loadTenants,
                 modifier = Modifier.padding(padding)
             )
-            uiState.tenants.isEmpty() -> OutletSubmissionContent(
+            // Form atau success bisa ditampilkan meski outlet sudah ada (ajukan outlet tambahan)
+            uiState.tenants.isEmpty() ||
+            uiState.submission.isFormOpen ||
+            uiState.submission.isSubmitted -> OutletSubmissionContent(
                 state                = uiState.submission,
                 onOpenForm           = viewModel::openSubmissionForm,
                 onCloseForm          = viewModel::closeSubmissionForm,
@@ -63,6 +67,10 @@ fun TenantPickerScreen(
                 onBusinessTypeChange = viewModel::updateSubmissionBusinessType,
                 onSubmit             = viewModel::submitOutletRequest,
                 onReset              = viewModel::resetSubmission,
+                onLogout             = {
+                    viewModel.logout()
+                    onLoggedOut()
+                },
                 modifier             = Modifier.padding(padding).fillMaxSize()
             )
             else -> BoxWithConstraints(modifier = Modifier.padding(padding).fillMaxSize()) {
@@ -71,13 +79,15 @@ fun TenantPickerScreen(
                     TenantPickerLandscape(
                         tenants        = uiState.tenants,
                         selectedTenant = uiState.selectedTenant,
-                        onSelectTenant = onSelectAndConfirm
+                        onSelectTenant = onSelectAndConfirm,
+                        onAddOutlet    = viewModel::openSubmissionForm
                     )
                 } else {
                     TenantPickerPortrait(
                         tenants        = uiState.tenants,
                         selectedTenant = uiState.selectedTenant,
-                        onSelectTenant = onSelectAndConfirm
+                        onSelectTenant = onSelectAndConfirm,
+                        onAddOutlet    = viewModel::openSubmissionForm
                     )
                 }
             }
