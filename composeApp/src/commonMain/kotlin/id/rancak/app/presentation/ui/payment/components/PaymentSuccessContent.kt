@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,17 @@ internal fun PaymentSuccessContent(
     modifier: Modifier = Modifier
 ) {
     var showPrintDialog by remember { mutableStateOf(false) }
+
+    // Auto-buka dialog cetak saat transaksi berhasil — kalau printer sudah
+    // tersimpan, dialog ini akan otomatis mencetak tanpa aksi tambahan.
+    // Selalu auto-buka (sekali per sale) supaya user tahu bahwa struk bisa
+    // dicetak; jika tidak ingin cetak, user tinggal menutup dialog.
+    LaunchedEffect(sale.uuid) {
+        val hasPrinter   = settingsStore.printerAddress.isNotBlank() ||
+                           settingsStore.networkPrinterIp.isNotBlank()
+        val shouldAuto   = settingsStore.autoPrintReceipt && hasPrinter
+        if (shouldAuto) showPrintDialog = true
+    }
 
     PaymentSuccessCard(
         invoiceNo    = sale.invoiceNo,

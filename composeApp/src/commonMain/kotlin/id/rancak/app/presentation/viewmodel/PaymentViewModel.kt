@@ -155,6 +155,67 @@ class PaymentViewModel(
         }
     }
 
+    /**
+     * Tahan pesanan sebagai **open bill** (status HELD di backend).
+     * Tidak memerlukan jumlah bayar / metode pembayaran. Stok belum dipotong;
+     * stok baru dipotong saat pesanan dibayar via [SaleRepository.payHeldOrder].
+     */
+    fun holdOrder(
+        items: List<CartItem>,
+        orderType: OrderType,
+        tableUuid: String?,
+        customerName: String?,
+        note: String?,
+        pax: Int = 1,
+        discount: Long = 0,
+        tax: Long = 0,
+        adminFee: Long = 0,
+        deliveryFee: Long = 0,
+        tip: Long = 0,
+        voucherCode: String? = null
+    ) {
+        val subtotal = items.sumOf { it.price * it.qty }
+        if (discount < 0 || discount > subtotal) {
+            _uiState.update { it.copy(error = "Diskon tidak valid") }
+            return
+        }
+        if (subtotal > MAX_AMOUNT) {
+            _uiState.update { it.copy(error = "Nominal melebihi batas") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isProcessing = true, error = null) }
+            when (val result = saleRepository.createSale(
+                items         = items,
+                paymentMethod = PaymentMethod.CASH, // placeholder; backend abaikan saat hold
+                paidAmount    = 0L,
+                orderType     = orderType,
+                tableUuid     = tableUuid,
+                customerName  = customerName?.takeIf { it.isNotBlank() },
+                note          = note?.takeIf { it.isNotBlank() },
+                hold          = true,
+                pax           = pax,
+                discount      = discount,
+                tax           = tax,
+                adminFee      = adminFee,
+                deliveryFee   = deliveryFee,
+                tip           = tip,
+                voucherCode   = voucherCode?.takeIf { it.isNotBlank() }
+            )) {
+                is Resource.Success -> {
+                    _uiState.update {
+                        it.copy(isProcessing = false, completedSale = result.data)
+                    }
+                }
+                is Resource.Error -> {
+                    _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
     /** Dipanggil setelah sale dibuat dengan QRIS — membuat QR lalu mulai polling. */
     private suspend fun initiateQrisPayment(saleUuid: String, amount: Long) {
         when (val qrResult = saleRepository.createQrPayment(saleUuid)) {

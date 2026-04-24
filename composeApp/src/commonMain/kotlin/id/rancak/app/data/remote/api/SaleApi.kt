@@ -12,8 +12,10 @@ import id.rancak.app.data.remote.dto.sale.RefundResponseDto
 import id.rancak.app.data.remote.dto.sale.SaleDto
 import id.rancak.app.data.remote.dto.sale.SplitBillRequest
 import id.rancak.app.data.remote.dto.sale.SplitBillResponseDto
+import id.rancak.app.data.remote.dto.sale.AddHeldOrderItemsRequest
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -116,6 +118,27 @@ suspend fun RancakApiService.splitBill(
         contentType(ContentType.Application.Json)
         setBody(request)
     }.body()
+
+// ── Open Bill / Hold Order: Item management ──
+
+/** Tambah item ke hold/open-bill order (POST /sales/:id/items). */
+suspend fun RancakApiService.addHeldOrderItems(
+    tenantUuid: String,
+    saleUuid: String,
+    request: AddHeldOrderItemsRequest
+): ApiResponse<SaleDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/items") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+/** Hapus item dari hold/open-bill order (DELETE /sales/:id/items/:item_id). */
+suspend fun RancakApiService.deleteHeldOrderItem(
+    tenantUuid: String,
+    saleUuid: String,
+    itemUuid: String
+): ApiResponse<SaleDto> =
+    client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/items/$itemUuid").body()
 
 // ── QR payments ──
 suspend fun RancakApiService.createQrPayment(tenantUuid: String, saleUuid: String): ApiResponse<QrPaymentDto> =

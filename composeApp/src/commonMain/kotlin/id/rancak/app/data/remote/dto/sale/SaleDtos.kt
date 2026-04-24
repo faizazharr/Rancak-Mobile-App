@@ -165,6 +165,14 @@ data class SplitBillResponseDto(
     @SerialName("new_sale") val newSale: SaleDto
 )
 
+// ── Open Bill / Hold Order — add/remove items ──
+
+/** Tambah item ke hold order: POST /sales/:id/items */
+@Serializable
+data class AddHeldOrderItemsRequest(
+    val items: List<SaleItemRequest>
+)
+
 @Serializable
 data class RefundItemRequest(
     @SerialName("sale_item_uuid") val saleItemUuid: String,

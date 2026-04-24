@@ -155,6 +155,22 @@ fun PaymentScreen(
                                     voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
                                 )
                             },
+                            onHoldOrder = {
+                                paymentViewModel.holdOrder(
+                                    items        = cartState.items,
+                                    orderType    = cartState.orderType,
+                                    tableUuid    = cartState.tableUuid,
+                                    customerName = cartState.customerName,
+                                    note         = cartState.note,
+                                    pax          = cartState.pax,
+                                    discount     = cartState.discount,
+                                    tax          = cartState.tax,
+                                    adminFee     = cartState.adminFee,
+                                    deliveryFee  = cartState.deliveryFee,
+                                    tip          = cartState.tip,
+                                    voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
+                                )
+                            },
                             modifier = Modifier.fillMaxSize()
                         )
                     }

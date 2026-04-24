@@ -50,6 +50,12 @@ interface SaleRepository {
     /** Pisahkan item dari held order ke transaksi baru (split bill). */
     suspend fun splitBill(saleUuid: String, itemIds: List<String>): Resource<SplitBillResult>
 
+    /** Tambah item ke held/open-bill order (POST /sales/:id/items). */
+    suspend fun addItemsToHeldOrder(saleUuid: String, items: List<CartItem>): Resource<Sale>
+
+    /** Hapus satu item dari held/open-bill order (DELETE /sales/:id/items/:item_id). */
+    suspend fun removeHeldOrderItem(saleUuid: String, itemUuid: String): Resource<Sale>
+
     suspend fun serveSale(saleUuid: String): Resource<Sale>
     suspend fun voidSale(saleUuid: String, reason: String? = null): Resource<Sale>
     suspend fun cancelSale(saleUuid: String, reason: String? = null): Resource<Sale>

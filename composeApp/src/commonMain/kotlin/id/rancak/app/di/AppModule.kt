@@ -70,6 +70,7 @@ val viewModelModule = module {
     viewModelOf(::KdsViewModel)
     viewModelOf(::SalesHistoryViewModel)
     viewModelOf(::SplitBillViewModel)
+    viewModelOf(::AddItemsToHeldOrderViewModel)
     viewModelOf(::OrderBoardViewModel)
     viewModelOf(::ReportViewModel)
     viewModelOf(::CashExpenseViewModel)

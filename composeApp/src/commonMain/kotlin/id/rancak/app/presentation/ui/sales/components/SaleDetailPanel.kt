@@ -50,6 +50,7 @@ internal fun SaleDetailPanel(
     sale: Sale,
     onPayHeldOrder: (String) -> Unit = {},
     onSplitBill: (String) -> Unit = {},
+    onAddItems: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val printerManager: PrinterManager = koinInject()
@@ -68,6 +69,7 @@ internal fun SaleDetailPanel(
         onRequestPrint = { showPrintDialog = true },
         onPayHeldOrder = onPayHeldOrder,
         onSplitBill    = onSplitBill,
+        onAddItems     = onAddItems,
         modifier      = modifier
     )
 
@@ -91,6 +93,7 @@ private fun SaleDetailBody(
     onRequestPrint: () -> Unit,
     onPayHeldOrder: (String) -> Unit = {},
     onSplitBill: (String) -> Unit = {},
+    onAddItems: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val semantic = RancakColors.semantic
@@ -169,8 +172,9 @@ private fun SaleDetailBody(
 
                 if (sale.status == SaleStatus.HELD) {
                     HeldOrderActions(
-                        onPay   = { onPayHeldOrder(sale.uuid) },
-                        onSplit = { onSplitBill(sale.uuid) }
+                        onPay      = { onPayHeldOrder(sale.uuid) },
+                        onSplit    = { onSplitBill(sale.uuid) },
+                        onAddItems = { onAddItems(sale.uuid) }
                     )
                 }
             }
@@ -181,20 +185,30 @@ private fun SaleDetailBody(
 @Composable
 private fun HeldOrderActions(
     onPay: () -> Unit,
-    onSplit: () -> Unit
+    onSplit: () -> Unit,
+    onAddItems: () -> Unit
 ) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Button(
             onClick = onPay,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.fillMaxWidth()
         ) { Text("Bayar Sekarang") }
-        OutlinedButton(
-            onClick = onSplit,
-            modifier = Modifier.weight(1f)
-        ) { Text("Pisah Tagihan") }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedButton(
+                onClick = onAddItems,
+                modifier = Modifier.weight(1f)
+            ) { Text("Tambah Item") }
+            OutlinedButton(
+                onClick = onSplit,
+                modifier = Modifier.weight(1f)
+            ) { Text("Pisah Tagihan") }
+        }
     }
 }
 

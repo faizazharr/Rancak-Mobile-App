@@ -45,7 +45,8 @@ data class SalesHistoryActions(
     val onClearFilters: () -> Unit = {},
     val onSelect: (Sale?) -> Unit = {},
     val onPayHeldOrder: (String) -> Unit = {},
-    val onSplitBill: (String) -> Unit = {}
+    val onSplitBill: (String) -> Unit = {},
+    val onAddItems: (String) -> Unit = {}
 )
 
 /**
@@ -62,6 +63,7 @@ fun SalesHistoryScreen(
     onBack: () -> Unit,
     onPayHeldOrder: (String) -> Unit = {},
     onSplitBill: (String) -> Unit = {},
+    onAddItems: (String) -> Unit = {},
     viewModel: SalesHistoryViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -80,7 +82,8 @@ fun SalesHistoryScreen(
             onClearFilters  = viewModel::clearFilters,
             onSelect        = viewModel::selectSale,
             onPayHeldOrder  = onPayHeldOrder,
-            onSplitBill     = onSplitBill
+            onSplitBill     = onSplitBill,
+            onAddItems      = onAddItems
         )
     )
 }
@@ -152,6 +155,7 @@ private fun TabletLayout(
                     sale           = selected,
                     onPayHeldOrder = actions.onPayHeldOrder,
                     onSplitBill    = actions.onSplitBill,
+                    onAddItems     = actions.onAddItems,
                     modifier       = Modifier.fillMaxSize()
                 )
             } else {
@@ -201,6 +205,7 @@ private fun PhoneLayout(
                     sale           = sale,
                     onPayHeldOrder = actions.onPayHeldOrder,
                     onSplitBill    = actions.onSplitBill,
+                    onAddItems     = actions.onAddItems,
                     modifier       = Modifier.fillMaxWidth()
                 )
             },

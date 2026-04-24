@@ -340,12 +340,36 @@ private fun SubmissionForm(
                         .verticalScroll(rememberScrollState())
                         .imePadding()
                         .padding(horizontal = 20.dp, vertical = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Panduan singkat
+                    Row(
+                        modifier              = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.40f))
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = null,
+                            tint     = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            "Isi semua kolom wajib untuk mengirim pengajuan",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
                     // Identitas Outlet
                     FormSection(
-                        title  = "Identitas Outlet",
-                        icon   = Icons.Default.Storefront
+                        title      = "Identitas Outlet",
+                        icon       = Icons.Default.Storefront,
+                        stepNumber = "01"
                     ) {
                         RancakTextField(
                             value         = state.name,
@@ -366,8 +390,9 @@ private fun SubmissionForm(
 
                     // Lokasi
                     FormSection(
-                        title = "Lokasi",
-                        icon  = Icons.Default.LocationOn
+                        title      = "Lokasi",
+                        icon       = Icons.Default.LocationOn,
+                        stepNumber = "02"
                     ) {
                         RancakTextField(
                             value         = state.address,
@@ -391,8 +416,9 @@ private fun SubmissionForm(
 
                     // Legalitas & Jenis Usaha
                     FormSection(
-                        title = "Legalitas & Jenis Usaha",
-                        icon  = Icons.Default.Description
+                        title      = "Legalitas & Jenis Usaha",
+                        icon       = Icons.Default.Description,
+                        stepNumber = "03"
                     ) {
                         RancakTextField(
                             value          = state.nib,
@@ -411,26 +437,46 @@ private fun SubmissionForm(
                     // Error
                     if (state.error != null) {
                         Surface(
-                            shape = MaterialTheme.shapes.medium,
-                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape    = RoundedCornerShape(12.dp),
+                            color    = MaterialTheme.colorScheme.errorContainer,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text     = state.error,
-                                style    = MaterialTheme.typography.bodySmall,
-                                color    = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.padding(12.dp)
-                            )
+                            Row(
+                                modifier              = Modifier.padding(12.dp),
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    contentDescription = null,
+                                    tint     = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text  = state.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            }
                         }
                     }
 
-                    RancakButton(
-                        text      = "Kirim Pengajuan",
-                        onClick   = onSubmit,
-                        isLoading = state.isSubmitting,
-                        enabled   = state.isValid,
-                        modifier  = Modifier.fillMaxWidth()
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            "* Nama, telepon, alamat, NIB, dan jenis usaha wajib diisi",
+                            style     = MaterialTheme.typography.labelSmall,
+                            color     = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                            textAlign = TextAlign.Center,
+                            modifier  = Modifier.fillMaxWidth()
+                        )
+                        RancakButton(
+                            text      = "Kirim Pengajuan",
+                            onClick   = onSubmit,
+                            isLoading = state.isSubmitting,
+                            enabled   = state.isValid,
+                            modifier  = Modifier.fillMaxWidth()
+                        )
+                    }
 
                     Spacer(Modifier.height(8.dp))
                 }
@@ -439,36 +485,106 @@ private fun SubmissionForm(
     }
 }
 
-/** Kelompok form dengan label judul section bergaya labelLarge + divider tipis. */
+/**
+ * FormSection bergaya mini gradient banner:
+ * - Header gradient teal (menyerupai layar utama) dengan glass icon box
+ * - Step badge ("01", "02", ...) di pojok kanan header
+ * - Dekorasi angka besar semi-transparan sebagai latar header
+ * - Konten field di bawah dengan background surface bersih
+ */
 @Composable
 private fun FormSection(
-    title:   String,
-    icon:    ImageVector,
-    content: @Composable ColumnScope.() -> Unit
+    title:      String,
+    icon:       ImageVector,
+    stepNumber: String,
+    content:    @Composable ColumnScope.() -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint     = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(16.dp)
-            )
-            Text(
-                title,
-                style      = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.primary
-            )
+    val (primary, dark) = gradientColors()
+    val cardShape = RoundedCornerShape(18.dp)
+    val bannerShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
+
+    Surface(
+        modifier        = Modifier.fillMaxWidth(),
+        shape           = cardShape,
+        shadowElevation = 3.dp,
+        color           = MaterialTheme.colorScheme.surface
+    ) {
+        Column {
+            // ── Gradient banner header ────────────────────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(bannerShape)
+                    .background(Brush.horizontalGradient(listOf(primary, dark)))
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                // Angka dekoratif besar di latar
+                Text(
+                    stepNumber,
+                    style      = MaterialTheme.typography.displayLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = Color.White.copy(alpha = 0.07f),
+                    modifier   = Modifier.align(Alignment.CenterEnd).offset(x = 4.dp)
+                )
+
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Glass icon box
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.White.copy(alpha = 0.18f))
+                            .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            icon,
+                            contentDescription = null,
+                            tint     = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    // Judul section
+                    Text(
+                        title,
+                        style      = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color      = Color.White,
+                        modifier   = Modifier.weight(1f)
+                    )
+
+                    // Step badge pill
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.White.copy(alpha = 0.20f))
+                            .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            stepNumber,
+                            style      = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = Color.White
+                        )
+                    }
+                }
+            }
+
+            // ── Field inputs ──────────────────────────────────────────────
+            Column(
+                modifier            = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                content()
+            }
         }
-        HorizontalDivider(
-            color     = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-            thickness = 0.5.dp
-        )
-        content()
     }
 }
 

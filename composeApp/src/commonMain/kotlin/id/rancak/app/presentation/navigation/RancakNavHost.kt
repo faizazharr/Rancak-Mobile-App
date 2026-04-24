@@ -31,6 +31,7 @@ import id.rancak.app.presentation.ui.payment.PaymentScreen
 import id.rancak.app.presentation.ui.pos.PosScreen
 import id.rancak.app.presentation.ui.reports.ReportScreen
 import id.rancak.app.presentation.ui.sales.SalesHistoryScreen
+import id.rancak.app.presentation.ui.sales.AddItemsToHeldOrderScreen
 import id.rancak.app.presentation.ui.settings.SettingsScreen
 import id.rancak.app.presentation.ui.shift.ShiftScreen
 import id.rancak.app.presentation.ui.splitbill.SplitBillScreen
@@ -310,7 +311,8 @@ private fun NavigationContent(
             SalesHistoryScreen(
                 onBack = onMenuClick,
                 onPayHeldOrder = { saleUuid -> navController.navigate(Screen.PayHeldOrder(saleUuid)) },
-                onSplitBill    = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) }
+                onSplitBill    = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) },
+                onAddItems     = { saleUuid -> navController.navigate(Screen.AddItemsToHeldOrder(saleUuid)) }
             )
         }
 
@@ -331,6 +333,17 @@ private fun NavigationContent(
                 saleUuid = route.saleUuid,
                 onBack   = { navController.popBackStack() },
                 onSplitComplete = { _, _ ->
+                    navController.popBackStack(Screen.SalesHistory, inclusive = false)
+                }
+            )
+        }
+
+        composable<Screen.AddItemsToHeldOrder> { backStackEntry ->
+            val route: Screen.AddItemsToHeldOrder = backStackEntry.toRoute()
+            AddItemsToHeldOrderScreen(
+                saleUuid  = route.saleUuid,
+                onBack    = { navController.popBackStack() },
+                onSuccess = {
                     navController.popBackStack(Screen.SalesHistory, inclusive = false)
                 }
             )

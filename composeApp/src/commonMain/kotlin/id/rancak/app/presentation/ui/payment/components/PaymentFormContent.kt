@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CallSplit
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Payments
@@ -46,6 +47,7 @@ internal fun PaymentFormContent(
     onProcessPayment: () -> Unit,
     isSplit: Boolean = false,
     onToggleMode: () -> Unit = {},
+    onHoldOrder: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val changeAmount = remember(paidAmount, subtotal) {
@@ -83,6 +85,7 @@ internal fun PaymentFormContent(
             isCashSelected    = isCashSelected,
             isProcessing      = isProcessing,
             onProcessPayment  = onProcessPayment,
+            onHoldOrder       = onHoldOrder,
             quickAmounts      = quickAmounts,
             modifier          = Modifier.weight(0.58f).fillMaxHeight()
         )
@@ -269,6 +272,7 @@ private fun PaymentInputColumn(
     isCashSelected: Boolean,
     isProcessing: Boolean,
     onProcessPayment: () -> Unit,
+    onHoldOrder: (() -> Unit)? = null,
     quickAmounts: List<Long>,
     modifier: Modifier = Modifier
 ) {
@@ -317,6 +321,21 @@ private fun PaymentInputColumn(
             isLoading = isProcessing,
             modifier  = Modifier.fillMaxWidth()
         )
+        if (onHoldOrder != null) {
+            OutlinedButton(
+                onClick = onHoldOrder,
+                enabled = !isProcessing,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Default.Bookmark,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Tahan Pesanan (Open Bill)")
+            }
+        }
     }
 }
 

@@ -332,6 +332,45 @@ class SaleRepositoryImpl(
         }
     }
 
+    override suspend fun addItemsToHeldOrder(
+        saleUuid: String,
+        items: List<CartItem>
+    ): Resource<Sale> {
+        return try {
+            val request = id.rancak.app.data.remote.dto.sale.AddHeldOrderItemsRequest(
+                items = items.map { cartItem ->
+                    SaleItemRequest(
+                        productUuid = cartItem.productUuid,
+                        qty         = cartItem.qty,
+                        variantUuid = cartItem.variantUuid,
+                        note        = cartItem.note
+                    )
+                }
+            )
+            val response = api.addHeldOrderItems(tenantUuid, saleUuid, request)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal menambah item ke pesanan")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun removeHeldOrderItem(saleUuid: String, itemUuid: String): Resource<Sale> {
+        return try {
+            val response = api.deleteHeldOrderItem(tenantUuid, saleUuid, itemUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal menghapus item dari pesanan")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
     override suspend fun voidSale(saleUuid: String, reason: String?): Resource<Sale> {
         return try {
             val response = api.voidSale(tenantUuid, saleUuid, reason)
