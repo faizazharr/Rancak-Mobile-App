@@ -81,6 +81,7 @@ val viewModelModule = module {
     viewModelOf(::ReportViewModel)
     viewModelOf(::CashExpenseViewModel)
     viewModelOf(::SettingsViewModel)
+    viewModelOf(::ProductManagementViewModel)
 }
 
 val appModules = listOf(
