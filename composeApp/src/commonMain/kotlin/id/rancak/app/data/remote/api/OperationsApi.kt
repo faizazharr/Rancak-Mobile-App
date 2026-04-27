@@ -1,11 +1,14 @@
 package id.rancak.app.data.remote.api
 
 import id.rancak.app.data.remote.dto.ApiResponse
+import id.rancak.app.data.remote.dto.admin.CreateTableRequest
+import id.rancak.app.data.remote.dto.admin.UpdateTableRequest
 import id.rancak.app.data.remote.dto.operations.OrderBoardOrderDto
 import id.rancak.app.data.remote.dto.operations.ShiftSummaryDto
 import id.rancak.app.data.remote.dto.sync.ShiftDto
 import id.rancak.app.data.remote.dto.sync.TableDto
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
@@ -55,6 +58,31 @@ suspend fun RancakApiService.getShiftSummaryById(
 
 suspend fun RancakApiService.getTables(tenantUuid: String): ApiResponse<List<TableDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.TABLES).body()
+
+suspend fun RancakApiService.getTable(tenantUuid: String, tableId: String): ApiResponse<TableDto> =
+    client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.TABLES}/$tableId").body()
+
+suspend fun RancakApiService.createTable(
+    tenantUuid: String,
+    request: CreateTableRequest
+): ApiResponse<TableDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.TABLES) {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.updateTable(
+    tenantUuid: String,
+    tableId: String,
+    request: UpdateTableRequest
+): ApiResponse<TableDto> =
+    client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.TABLES}/$tableId") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.deleteTable(tenantUuid: String, tableId: String): ApiResponse<Unit> =
+    client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.TABLES}/$tableId").body()
 
 // ── KDS ──
 

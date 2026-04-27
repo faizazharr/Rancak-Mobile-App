@@ -55,6 +55,12 @@ val repositoryModule = module {
     single<SaleRepository> { SaleRepositoryImpl(get(), get(), get(), get(), get()) }
     single<OperationsRepository> { OperationsRepositoryImpl(get(), get(), get(), get()) }
     singleOf(::FinanceRepositoryImpl) bind FinanceRepository::class
+    singleOf(::DeviceConfigRepositoryImpl) bind DeviceConfigRepository::class
+    singleOf(::InventoryRepositoryImpl) bind InventoryRepository::class
+    singleOf(::ReservationRepositoryImpl) bind ReservationRepository::class
+    singleOf(::AdminRepositoryImpl) bind AdminRepository::class
+    singleOf(::BillingRepositoryImpl) bind BillingRepository::class
+    singleOf(::GroupsRepositoryImpl) bind GroupsRepository::class
 }
 
 val viewModelModule = module {

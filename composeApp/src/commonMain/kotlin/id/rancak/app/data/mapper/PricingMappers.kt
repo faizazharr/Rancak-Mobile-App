@@ -2,6 +2,7 @@ package id.rancak.app.data.mapper
 
 import id.rancak.app.data.remote.dto.operations.AppliedRuleDto
 import id.rancak.app.data.remote.dto.operations.DiscountPreviewDto
+import id.rancak.app.data.remote.dto.operations.VoucherDto
 import id.rancak.app.data.remote.dto.operations.VoucherValidationDto
 import id.rancak.app.data.remote.dto.sync.DiscountRuleDto
 import id.rancak.app.data.remote.dto.sync.SurchargeDto
@@ -52,6 +53,22 @@ fun DiscountRuleDto.toDomain() = DiscountRule(
     priority = priority,
     stackable = stackable,
     maxDiscount = maxDiscount?.toLongOrNull(),
+    isActive = isActive
+)
+
+fun VoucherDto.toDomain() = Voucher(
+    uuid = uuid,
+    code = code,
+    name = name,
+    description = description,
+    discountType = discountType,
+    discountValue = discountValue.toLongOrNull() ?: 0L,
+    maxDiscount = maxDiscount?.toLongOrNull(),
+    minPurchase = minPurchase.toLongOrNull() ?: 0L,
+    usageLimit = usageLimit,
+    usageCount = usageCount,
+    validFrom = validFrom,
+    validUntil = validUntil,
     isActive = isActive
 )
 

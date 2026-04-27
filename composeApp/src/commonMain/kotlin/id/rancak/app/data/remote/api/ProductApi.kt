@@ -1,9 +1,13 @@
 package id.rancak.app.data.remote.api
 
 import id.rancak.app.data.remote.dto.ApiResponse
+import id.rancak.app.data.remote.dto.admin.CreateProductBatchRequest
+import id.rancak.app.data.remote.dto.admin.StockAdjustmentRequest
+import id.rancak.app.data.remote.dto.admin.StockAdjustmentResponseDto
 import id.rancak.app.data.remote.dto.product.CategoryDto
 import id.rancak.app.data.remote.dto.product.FavoriteProductDto
 import id.rancak.app.data.remote.dto.product.Product86Dto
+import id.rancak.app.data.remote.dto.product.ProductBatchDto
 import id.rancak.app.data.remote.dto.product.ProductDto
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -57,3 +61,34 @@ suspend fun RancakApiService.unmark86(tenantUuid: String, productUuid: String): 
 
 suspend fun RancakApiService.getCategories(tenantUuid: String): ApiResponse<List<CategoryDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.CATEGORIES).body()
+
+suspend fun RancakApiService.getCategory(tenantUuid: String, categoryId: String): ApiResponse<CategoryDto> =
+    client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.CATEGORIES}/$categoryId").body()
+
+// ── Stock & Batches ──
+
+suspend fun RancakApiService.adjustStock(
+    tenantUuid: String,
+    productId: String,
+    request: StockAdjustmentRequest
+): ApiResponse<StockAdjustmentResponseDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId/stock-adjustment") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.getProductBatches(
+    tenantUuid: String,
+    productId: String
+): ApiResponse<List<ProductBatchDto>> =
+    client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId/batches").body()
+
+suspend fun RancakApiService.createProductBatch(
+    tenantUuid: String,
+    productId: String,
+    request: CreateProductBatchRequest
+): ApiResponse<ProductBatchDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId/batches") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()

@@ -15,21 +15,30 @@ class FinanceRepositoryImpl(
     private val tenantUuid: String
         get() = tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")
 
-    override suspend fun getCashIns(dateFrom: String?, dateTo: String?): Resource<List<CashIn>> {
+    override suspend fun getCashIns(dateFrom: String?, dateTo: String?, shiftUuid: String?, page: Int, limit: Int): Resource<List<CashIn>> {
         return try {
-            val response = api.getCashIns(tenantUuid, dateFrom, dateTo)
+            val response = api.getCashIns(tenantUuid, dateFrom, dateTo, shiftUuid, page, limit)
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.map { it.toDomain() })
-            } else Resource.Error(response.message ?: "Gagal memuat cash in")
+            } else Resource.Error(response.message ?: "Gagal memuat kas masuk")
         } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
-    override suspend fun createCashIn(amount: Long, source: String, description: String, note: String?): Resource<CashIn> {
+    override suspend fun getCashIn(cashInId: String): Resource<CashIn> {
         return try {
-            val response = api.createCashIn(tenantUuid, amount, source, description, note)
+            val response = api.getCashIn(tenantUuid, cashInId)
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
-            } else Resource.Error(response.message ?: "Gagal membuat cash in")
+            } else Resource.Error(response.message ?: "Gagal memuat kas masuk")
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
+    }
+
+    override suspend fun createCashIn(amount: Long, source: String, description: String, note: String?, cashInDate: String?): Resource<CashIn> {
+        return try {
+            val response = api.createCashIn(tenantUuid, amount, source, description, note, cashInDate)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else Resource.Error(response.message ?: "Gagal mencatat kas masuk")
         } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
@@ -37,25 +46,43 @@ class FinanceRepositoryImpl(
         return try {
             val response = api.deleteCashIn(tenantUuid, cashInId)
             if (response.isSuccess) Resource.Success(Unit)
-            else Resource.Error(response.message ?: "Gagal menghapus")
+            else Resource.Error(response.message ?: "Gagal menghapus kas masuk")
         } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
-    override suspend fun getExpenses(dateFrom: String?, dateTo: String?): Resource<List<Expense>> {
+    override suspend fun getExpenses(dateFrom: String?, dateTo: String?, categoryUuid: String?, page: Int, limit: Int): Resource<List<Expense>> {
         return try {
-            val response = api.getExpenses(tenantUuid, dateFrom, dateTo)
+            val response = api.getExpenses(tenantUuid, dateFrom, dateTo, categoryUuid, page, limit)
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.map { it.toDomain() })
             } else Resource.Error(response.message ?: "Gagal memuat pengeluaran")
         } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
-    override suspend fun createExpense(amount: Long, description: String, note: String?): Resource<Expense> {
+    override suspend fun getExpense(expenseId: String): Resource<Expense> {
         return try {
-            val response = api.createExpense(tenantUuid, amount, description, note)
+            val response = api.getExpense(tenantUuid, expenseId)
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
-            } else Resource.Error(response.message ?: "Gagal membuat pengeluaran")
+            } else Resource.Error(response.message ?: "Gagal memuat pengeluaran")
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
+    }
+
+    override suspend fun createExpense(amount: Long, description: String, note: String?, categoryUuid: String?, expenseDate: String?): Resource<Expense> {
+        return try {
+            val response = api.createExpense(tenantUuid, amount, description, note, categoryUuid, expenseDate)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else Resource.Error(response.message ?: "Gagal mencatat pengeluaran")
+        } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
+    }
+
+    override suspend fun updateExpense(expenseId: String, amount: Long?, description: String?, note: String?, categoryUuid: String?, expenseDate: String?): Resource<Expense> {
+        return try {
+            val response = api.updateExpense(tenantUuid, expenseId, amount, description, note, categoryUuid, expenseDate)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else Resource.Error(response.message ?: "Gagal memperbarui pengeluaran")
         } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
@@ -63,7 +90,7 @@ class FinanceRepositoryImpl(
         return try {
             val response = api.deleteExpense(tenantUuid, expenseId)
             if (response.isSuccess) Resource.Success(Unit)
-            else Resource.Error(response.message ?: "Gagal menghapus")
+            else Resource.Error(response.message ?: "Gagal menghapus pengeluaran")
         } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
     }
 
@@ -209,6 +236,19 @@ class FinanceRepositoryImpl(
         }
     }
 
+    override suspend fun getExpenseCategory(categoryId: String): Resource<ExpenseCategory> {
+        return try {
+            val response = api.getExpenseCategory(tenantUuid, categoryId)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal memuat kategori")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
     override suspend fun createExpenseCategory(
         name: String,
         isActive: Boolean,
@@ -219,6 +259,7 @@ class FinanceRepositoryImpl(
                 tenantUuid,
                 id.rancak.app.data.remote.dto.operations.CreateExpenseCategoryRequest(name, isActive, sortOrder)
             )
+
             if (response.isSuccess && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {

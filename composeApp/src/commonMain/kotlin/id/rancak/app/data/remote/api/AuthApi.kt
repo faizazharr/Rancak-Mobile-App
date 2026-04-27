@@ -17,6 +17,7 @@ import id.rancak.app.data.remote.dto.auth.UserDto
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -87,3 +88,12 @@ suspend fun RancakApiService.getTenantSettings(tenantUuid: String): ApiResponse<
 
 suspend fun RancakApiService.getReceiptSettings(tenantUuid: String): ApiResponse<ReceiptSettingsDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/receipt-settings").body()
+
+suspend fun RancakApiService.updateReceiptSettings(
+    tenantUuid: String,
+    request: id.rancak.app.data.remote.dto.admin.UpdateReceiptSettingsRequest
+): ApiResponse<ReceiptSettingsDto> =
+    client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/receipt-settings") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
