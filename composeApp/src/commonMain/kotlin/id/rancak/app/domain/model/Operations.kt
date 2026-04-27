@@ -182,3 +182,34 @@ data class OrderBoardItem(
     val qty: Int,
     val note: String?
 )
+
+/** Cash count: rekonsiliasi kas fisik vs sistem. */
+data class CashCount(
+    val uuid: String,
+    val shiftUuid: String,
+    val expectedCash: Double,
+    val actualCash: Double,
+    /** actual - expected. Positif = lebih, negatif = kurang. */
+    val difference: Double,
+    val denominations: Map<String, Int>?,
+    val note: String?,
+    val countedAt: String
+)
+
+/** Rekap shift per kasir untuk laporan harian. */
+data class CashierShiftSummary(
+    val cashierUuid: String?,
+    val cashierName: String,
+    val shiftUuid: String?,
+    val openedAt: String,
+    val closedAt: String?,
+    val shiftStatus: String,
+    val totalTransactions: Int,
+    val voidCount: Int,
+    val refundCount: Int,
+    val grossTotal: Double,
+    val cashTotal: Double,
+    val nonCashTotal: Double,
+    /** Selisih kas — null jika belum ada cash count. */
+    val cashDifference: Double?
+)

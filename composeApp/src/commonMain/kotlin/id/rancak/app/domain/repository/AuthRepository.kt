@@ -12,6 +12,10 @@ interface AuthRepository {
     suspend fun getTenantSettings(): Resource<TenantSettings>
     suspend fun getReceiptSettings(): Resource<ReceiptSettings>
     suspend fun changePassword(currentPassword: String, newPassword: String): Resource<Unit>
+    /** Minta token reset password — selalu sukses (anti-enumeration). */
+    suspend fun forgotPassword(email: String): Resource<Unit>
+    /** Reset password dengan token email. Semua sesi user akan di-revoke. */
+    suspend fun resetPassword(token: String, newPassword: String): Resource<Unit>
     suspend fun getSessions(): Resource<List<Session>>
     suspend fun revokeSession(sessionId: String): Resource<Unit>
 

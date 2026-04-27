@@ -230,5 +230,67 @@ class OperationsRepositoryImpl(
             Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
+
+    override suspend fun getCashCounts(shiftUuid: String): Resource<List<CashCount>> {
+        return try {
+            val response = api.getCashCounts(tenantUuid, shiftUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil cash count")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun submitCashCount(
+        shiftUuid: String,
+        actualCash: Double,
+        denominations: Map<String, Int>?,
+        note: String?
+    ): Resource<CashCount> {
+        return try {
+            val response = api.submitCashCount(
+                tenantUuid,
+                shiftUuid,
+                id.rancak.app.data.remote.dto.operations.SubmitCashCountRequest(actualCash, denominations, note)
+            )
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal menyimpan hitungan kas")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun getKdsDetail(kdsUuid: String): Resource<KdsOrder> {
+        return try {
+            val response = api.getKdsDetail(tenantUuid, kdsUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal memuat detail KDS")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun updateKdsItemStatus(
+        kdsUuid: String,
+        itemUuid: String,
+        status: String
+    ): Resource<Unit> {
+        return try {
+            val response = api.updateKdsItemStatus(tenantUuid, kdsUuid, itemUuid, status)
+            if (response.isSuccess) Resource.Success(Unit)
+            else Resource.Error(response.message ?: "Gagal update status item")
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
 }
 

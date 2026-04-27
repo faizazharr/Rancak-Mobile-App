@@ -74,7 +74,28 @@ interface SaleRepository {
     suspend fun getReceiptCombined(saleUuid: String, kotFirst: Boolean = true): Resource<ByteArray>
     suspend fun batchSales(sales: List<CartItem>): Resource<Unit>
     suspend fun getOrderBoard(date: String? = null, includeDone: Boolean = false): Resource<List<OrderBoardOrder>>
+
+    /** Gabung dua hold order — semua item dari [sourceUuid] pindah ke [targetUuid]. */
+    suspend fun mergeSale(targetUuid: String, sourceUuid: String): Resource<Sale>
+
+    /** Struk nomor antrian (font besar 58mm). */
+    suspend fun getReceiptQueue(saleUuid: String): Resource<ByteArray>
+
+    /**
+     * Cetak ulang struk — server mencatat audit log.
+     * @param printType "receipt" | "kitchen" | "queue"
+     */
+    suspend fun reprintSale(saleUuid: String, printType: String = "receipt", reason: String? = null): Resource<ReprintResult>
+
+    /** Buka laci kas — kembalikan ESC/POS bytes untuk dikirim ke printer. */
+    suspend fun openCashDrawer(): Resource<ByteArray>
 }
+
+/** Hasil reprint — tipe cetak + sale lengkap. */
+data class ReprintResult(
+    val printType: String,
+    val sale: Sale
+)
 
 data class CartItem(
     val productUuid: String,

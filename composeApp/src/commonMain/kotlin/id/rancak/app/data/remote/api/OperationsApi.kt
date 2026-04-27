@@ -87,3 +87,44 @@ suspend fun RancakApiService.getOrderBoard(
         date?.let { parameter("date", it) }
         if (includeDone) parameter("include_done", true)
     }.body()
+
+// ── Cash count (rekonsiliasi kas) ───────────────────────────────────────────
+
+/** Riwayat cash count untuk shift tertentu. */
+suspend fun RancakApiService.getCashCounts(
+    tenantUuid: String,
+    shiftUuid: String
+): ApiResponse<List<id.rancak.app.data.remote.dto.operations.CashCountDto>> =
+    client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/$shiftUuid/cash-count")
+        .body()
+
+/** Submit hasil hitung kas fisik. */
+suspend fun RancakApiService.submitCashCount(
+    tenantUuid: String,
+    shiftUuid: String,
+    request: id.rancak.app.data.remote.dto.operations.SubmitCashCountRequest
+): ApiResponse<id.rancak.app.data.remote.dto.operations.CashCountDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/$shiftUuid/cash-count") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+// ── KDS: detail + item-level update ─────────────────────────────────────────
+
+suspend fun RancakApiService.getKdsDetail(
+    tenantUuid: String,
+    kdsUuid: String
+): ApiResponse<KdsOrderDto> =
+    client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.KDS}/$kdsUuid").body()
+
+/** Update status item dapur — order status di-recalculate otomatis. */
+suspend fun RancakApiService.updateKdsItemStatus(
+    tenantUuid: String,
+    kdsUuid: String,
+    itemUuid: String,
+    status: String
+): ApiResponse<Unit> =
+    client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.KDS}/$kdsUuid/items/$itemUuid") {
+        contentType(ContentType.Application.Json)
+        setBody(mapOf("status" to status))
+    }.body()

@@ -259,3 +259,74 @@ data class ReceiptItemDto(
     @SerialName("variant_name") val variantName: String? = null,
     val note: String? = null
 )
+
+// ── Reports: stock-alerts read-all + shift-by-cashier ───────────────────────
+
+@kotlinx.serialization.Serializable
+data class DismissedCountDto(
+    @kotlinx.serialization.SerialName("dismissed_count") val dismissedCount: Int
+)
+
+@kotlinx.serialization.Serializable
+data class CashierShiftSummaryDto(
+    @kotlinx.serialization.SerialName("cashier_uuid") val cashierUuid: String? = null,
+    @kotlinx.serialization.SerialName("cashier_name") val cashierName: String,
+    @kotlinx.serialization.SerialName("shift_uuid")   val shiftUuid: String? = null,
+    @kotlinx.serialization.SerialName("opened_at")    val openedAt: String,
+    @kotlinx.serialization.SerialName("closed_at")    val closedAt: String? = null,
+    @kotlinx.serialization.SerialName("shift_status") val shiftStatus: String,
+    @kotlinx.serialization.SerialName("total_transactions") val totalTransactions: Int = 0,
+    @kotlinx.serialization.SerialName("void_count")   val voidCount: Int = 0,
+    @kotlinx.serialization.SerialName("refund_count") val refundCount: Int = 0,
+    @kotlinx.serialization.SerialName("gross_total")  val grossTotal: Double = 0.0,
+    @kotlinx.serialization.SerialName("cash_total")   val cashTotal: Double = 0.0,
+    @kotlinx.serialization.SerialName("non_cash_total") val nonCashTotal: Double = 0.0,
+    @kotlinx.serialization.SerialName("cash_difference") val cashDifference: Double? = null
+)
+
+// ── Cash count (rekonsiliasi kas shift) ─────────────────────────────────────
+
+@kotlinx.serialization.Serializable
+data class CashCountDto(
+    val uuid: String,
+    @kotlinx.serialization.SerialName("shift_uuid")    val shiftUuid: String,
+    @kotlinx.serialization.SerialName("expected_cash") val expectedCash: Double,
+    @kotlinx.serialization.SerialName("actual_cash")   val actualCash: Double,
+    val difference: Double,
+    val denominations: Map<String, Int>? = null,
+    val note: String? = null,
+    @kotlinx.serialization.SerialName("counted_at")    val countedAt: String
+)
+
+@kotlinx.serialization.Serializable
+data class SubmitCashCountRequest(
+    @kotlinx.serialization.SerialName("actual_cash") val actualCash: Double,
+    val denominations: Map<String, Int>? = null,
+    val note: String? = null
+)
+
+// ── Expense categories CRUD ─────────────────────────────────────────────────
+
+@kotlinx.serialization.Serializable
+data class ExpenseCategoryDto(
+    val uuid: String,
+    val name: String,
+    @kotlinx.serialization.SerialName("is_active")  val isActive: Boolean = true,
+    @kotlinx.serialization.SerialName("sort_order") val sortOrder: Int = 0,
+    @kotlinx.serialization.SerialName("created_at") val createdAt: String? = null,
+    @kotlinx.serialization.SerialName("updated_at") val updatedAt: String? = null
+)
+
+@kotlinx.serialization.Serializable
+data class CreateExpenseCategoryRequest(
+    val name: String,
+    @kotlinx.serialization.SerialName("is_active")  val isActive: Boolean = true,
+    @kotlinx.serialization.SerialName("sort_order") val sortOrder: Int = 0
+)
+
+@kotlinx.serialization.Serializable
+data class UpdateExpenseCategoryRequest(
+    val name: String? = null,
+    @kotlinx.serialization.SerialName("is_active")  val isActive: Boolean? = null,
+    @kotlinx.serialization.SerialName("sort_order") val sortOrder: Int? = null
+)

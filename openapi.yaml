@@ -104,6 +104,122 @@ tags:
       3. Semua endpoint kasir selanjutnya menggunakan
          `tenant_id` (UUID) dari tenant yang dipilih di path URL.
 
+  - name: Applications
+    description: |
+      ## Pengajuan Outlet (Auto-Approve)
+
+      User Android yang baru register dan belum punya outlet bisa submit
+      pengajuan outlet sendiri. Sejak revisi 2026-04, flow ini
+      **auto-approve** — outlet langsung dibuat dengan demo trial 14 hari
+      tanpa perlu nunggu admin review.
+
+      ### Flow atomik per submit
+      1. Validasi input (outlet_name, phone, address, nib, business_type wajib).
+      2. Cek duplicate: kalau user sudah punya outlet aktif dengan nama
+         yang sama → tolak dengan **409 Conflict**.
+      3. INSERT `pos_tenants` dari data application.
+      4. Apply demo trial: subscription_plan='demo', expires_at=NOW+14d,
+         max_users=1, had_trial=TRUE.
+      5. INSERT `pos_user_tenants`: pengaju jadi member dengan
+         `is_active=TRUE`.
+      6. INSERT `pos_tenant_applications`: status='approved' +
+         approved_tenant_id (audit log).
+      7. COMMIT — atau ROLLBACK semua kalau ada step gagal.
+
+      ### Response
+      Saat sukses, response berisi:
+      - `status: "approved"` (selalu, untuk auto-approve flow)
+      - `approved_tenant_uuid`: UUID tenant baru — client bisa langsung
+        navigate tanpa polling `GET /tenants`.
+
+      ### Riwayat & state lama
+      `GET /applications/me` mengembalikan semua riwayat pengajuan user
+      (termasuk yang lama dengan status `pending` / `rejected` dari era
+      sebelum auto-approve).
+
+      ### Backoffice
+      Audit trail-nya bisa dilihat di TIASPOS backoffice, halaman
+      "Pengajuan Outlet" — read-only, tidak ada tombol approve/reject
+      karena semua sudah otomatis.
+
+  - name: Billing
+    description: |
+      ## Subscription Billing (QRIS Xendit)
+
+      Manajemen perpanjangan subscription outlet. Owner mobile bisa:
+      1. Lihat catalog plan tersedia (`GET /billing/plans`)
+      2. Lihat status subscription outlet (`GET /tenants/{id}/billing/subscription`)
+      3. Lihat riwayat invoice (`GET /tenants/{id}/billing/invoices`)
+      4. Bikin invoice baru → backend auto-generate QR Xendit
+         (`POST /tenants/{id}/billing/invoices`)
+      5. Scan QR di e-wallet → bayar → webhook auto-extend subscription
+
+      ### Plan tersedia
+      - `demo` — Trial 14 hari, max 1 user, gratis (sekali per outlet)
+      - `basic_monthly` — Rp 100.000 + PPN 11%, 30 hari, unlimited user
+      - `basic_yearly` — Rp 1.000.000 + PPN 11%, 365 hari, unlimited user
+
+      ### Aturan extend
+      Saat invoice di-paid (via webhook Xendit), `subscription_expires_at`
+      di-update dengan formula: `GREATEST(NOW(), expires_at_lama) +
+      duration_days`. Jadi outlet aktif tetap dapat sisa hari, outlet
+      expired mulai dari NOW().
+
+      `max_users` TIDAK di-touch — itu field operasional yang dikelola
+      admin via TIASPOS (tab Profil → Operasional).
+
+  - name: Groups
+    description: |
+      ## Group Outlet (Multi-Branch / Brand Owner)
+
+      Group = bundling beberapa outlet di bawah satu brand/owner. Berguna
+      untuk:
+      - Owner yang punya banyak cabang (mis. franchise)
+      - Konsolidasi laporan lintas outlet (lihat `GroupReports`)
+
+      Setiap outlet bisa di-assign ke max 1 group. Kalau outlet pindah
+      group, hapus dulu dari group lama.
+
+      Group tidak punya hierarki — flat structure (1 group = N outlets).
+
+  - name: GroupReports
+    description: |
+      ## Laporan Konsolidasi Lintas Outlet
+
+      Set endpoint untuk laporan agregat semua outlet dalam satu group.
+      Berguna untuk owner brand yang ingin lihat performa keseluruhan
+      tanpa perlu login per-outlet.
+
+      Semua endpoint format: `GET /groups/{group_uuid}/reports/{type}`
+      dengan query param tanggal (`?start=YYYY-MM-DD&end=YYYY-MM-DD`).
+
+      Tipe laporan tersedia:
+      - `overview` — ringkasan total revenue, transaksi, AOV
+      - `branches` — breakdown per cabang (sales, AOV, growth)
+      - `revenue` — revenue time-series (per hari)
+      - `products` — top selling products lintas cabang
+      - `payment-methods` — distribusi metode bayar
+      - `peak-hours` — heatmap jam ramai
+      - `pnl` — profit & loss (revenue - cost)
+      - `categories` — breakdown per kategori produk
+      - `cashiers` — performa kasir lintas cabang
+      - `discounts` — discount yang di-apply
+      - `void-refund` — analisis transaksi void & refund
+
+  - name: OfflineSync
+    description: |
+      ## Offline Sync (Mobile Resilience)
+
+      Aplikasi mobile bisa transaksi tanpa koneksi internet —
+      sync ke backend saat koneksi pulih.
+
+      Flow:
+      1. Mobile fetch katalog (`GET /sync/catalog`) — produk + harga + stok
+      2. Mobile cache di local DB
+      3. User transaksi offline — tersimpan di queue lokal
+      4. Saat online, mobile push batch (`POST /sales/batch`)
+      5. Mobile cek progress (`GET /sync/status`)
+
   - name: Categories
     description: |
       ## Cara Kerja Kategori
@@ -910,8 +1026,9 @@ paths:
         bisa menampilkan status "nonaktif"), tapi request ke
         `/tenants/{id}/...` akan ditolak dengan `402 Payment Required`.
 
-        Provisioning tenant, assignment user, dan subscription dikelola di
-        backoffice — tidak ada endpoint mutation di sini.
+        Provisioning tenant manual dilakukan backoffice. User mobile bisa
+        submit pengajuan outlet sendiri via `POST /applications` (auto-approve,
+        outlet langsung jadi).
       responses:
         '200':
           description: OK
@@ -922,6 +1039,739 @@ paths:
                 items:
                   $ref: '#/components/schemas/MyTenant'
         '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /applications:
+    post:
+      tags: [Applications]
+      summary: Submit pengajuan outlet (auto-approve, langsung jadi)
+      description: |
+        Submit pengajuan outlet. Sejak revisi auto-approve, request ini
+        **langsung membuat tenant aktif dengan demo trial 14 hari** — tidak
+        ada lagi state pending yang perlu nunggu admin review.
+
+        Atomic transaction:
+        1. Validasi input
+        2. Cek duplicate (user + outlet_name yang sudah aktif → 409 Conflict)
+        3. Bikin `pos_tenants` + apply demo trial
+        4. Assign pengaju jadi member outlet (is_active=TRUE)
+        5. Tulis audit log ke `pos_tenant_applications` (status=approved)
+
+        Setelah sukses, client bisa langsung navigate ke outlet baru
+        menggunakan `approved_tenant_uuid` di response — tidak perlu
+        panggil `GET /tenants` ulang.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitApplicationInput'
+      responses:
+        '201':
+          description: Outlet berhasil dibuat dengan demo trial 14 hari
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantApplication'
+        '400':
+          description: Validasi gagal (field wajib kosong)
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: User sudah punya outlet aktif dengan nama yang sama
+
+  /applications/me:
+    get:
+      tags: [Applications]
+      summary: Riwayat pengajuan outlet milik user login
+      description: |
+        Daftar semua pengajuan yang pernah disubmit user, urut paling baru.
+        Termasuk pengajuan lama dengan status `pending` / `rejected` (dari
+        era sebelum auto-approve flow), dan pengajuan baru dengan status
+        `approved`.
+
+        Field `approved_tenant_uuid` terisi kalau status='approved' — bisa
+        dipakai untuk link langsung ke outlet di UI.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TenantApplication'
+              example:
+                - uuid: "550e8400-e29b-41d4-a716-446655440000"
+                  outlet_name: "Warung Pak Budi"
+                  phone: "081234567890"
+                  address: "Jl. Merdeka No. 10, Jakarta"
+                  google_maps_url: "https://maps.app.goo.gl/abc"
+                  nib: "1234567890123"
+                  business_type: "Kuliner"
+                  status: "approved"
+                  rejection_reason: null
+                  reviewed_at: "2026-04-27T08:30:00Z"
+                  approved_tenant_uuid: "660e8400-e29b-41d4-a716-446655440111"
+                  created_at: "2026-04-27T08:30:00Z"
+                  updated_at: "2026-04-27T08:30:00Z"
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ════════════════════════════════════════════════════════════════════
+  # Billing (Subscription QRIS)
+  # ════════════════════════════════════════════════════════════════════
+
+  /billing/plans:
+    get:
+      tags: [Billing]
+      summary: Catalog plan subscription
+      description: |
+        List semua plan aktif yang bisa dipilih untuk perpanjangan
+        subscription. Dipakai mobile untuk render dropdown saat owner
+        mau buat invoice baru.
+
+        `total_price` = base_price + (base_price * tax_rate / 100), sudah
+        di-compute server-side supaya frontend tinggal tampilkan.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status_code: { type: integer, example: 200 }
+                  message:     { type: string,  example: "Success" }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Plan' }
+              example:
+                status_code: 200
+                message: "Success"
+                data:
+                  - uuid: "abc12300-e29b-41d4-a716-446655440000"
+                    code: "demo"
+                    name: "Demo Trial 14 Hari"
+                    description: "Trial gratis untuk uji coba"
+                    base_price: 0
+                    tax_rate: 0
+                    duration_days: 14
+                    max_users: 1
+                    is_trial: true
+                    total_price: 0
+                  - uuid: "abc45600-e29b-41d4-a716-446655440001"
+                    code: "basic_monthly"
+                    name: "Basic — Bulanan"
+                    description: "Paket bulanan"
+                    base_price: 100000
+                    tax_rate: 11
+                    duration_days: 30
+                    max_users: null
+                    is_trial: false
+                    total_price: 111000
+
+  /tenants/{tenant_id}/billing/subscription:
+    get:
+      tags: [Billing]
+      summary: Status subscription outlet saat ini
+      description: |
+        Read-only state: status, plan aktif, masa berlaku, max_users,
+        flag had_trial. Dipakai mobile untuk display badge subscription
+        + warning kalau dekat expiry.
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionState'
+              example:
+                status_code: 200
+                message: "Success"
+                data:
+                  status: "active"
+                  plan: "basic_monthly"
+                  started_at: "2026-04-27T00:00:00Z"
+                  expires_at: "2026-05-27T00:00:00Z"
+                  max_users: 5
+                  had_trial: true
+        '402': { $ref: '#/components/responses/PaymentRequired' }
+
+  /tenants/{tenant_id}/billing/invoices:
+    get:
+      tags: [Billing]
+      summary: List invoice subscription outlet
+      description: |
+        Riwayat semua invoice (pending, paid, cancelled, expired) urut
+        paling baru. Field `qr_string` bisa di-render jadi QR image kalau
+        status='pending' & `xendit_qr_id` non-null.
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Invoice' }
+              example:
+                status_code: 200
+                message: "Success"
+                data:
+                  - uuid: "inv12300-e29b-41d4-a716-446655440000"
+                    invoice_no: "SUB-20260427-0001"
+                    plan_code: "basic_monthly"
+                    plan_name: "Basic — Bulanan"
+                    duration_days: 30
+                    base_amount: 100000
+                    tax_rate: 11
+                    tax_amount: 11000
+                    total_amount: 111000
+                    status: "paid"
+                    issued_at: "2026-04-27T08:00:00Z"
+                    due_at: "2026-04-28T08:00:00Z"
+                    paid_at: "2026-04-27T08:05:00Z"
+                    cancelled_at: null
+                    applied_at: "2026-04-27T08:05:00Z"
+                    created_at: "2026-04-27T08:00:00Z"
+                    xendit_qr_id: "qr_abc123"
+                    qr_string: "00020101..."
+                    xendit_ref_id: "SUB-inv12300-e29b-41d4-a716-446655440000"
+                    using_webhook: true
+        '402': { $ref: '#/components/responses/PaymentRequired' }
+    post:
+      tags: [Billing]
+      summary: Bikin invoice baru + auto-generate QR Xendit
+      description: |
+        Atomic flow: validate → pre-generate UUID → call Xendit API →
+        INSERT invoice dengan QR fields populated.
+
+        Kalau Xendit gagal (validation error, network), invoice **TIDAK
+        terbuat** — atomic guarantee. Mobile dapat error 400 dengan
+        detail dari Xendit (mis. amount must be integer).
+
+        Kalau Xendit belum dikonfigurasi di server (`XENDIT_API_KEY`
+        kosong), invoice tetap dibuat tapi tanpa QR — admin pakai
+        mark-paid manual via TIASPOS backoffice.
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceBody'
+            example:
+              plan_code: "basic_monthly"
+      responses:
+        '200':
+          description: Invoice berhasil dibuat (dengan atau tanpa QR)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+              example:
+                status_code: 200
+                message: "Billing berhasil dibuat. Silakan scan QR untuk membayar."
+                data:
+                  uuid: "inv99900-e29b-41d4-a716-446655440000"
+                  invoice_no: "SUB-20260427-0002"
+                  plan_code: "basic_monthly"
+                  plan_name: "Basic — Bulanan"
+                  duration_days: 30
+                  base_amount: 100000
+                  tax_rate: 11
+                  tax_amount: 11000
+                  total_amount: 111000
+                  status: "pending"
+                  issued_at: "2026-04-27T09:00:00Z"
+                  due_at: "2026-04-28T09:00:00Z"
+                  paid_at: null
+                  cancelled_at: null
+                  applied_at: null
+                  created_at: "2026-04-27T09:00:00Z"
+                  xendit_qr_id: "qr_xyz789"
+                  qr_string: "00020101021226680016ID.CO.QRIS.WWW..."
+                  xendit_ref_id: "SUB-inv99900-e29b-41d4-a716-446655440000"
+                  using_webhook: true
+        '400':
+          description: Plan tidak valid / Xendit error / amount invalid
+        '402': { $ref: '#/components/responses/PaymentRequired' }
+
+  /tenants/{tenant_id}/billing/invoices/{uuid}:
+    get:
+      tags: [Billing]
+      summary: Detail satu invoice
+      description: |
+        Refresh status invoice. Mobile bisa polling endpoint ini setiap
+        beberapa detik saat dialog QR dibuka — kalau status berubah dari
+        `pending` → `paid`, owner sudah bayar.
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - in: path
+          name: uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invoice' }
+        '400':
+          description: Invoice tidak ditemukan / bukan milik outlet ini
+
+  /tenants/{tenant_id}/billing/invoices/{uuid}/cancel:
+    post:
+      tags: [Billing]
+      summary: Batalkan invoice pending
+      description: |
+        Hanya invoice status `pending` yang bisa dibatalkan. Setelah
+        cancel, QR Xendit jadi tidak relevan (akan auto-expire 30 menit
+        di Xendit). Owner bisa bikin invoice baru kalau berubah pikiran.
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - in: path
+          name: uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Invoice berhasil di-cancel
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invoice' }
+        '400':
+          description: Invoice tidak ditemukan / sudah final (paid/cancelled/expired)
+
+  # ════════════════════════════════════════════════════════════════════
+  # Groups (Multi-outlet bundling)
+  # ════════════════════════════════════════════════════════════════════
+
+  /groups:
+    get:
+      tags: [Groups]
+      summary: List group yang user-nya akses
+      description: User cuma bisa lihat group yang dia jadi anggotanya.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Group' }
+              example:
+                status_code: 200
+                message: "Success"
+                data:
+                  - uuid: "grp12300-e29b-41d4-a716-446655440000"
+                    name: "Brand Pak Budi"
+                    description: "Semua cabang Warung Pak Budi"
+                    tenant_count: 3
+                    created_at: "2026-01-15T00:00:00Z"
+    post:
+      tags: [Groups]
+      summary: Buat group baru
+      description: |
+        Saat create, user yang request otomatis jadi member group dengan
+        akses penuh. Group description optional.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:        { type: string, example: "Brand Pak Budi" }
+                description: { type: string, example: "Semua cabang", nullable: true }
+      responses:
+        '201':
+          description: Group berhasil dibuat
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+
+  /groups/{group_uuid}:
+    parameters:
+      - in: path
+        name: group_uuid
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Groups]
+      summary: Detail group
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    put:
+      tags: [Groups]
+      summary: Update name / description group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:        { type: string }
+                description: { type: string, nullable: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+    delete:
+      tags: [Groups]
+      summary: Hapus group
+      description: |
+        Hapus row pos_groups. Outlet yang sebelumnya assigned ke group ini
+        akan kehilangan link group tapi tetap exist sebagai outlet aktif.
+      responses:
+        '204': { description: Deleted }
+
+  /groups/{group_uuid}/tenants:
+    parameters:
+      - in: path
+        name: group_uuid
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Groups]
+      summary: List outlet di dalam group
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MyTenant' }
+    post:
+      tags: [Groups]
+      summary: Assign outlet ke group
+      description: |
+        Tambah outlet ke group. Satu outlet hanya boleh di 1 group —
+        kalau outlet sudah di group lain, harus dipindah dulu (DELETE
+        dari group lama).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tenant_uuid]
+              properties:
+                tenant_uuid: { type: string, format: uuid }
+      responses:
+        '201': { description: Tenant assigned }
+        '409': { description: Outlet sudah di group lain }
+
+  /groups/{group_uuid}/tenants/{tenant_uuid}:
+    delete:
+      tags: [Groups]
+      summary: Lepas outlet dari group
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: tenant_uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Tenant removed from group }
+
+  # ════════════════════════════════════════════════════════════════════
+  # Group Reports (cross-outlet analytics)
+  # ════════════════════════════════════════════════════════════════════
+
+  /groups/{group_uuid}/reports/overview:
+    get:
+      tags: [GroupReports]
+      summary: Overview agregat group
+      description: |
+        Total revenue, transaksi, AOV, growth dari semua outlet di group
+        untuk rentang waktu tertentu.
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: start
+          schema: { type: string, format: date, example: "2026-04-01" }
+        - in: query
+          name: end
+          schema: { type: string, format: date, example: "2026-04-30" }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status_code: 200
+                message: "Success"
+                data:
+                  total_revenue: 125000000
+                  total_transactions: 3420
+                  total_outlets: 3
+                  avg_order_value: 36549
+                  growth_pct: 12.5
+                  period: { start: "2026-04-01", end: "2026-04-30" }
+
+  /groups/{group_uuid}/reports/branches:
+    get:
+      tags: [GroupReports]
+      summary: Breakdown per cabang
+      description: Performance comparison antar outlet dalam group.
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: start
+          schema: { type: string, format: date }
+        - in: query
+          name: end
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status_code: 200
+                message: "Success"
+                data:
+                  - tenant_uuid: "tnt001"
+                    name: "Cabang Senayan"
+                    revenue: 50000000
+                    transactions: 1200
+                    aov: 41666
+                  - tenant_uuid: "tnt002"
+                    name: "Cabang Tebet"
+                    revenue: 75000000
+                    transactions: 2220
+                    aov: 33784
+
+  /groups/{group_uuid}/reports/revenue:
+    get:
+      tags: [GroupReports]
+      summary: Revenue time-series (per hari)
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: start
+          schema: { type: string, format: date }
+        - in: query
+          name: end
+          schema: { type: string, format: date }
+      responses:
+        '200': { description: OK }
+
+  /groups/{group_uuid}/reports/products:
+    get:
+      tags: [GroupReports]
+      summary: Top selling products lintas cabang
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+  /groups/{group_uuid}/reports/payment-methods:
+    get:
+      tags: [GroupReports]
+      summary: Distribusi metode pembayaran
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+  /groups/{group_uuid}/reports/peak-hours:
+    get:
+      tags: [GroupReports]
+      summary: Heatmap jam ramai (hour-of-day × day-of-week)
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+  /groups/{group_uuid}/reports/pnl:
+    get:
+      tags: [GroupReports]
+      summary: Profit & Loss (revenue - cost)
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+  /groups/{group_uuid}/reports/categories:
+    get:
+      tags: [GroupReports]
+      summary: Breakdown per kategori produk
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+  /groups/{group_uuid}/reports/cashiers:
+    get:
+      tags: [GroupReports]
+      summary: Performa kasir lintas cabang
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+  /groups/{group_uuid}/reports/discounts:
+    get:
+      tags: [GroupReports]
+      summary: Discount yang di-apply (frekuensi + nominal)
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+  /groups/{group_uuid}/reports/void-refund:
+    get:
+      tags: [GroupReports]
+      summary: Analisis void & refund
+      parameters:
+        - in: path
+          name: group_uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+  # ════════════════════════════════════════════════════════════════════
+  # Offline Sync (mobile resilience)
+  # ════════════════════════════════════════════════════════════════════
+
+  /tenants/{tenant_id}/sync/catalog:
+    get:
+      tags: [OfflineSync]
+      summary: Snapshot katalog untuk offline mode
+      description: |
+        Bundle products + categories + tax_configs + surcharges yang
+        di-cache di mobile local DB. Mobile fetch ini saat online,
+        dipakai saat offline.
+
+        Includes ETag-style versioning (`?since=ISO-DATE`) untuk
+        incremental sync — cuma return rows yang berubah sejak
+        timestamp itu.
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - in: query
+          name: since
+          schema: { type: string, format: date-time, nullable: true }
+          description: |
+            ISO timestamp untuk incremental sync. Kalau tidak diisi,
+            return full catalog.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                status_code: 200
+                message: "Success"
+                data:
+                  catalog_version: "2026-04-27T10:00:00Z"
+                  products: [ ]
+                  categories: [ ]
+                  tax_configs: [ ]
+                  surcharges: [ ]
+
+  /tenants/{tenant_id}/sync/status:
+    get:
+      tags: [OfflineSync]
+      summary: Status sync queue
+      description: |
+        Cek progress batch sync yang sedang/sudah dikirim. Mobile bisa
+        retry kalau ada item yang gagal.
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200': { description: OK }
+
+  /tenants/{tenant_id}/sales/batch:
+    post:
+      tags: [OfflineSync]
+      summary: Push batch sales hasil offline
+      description: |
+        Mobile push transaksi yang dilakukan offline. Backend validate
+        + insert dengan idempotency key — kalau ada duplicate (re-submit
+        karena network glitch), di-skip silently.
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sales:
+                  type: array
+                  items: { type: object }
+            example:
+              sales:
+                - idempotency_key: "uuid-from-mobile-1"
+                  total: 150000
+                  items: [ ]
+                  payment_method: "cash"
+                - idempotency_key: "uuid-from-mobile-2"
+                  total: 75000
+                  items: [ ]
+                  payment_method: "qris"
+      responses:
+        '200':
+          description: Hasil per-item (success/skipped/failed)
+          content:
+            application/json:
+              example:
+                status_code: 200
+                message: "Batch processed"
+                data:
+                  total_received: 2
+                  inserted: 1
+                  skipped_duplicate: 1
+                  failed: 0
 
   /tenants/{tenant_id}/settings:
     get:
@@ -5529,29 +6379,50 @@ paths:
   /webhooks/xendit:
     post:
       tags: [Webhooks]
-      summary: Xendit payment callback (universal)
+      summary: Xendit payment callback (universal — Sales + Subscription)
       description: |
-        Endpoint ini dipanggil oleh **Xendit** (bukan Android) saat pembayaran berhasil.
+        Endpoint ini dipanggil oleh **Xendit** (bukan Android) saat
+        pembayaran berhasil. Satu URL untuk SEMUA jenis QR:
 
-        **Satu URL untuk semua tenant** — tidak ada tenant UUID di path.
-        Tenant diidentifikasi secara otomatis dari `xendit_qr_id` di payload
-        dengan cara lookup ke tabel `pos_xendit_qr`.
+        1. **Sales/POS QR** — pembayaran transaksi kasir (`pos_xendit_qr`)
+        2. **Subscription QR** — pembayaran perpanjangan langganan
+           (`pos_subscription_invoices`)
+
+        ### Dispatch logic
+
+        Backend identifikasi tipe via `reference_id` prefix:
+        - `POS-{sale_id}-{rand}` → sales handler (existing)
+        - `SUB-{invoice_uuid}` → subscription handler (auto-extend)
+
+        Kalau reference_id kosong, fallback ke lookup `xendit_qr_id` di
+        kedua tabel.
 
         ### URL yang didaftarkan ke Xendit Dashboard
         ```
         https://api.domain-anda.com/webhooks/xendit
         ```
-        Set sekali, berlaku untuk seluruh tenant yang memakai akun Xendit owner.
+        Set sekali, berlaku untuk seluruh tenant + semua tipe QR.
 
         ### Verifikasi
-        Header `x-callback-token` dicocokkan dengan (urutan):
-        1. `xendit_webhook_token` di `pos_app_configs` tenant
-        2. `XENDIT_WEBHOOK_TOKEN` di env server (fallback global)
+        Header `x-callback-token` dicocokkan dengan `XENDIT_WEBHOOK_TOKEN`
+        di env server. Kalau token belum di-set, log warning tapi proses
+        tetap jalan.
 
-        ### Aksi saat `SUCCEEDED`
+        ### Aksi untuk Sales QR (SUCCEEDED)
         1. Update `pos_xendit_qr.status` → `succeeded`
         2. Insert ke `pos_sale_payments` (`payment_method: qris`)
         3. Update `pos_sales.status` → `paid`
+
+        ### Aksi untuk Subscription QR (SUCCEEDED)
+        1. Update `pos_subscription_invoices.status` → `paid`,
+           `paid_at=NOW()`, `applied_at=NOW()`, simpan callback_payload
+        2. Update `pos_tenants.subscription_expires_at` =
+           `GREATEST(NOW(), expires_lama) + plan.duration_days`
+        3. Update `pos_tenants.subscription_status='active'`,
+           `subscription_plan=invoice.plan_code`
+        4. **`max_users` TIDAK di-touch** — itu field operasional admin
+
+        Idempoten: kalau invoice sudah `paid`, skip (return Ok early).
       security: []
       parameters:
         - in: header
@@ -5739,6 +6610,185 @@ components:
           type: string
           format: date-time
           nullable: true
+
+    SubmitApplicationInput:
+      type: object
+      required: [outlet_name, phone, address, nib, business_type]
+      description: |
+        Body request submit pengajuan outlet. Semua field kecuali
+        `google_maps_url` wajib.
+      properties:
+        outlet_name:
+          type: string
+          example: "Warung Pak Budi"
+          description: Nama outlet yang diajukan.
+        phone:
+          type: string
+          example: "08123456789"
+        address:
+          type: string
+          example: "Jl. Merdeka No. 10, Jakarta"
+        nib:
+          type: string
+          description: Nomor Induk Berusaha
+          example: "1234567890123"
+        business_type:
+          type: string
+          example: "Kuliner"
+          description: Jenis usaha (bebas text, frontend bisa pakai dropdown).
+        google_maps_url:
+          type: string
+          nullable: true
+          example: "https://maps.app.goo.gl/abc123"
+
+    Plan:
+      type: object
+      description: |
+        Catalog plan subscription — `pos_subscription_plans` row.
+        `total_price` = base + (base * tax_rate / 100), pre-computed.
+      properties:
+        uuid:          { type: string, format: uuid }
+        code:          { type: string, example: "basic_monthly" }
+        name:          { type: string, example: "Basic — Bulanan" }
+        description:   { type: string, nullable: true }
+        base_price:    { type: number, example: 100000 }
+        tax_rate:      { type: number, example: 11 }
+        duration_days: { type: integer, example: 30 }
+        max_users:     { type: integer, nullable: true, example: null, description: "null = unlimited" }
+        is_trial:      { type: boolean }
+        total_price:   { type: number, example: 111000 }
+
+    SubscriptionState:
+      type: object
+      description: Status subscription outlet — read-only.
+      properties:
+        status:
+          type: string
+          enum: [active, inactive, suspended, expired]
+        plan:        { type: string, nullable: true, example: "basic_monthly" }
+        started_at:  { type: string, format: date-time, nullable: true }
+        expires_at:  { type: string, format: date-time, nullable: true }
+        max_users:   { type: integer, nullable: true }
+        had_trial:
+          type: boolean
+          description: TRUE = outlet sudah pernah pakai demo trial. Tidak bisa apply demo lagi.
+
+    Invoice:
+      type: object
+      description: |
+        Invoice subscription — `pos_subscription_invoices` row dengan
+        Xendit QR fields. Snapshot harga + duration di-store agar audit-safe.
+      properties:
+        uuid:          { type: string, format: uuid }
+        invoice_no:    { type: string, example: "SUB-20260427-0001" }
+        plan_code:     { type: string, example: "basic_monthly" }
+        plan_name:     { type: string, example: "Basic — Bulanan" }
+        duration_days: { type: integer, example: 30 }
+        base_amount:   { type: number, example: 100000 }
+        tax_rate:      { type: number, example: 11 }
+        tax_amount:    { type: number, example: 11000 }
+        total_amount:  { type: number, example: 111000 }
+        status:
+          type: string
+          enum: [pending, paid, cancelled, expired]
+        issued_at:    { type: string, format: date-time }
+        due_at:       { type: string, format: date-time, description: "24 jam dari issued_at" }
+        paid_at:      { type: string, format: date-time, nullable: true }
+        cancelled_at: { type: string, format: date-time, nullable: true }
+        applied_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            Kapan invoice paid ini diterapkan ke pos_tenants (extend
+            expires_at). NULL = belum applied (race protection: idempotent).
+        created_at: { type: string, format: date-time }
+        xendit_qr_id:
+          type: string
+          nullable: true
+          description: ID QR Xendit (qrco_xxx). NULL = Xendit belum dikonfigurasi.
+        qr_string:
+          type: string
+          nullable: true
+          description: |
+            QR string EMVCo format. Render via library QR (mis. qrcode.react)
+            untuk owner scan via e-wallet.
+        xendit_ref_id:
+          type: string
+          nullable: true
+          description: "reference_id format SUB-{invoice_uuid}"
+        using_webhook:
+          type: boolean
+          description: |
+            TRUE = webhook XENDIT_CALLBACK_BASE_URL terkonfigurasi → status
+            update otomatis via webhook. FALSE = mobile perlu polling lebih
+            agresif via GET invoice detail.
+
+    CreateInvoiceBody:
+      type: object
+      required: [plan_code]
+      properties:
+        plan_code:
+          type: string
+          example: "basic_monthly"
+          description: Kode plan dari catalog. Plan trial tidak bisa di-invoice.
+
+    Group:
+      type: object
+      description: |
+        Group outlet — bundling beberapa outlet di bawah 1 brand.
+      properties:
+        uuid:         { type: string, format: uuid }
+        name:         { type: string }
+        description:  { type: string, nullable: true }
+        tenant_count: { type: integer, description: "Jumlah outlet di group ini" }
+        created_at:   { type: string, format: date-time }
+
+    TenantApplication:
+      type: object
+      description: |
+        Bentuk response pengajuan outlet — dipakai untuk POST /applications
+        dan GET /applications/me.
+
+        Sejak revisi auto-approve, status saat submit selalu `approved` dan
+        `approved_tenant_uuid` selalu populated. State `pending` / `rejected`
+        bisa muncul untuk pengajuan lama di GET /applications/me.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        outlet_name:    { type: string }
+        phone:          { type: string }
+        address:        { type: string }
+        google_maps_url:
+          type: string
+          nullable: true
+        nib:            { type: string }
+        business_type:  { type: string }
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          description: |
+            - `approved` → pengajuan auto-approve sukses, outlet sudah dibuat
+            - `pending` → legacy (sebelum auto-approve flow), masih nunggu review
+            - `rejected` → legacy, ditolak admin
+        rejection_reason:
+          type: string
+          nullable: true
+          description: Alasan tolak (kalau ada). Diisi admin di backoffice.
+        reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+        approved_tenant_uuid:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            UUID tenant yang dihasilkan dari approve. Selalu populated kalau
+            status='approved'. Client bisa langsung navigate ke tenant ini.
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     TenantSettings:
       type: object

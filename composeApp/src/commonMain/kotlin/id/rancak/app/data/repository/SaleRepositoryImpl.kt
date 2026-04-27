@@ -527,5 +527,58 @@ class SaleRepositoryImpl(
             Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
+
+    override suspend fun mergeSale(targetUuid: String, sourceUuid: String): Resource<Sale> {
+        return try {
+            val response = api.mergeSale(tenantUuid, targetUuid, sourceUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal menggabungkan order")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun getReceiptQueue(saleUuid: String): Resource<ByteArray> {
+        return try {
+            val bytes = api.getReceiptQueue(tenantUuid, saleUuid)
+            Resource.Success(bytes)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Gagal mengambil struk antrian")
+        }
+    }
+
+    override suspend fun reprintSale(
+        saleUuid: String,
+        printType: String,
+        reason: String?
+    ): Resource<id.rancak.app.domain.repository.ReprintResult> {
+        return try {
+            val response = api.reprintSale(tenantUuid, saleUuid, reason, printType)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(
+                    id.rancak.app.domain.repository.ReprintResult(
+                        printType = response.data.printType,
+                        sale = response.data.sale.toDomain()
+                    )
+                )
+            } else {
+                Resource.Error(response.message ?: "Gagal cetak ulang struk")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun openCashDrawer(): Resource<ByteArray> {
+        return try {
+            val bytes = api.openCashDrawer(tenantUuid)
+            Resource.Success(bytes)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Gagal membuka laci kas")
+        }
+    }
 }
 

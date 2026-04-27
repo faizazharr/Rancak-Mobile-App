@@ -89,3 +89,34 @@ fun OrderBoardItemDto.toDomain() = OrderBoardItem(
     qty = qty,
     note = note
 )
+
+// ── Cash count & cashier shift summary mappers ──────────────────────────────
+
+fun id.rancak.app.data.remote.dto.operations.CashCountDto.toDomain(): id.rancak.app.domain.model.CashCount =
+    id.rancak.app.domain.model.CashCount(
+        uuid = uuid,
+        shiftUuid = shiftUuid,
+        expectedCash = expectedCash,
+        actualCash = actualCash,
+        difference = difference,
+        denominations = denominations,
+        note = note,
+        countedAt = countedAt
+    )
+
+fun id.rancak.app.data.remote.dto.operations.CashierShiftSummaryDto.toDomain(): id.rancak.app.domain.model.CashierShiftSummary =
+    id.rancak.app.domain.model.CashierShiftSummary(
+        cashierUuid = cashierUuid,
+        cashierName = cashierName,
+        shiftUuid = shiftUuid,
+        openedAt = openedAt,
+        closedAt = closedAt,
+        shiftStatus = shiftStatus,
+        totalTransactions = totalTransactions,
+        voidCount = voidCount,
+        refundCount = refundCount,
+        grossTotal = grossTotal,
+        cashTotal = cashTotal,
+        nonCashTotal = nonCashTotal,
+        cashDifference = cashDifference
+    )

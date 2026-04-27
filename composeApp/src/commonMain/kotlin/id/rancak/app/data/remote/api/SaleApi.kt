@@ -182,3 +182,51 @@ suspend fun RancakApiService.getReceiptCombined(tenantUuid: String, saleUuid: St
         accept(ContentType.Application.OctetStream)
         parameter("kot_first", kotFirst)
     }.body()
+
+// ── Merge / Queue / Reprint ─────────────────────────────────────────────────
+
+/**
+ * Merge dua hold-order — semua item dari [sourceUuid] dipindah ke sale [targetUuid],
+ * lalu source di-cancel. Berstatus `held` keduanya, tenant sama.
+ */
+suspend fun RancakApiService.mergeSale(
+    tenantUuid: String,
+    targetUuid: String,
+    sourceUuid: String
+): ApiResponse<SaleDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$targetUuid/merge") {
+        contentType(ContentType.Application.Json)
+        setBody(mapOf("source_uuid" to sourceUuid))
+    }.body()
+
+/** Struk nomor antrian (font besar, 58mm). Returns raw ESC/POS bytes. */
+suspend fun RancakApiService.getReceiptQueue(tenantUuid: String, saleUuid: String): ByteArray =
+    client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/receipt/queue") {
+        accept(ContentType.Application.OctetStream)
+    }.body()
+
+/**
+ * Cetak ulang struk — mencatat audit log dan mengembalikan data sale lengkap.
+ * @param printType "receipt" | "kitchen" | "queue" (default "receipt")
+ */
+suspend fun RancakApiService.reprintSale(
+    tenantUuid: String,
+    saleUuid: String,
+    reason: String? = null,
+    printType: String = "receipt"
+): ApiResponse<id.rancak.app.data.remote.dto.sale.ReprintResponseDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/reprint") {
+        contentType(ContentType.Application.Json)
+        setBody(buildMap {
+            put("print_type", printType)
+            reason?.let { put("reason", it) }
+        })
+    }.body()
+
+// ── Devices: cash drawer ────────────────────────────────────────────────────
+
+/** Buka laci kas — server kirim raw ESC/POS `ESC p` bytes. */
+suspend fun RancakApiService.openCashDrawer(tenantUuid: String): ByteArray =
+    client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/devices/cash-drawer/open") {
+        accept(ContentType.Application.OctetStream)
+    }.body()

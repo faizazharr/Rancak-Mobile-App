@@ -260,3 +260,10 @@ data class BatchSaleResult(
     @SerialName("invoice_no") val invoiceNo: String? = null,
     @SerialName("sale_uuid") val saleUuid: String? = null
 )
+
+/** Response untuk POST /sales/{id}/reprint — wrapper data + sale lengkap. */
+@kotlinx.serialization.Serializable
+data class ReprintResponseDto(
+    @kotlinx.serialization.SerialName("print_type") val printType: String,
+    val sale: SaleDto
+)

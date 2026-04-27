@@ -159,5 +159,106 @@ class FinanceRepositoryImpl(
             Resource.Error(e.message ?: "Kesalahan jaringan")
         }
     }
+
+    override suspend fun markStockAlertRead(alertId: String): Resource<Unit> {
+        return try {
+            val response = api.markStockAlertRead(tenantUuid, alertId)
+            if (response.isSuccess) Resource.Success(Unit)
+            else Resource.Error(response.message ?: "Gagal menandai alert")
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun markAllStockAlertsRead(): Resource<Int> {
+        return try {
+            val response = api.markAllStockAlertsRead(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.dismissedCount)
+            } else {
+                Resource.Error(response.message ?: "Gagal menandai semua alert")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun getShiftByCashier(date: String?): Resource<List<CashierShiftSummary>> {
+        return try {
+            val response = api.getShiftByCashier(tenantUuid, date)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal memuat rekap kasir")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun getExpenseCategories(): Resource<List<ExpenseCategory>> {
+        return try {
+            val response = api.getExpenseCategories(tenantUuid)
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal memuat kategori pengeluaran")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun createExpenseCategory(
+        name: String,
+        isActive: Boolean,
+        sortOrder: Int
+    ): Resource<ExpenseCategory> {
+        return try {
+            val response = api.createExpenseCategory(
+                tenantUuid,
+                id.rancak.app.data.remote.dto.operations.CreateExpenseCategoryRequest(name, isActive, sortOrder)
+            )
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal membuat kategori")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun updateExpenseCategory(
+        categoryId: String,
+        name: String?,
+        isActive: Boolean?,
+        sortOrder: Int?
+    ): Resource<ExpenseCategory> {
+        return try {
+            val response = api.updateExpenseCategory(
+                tenantUuid,
+                categoryId,
+                id.rancak.app.data.remote.dto.operations.UpdateExpenseCategoryRequest(name, isActive, sortOrder)
+            )
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                Resource.Error(response.message ?: "Gagal memperbarui kategori")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun deleteExpenseCategory(categoryId: String): Resource<Unit> {
+        return try {
+            val response = api.deleteExpenseCategory(tenantUuid, categoryId)
+            if (response.isSuccess) Resource.Success(Unit)
+            else Resource.Error(response.message ?: "Gagal menghapus kategori")
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
 }
 

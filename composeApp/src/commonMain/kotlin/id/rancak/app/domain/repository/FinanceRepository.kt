@@ -18,4 +18,22 @@ interface FinanceRepository {
     suspend fun getStockAlerts(): Resource<List<StockAlert>>
     suspend fun getExpiringBatches(days: Int = 7): Resource<List<ExpiringBatch>>
     suspend fun getDailyByCategory(date: String? = null): Resource<List<DailyCategoryReport>>
+
+    // ── Stock alert dismissal ───────────────────────────────────────────────
+    suspend fun markStockAlertRead(alertId: String): Resource<Unit>
+    suspend fun markAllStockAlertsRead(): Resource<Int>
+
+    // ── Shift per kasir ─────────────────────────────────────────────────────
+    suspend fun getShiftByCashier(date: String? = null): Resource<List<CashierShiftSummary>>
+
+    // ── Expense categories CRUD ─────────────────────────────────────────────
+    suspend fun getExpenseCategories(): Resource<List<ExpenseCategory>>
+    suspend fun createExpenseCategory(name: String, isActive: Boolean = true, sortOrder: Int = 0): Resource<ExpenseCategory>
+    suspend fun updateExpenseCategory(
+        categoryId: String,
+        name: String? = null,
+        isActive: Boolean? = null,
+        sortOrder: Int? = null
+    ): Resource<ExpenseCategory>
+    suspend fun deleteExpenseCategory(categoryId: String): Resource<Unit>
 }

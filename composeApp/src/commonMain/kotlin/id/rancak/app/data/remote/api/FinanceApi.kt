@@ -7,6 +7,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -77,3 +78,35 @@ suspend fun RancakApiService.createExpense(
 
 suspend fun RancakApiService.deleteExpense(tenantUuid: String, expenseId: String): ApiResponse<Unit> =
     client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/$expenseId").body()
+
+// ── Expense categories CRUD ─────────────────────────────────────────────────
+
+suspend fun RancakApiService.getExpenseCategories(
+    tenantUuid: String
+): ApiResponse<List<id.rancak.app.data.remote.dto.operations.ExpenseCategoryDto>> =
+    client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/categories").body()
+
+suspend fun RancakApiService.createExpenseCategory(
+    tenantUuid: String,
+    request: id.rancak.app.data.remote.dto.operations.CreateExpenseCategoryRequest
+): ApiResponse<id.rancak.app.data.remote.dto.operations.ExpenseCategoryDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/categories") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.updateExpenseCategory(
+    tenantUuid: String,
+    categoryId: String,
+    request: id.rancak.app.data.remote.dto.operations.UpdateExpenseCategoryRequest
+): ApiResponse<id.rancak.app.data.remote.dto.operations.ExpenseCategoryDto> =
+    client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/categories/$categoryId") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.deleteExpenseCategory(
+    tenantUuid: String,
+    categoryId: String
+): ApiResponse<Unit> =
+    client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/categories/$categoryId").body()

@@ -115,3 +115,11 @@ data class ReceiptItemDomain(
     val subtotal: Long,
     val note: String?
 )
+
+/** Kategori pengeluaran (admin/owner). */
+data class ExpenseCategory(
+    val uuid: String,
+    val name: String,
+    val isActive: Boolean,
+    val sortOrder: Int
+)

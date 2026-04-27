@@ -233,6 +233,36 @@ class AuthRepositoryImpl(
             Resource.Error(e.toNetworkMessage())
         }
     }
+
+    override suspend fun forgotPassword(email: String): Resource<Unit> {
+        return try {
+            // Anti-enumeration: BE selalu kembalikan 200 walau email tidak terdaftar.
+            api.forgotPassword(id.rancak.app.data.remote.dto.auth.ForgotPasswordRequest(email))
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            // Bahkan kalau network error pun, jangan kasih tahu user — anggap sukses.
+            Resource.Success(Unit)
+        }
+    }
+
+    override suspend fun resetPassword(token: String, newPassword: String): Resource<Unit> {
+        return try {
+            val response = api.resetPassword(
+                id.rancak.app.data.remote.dto.auth.ResetPasswordRequest(token, newPassword)
+            )
+            if (response.isSuccess) Resource.Success(Unit)
+            else {
+                val msg = when (response.statusCode) {
+                    400 -> "Token reset tidak valid atau sudah kedaluwarsa."
+                    422 -> response.message ?: "Password tidak memenuhi persyaratan."
+                    else -> response.message ?: "Gagal reset password."
+                }
+                Resource.Error(msg, response.statusCode)
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.toNetworkMessage())
+        }
+    }
 }
 
 /**

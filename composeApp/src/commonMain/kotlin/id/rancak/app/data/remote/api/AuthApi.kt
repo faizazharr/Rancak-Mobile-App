@@ -2,6 +2,7 @@ package id.rancak.app.data.remote.api
 
 import id.rancak.app.data.remote.dto.ApiResponse
 import id.rancak.app.data.remote.dto.auth.ChangePasswordRequest
+import id.rancak.app.data.remote.dto.auth.ForgotPasswordRequest
 import id.rancak.app.data.remote.dto.auth.GoogleLoginRequest
 import id.rancak.app.data.remote.dto.auth.LoginRequest
 import id.rancak.app.data.remote.dto.auth.LoginResponse
@@ -9,6 +10,7 @@ import id.rancak.app.data.remote.dto.auth.LogoutRequest
 import id.rancak.app.data.remote.dto.auth.MyTenantDto
 import id.rancak.app.data.remote.dto.auth.ReceiptSettingsDto
 import id.rancak.app.data.remote.dto.auth.RefreshTokenRequest
+import id.rancak.app.data.remote.dto.auth.ResetPasswordRequest
 import id.rancak.app.data.remote.dto.auth.SessionDto
 import id.rancak.app.data.remote.dto.auth.TenantSettingsDto
 import id.rancak.app.data.remote.dto.auth.UserDto
@@ -53,6 +55,18 @@ suspend fun RancakApiService.getMe(): ApiResponse<UserDto> =
 
 suspend fun RancakApiService.changePassword(request: ChangePasswordRequest): ApiResponse<Unit> =
     client.post(ApiConstants.BASE_URL + ApiConstants.CHANGE_PASSWORD) {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.forgotPassword(request: ForgotPasswordRequest): ApiResponse<Unit> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.FORGOT_PASSWORD) {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.resetPassword(request: ResetPasswordRequest): ApiResponse<Unit> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.RESET_PASSWORD) {
         contentType(ContentType.Application.Json)
         setBody(request)
     }.body()

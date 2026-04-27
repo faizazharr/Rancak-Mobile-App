@@ -62,3 +62,11 @@ fun PaymentMethodReportDto.toDomain() = PaymentMethodReport(
     total = total,
     count = count
 )
+
+fun id.rancak.app.data.remote.dto.operations.ExpenseCategoryDto.toDomain(): id.rancak.app.domain.model.ExpenseCategory =
+    id.rancak.app.domain.model.ExpenseCategory(
+        uuid = uuid,
+        name = name,
+        isActive = isActive,
+        sortOrder = sortOrder
+    )

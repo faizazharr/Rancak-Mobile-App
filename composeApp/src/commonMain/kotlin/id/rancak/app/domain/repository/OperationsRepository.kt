@@ -17,4 +17,17 @@ interface OperationsRepository {
     suspend fun syncCatalog(updatedAfter: String? = null): Resource<Unit>
     suspend fun syncStatus(): Resource<Boolean>
     suspend fun getShiftSummaryById(shiftUuid: String): Resource<ShiftSummary>
+
+    // ── Cash count (rekonsiliasi kas) ───────────────────────────────────────
+    suspend fun getCashCounts(shiftUuid: String): Resource<List<CashCount>>
+    suspend fun submitCashCount(
+        shiftUuid: String,
+        actualCash: Double,
+        denominations: Map<String, Int>? = null,
+        note: String? = null
+    ): Resource<CashCount>
+
+    // ── KDS detail + item-level ─────────────────────────────────────────────
+    suspend fun getKdsDetail(kdsUuid: String): Resource<KdsOrder>
+    suspend fun updateKdsItemStatus(kdsUuid: String, itemUuid: String, status: String): Resource<Unit>
 }
