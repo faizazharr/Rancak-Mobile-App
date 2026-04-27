@@ -30,11 +30,12 @@ import org.koin.compose.viewmodel.koinViewModel
 fun TenantPickerScreen(
     onTenantSelected: () -> Unit,
     onLoggedOut: () -> Unit = {},
+    switchMode: Boolean = false,
     viewModel: TenantPickerViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) { viewModel.loadTenants() }
+    LaunchedEffect(Unit) { viewModel.loadTenants(autoConfirmSingle = !switchMode) }
     LaunchedEffect(uiState.isConfirmed) {
         if (uiState.isConfirmed) onTenantSelected()
     }

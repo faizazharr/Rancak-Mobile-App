@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 sealed class Screen {
     @Serializable data object Splash : Screen()
     @Serializable data object Login : Screen()
-    @Serializable data object TenantPicker : Screen()
+    @Serializable data class  TenantPicker(val switchMode: Boolean = false) : Screen()
     @Serializable data object Pos : Screen()
     @Serializable data object Cart : Screen()
     @Serializable data object Payment : Screen()

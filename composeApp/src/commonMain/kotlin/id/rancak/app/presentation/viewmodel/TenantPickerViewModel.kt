@@ -60,14 +60,14 @@ class TenantPickerViewModel(
     private val _uiState = MutableStateFlow(TenantPickerUiState())
     val uiState: StateFlow<TenantPickerUiState> = _uiState.asStateFlow()
 
-    fun loadTenants() {
+    fun loadTenants(autoConfirmSingle: Boolean = true) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, isConfirmed = false) }
             when (val result = authRepository.getMyTenants()) {
                 is Resource.Success -> {
                     val tenants = result.data
                     _uiState.update { it.copy(tenants = tenants, isLoading = false) }
-                    if (tenants.size == 1) {
+                    if (autoConfirmSingle && tenants.size == 1) {
                         selectTenant(tenants.first())
                         confirm()
                     }

@@ -49,7 +49,7 @@ fun SplashScreen(
         onNavigate(
             when (dest) {
                 SplashDestination.LOGIN         -> Screen.Login
-                SplashDestination.TENANT_PICKER -> Screen.TenantPicker
+                SplashDestination.TENANT_PICKER -> Screen.TenantPicker()
                 SplashDestination.POS           -> Screen.Pos
             }
         )

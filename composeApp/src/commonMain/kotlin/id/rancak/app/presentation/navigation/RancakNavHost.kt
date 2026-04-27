@@ -177,7 +177,7 @@ fun RancakNavHost() {
                         selected = false,
                         onClick = {
                             scope.launch { drawerState.close() }
-                            navController.navigate(Screen.TenantPicker) {
+                            navController.navigate(Screen.TenantPicker(switchMode = true)) {
                                 popUpTo(0) { inclusive = true }
                             }
                         },
@@ -238,7 +238,7 @@ private fun NavigationContent(
         composable<Screen.Login> {
             LoginScreen(
                 onLoginSuccess = {
-                    navController.navigate(Screen.TenantPicker) {
+                    navController.navigate(Screen.TenantPicker()) {
                         popUpTo(Screen.Login) { inclusive = true }
                     }
                 }
@@ -246,10 +246,12 @@ private fun NavigationContent(
         }
 
         composable<Screen.TenantPicker> {
+            val route = it.toRoute<Screen.TenantPicker>()
             TenantPickerScreen(
+                switchMode = route.switchMode,
                 onTenantSelected = {
                     navController.navigate(Screen.Pos) {
-                        popUpTo(Screen.TenantPicker) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 },
                 onLoggedOut = {
