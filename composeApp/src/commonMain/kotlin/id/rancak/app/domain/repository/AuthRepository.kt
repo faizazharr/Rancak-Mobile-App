@@ -14,6 +14,24 @@ interface AuthRepository {
     suspend fun changePassword(currentPassword: String, newPassword: String): Resource<Unit>
     suspend fun getSessions(): Resource<List<Session>>
     suspend fun revokeSession(sessionId: String): Resource<Unit>
+
+    /**
+     * Submit pengajuan outlet baru. Backend auto-approve — outlet langsung jadi
+     * dengan demo trial 14 hari, dan [TenantApplication.approvedTenantUuid]
+     * langsung terisi.
+     */
+    suspend fun submitOutletApplication(
+        outletName: String,
+        phone: String,
+        address: String,
+        nib: String,
+        businessType: String,
+        googleMapsUrl: String? = null
+    ): Resource<TenantApplication>
+
+    /** Riwayat pengajuan outlet milik user yang login. */
+    suspend fun getMyApplications(): Resource<List<TenantApplication>>
+
     fun isLoggedIn(): Boolean
     fun getCurrentTenantUuid(): String?
     fun getCurrentTenantName(): String?

@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Tenant
 import id.rancak.app.domain.repository.AuthRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -130,8 +129,11 @@ class TenantPickerViewModel(
     }
 
     /**
-     * Kirim pengajuan outlet baru. Sementara backend belum tersedia,
-     * fungsi ini menyimulasi proses submit dan menampilkan status sukses.
+     * Kirim pengajuan outlet baru ke `POST /applications`.
+     *
+     * Backend auto-approve — saat sukses, outlet langsung jadi dengan demo
+     * trial 14 hari. Bila `approvedTenantUuid` terisi, langsung set tenant
+     * aktif sehingga user tidak perlu refresh manual.
      */
     fun submitOutletRequest() {
         val form = _uiState.value.submission
@@ -141,14 +143,44 @@ class TenantPickerViewModel(
             }
             return
         }
+        val businessType = form.businessType ?: return
         viewModelScope.launch {
             _uiState.update {
                 it.copy(submission = it.submission.copy(isSubmitting = true, error = null))
             }
-            // Stub: simulasi request jaringan
-            delay(800)
-            _uiState.update {
-                it.copy(submission = it.submission.copy(isSubmitting = false, isSubmitted = true))
+            val result = authRepository.submitOutletApplication(
+                outletName    = form.name.trim(),
+                phone         = form.phone.trim(),
+                address       = form.address.trim(),
+                nib           = form.nib.trim(),
+                businessType  = businessType.label,
+                googleMapsUrl = form.gmapsUrl.trim().ifBlank { null }
+            )
+            when (result) {
+                is Resource.Success -> {
+                    val app = result.data
+                    // Auto-approve: outlet langsung aktif → set sebagai tenant terpilih
+                    app.approvedTenantUuid?.let { tenantUuid ->
+                        authRepository.setTenant(tenantUuid, app.outletName)
+                        authRepository.setUserRole("owner")
+                    }
+                    _uiState.update {
+                        it.copy(submission = it.submission.copy(isSubmitting = false, isSubmitted = true))
+                    }
+                    // Refresh daftar tenant agar muncul di picker
+                    loadTenants()
+                }
+                is Resource.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            submission = it.submission.copy(
+                                isSubmitting = false,
+                                error = result.message
+                            )
+                        )
+                    }
+                }
+                is Resource.Loading -> {}
             }
         }
     }

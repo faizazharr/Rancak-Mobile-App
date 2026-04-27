@@ -22,6 +22,10 @@ object ApiConstants {
     const val RESET_PASSWORD = "/auth/reset-password"
     const val SESSIONS = "/auth/sessions"
 
+    // Applications (pengajuan outlet — auto-approve)
+    const val APPLICATIONS = "/applications"
+    const val APPLICATIONS_ME = "/applications/me"
+
     // Tenant-scoped (append tenantPath(tenantUuid) before these)
     const val PRODUCTS = "/products"
     const val CATEGORIES = "/categories"

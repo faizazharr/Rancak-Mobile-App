@@ -9,6 +9,7 @@ import id.rancak.app.data.remote.dto.auth.GoogleLoginRequest
 import id.rancak.app.data.remote.dto.auth.LoginRequest
 import id.rancak.app.data.remote.dto.auth.LogoutRequest
 import id.rancak.app.data.remote.dto.auth.RefreshTokenRequest
+import id.rancak.app.data.remote.dto.auth.SubmitApplicationRequest
 import id.rancak.app.domain.model.*
 import id.rancak.app.domain.repository.AuthRepository
 
@@ -183,6 +184,53 @@ class AuthRepositoryImpl(
             else Resource.Error(response.message ?: "Gagal menghapus sesi")
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Kesalahan jaringan")
+        }
+    }
+
+    override suspend fun submitOutletApplication(
+        outletName: String,
+        phone: String,
+        address: String,
+        nib: String,
+        businessType: String,
+        googleMapsUrl: String?
+    ): Resource<TenantApplication> {
+        return try {
+            val response = api.submitApplication(
+                SubmitApplicationRequest(
+                    outletName    = outletName,
+                    phone         = phone,
+                    address       = address,
+                    nib           = nib,
+                    businessType  = businessType,
+                    googleMapsUrl = googleMapsUrl?.takeIf { it.isNotBlank() }
+                )
+            )
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.toDomain())
+            } else {
+                val msg = when (response.statusCode) {
+                    400 -> response.message ?: "Data pengajuan tidak valid"
+                    409 -> "Anda sudah punya outlet aktif dengan nama yang sama"
+                    else -> response.message ?: "Gagal mengirim pengajuan outlet"
+                }
+                Resource.Error(msg, response.statusCode)
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.toNetworkMessage())
+        }
+    }
+
+    override suspend fun getMyApplications(): Resource<List<TenantApplication>> {
+        return try {
+            val response = api.getMyApplications()
+            if (response.isSuccess && response.data != null) {
+                Resource.Success(response.data.map { it.toDomain() })
+            } else {
+                Resource.Error(response.message ?: "Gagal mengambil riwayat pengajuan")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.toNetworkMessage())
         }
     }
 }

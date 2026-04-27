@@ -88,3 +88,18 @@ fun LoginResponse.toLoginResult() = LoginResult(
     ),
     user = user.toDomain()
 )
+
+fun id.rancak.app.data.remote.dto.auth.TenantApplicationDto.toDomain() =
+    id.rancak.app.domain.model.TenantApplication(
+        uuid               = uuid,
+        outletName         = outletName,
+        phone              = phone,
+        address            = address,
+        googleMapsUrl      = googleMapsUrl,
+        nib                = nib,
+        businessType       = businessType,
+        status             = status,
+        rejectionReason    = rejectionReason,
+        approvedTenantUuid = approvedTenantUuid,
+        createdAt          = createdAt
+    )

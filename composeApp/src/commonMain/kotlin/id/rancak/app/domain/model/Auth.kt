@@ -69,3 +69,24 @@ data class Session(
     val expiresAt: String?,
     val current: Boolean
 )
+
+/**
+ * Hasil pengajuan outlet dari backend.
+ *
+ * Sejak revisi auto-approve (2026-04), [status] selalu `approved` saat baru
+ * disubmit dan [approvedTenantUuid] selalu terisi — client bisa langsung
+ * navigate ke tenant baru tanpa fetch ulang `GET /tenants`.
+ */
+data class TenantApplication(
+    val uuid: String,
+    val outletName: String,
+    val phone: String,
+    val address: String,
+    val googleMapsUrl: String?,
+    val nib: String,
+    val businessType: String,
+    val status: String,
+    val rejectionReason: String?,
+    val approvedTenantUuid: String?,
+    val createdAt: String
+)
