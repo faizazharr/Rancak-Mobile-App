@@ -15,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Invoice
 import id.rancak.app.domain.model.Plan
@@ -114,80 +116,64 @@ private fun BillingContent(
     onCancelInvoice: (Invoice) -> Unit,
     onRefresh: () -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        // ── Subscription card ─────────────────────────────────────────────
-        item {
-            SubscriptionCard(subscription = subscription)
-        }
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isTablet = maxWidth >= 600.dp
+        val hPad = if (isTablet) 24.dp else 16.dp
+        val planCols = if (isTablet) 2 else 1
+        val planRows = plans.chunked(planCols)
 
-        // ── Available plans ───────────────────────────────────────────────
-        if (plans.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = hPad, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             item {
-                SectionHeader(
-                    icon = Icons.Default.Stars,
-                    title = "Paket Langganan",
-                    subtitle = "Pilih paket yang sesuai kebutuhan bisnis Anda"
-                )
+                SubscriptionCard(subscription = subscription, isTablet = isTablet)
             }
-            items(plans) { plan ->
-                PlanCard(
-                    plan = plan,
-                    isCurrentPlan = subscription?.plan == plan.code,
-                    onSubscribe = { onSubscribe(plan) }
-                )
-            }
-        }
 
-        // ── Invoice history ───────────────────────────────────────────────
-        if (invoices.isNotEmpty()) {
-            item {
-                SectionHeader(
-                    icon = Icons.Default.Receipt,
-                    title = "Riwayat Invoice",
-                    subtitle = "${invoices.size} invoice tercatat"
-                )
-            }
-            items(invoices, key = { it.uuid }) { invoice ->
-                InvoiceCard(
-                    invoice = invoice,
-                    onCancel = { onCancelInvoice(invoice) }
-                )
-            }
-        }
-
-        // ── Empty invoices placeholder ────────────────────────────────────
-        if (invoices.isEmpty() && plans.isEmpty() && subscription == null) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 48.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        Icons.Default.CreditCard,
-                        contentDescription = null,
-                        modifier = Modifier.size(56.dp),
-                        tint = MaterialTheme.colorScheme.outlineVariant
-                    )
-                    Text(
-                        "Belum ada data billing",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    OutlinedButton(onClick = onRefresh) {
-                        Text("Muat Ulang")
+            if (plans.isNotEmpty()) {
+                item { SectionLabel(Icons.Default.Stars, "Paket Langganan") }
+                items(planRows) { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        row.forEach { plan ->
+                            PlanCard(
+                                plan = plan,
+                                isCurrentPlan = subscription?.plan == plan.code,
+                                onSubscribe = { onSubscribe(plan) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (row.size < planCols) Spacer(Modifier.weight(1f))
                     }
                 }
             }
-        }
 
-        item { Spacer(Modifier.height(16.dp)) }
+            if (invoices.isNotEmpty()) {
+                item { SectionLabel(Icons.Default.Receipt, "Riwayat Invoice (${invoices.size})") }
+                items(invoices, key = { it.uuid }) { invoice ->
+                    InvoiceCard(invoice = invoice, onCancel = { onCancelInvoice(invoice) })
+                }
+            }
+
+            if (invoices.isEmpty() && plans.isEmpty() && subscription == null) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(Icons.Default.CreditCard, null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.outlineVariant)
+                        Text("Belum ada data billing",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        OutlinedButton(onClick = onRefresh) { Text("Muat Ulang") }
+                    }
+                }
+            }
+
+            item { Spacer(Modifier.height(12.dp)) }
+        }
     }
 }
 
@@ -196,79 +182,75 @@ private fun BillingContent(
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun SubscriptionCard(subscription: SubscriptionState?) {
+private fun SubscriptionCard(subscription: SubscriptionState?, isTablet: Boolean) {
     val (gradientStart, gradientEnd, statusLabel, statusIcon) = when (subscription?.status) {
-        "active" -> Quadruple(Primary, Color(0xFF1DB88A), "Aktif", Icons.Default.CheckCircle)
-        "trial"  -> Quadruple(Tertiary, Color(0xFF5588EE), "Trial", Icons.Default.HourglassTop)
+        "active"  -> Quadruple(Primary, Color(0xFF1DB88A), "Aktif", Icons.Default.CheckCircle)
+        "trial"   -> Quadruple(Tertiary, Color(0xFF5588EE), "Trial", Icons.Default.HourglassTop)
         "expired" -> Quadruple(Color(0xFF9E9E9E), Color(0xFF757575), "Kedaluwarsa", Icons.Default.ErrorOutline)
-        else     -> Quadruple(Color(0xFF9E9E9E), Color(0xFF757575), "Tidak Aktif", Icons.Default.Block)
+        else      -> Quadruple(Color(0xFF9E9E9E), Color(0xFF757575), "Tidak Aktif", Icons.Default.Block)
     }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(Brush.linearGradientBrush(listOf(gradientStart, gradientEnd)))
-            .padding(24.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (isTablet) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    statusIcon,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    "Status Langganan",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White.copy(alpha = 0.8f)
-                )
-                Spacer(Modifier.weight(1f))
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = Color.White.copy(alpha = 0.2f)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(statusIcon, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                        Text("Status Langganan", style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.75f))
+                        SubStatusPill(statusLabel)
+                    }
                     Text(
-                        statusLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        subscription?.plan?.uppercase() ?: "TIDAK ADA PAKET",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold, color = Color.White
                     )
                 }
+                if (subscription != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                        SubInfoItem("Mulai", subscription.startedAt?.take(10) ?: "-")
+                        SubInfoItem("Berakhir", subscription.expiresAt?.take(10) ?: "-", Alignment.CenterHorizontally)
+                        SubInfoItem("Maks. User", subscription.maxUsers?.toString() ?: "∞", Alignment.End)
+                    }
+                }
             }
-
-            Text(
-                text = subscription?.plan?.uppercase() ?: "TIDAK ADA PAKET",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White
-            )
-
-            if (subscription != null) {
-                HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    SubscriptionInfoItem(
-                        label = "Mulai",
-                        value = subscription.startedAt?.take(10) ?: "-"
-                    )
-                    SubscriptionInfoItem(
-                        label = "Berakhir",
-                        value = subscription.expiresAt?.take(10) ?: "-",
-                        align = Alignment.CenterHorizontally
-                    )
-                    SubscriptionInfoItem(
-                        label = "Maks. User",
-                        value = subscription.maxUsers?.toString() ?: "∞",
-                        align = Alignment.End
-                    )
+                    Icon(statusIcon, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Text("Status Langganan", style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.75f))
+                    Spacer(Modifier.weight(1f))
+                    SubStatusPill(statusLabel)
+                }
+                Text(
+                    subscription?.plan?.uppercase() ?: "TIDAK ADA PAKET",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold, color = Color.White
+                )
+                if (subscription != null) {
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        SubInfoItem("Mulai", subscription.startedAt?.take(10) ?: "-")
+                        SubInfoItem("Berakhir", subscription.expiresAt?.take(10) ?: "-", Alignment.CenterHorizontally)
+                        SubInfoItem("Maks. User", subscription.maxUsers?.toString() ?: "∞", Alignment.End)
+                    }
                 }
             }
         }
@@ -276,14 +258,18 @@ private fun SubscriptionCard(subscription: SubscriptionState?) {
 }
 
 @Composable
-private fun SubscriptionInfoItem(
-    label: String,
-    value: String,
-    align: Alignment.Horizontal = Alignment.Start
-) {
-    Column(horizontalAlignment = align) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
-        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = Color.White)
+private fun SubStatusPill(label: String) {
+    Surface(shape = RoundedCornerShape(50), color = Color.White.copy(alpha = 0.2f)) {
+        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
+            color = Color.White, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+    }
+}
+
+@Composable
+private fun SubInfoItem(label: String, value: String, align: Alignment.Horizontal = Alignment.Start) {
+    Column(horizontalAlignment = align, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.65f))
+        Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = Color.White)
     }
 }
 
@@ -295,131 +281,97 @@ private fun SubscriptionInfoItem(
 private fun PlanCard(
     plan: Plan,
     isCurrentPlan: Boolean,
-    onSubscribe: () -> Unit
+    onSubscribe: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val borderColor by animateColorAsState(
         if (isCurrentPlan) Primary else MaterialTheme.colorScheme.outlineVariant
     )
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
         border = androidx.compose.foundation.BorderStroke(
             width = if (isCurrentPlan) 2.dp else 1.dp,
             color = borderColor
         ),
         colors = CardDefaults.cardColors(
-            containerColor = if (isCurrentPlan)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else
-                MaterialTheme.colorScheme.surface
+            containerColor = if (isCurrentPlan) Primary.copy(alpha = 0.06f)
+            else MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentPlan) 4.dp else 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentPlan) 3.dp else 1.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // ── Plan header ──
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            plan.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (plan.isTrial) {
-                            Surface(
-                                shape = RoundedCornerShape(50),
-                                color = Secondary.copy(alpha = 0.15f)
-                            ) {
-                                Text(
-                                    "TRIAL",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Secondary,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                        if (isCurrentPlan) {
-                            Surface(
-                                shape = RoundedCornerShape(50),
-                                color = Primary.copy(alpha = 0.15f)
-                            ) {
-                                Text(
-                                    "PAKET ANDA",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Primary,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                    }
-                    if (plan.description != null) {
-                        Text(
-                            plan.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                Text(
+                    plan.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (plan.isTrial) SmallBadge("TRIAL", Secondary)
+                if (isCurrentPlan) SmallBadge("AKTIF", Primary)
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            if (plan.description != null) {
+                Text(
+                    plan.description,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
-            // ── Pricing & details ──
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         formatPlanPrice(plan.totalPrice),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = if (isCurrentPlan) Primary else MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        "${plan.durationDays} hari" + if (plan.maxUsers != null) " · Maks. ${plan.maxUsers} user" else "",
-                        style = MaterialTheme.typography.bodySmall,
+                        "${plan.durationDays} hari" + if (plan.maxUsers != null) " · ${plan.maxUsers} user" else "",
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (plan.taxRate > 0) {
-                        Text(
-                            "Sudah termasuk pajak ${(plan.taxRate * 100).toInt()}%",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    }
                 }
 
                 Button(
                     onClick = onSubscribe,
                     enabled = !isCurrentPlan,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Primary,
                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
                     if (isCurrentPlan) {
-                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Aktif")
+                        Text("Aktif", style = MaterialTheme.typography.labelMedium)
                     } else {
-                        Text(if (plan.isTrial) "Coba Gratis" else "Berlangganan")
+                        Text(if (plan.isTrial) "Coba" else "Langganan",
+                            style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }
@@ -437,163 +389,117 @@ private fun InvoiceCard(
     onCancel: () -> Unit
 ) {
     val (statusColor, statusLabel, statusIcon) = when (invoice.status) {
-        "paid"      -> Triple(Success,          "Lunas",       Icons.Default.CheckCircle)
-        "pending"   -> Triple(Warning,          "Menunggu",    Icons.Default.HourglassTop)
-        "cancelled" -> Triple(Color(0xFF9E9E9E), "Dibatalkan",  Icons.Default.Cancel)
-        "expired"   -> Triple(Error,            "Kedaluwarsa", Icons.Default.ErrorOutline)
-        else        -> Triple(Color(0xFF9E9E9E), invoice.status, Icons.Default.Info)
+        "paid"      -> Triple(Success,            "Lunas",       Icons.Default.CheckCircle)
+        "pending"   -> Triple(Warning,            "Menunggu",    Icons.Default.HourglassTop)
+        "cancelled" -> Triple(Color(0xFF9E9E9E),  "Dibatalkan",  Icons.Default.Cancel)
+        "expired"   -> Triple(Error,              "Kedaluwarsa", Icons.Default.ErrorOutline)
+        else        -> Triple(Color(0xFF9E9E9E),  invoice.status, Icons.Default.Info)
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // ── Invoice header ──
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(8.dp),
                     color = statusColor.copy(alpha = 0.12f),
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            statusIcon,
-                            contentDescription = null,
-                            tint = statusColor,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        Icon(statusIcon, null, tint = statusColor, modifier = Modifier.size(18.dp))
                     }
                 }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        invoice.invoiceNo,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        invoice.planName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                    Text(invoice.invoiceNo, style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(invoice.planName, style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = statusColor.copy(alpha = 0.12f)
-                ) {
-                    Text(
-                        statusLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = statusColor,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                    )
-                }
+                SmallBadge(statusLabel, statusColor)
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-            // ── Invoice detail rows ──
-            InvoiceDetailRow("Durasi", "${invoice.durationDays} hari")
-            InvoiceDetailRow("Subtotal", formatPlanPrice(invoice.baseAmount))
-            if (invoice.taxAmount > 0) {
-                InvoiceDetailRow("Pajak (${(invoice.taxRate * 100).toInt()}%)", formatPlanPrice(invoice.taxAmount))
-            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Bottom
             ) {
-                Text(
-                    "Total",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    formatPlanPrice(invoice.totalAmount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Primary
-                )
-            }
-
-            // ── Dates ──
-            if (invoice.issuedAt != null || invoice.dueAt != null) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Surface(shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant) {
+                        Text("${invoice.durationDays} hari", style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     if (invoice.issuedAt != null) {
-                        Text(
-                            "Diterbitkan: ${invoice.issuedAt.take(10)}",
+                        Text("Terbit: ${invoice.issuedAt.take(10)}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     if (invoice.dueAt != null) {
-                        Text(
-                            "Jatuh tempo: ${invoice.dueAt.take(10)}",
+                        Text("Jatuh tempo: ${invoice.dueAt.take(10)}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (invoice.status == "pending") Warning else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                            color = if (invoice.status == "pending") Warning
+                                    else MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    if (invoice.taxAmount > 0) {
+                        Text(formatPlanPrice(invoice.baseAmount),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("+${(invoice.taxRate * 100).toInt()}% pajak",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(formatPlanPrice(invoice.totalAmount),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.ExtraBold, color = Primary)
+                }
+            }
+
+            if (invoice.status == "pending" && invoice.qrString != null) {
+                Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(Icons.Default.QrCode, null, modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("QRIS tersedia — selesaikan pembayaran via e-wallet",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
 
-            // ── QR info + cancel button (pending only) ──
             if (invoice.status == "pending") {
-                if (invoice.qrString != null) {
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.QrCode,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                "QRIS tersedia — selesaikan pembayaran via aplikasi e-wallet",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
                 OutlinedButton(
                     onClick = onCancel,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Error.copy(alpha = 0.5f))
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Error.copy(alpha = 0.4f))
                 ) {
-                    Icon(
-                        Icons.Default.Cancel,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    Icon(Icons.Default.Cancel, null, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Batalkan Invoice")
+                    Text("Batalkan Invoice", style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -601,63 +507,27 @@ private fun InvoiceCard(
 }
 
 @Composable
-private fun InvoiceDetailRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            value,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium
-        )
+private fun SmallBadge(label: String, color: Color) {
+    Surface(shape = RoundedCornerShape(50), color = color.copy(alpha = 0.12f)) {
+        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
+            color = color, modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp))
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Section header
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
-private fun SectionHeader(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String
-) {
+private fun SectionLabel(icon: ImageVector, title: String) {
     Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp, bottom = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = MaterialTheme.colorScheme.primaryContainer
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .size(20.dp)
-            )
-        }
-        Column {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Icon(icon, null, modifier = Modifier.size(14.dp), tint = Primary)
+        Text(title, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        HorizontalDivider(modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     }
 }
 
