@@ -56,6 +56,7 @@ private fun orderTime(createdAt: String?): String {
 // ─────────────────────────────────────────────────────────────────────────────
 
 private const val PAGE_SIZE = 6
+private const val PAGE_SIZE_TABLET = 12
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,9 +91,7 @@ fun KdsScreenContent(
     // Reset page when switching tabs
     LaunchedEffect(uiState.showCompleted) { page = 0 }
 
-    val orders      = uiState.displayOrders
-    val totalPages  = ((orders.size + PAGE_SIZE - 1) / PAGE_SIZE).coerceAtLeast(1)
-    val pagedOrders = orders.drop(page * PAGE_SIZE).take(PAGE_SIZE)
+    val orders = uiState.displayOrders
 
     Scaffold(
         topBar = {
@@ -109,12 +108,17 @@ fun KdsScreenContent(
             )
         }
     ) { padding ->
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
+            val isTablet = maxWidth >= 600.dp
+            val pageSize = if (isTablet) PAGE_SIZE_TABLET else PAGE_SIZE
+            val totalPages  = ((orders.size + pageSize - 1) / pageSize).coerceAtLeast(1)
+            val pagedOrders = orders.drop(page * pageSize).take(pageSize)
+        Column(Modifier.fillMaxSize()) {
             when {
                 uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
                 uiState.error != null -> ErrorScreen(
@@ -223,7 +227,8 @@ fun KdsScreenContent(
                     }
                 }
             }
-        }
+        } // end Column
+        } // end BoxWithConstraints
     }
 }
 

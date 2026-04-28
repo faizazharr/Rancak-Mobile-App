@@ -61,7 +61,50 @@ fun PricingManagementScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
+        BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
+            val isTablet = maxWidth >= 600.dp
+        if (isTablet) {
+            // Tablet: show all 3 sections side by side
+            if (uiState.isLoading) {
+                LoadingScreen()
+            } else {
+                Row(Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    ) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("Surcharge", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                            IconButton(onClick = { viewModel.openSurchargeForm() }, modifier = Modifier.size(28.dp)) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)) }
+                        }
+                        HorizontalDivider()
+                        SurchargeTab(uiState.surcharges, viewModel)
+                    }
+                    VerticalDivider(modifier = Modifier.fillMaxHeight())
+                    Column(
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    ) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("Pajak", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                            IconButton(onClick = { viewModel.openTaxForm() }, modifier = Modifier.size(28.dp)) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)) }
+                        }
+                        HorizontalDivider()
+                        TaxTab(uiState.taxConfigs, viewModel)
+                    }
+                    VerticalDivider(modifier = Modifier.fillMaxHeight())
+                    Column(
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    ) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("Diskon", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                            IconButton(onClick = { viewModel.openDiscountForm() }, modifier = Modifier.size(28.dp)) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)) }
+                        }
+                        HorizontalDivider()
+                        DiscountTab(uiState.discountRules, viewModel)
+                    }
+                }
+            }
+        } else {
+            Column(Modifier.fillMaxSize()) {
             TabRow(selectedTabIndex = selectedTab) {
                 tabs.forEachIndexed { i, title ->
                     Tab(selected = selectedTab == i, onClick = { selectedTab = i }, text = { Text(title) })
@@ -78,6 +121,8 @@ fun PricingManagementScreen(
                 }
             }
         }
+        } // end else
+        } // end BoxWithConstraints
 
         // ── Surcharge dialogs ────────────────────────────────────────────────
         if (uiState.showSurchargeForm) {

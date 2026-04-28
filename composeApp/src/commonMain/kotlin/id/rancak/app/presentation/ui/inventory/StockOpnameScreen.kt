@@ -3,6 +3,9 @@ package id.rancak.app.presentation.ui.inventory
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -73,7 +76,9 @@ fun StockOpnameScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
+        BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
+            val isTablet = maxWidth >= 600.dp
+        Column(Modifier.fillMaxSize()) {
             // Filter chips
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -98,6 +103,16 @@ fun StockOpnameScreen(
                         Text("Belum ada sesi opname", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                isTablet -> LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    gridItems(uiState.opnames, key = { it.uuid }) { opname ->
+                        OpnameCard(opname, onOpen = { viewModel.loadDetail(opname.uuid) }, onCancel = { viewModel.cancelOpname(opname) })
+                    }
+                }
                 else -> LazyColumn(
                     contentPadding      = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -108,6 +123,7 @@ fun StockOpnameScreen(
                 }
             }
         }
+        } // end BoxWithConstraints
 
         if (uiState.showCreateDialog) {
             CreateOpnameDialog(

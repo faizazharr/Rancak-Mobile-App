@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -117,61 +119,127 @@ private fun BillingContent(
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val isTablet = maxWidth >= 600.dp
-        val hPad = if (isTablet) 24.dp else 16.dp
-        val planCols = if (isTablet) 2 else 1
-        val planRows = plans.chunked(planCols)
+        val leftPaneWidth = maxOf(320.dp, minOf(440.dp, maxWidth * 0.42f))
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = hPad, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            item {
-                SubscriptionCard(subscription = subscription, isTablet = isTablet)
-            }
+        if (isTablet) {
+            // ── Tablet: true split-pane layout ────────────────────────────────
+            Row(modifier = Modifier.fillMaxSize()) {
+                // Left pane — subscription status + plan cards
+                Column(
+                    modifier = Modifier
+                        .width(leftPaneWidth)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(start = 24.dp, end = 12.dp, top = 16.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SubscriptionCard(subscription = subscription, isTablet = true)
 
-            if (plans.isNotEmpty()) {
-                item { SectionLabel(Icons.Default.Stars, "Paket Langganan") }
-                items(planRows) { row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        row.forEach { plan ->
+                    if (plans.isNotEmpty()) {
+                        SectionLabel(Icons.Default.Stars, "Paket Langganan")
+                        plans.forEach { plan ->
                             PlanCard(
                                 plan = plan,
                                 isCurrentPlan = subscription?.plan == plan.code,
                                 onSubscribe = { onSubscribe(plan) },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
-                        if (row.size < planCols) Spacer(Modifier.weight(1f))
                     }
+                    Spacer(Modifier.height(8.dp))
+                }
+
+                // Vertical divider
+                VerticalDivider(
+                    modifier = Modifier.fillMaxHeight(),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+
+                // Right pane — invoice history
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(start = 12.dp, end = 24.dp, top = 16.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    SectionLabel(Icons.Default.Receipt, "Riwayat Invoice")
+
+                    if (invoices.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.Receipt, null,
+                                    modifier = Modifier.size(40.dp),
+                                    tint = MaterialTheme.colorScheme.outlineVariant)
+                                Text("Belum ada invoice",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    } else {
+                        invoices.forEach { invoice ->
+                            InvoiceCard(invoice = invoice, onCancel = { onCancelInvoice(invoice) })
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
                 }
             }
-
-            if (invoices.isNotEmpty()) {
-                item { SectionLabel(Icons.Default.Receipt, "Riwayat Invoice (${invoices.size})") }
-                items(invoices, key = { it.uuid }) { invoice ->
-                    InvoiceCard(invoice = invoice, onCancel = { onCancelInvoice(invoice) })
-                }
-            }
-
-            if (invoices.isEmpty() && plans.isEmpty() && subscription == null) {
+        } else {
+            // ── Phone: single-column scroll ───────────────────────────────────
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 item {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Icon(Icons.Default.CreditCard, null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.outlineVariant)
-                        Text("Belum ada data billing",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        OutlinedButton(onClick = onRefresh) { Text("Muat Ulang") }
+                    SubscriptionCard(subscription = subscription, isTablet = false)
+                }
+
+                if (plans.isNotEmpty()) {
+                    item { SectionLabel(Icons.Default.Stars, "Paket Langganan") }
+                    items(plans) { plan ->
+                        PlanCard(
+                            plan = plan,
+                            isCurrentPlan = subscription?.plan == plan.code,
+                            onSubscribe = { onSubscribe(plan) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
-            }
 
-            item { Spacer(Modifier.height(12.dp)) }
+                if (invoices.isNotEmpty()) {
+                    item { SectionLabel(Icons.Default.Receipt, "Riwayat Invoice (${invoices.size})") }
+                    items(invoices, key = { it.uuid }) { invoice ->
+                        InvoiceCard(invoice = invoice, onCancel = { onCancelInvoice(invoice) })
+                    }
+                }
+
+                if (invoices.isEmpty() && plans.isEmpty() && subscription == null) {
+                    item {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(Icons.Default.CreditCard, null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.outlineVariant)
+                            Text("Belum ada data billing",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            OutlinedButton(onClick = onRefresh) { Text("Muat Ulang") }
+                        }
+                    }
+                }
+
+                item { Spacer(Modifier.height(12.dp)) }
+            }
         }
     }
 }

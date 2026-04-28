@@ -3,6 +3,8 @@ package id.rancak.app.presentation.ui.finance
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -88,32 +90,144 @@ fun CashExpenseScreenContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                if (selectedTab == 0) actions.onToggleCashInForm() else actions.onToggleExpenseForm()
-            }) {
-                Icon(Icons.Default.Add, "Tambah")
-            }
-        }
-    ) { padding ->
-        Column(Modifier.padding(padding)) {
-            PrimaryTabRow(selectedTab) {
-                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Kas Masuk") })
-                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Pengeluaran") })
-            }
-
-            when {
-                uiState.isLoading -> LoadingScreen()
-                uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = actions.onRetry)
-                else -> {
-                    if (selectedTab == 0) {
-                        if (uiState.showCashInForm) CashInForm(uiState, actions)
-                        CashInList(uiState.cashIns, onDelete = actions.onDeleteCashIn)
-                    } else {
-                        if (uiState.showExpenseForm) ExpenseForm(uiState, actions)
-                        ExpenseList(uiState.expenses, onDelete = actions.onDeleteExpense)
+            BoxWithConstraints {
+                val isTablet = maxWidth >= 600.dp
+                if (!isTablet) {
+                    FloatingActionButton(onClick = {
+                        if (selectedTab == 0) actions.onToggleCashInForm() else actions.onToggleExpenseForm()
+                    }) {
+                        Icon(Icons.Default.Add, "Tambah")
                     }
                 }
             }
+        }
+    ) { padding ->
+        BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
+            val isTablet = maxWidth >= 600.dp
+            when {
+                uiState.isLoading -> LoadingScreen()
+                uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = actions.onRetry)
+                isTablet -> TabletCashLayout(uiState, actions)
+                else -> PhoneCashLayout(uiState, selectedTab, { selectedTab = it }, actions)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TabletCashLayout(
+    uiState: CashExpenseUiState,
+    actions: CashExpenseActions
+) {
+    Row(Modifier.fillMaxSize()) {
+        // Kiri — Kas Masuk
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState())
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Kas Masuk",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                FilledTonalButton(onClick = actions.onToggleCashInForm) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Tambah")
+                }
+            }
+            if (uiState.showCashInForm) CashInForm(uiState, actions)
+            if (uiState.cashIns.isEmpty()) {
+                EmptyScreen("Belum ada kas masuk")
+            } else {
+                uiState.cashIns.forEach { item ->
+                    Card(Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
+                                item.source?.let { Text("Sumber: $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline) }
+                            }
+                            Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = id.rancak.app.presentation.designsystem.RancakColors.semantic.success)
+                        }
+                    }
+                }
+            }
+        }
+
+        VerticalDivider(modifier = Modifier.fillMaxHeight())
+
+        // Kanan — Pengeluaran
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState())
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Pengeluaran",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                FilledTonalButton(onClick = actions.onToggleExpenseForm) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Tambah")
+                }
+            }
+            if (uiState.showExpenseForm) ExpenseForm(uiState, actions)
+            if (uiState.expenses.isEmpty()) {
+                EmptyScreen("Belum ada pengeluaran")
+            } else {
+                uiState.expenses.forEach { item ->
+                    Card(Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
+                                item.note?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline) }
+                            }
+                            Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhoneCashLayout(
+    uiState: CashExpenseUiState,
+    selectedTab: Int,
+    onTabChange: (Int) -> Unit,
+    actions: CashExpenseActions
+) {
+    Column(Modifier.fillMaxSize()) {
+        PrimaryTabRow(selectedTab) {
+            Tab(selected = selectedTab == 0, onClick = { onTabChange(0) }, text = { Text("Kas Masuk") })
+            Tab(selected = selectedTab == 1, onClick = { onTabChange(1) }, text = { Text("Pengeluaran") })
+        }
+        if (selectedTab == 0) {
+            if (uiState.showCashInForm) CashInForm(uiState, actions)
+            CashInList(uiState.cashIns, onDelete = actions.onDeleteCashIn)
+        } else {
+            if (uiState.showExpenseForm) ExpenseForm(uiState, actions)
+            ExpenseList(uiState.expenses, onDelete = actions.onDeleteExpense)
         }
     }
 }

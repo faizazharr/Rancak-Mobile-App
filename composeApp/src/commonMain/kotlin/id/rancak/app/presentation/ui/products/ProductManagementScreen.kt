@@ -177,8 +177,132 @@ private fun ProductListContent(
     onDeleteCategory: (Category) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val isTablet = maxWidth >= 600.dp
+        if (isTablet) {
+            Row(Modifier.fillMaxSize()) {
+                // Kiri — panel kategori
+                Column(
+                    modifier = Modifier
+                        .width(220.dp)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Kategori", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        IconButton(onClick = onAddCategory, modifier = Modifier.size(28.dp)) {
+                            Icon(Icons.Default.Add, contentDescription = "Tambah kategori", modifier = Modifier.size(18.dp))
+                        }
+                    }
+                    NavigationDrawerItem(
+                        label  = { Text("Semua (${uiState.products.size})") },
+                        selected = uiState.selectedCategory == null,
+                        onClick  = { onCategorySelect(null) }
+                    )
+                    uiState.categories.forEach { cat ->
+                        NavigationDrawerItem(
+                            label    = { Text(cat.name) },
+                            selected = uiState.selectedCategory?.uuid == cat.uuid,
+                            onClick  = { onCategorySelect(cat) },
+                            badge    = {
+                                Row {
+                                    IconButton(onClick = { onEditCategory(cat) }, modifier = Modifier.size(22.dp)) {
+                                        Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(14.dp))
+                                    }
+                                    IconButton(onClick = { onDeleteCategory(cat) }, modifier = Modifier.size(22.dp)) {
+                                        Icon(Icons.Default.DeleteOutline, contentDescription = "Hapus", modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.error)
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+                VerticalDivider(modifier = Modifier.fillMaxHeight())
+                // Kanan — search + list
+                Column(Modifier.weight(1f).fillMaxHeight()) {
+                    ProductSearchAndList(uiState, onSearchChange, onCategorySelect, onAdjustStock, onAddBatch, on86Toggle, onEditProduct, onDeleteProduct)
+                }
+            }
+        } else {
+            Column(Modifier.fillMaxSize()) {
+                // ── Category filter chips ─────────────────────────────────────────────
+                Row(
+                    modifier = Modifier
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    FilterChip(
+                        selected = uiState.selectedCategory == null,
+                        onClick  = { onCategorySelect(null) },
+                        label    = { Text("Semua") }
+                    )
+                    uiState.categories.forEach { cat ->
+                        FilterChip(
+                            selected     = uiState.selectedCategory?.uuid == cat.uuid,
+                            onClick      = { onCategorySelect(cat) },
+                            label        = { Text(cat.name) },
+                            trailingIcon = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Edit,
+                                        contentDescription = "Edit kategori",
+                                        modifier = Modifier
+                                            .size(14.dp)
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ) { onEditCategory(cat) }
+                                    )
+                                    Spacer(Modifier.width(2.dp))
+                                    Icon(
+                                        Icons.Default.DeleteOutline,
+                                        contentDescription = "Hapus kategori",
+                                        modifier = Modifier
+                                            .size(14.dp)
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ) { onDeleteCategory(cat) },
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        )
+                    }
+                    InputChip(
+                        selected     = false,
+                        onClick      = onAddCategory,
+                        label        = { Text("Tambah") },
+                        leadingIcon  = { Icon(Icons.Default.Add, contentDescription = null, Modifier.size(14.dp)) }
+                    )
+                }
+                HorizontalDivider()
+                ProductSearchAndList(uiState, onSearchChange, onCategorySelect, onAdjustStock, onAddBatch, on86Toggle, onEditProduct, onDeleteProduct)
+            }
+        }
+    }
+}
 
+@Composable
+private fun ProductSearchAndList(
+    uiState: ProductManagementUiState,
+    onSearchChange: (String) -> Unit,
+    onCategorySelect: (Category?) -> Unit,
+    onAdjustStock: (Product) -> Unit,
+    onAddBatch: (Product) -> Unit,
+    on86Toggle: (Product) -> Unit,
+    onEditProduct: (Product) -> Unit,
+    onDeleteProduct: (Product) -> Unit
+) {
+    Column(Modifier.fillMaxSize()) {
         // ── Search bar ────────────────────────────────────────────────────────
         OutlinedTextField(
             value       = uiState.searchQuery,
@@ -198,63 +322,6 @@ private fun ProductListContent(
             singleLine = true,
             shape      = MaterialTheme.shapes.medium
         )
-
-        // ── Category filter chips ─────────────────────────────────────────────
-        Row(
-            modifier              = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment     = Alignment.CenterVertically
-        ) {
-            FilterChip(
-                selected = uiState.selectedCategory == null,
-                onClick  = { onCategorySelect(null) },
-                label    = { Text("Semua") }
-            )
-            uiState.categories.forEach { cat ->
-                FilterChip(
-                    selected     = uiState.selectedCategory?.uuid == cat.uuid,
-                    onClick      = { onCategorySelect(cat) },
-                    label        = { Text(cat.name) },
-                    trailingIcon = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.Edit,
-                                contentDescription = "Edit kategori",
-                                modifier = Modifier
-                                    .size(14.dp)
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) { onEditCategory(cat) }
-                            )
-                            Spacer(Modifier.width(2.dp))
-                            Icon(
-                                Icons.Default.DeleteOutline,
-                                contentDescription = "Hapus kategori",
-                                modifier = Modifier
-                                    .size(14.dp)
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) { onDeleteCategory(cat) },
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                )
-            }
-            InputChip(
-                selected     = false,
-                onClick      = onAddCategory,
-                label        = { Text("Tambah") },
-                leadingIcon  = { Icon(Icons.Default.Add, contentDescription = null, Modifier.size(14.dp)) }
-            )
-        }
-
-        Spacer(Modifier.height(8.dp))
-        HorizontalDivider()
 
         // ── Product list ──────────────────────────────────────────────────────
         if (uiState.filteredProducts.isEmpty()) {

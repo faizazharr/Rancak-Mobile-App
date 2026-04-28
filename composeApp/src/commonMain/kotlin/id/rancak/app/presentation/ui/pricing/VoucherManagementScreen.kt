@@ -2,6 +2,9 @@ package id.rancak.app.presentation.ui.pricing
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.items
@@ -56,7 +59,9 @@ fun VoucherManagementScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize()) {
+        BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
+            val isTablet = maxWidth >= 600.dp
+        Column(Modifier.fillMaxSize()) {
             // Active filter
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -81,6 +86,23 @@ fun VoucherManagementScreen(
                         Text("Belum ada voucher", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                isTablet -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        gridItems(uiState.vouchers, key = { it.uuid }) { voucher ->
+                            VoucherCard(
+                                voucher   = voucher,
+                                onEdit    = { viewModel.openForm(voucher) },
+                                onDelete  = { viewModel.openDeleteConfirm(voucher) }
+                            )
+                        }
+                    }
+                }
                 else -> LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(uiState.vouchers, key = { it.uuid }) { voucher ->
                         VoucherCard(
@@ -92,6 +114,7 @@ fun VoucherManagementScreen(
                 }
             }
         }
+        } // end BoxWithConstraints
 
         if (uiState.showFormDialog) {
             VoucherFormDialog(

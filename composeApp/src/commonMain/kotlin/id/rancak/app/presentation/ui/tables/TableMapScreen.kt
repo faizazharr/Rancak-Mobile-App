@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.TableBar
@@ -65,30 +67,33 @@ fun TableMapScreenContent(
             )
         }
     ) { padding ->
-        when {
-            uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
-            uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = onRetry, modifier = Modifier.padding(padding))
-            uiState.tables.isEmpty() -> EmptyScreen("Belum ada meja", Modifier.padding(padding))
-            else -> {
-                val areas = uiState.tables.groupBy { it.area ?: "Umum" }
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(100.dp),
-                    modifier = Modifier.padding(padding),
-                    contentPadding = PaddingValues(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    areas.forEach { (area, tables) ->
-                        item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                            Text(
-                                area,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            )
-                        }
-                        items(tables.sortedBy { it.sortOrder }, key = { it.uuid }) { table ->
-                            TableCell(table) { onTableSelect?.invoke(table.uuid) }
+        BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
+            val isTablet = maxWidth >= 600.dp
+            when {
+                uiState.isLoading -> LoadingScreen()
+                uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = onRetry)
+                uiState.tables.isEmpty() -> EmptyScreen("Belum ada meja")
+                isTablet -> TabletTableLayout(uiState, onTableSelect)
+                else -> {
+                    val areas = uiState.tables.groupBy { it.area ?: "Umum" }
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(100.dp),
+                        contentPadding = PaddingValues(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        areas.forEach { (area, tables) ->
+                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                                Text(
+                                    area,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+                            items(tables.sortedBy { it.sortOrder }, key = { it.uuid }) { table ->
+                                TableCell(table, size = 100.dp) { onTableSelect?.invoke(table.uuid) }
+                            }
                         }
                     }
                 }
@@ -98,7 +103,104 @@ fun TableMapScreenContent(
 }
 
 @Composable
-private fun TableCell(table: Table, onClick: () -> Unit) {
+private fun TabletTableLayout(
+    uiState: TableUiState,
+    onTableSelect: ((String) -> Unit)?
+) {
+    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
+    val available = uiState.tables.count { it.status == TableStatus.AVAILABLE }
+    val occupied  = uiState.tables.count { it.status == TableStatus.OCCUPIED }
+    val inactive  = uiState.tables.count { it.status == TableStatus.INACTIVE }
+    val areas = uiState.tables.groupBy { it.area ?: "Umum" }
+
+    Row(Modifier.fillMaxSize()) {
+        // Kiri — grid meja
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(130.dp),
+            modifier = Modifier.weight(0.65f).fillMaxHeight(),
+            contentPadding = PaddingValues(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            areas.forEach { (area, tables) ->
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        area,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+                items(tables.sortedBy { it.sortOrder }, key = { it.uuid }) { table ->
+                    TableCell(table, size = 130.dp) { onTableSelect?.invoke(table.uuid) }
+                }
+            }
+        }
+
+        VerticalDivider(modifier = Modifier.fillMaxHeight())
+
+        // Kanan — statistik + legenda
+        Column(
+            modifier = Modifier
+                .weight(0.35f)
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text("Ringkasan", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Total Meja", style = MaterialTheme.typography.bodySmall)
+                        Text("${uiState.tables.size}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    }
+                    HorizontalDivider()
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Box(Modifier.size(10.dp).background(semantic.statusAvailable, MaterialTheme.shapes.small))
+                            Text("Tersedia", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text("$available", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = semantic.statusAvailable)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Box(Modifier.size(10.dp).background(semantic.statusOccupied, MaterialTheme.shapes.small))
+                            Text("Terisi", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text("$occupied", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = semantic.statusOccupied)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Box(Modifier.size(10.dp).background(semantic.statusMaintenance, MaterialTheme.shapes.small))
+                            Text("Tidak Aktif", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text("$inactive", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = semantic.statusMaintenance)
+                    }
+                }
+            }
+
+            Text("Area", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            areas.keys.forEach { area ->
+                val areaCount = areas[area]?.size ?: 0
+                val areaOccupied = areas[area]?.count { it.status == TableStatus.OCCUPIED } ?: 0
+                Card(Modifier.fillMaxWidth()) {
+                    Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(area, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                            Text("$areaCount meja · $areaOccupied terisi", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TableCell(table: Table, size: androidx.compose.ui.unit.Dp = 100.dp, onClick: () -> Unit) {
     val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
     val bg = when (table.status) {
         TableStatus.AVAILABLE -> semantic.statusAvailable
@@ -107,7 +209,7 @@ private fun TableCell(table: Table, onClick: () -> Unit) {
     }
     Box(
         modifier = Modifier
-            .size(100.dp)
+            .size(size)
             .clip(MaterialTheme.shapes.medium)
             .background(bg.copy(alpha = 0.15f))
             .clickable(enabled = table.status == TableStatus.AVAILABLE) { onClick() },
@@ -134,8 +236,7 @@ private fun TableCellAvailablePreview() {
         TableCell(
             table = Table(uuid = "1", name = "A1", area = "Indoor", capacity = 4, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 1, activeSaleUuid = null),
             onClick = {}
-        )
-    }
+        )    }
 }
 
 @Preview

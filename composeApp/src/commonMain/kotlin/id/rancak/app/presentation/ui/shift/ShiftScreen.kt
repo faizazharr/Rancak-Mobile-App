@@ -1,7 +1,9 @@
 package id.rancak.app.presentation.ui.shift
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
@@ -69,7 +71,14 @@ fun ShiftScreenContent(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
+            val isTablet = maxWidth >= 600.dp
+            val contentModifier = if (isTablet) {
+                Modifier.widthIn(max = 560.dp).align(Alignment.Center).verticalScroll(rememberScrollState())
+            } else {
+                Modifier.fillMaxSize()
+            }
+
             // ── Error banner ───────────────────────────────────────────────────
             ErrorBanner(
                 error = uiState.error,
@@ -85,9 +94,7 @@ fun ShiftScreenContent(
                 uiState.currentShift != null -> {
                     // Active Shift - Show close shift UI
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
+                        modifier = contentModifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Card(
@@ -157,9 +164,7 @@ fun ShiftScreenContent(
                 else -> {
                     // No Active Shift - Show open shift UI
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
+                        modifier = contentModifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -198,7 +203,7 @@ fun ShiftScreenContent(
                     }
                 }
             } // end when
-        } // end Box
+        } // end BoxWithConstraints
     }
 }
 
