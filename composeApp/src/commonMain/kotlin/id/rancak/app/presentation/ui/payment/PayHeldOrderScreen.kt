@@ -42,6 +42,7 @@ import id.rancak.app.presentation.ui.payment.components.PaymentFormContent
 import id.rancak.app.presentation.ui.payment.components.PaymentSuccessContent
 import id.rancak.app.presentation.ui.payment.components.SplitPaymentPanel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
+import id.rancak.app.presentation.viewmodel.SplitableItem
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -111,14 +112,35 @@ fun PayHeldOrderScreen(
                     )
 
                     if (paymentState.isSplitPayment) {
+                        LaunchedEffect(Unit) {
+                            paymentViewModel.initSplitItems(
+                                loadedSale.items.mapIndexed { idx, saleItem ->
+                                    SplitableItem(
+                                        index       = idx,
+                                        name        = saleItem.productName,
+                                        qty         = saleItem.qty.toIntOrNull() ?: 1,
+                                        price       = saleItem.price,
+                                        variantName = saleItem.variantName
+                                    )
+                                }
+                            )
+                        }
                         SplitPaymentPanel(
-                            itemCount       = loadedSale.items.size,
+                            items           = paymentState.splitableItems,
+                            splitGroups     = paymentState.splitGroups,
+                            currentItemQtys = paymentState.currentSplitItemQtys,
+                            currentMethod   = paymentState.currentSplitMethod,
+                            currentCashInput = paymentState.currentSplitCashInput,
                             orderTotal      = loadedSale.total,
-                            splitPayments   = paymentState.splitPayments,
                             isProcessing    = paymentState.isProcessing,
-                            onAddPayment    = paymentViewModel::addSplitPaymentEntry,
-                            onRemovePayment = paymentViewModel::removeSplitPaymentEntry,
-                            onProcess       = {
+                            onSetItemQty    = paymentViewModel::setCurrentSplitItemQty,
+                            onSetMethod     = paymentViewModel::setCurrentSplitMethod,
+                            onSetCashInput  = paymentViewModel::setCurrentSplitCashInput,
+                            onConfirmGroup  = paymentViewModel::confirmCurrentSplitGroup,
+                            onRemoveGroup   = paymentViewModel::removeSplitGroup,
+                            isSplit         = paymentState.isSplitPayment,
+                            onToggleMode    = paymentViewModel::toggleSplitPayment,
+                            onProcess            = {
                                 paymentViewModel.processHeldOrderPaymentWithSplit(
                                     saleUuid   = loadedSale.uuid,
                                     orderTotal = loadedSale.total

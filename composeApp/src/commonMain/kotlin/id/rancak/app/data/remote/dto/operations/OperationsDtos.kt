@@ -124,7 +124,7 @@ data class OrderBoardOrderDto(
 @Serializable
 data class OrderBoardItemDto(
     @SerialName("product_name") val productName: String,
-    val qty: Int = 1,
+    val qty: String = "1",
     val note: String? = null
 )
 

@@ -443,7 +443,8 @@ class SaleRepositoryImpl(
     override suspend fun createQrPayment(saleUuid: String): Resource<QrPayment> {
         return try {
             val response = api.createQrPayment(tenantUuid, saleUuid)
-            if (response.isSuccess && response.data != null) {
+            // 409 = QR already exists for this sale — idempotent, return existing QR
+            if ((response.isSuccess || response.statusCode == 409) && response.data != null) {
                 Resource.Success(response.data.toDomain())
             } else {
                 Resource.Error(response.message ?: "Gagal membuat QR QRIS")

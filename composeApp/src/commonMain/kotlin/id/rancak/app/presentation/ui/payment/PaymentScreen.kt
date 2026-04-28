@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,7 @@ import id.rancak.app.presentation.ui.payment.components.QrisWaitingContent
 import id.rancak.app.presentation.ui.payment.components.SplitPaymentPanel
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
+import id.rancak.app.presentation.viewmodel.SplitableItem
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -99,19 +101,39 @@ fun PaymentScreen(
 
                 else -> Column(modifier = Modifier.fillMaxSize().padding(padding)) {
                     if (paymentState.isSplitPayment) {
+                        // Init split items whenever entering split mode
+                        LaunchedEffect(Unit) {
+                            paymentViewModel.initSplitItems(
+                                cartState.items.mapIndexed { idx, item ->
+                                    SplitableItem(
+                                        index       = idx,
+                                        name        = item.productName,
+                                        qty         = item.qty,
+                                        price       = item.price,
+                                        variantName = item.variantName
+                                    )
+                                }
+                            )
+                        }
                         SplitPaymentPanel(
-                            itemCount       = cartState.itemCount,
-                            orderTotal      = cartState.subtotal,
-                            splitPayments   = paymentState.splitPayments,
+                            items           = paymentState.splitableItems,
+                            splitGroups     = paymentState.splitGroups,
+                            currentItemQtys = paymentState.currentSplitItemQtys,
+                            currentMethod   = paymentState.currentSplitMethod,
+                            currentCashInput = paymentState.currentSplitCashInput,
+                            orderTotal      = cartState.total,
                             isProcessing    = paymentState.isProcessing,
-                            onAddPayment    = paymentViewModel::addSplitPaymentEntry,
-                            onRemovePayment = paymentViewModel::removeSplitPaymentEntry,
+                            onSetItemQty    = paymentViewModel::setCurrentSplitItemQty,
+                            onSetMethod     = paymentViewModel::setCurrentSplitMethod,
+                            onSetCashInput  = paymentViewModel::setCurrentSplitCashInput,
+                            onConfirmGroup  = paymentViewModel::confirmCurrentSplitGroup,
+                            onRemoveGroup   = paymentViewModel::removeSplitGroup,
                             isSplit         = paymentState.isSplitPayment,
                             onToggleMode    = paymentViewModel::toggleSplitPayment,
-                            onProcess       = {
+                            onProcess            = {
                                 paymentViewModel.processPaymentWithSplit(
                                     items        = cartState.items,
-                                    orderTotal   = cartState.subtotal,
+                                    orderTotal   = cartState.total,
                                     orderType    = cartState.orderType,
                                     tableUuid    = cartState.tableUuid,
                                     customerName = cartState.customerName,

@@ -86,7 +86,7 @@ fun OrderBoardOrderDto.toDomain() = OrderBoardOrder(
 
 fun OrderBoardItemDto.toDomain() = OrderBoardItem(
     productName = productName,
-    qty = qty,
+    qty = qty.toDoubleOrNull()?.toInt() ?: qty.toIntOrNull() ?: 1,
     note = note
 )
 
