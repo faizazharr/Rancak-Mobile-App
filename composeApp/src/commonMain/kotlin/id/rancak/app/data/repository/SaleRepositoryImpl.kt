@@ -68,7 +68,9 @@ class SaleRepositoryImpl(
                     )
                 },
                 paymentMethod   = paymentMethod.value,
-                paidAmount      = paidAmount,
+                // QRIS: backend creates sale without requiring paid_amount;
+                // payment is confirmed later via Xendit webhook.
+                paidAmount      = if (paymentMethod == PaymentMethod.QRIS) null else paidAmount,
                 orderType       = orderType.value,
                 tableUuid       = tableUuid,
                 customerName    = customerName,

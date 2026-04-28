@@ -32,6 +32,8 @@ fun QrisQrCode(
     size: Dp = 240.dp,
     label: String? = null
 ) {
+    if (qrString.isBlank()) return
+
     val painter = rememberQrCodePainter(data = qrString) {
         shapes {
             ball  = QrBallShape.circle()

@@ -1,7 +1,9 @@
 package id.rancak.app.presentation.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
@@ -32,27 +34,32 @@ fun DatePickerField(
     supportingText: @Composable (() -> Unit)? = null
 ) {
     var showPicker by remember { mutableStateOf(false) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
 
-    LaunchedEffect(isPressed) {
-        if (isPressed) showPicker = true
+    Box(modifier = modifier) {
+        OutlinedTextField(
+            value = if (value.length == 10) formatDateMedium(value) else value,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = {
+                Icon(Icons.Default.DateRange, contentDescription = "Pilih tanggal")
+            },
+            isError = isError,
+            supportingText = supportingText,
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        // Transparent overlay — captures clicks reliably inside dialogs and scroll containers
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { showPicker = true }
+                )
+        )
     }
-
-    OutlinedTextField(
-        value = if (value.length == 10) formatDateMedium(value) else value,
-        onValueChange = {},
-        readOnly = true,
-        label = { Text(label) },
-        trailingIcon = {
-            Icon(Icons.Default.DateRange, contentDescription = "Pilih tanggal")
-        },
-        interactionSource = interactionSource,
-        isError = isError,
-        supportingText = supportingText,
-        singleLine = true,
-        modifier = modifier
-    )
 
     if (showPicker) {
         val initialMillis = remember(value) {

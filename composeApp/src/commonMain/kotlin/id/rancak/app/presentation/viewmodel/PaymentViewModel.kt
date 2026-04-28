@@ -54,7 +54,7 @@ data class PaymentUiState(
     val splitPaymentTotal: Long get() = splitPayments.sumOf { it.amount }
 
     /** Apakah sedang dalam layar tunggu QR QRIS. */
-    val isQrisWaiting: Boolean get() = qrisQrString != null && completedSale == null
+    val isQrisWaiting: Boolean get() = qrisQrString?.isNotBlank() == true && completedSale == null
 }
 
 class PaymentViewModel(
@@ -221,6 +221,15 @@ class PaymentViewModel(
         when (val qrResult = saleRepository.createQrPayment(saleUuid)) {
             is Resource.Success -> {
                 val qr = qrResult.data
+                if (qr.qrString.isBlank()) {
+                    _uiState.update {
+                        it.copy(
+                            isProcessing  = false,
+                            error         = "QR string kosong — pastikan Xendit API key sudah dikonfigurasi"
+                        )
+                    }
+                    return
+                }
                 _uiState.update {
                     it.copy(
                         isProcessing   = false,
@@ -385,9 +394,21 @@ class PaymentViewModel(
 
     /**
      * Bayar held order (single method).
+     * [saleTotal] dipakai sebagai nominal QR QRIS (tampilan di layar tunggu).
      */
-    fun processHeldOrderPayment(saleUuid: String) {
+    fun processHeldOrderPayment(saleUuid: String, saleTotal: Long = 0L) {
         val state = _uiState.value
+
+        // QRIS: langsung buat QR — tidak perlu memanggil /pay terlebih dahulu.
+        // Pembayaran dikonfirmasi via Xendit webhook, bukan oleh client.
+        if (state.selectedMethod == PaymentMethod.QRIS) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isProcessing = true, error = null) }
+                initiateQrisPayment(saleUuid, saleTotal)
+            }
+            return
+        }
+
         if (state.paidAmountLong <= 0 && state.selectedMethod == PaymentMethod.CASH) {
             _uiState.update { it.copy(error = "Masukkan jumlah pembayaran") }
             return
@@ -399,8 +420,9 @@ class PaymentViewModel(
                 paymentMethod = state.selectedMethod,
                 paidAmount    = state.paidAmountLong
             )) {
-                is Resource.Success ->
+                is Resource.Success -> {
                     _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                }
                 is Resource.Error ->
                     _uiState.update { it.copy(isProcessing = false, error = result.message) }
                 is Resource.Loading -> {}

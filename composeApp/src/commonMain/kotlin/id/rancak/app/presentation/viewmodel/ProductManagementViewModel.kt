@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
+import id.rancak.app.domain.model.Product86
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.AdminRepository
 import id.rancak.app.domain.repository.ProductRepository
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
 data class ProductManagementUiState(
     val products: List<Product> = emptyList(),
     val categories: List<Category> = emptyList(),
-    val products86Uuids: Set<String> = emptySet(),
+    val products86: List<Product86> = emptyList(),
     val selectedCategory: Category? = null,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
@@ -44,7 +45,8 @@ data class ProductManagementUiState(
             }
         }
 
-    fun is86(productUuid: String) = products86Uuids.contains(productUuid)
+    fun is86(productUuid: String) = products86.any { it.productUuid == productUuid }
+    val products86Uuids: Set<String> get() = products86.map { it.productUuid }.toSet()
 }
 
 class ProductManagementViewModel(
@@ -72,7 +74,7 @@ class ProductManagementViewModel(
                 if (productsResult is Resource.Success) s = s.copy(products = productsResult.data)
                 if (categoriesResult is Resource.Success) s = s.copy(categories = categoriesResult.data)
                 if (products86Result is Resource.Success) {
-                    s = s.copy(products86Uuids = products86Result.data.map { it.productUuid }.toSet())
+                    s = s.copy(products86 = products86Result.data)
                 }
                 s.copy(
                     error = when {
@@ -319,21 +321,30 @@ class ProductManagementViewModel(
 
     fun toggle86(product: Product) {
         val currently86 = _uiState.value.is86(product.uuid)
+        // Use the 86-record's own UUID for DELETE (backend primary key lookup);
+        // fall back to product UUID if record not found (shouldn't happen).
+        val record86Uuid = _uiState.value.products86
+            .firstOrNull { it.productUuid == product.uuid }?.uuid ?: product.uuid
         viewModelScope.launch {
-            val result = if (currently86) productRepository.unmark86(product.uuid)
+            val result = if (currently86) productRepository.unmark86(record86Uuid)
                          else productRepository.mark86(product.uuid)
             when (result) {
                 is Resource.Success -> {
-                    _uiState.update { state ->
-                        val updated86 = if (currently86)
-                            state.products86Uuids - product.uuid
-                        else
-                            state.products86Uuids + product.uuid
-                        state.copy(
-                            products86Uuids = updated86,
-                            successMessage = if (currently86) "${product.name} kembali aktif"
-                                             else "${product.name} ditandai 86 (habis hari ini)"
-                        )
+                    if (currently86) {
+                        // Remove locally — no reload needed
+                        _uiState.update { state ->
+                            state.copy(
+                                products86 = state.products86.filter { it.productUuid != product.uuid },
+                                successMessage = "${product.name} kembali aktif"
+                            )
+                        }
+                    } else {
+                        // Reload from server to get the real 86-record UUID for future DELETE
+                        _uiState.update { it.copy(successMessage = "${product.name} ditandai 86 (habis hari ini)") }
+                        val refreshed = productRepository.get86Products()
+                        if (refreshed is Resource.Success) {
+                            _uiState.update { it.copy(products86 = refreshed.data) }
+                        }
                     }
                 }
                 is Resource.Error -> _uiState.update { it.copy(error = result.message) }

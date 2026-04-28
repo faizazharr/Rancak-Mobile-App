@@ -137,7 +137,7 @@ fun PayHeldOrderScreen(
                             isCashSelected     = paymentState.selectedMethod == PaymentMethod.CASH,
                             isProcessing       = paymentState.isProcessing,
                             onProcessPayment   = {
-                                paymentViewModel.processHeldOrderPayment(loadedSale.uuid)
+                                paymentViewModel.processHeldOrderPayment(loadedSale.uuid, loadedSale.total)
                             },
                             modifier = Modifier.fillMaxSize()
                         )
