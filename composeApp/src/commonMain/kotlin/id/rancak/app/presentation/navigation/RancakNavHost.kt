@@ -39,6 +39,9 @@ import id.rancak.app.presentation.ui.reports.ReportScreen
 import id.rancak.app.presentation.ui.sales.SalesHistoryScreen
 import id.rancak.app.presentation.ui.sales.AddItemsToHeldOrderScreen
 import id.rancak.app.presentation.ui.billing.BillingScreen
+import id.rancak.app.presentation.ui.inventory.StockOpnameScreen
+import id.rancak.app.presentation.ui.pricing.PricingManagementScreen
+import id.rancak.app.presentation.ui.pricing.VoucherManagementScreen
 import id.rancak.app.presentation.ui.products.ProductManagementScreen
 import id.rancak.app.presentation.ui.settings.SettingsScreen
 import id.rancak.app.presentation.ui.shift.ShiftScreen
@@ -109,9 +112,12 @@ fun RancakNavHost() {
                 icon = Icons.Default.ManageAccounts,
                 expandedByDefault = false,
                 items = listOf(
-                    DrawerItem("Produk",      Icons.Default.Inventory2,  Screen.ProductManagement),
-                    DrawerItem("Billing",     Icons.Default.CreditCard,  Screen.Billing),
-                    DrawerItem("Pengaturan",  Icons.Default.Settings,    Screen.Settings),
+                    DrawerItem("Produk",        Icons.Default.Inventory2,    Screen.ProductManagement),
+                    DrawerItem("Stok Opname",   Icons.Default.Inventory,     Screen.StockOpname),
+                    DrawerItem("Voucher",        Icons.Default.LocalOffer,    Screen.VoucherManagement),
+                    DrawerItem("Harga & Diskon", Icons.Default.Percent,       Screen.PricingManagement),
+                    DrawerItem("Billing",        Icons.Default.CreditCard,    Screen.Billing),
+                    DrawerItem("Pengaturan",     Icons.Default.Settings,      Screen.Settings),
                 )
             ),
         )
@@ -498,6 +504,18 @@ private fun NavigationContent(
 
         composable<Screen.Billing> {
             BillingScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.StockOpname> {
+            StockOpnameScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.VoucherManagement> {
+            VoucherManagementScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.PricingManagement> {
+            PricingManagementScreen(onBack = { navController.popBackStack() })
         }
     }
 }
