@@ -201,18 +201,26 @@ class ProductManagementViewModel(
                 is Resource.Success -> {
                     val saved = result.data
                     _uiState.update { state ->
-                        val updated = if (existing == null) {
-                            state.products + saved
+                        // Server may return the product without the nested category object
+                        // (only category_uuid). Patch it from the local categories list.
+                        val savedWithCategory = if (saved.category == null && categoryUuid != null) {
+                            val cat = state.categories.find { it.uuid == categoryUuid }
+                            if (cat != null) saved.copy(category = cat) else saved
                         } else {
-                            state.products.map { if (it.uuid == saved.uuid) saved else it }
+                            saved
+                        }
+                        val updated = if (existing == null) {
+                            state.products + savedWithCategory
+                        } else {
+                            state.products.map { if (it.uuid == savedWithCategory.uuid) savedWithCategory else it }
                         }
                         state.copy(
                             isSubmitting = false,
                             showProductFormDialog = false,
                             actionProduct = null,
                             products = updated,
-                            successMessage = if (existing == null) "Produk \"${saved.name}\" berhasil ditambahkan"
-                                             else "Produk \"${saved.name}\" berhasil diperbarui"
+                            successMessage = if (existing == null) "Produk \"${savedWithCategory.name}\" berhasil ditambahkan"
+                                             else "Produk \"${savedWithCategory.name}\" berhasil diperbarui"
                         )
                     }
                 }
