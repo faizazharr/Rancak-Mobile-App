@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +69,13 @@ fun PosScreen(
         posViewModel.loadCategories()
         posViewModel.load86Products()
         shiftViewModel.loadCurrentShift()
+    }
+
+    // Reload 86 list every time the POS screen resumes (e.g., after returning from
+    // Product Management where an admin may have unmarked a product as 86).
+    LifecycleResumeEffect(Unit) {
+        posViewModel.load86Products()
+        onPauseOrDispose { }
     }
 
     if (showScanner) {
