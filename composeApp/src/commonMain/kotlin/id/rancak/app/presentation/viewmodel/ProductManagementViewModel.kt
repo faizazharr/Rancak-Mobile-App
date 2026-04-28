@@ -31,21 +31,17 @@ data class ProductManagementUiState(
     val isSubmitting: Boolean = false,
     val successMessage: String? = null
 ) {
+    // Products are already filtered by category server-side (via setCategory/loadAll).
+    // filteredProducts only applies the local search query on top.
     val filteredProducts: List<Product>
         get() {
-            var filtered = products
-            if (selectedCategory != null) {
-                filtered = filtered.filter { it.category?.uuid == selectedCategory.uuid }
+            if (searchQuery.isBlank()) return products
+            val q = searchQuery.lowercase()
+            return products.filter {
+                it.name.lowercase().contains(q) ||
+                it.sku?.lowercase()?.contains(q) == true ||
+                it.barcode?.contains(q) == true
             }
-            if (searchQuery.isNotBlank()) {
-                val q = searchQuery.lowercase()
-                filtered = filtered.filter {
-                    it.name.lowercase().contains(q) ||
-                    it.sku?.lowercase()?.contains(q) == true ||
-                    it.barcode?.contains(q) == true
-                }
-            }
-            return filtered
         }
 
     fun is86(productUuid: String) = products86Uuids.contains(productUuid)
@@ -63,9 +59,13 @@ class ProductManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val productsResult = productRepository.getProducts()
             val categoriesResult = productRepository.getCategories()
             val products86Result = productRepository.get86Products()
+
+            // Load products using the currently selected category (server-side filter)
+            // so category filtering works even when the server omits the nested category object.
+            val categoryId = _uiState.value.selectedCategory?.uuid
+            val productsResult = productRepository.getProducts(categoryId = categoryId)
 
             _uiState.update { state ->
                 var s = state.copy(isLoading = false)
@@ -86,7 +86,20 @@ class ProductManagementViewModel(
     }
 
     fun setSearchQuery(query: String) = _uiState.update { it.copy(searchQuery = query) }
-    fun setCategory(category: Category?) = _uiState.update { it.copy(selectedCategory = category) }
+
+    fun setCategory(category: Category?) {
+        _uiState.update { it.copy(selectedCategory = category, isLoading = true) }
+        viewModelScope.launch {
+            val result = productRepository.getProducts(categoryId = category?.uuid)
+            _uiState.update { state ->
+                when (result) {
+                    is Resource.Success -> state.copy(products = result.data, isLoading = false)
+                    is Resource.Error   -> state.copy(error = result.message, isLoading = false)
+                    else                -> state.copy(isLoading = false)
+                }
+            }
+        }
+    }
     fun clearSuccessMessage() = _uiState.update { it.copy(successMessage = null) }
     fun clearError() = _uiState.update { it.copy(error = null) }
 

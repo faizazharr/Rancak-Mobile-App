@@ -24,6 +24,9 @@ data class PosUiState(
     val isLoading: Boolean = false,
     val error: String? = null
 ) {
+    val products86Uuids: Set<String>
+        get() = products86.map { it.productUuid }.toSet()
+
     val filteredProducts: List<Product>
         get() {
             var filtered = products.filter { it.isActive }
@@ -103,7 +106,7 @@ class PosViewModel(
         }
     }
 
-    private fun load86Products() {
+    fun load86Products() {
         viewModelScope.launch {
             when (val result = productRepository.get86Products()) {
                 is Resource.Success -> _uiState.update { it.copy(products86 = result.data) }

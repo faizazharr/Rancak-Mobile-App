@@ -155,7 +155,8 @@ class ProductRepositoryImpl(
         val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
         return try {
             val response = api.unmark86(tenantUuid, productUuid)
-            if (response.isSuccess) Resource.Success(Unit)
+            // 404 = produk sudah tidak ada di daftar 86 → state yang diinginkan sudah tercapai
+            if (response.isSuccess || response.statusCode == 404) Resource.Success(Unit)
             else Resource.Error(response.message ?: "Gagal membatalkan produk 86")
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Kesalahan jaringan")

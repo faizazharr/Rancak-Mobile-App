@@ -107,6 +107,7 @@ internal fun ProductGridContent(
                 PosProductCard(
                     product = product,
                     qty     = qty,
+                    is86    = product.uuid in uiState.products86Uuids,
                     onAdd   = { onAdd(product) }
                 )
             }
@@ -121,8 +122,10 @@ internal fun ProductGridContent(
 internal fun PosProductCard(
     product: Product,
     qty: Int,
+    is86: Boolean = false,
     onAdd: () -> Unit
 ) {
+    val unavailable      = !product.isActive || is86
     val inCart           = qty > 0
     val accent           = accentFor(product.category?.name ?: product.name)
     val onSurface        = MaterialTheme.colorScheme.onSurface
@@ -130,14 +133,14 @@ internal fun PosProductCard(
     val surfaceVariant   = MaterialTheme.colorScheme.surfaceVariant
 
     val cardBg = when {
-        !product.isActive -> surfaceVariant.copy(0.35f)
-        inCart            -> accent.copy(0.05f)
-        else              -> MaterialTheme.colorScheme.surface
+        unavailable -> surfaceVariant.copy(0.35f)
+        inCart      -> accent.copy(0.05f)
+        else        -> MaterialTheme.colorScheme.surface
     }
     val borderColor = when {
-        !product.isActive -> MaterialTheme.colorScheme.outlineVariant.copy(0.3f)
-        inCart            -> accent.copy(0.65f)
-        else              -> MaterialTheme.colorScheme.outlineVariant.copy(0.55f)
+        unavailable -> MaterialTheme.colorScheme.outlineVariant.copy(0.3f)
+        inCart      -> accent.copy(0.65f)
+        else        -> MaterialTheme.colorScheme.outlineVariant.copy(0.55f)
     }
 
     Box(
@@ -150,7 +153,7 @@ internal fun PosProductCard(
                 color  = borderColor,
                 shape  = RoundedCornerShape(10.dp)
             )
-            .clickable(enabled = product.isActive, onClick = onAdd)
+            .clickable(enabled = !unavailable, onClick = onAdd)
             .padding(horizontal = 10.dp, vertical = 10.dp)
     ) {
         Column(Modifier.fillMaxWidth()) {
@@ -164,7 +167,7 @@ internal fun PosProductCard(
                     style      = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize   = 13.sp,
-                    color      = if (product.isActive) onSurface else onSurfaceVariant.copy(0.4f),
+                    color      = if (!unavailable) onSurface else onSurfaceVariant.copy(0.4f),
                     maxLines   = 3,
                     overflow   = TextOverflow.Ellipsis,
                     lineHeight = 17.sp,
@@ -210,12 +213,27 @@ internal fun PosProductCard(
                     style      = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     fontSize   = 11.sp,
-                    color      = if (product.isActive) accent.copy(0.85f)
+                    color      = if (!unavailable) accent.copy(0.85f)
                                  else onSurfaceVariant.copy(0.3f),
                     maxLines   = 1
                 )
 
-                if (!product.isActive) {
+                if (is86) {
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            "86",
+                            style    = MaterialTheme.typography.labelSmall,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color    = MaterialTheme.colorScheme.error
+                        )
+                    }
+                } else if (!product.isActive) {
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(4.dp))

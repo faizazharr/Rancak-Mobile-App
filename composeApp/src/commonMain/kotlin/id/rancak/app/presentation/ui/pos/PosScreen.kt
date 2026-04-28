@@ -66,6 +66,7 @@ fun PosScreen(
     LaunchedEffect(Unit) {
         posViewModel.loadProducts()
         posViewModel.loadCategories()
+        posViewModel.load86Products()
         shiftViewModel.loadCurrentShift()
     }
 
