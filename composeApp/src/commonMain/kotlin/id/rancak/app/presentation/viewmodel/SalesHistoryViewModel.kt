@@ -93,6 +93,22 @@ class SalesHistoryViewModel(
     fun setStatusFilter(status: SaleStatus?) { _statusFilter.value  = status }
 
     /**
+     * Select a sale and immediately fetch its full detail (with items).
+     * The list API returns sales without items; we need the detail endpoint.
+     */
+    fun selectSaleAndFetchDetail(sale: Sale) {
+        // Show the sale immediately (even without items) so the panel opens instantly
+        _selectedSale.value = sale
+        viewModelScope.launch {
+            when (val result = saleRepository.getSaleDetail(sale.uuid)) {
+                is Resource.Success -> _selectedSale.value = result.data
+                is Resource.Error   -> { /* keep showing partial data, error handled elsewhere */ }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /**
      * Set rentang tanggal kustom dan aktifkan [DateFilter.CUSTOM].
      * @param fromMillis  epoch-millis dari tanggal mulai (UTC midnight)
      * @param toMillis    epoch-millis dari tanggal akhir (UTC midnight)

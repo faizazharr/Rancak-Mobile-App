@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CallSplit
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
@@ -45,6 +46,7 @@ internal fun PaymentFormContent(
     isCashSelected: Boolean,
     isProcessing: Boolean,
     onProcessPayment: () -> Unit,
+    onQrisSelected: () -> Unit = {},
     isSplit: Boolean = false,
     onToggleMode: () -> Unit = {},
     onHoldOrder: (() -> Unit)? = null,
@@ -78,16 +80,17 @@ internal fun PaymentFormContent(
             modifier       = Modifier.weight(0.42f).fillMaxHeight()
         )
         PaymentInputColumn(
-            selectedMethod    = selectedMethod,
-            onSelectMethod    = onSelectMethod,
-            paidAmount        = paidAmount,
+            selectedMethod     = selectedMethod,
+            onSelectMethod     = onSelectMethod,
+            paidAmount         = paidAmount,
             onPaidAmountChange = onPaidAmountChange,
-            isCashSelected    = isCashSelected,
-            isProcessing      = isProcessing,
-            onProcessPayment  = onProcessPayment,
-            onHoldOrder       = onHoldOrder,
-            quickAmounts      = quickAmounts,
-            modifier          = Modifier.weight(0.58f).fillMaxHeight()
+            isCashSelected     = isCashSelected,
+            isProcessing       = isProcessing,
+            onProcessPayment   = onProcessPayment,
+            onQrisSelected     = onQrisSelected,
+            onHoldOrder        = onHoldOrder,
+            quickAmounts       = quickAmounts,
+            modifier           = Modifier.weight(0.58f).fillMaxHeight()
         )
     }
 }
@@ -272,15 +275,24 @@ private fun PaymentInputColumn(
     isCashSelected: Boolean,
     isProcessing: Boolean,
     onProcessPayment: () -> Unit,
+    onQrisSelected: () -> Unit = {},
     onHoldOrder: (() -> Unit)? = null,
     quickAmounts: List<Long>,
     modifier: Modifier = Modifier
 ) {
+    val isQris = selectedMethod == PaymentMethod.QRIS
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        MethodSelector(selectedMethod = selectedMethod, onSelectMethod = onSelectMethod)
+        MethodSelector(
+            selectedMethod = selectedMethod,
+            onSelectMethod = { method ->
+                onSelectMethod(method)
+                // Saat QRIS dipilih, langsung trigger QR request — tidak perlu tombol
+                if (method == PaymentMethod.QRIS && !isProcessing) onQrisSelected()
+            }
+        )
 
         if (isCashSelected) {
             PaidAmountDisplay(
@@ -310,13 +322,52 @@ private fun PaymentInputColumn(
             Spacer(Modifier.weight(1f))
         }
 
-        // Tombol sticky di bawah — selalu terlihat
-        RancakButton(
-            text      = "Proses Pembayaran",
-            onClick   = onProcessPayment,
-            isLoading = isProcessing,
-            modifier  = Modifier.fillMaxWidth()
-        )
+        // Tombol sticky di bawah
+        // QRIS: tidak ada tombol — QR sudah di-request saat chip dipilih
+        if (!isQris) {
+            RancakButton(
+                text      = "Proses Pembayaran",
+                onClick   = onProcessPayment,
+                isLoading = isProcessing,
+                modifier  = Modifier.fillMaxWidth()
+            )
+        } else {
+            // Tampilkan status sedang memproses QRIS
+            Surface(
+                shape  = MaterialTheme.shapes.medium,
+                color  = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (isProcessing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.QrCode2,
+                            contentDescription = null,
+                            tint     = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Text(
+                        if (isProcessing) "Membuat QR Code QRIS..."
+                        else "Pilih QRIS untuk memulai pembayaran",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
         if (onHoldOrder != null) {
             OutlinedButton(
                 onClick = onHoldOrder,

@@ -80,7 +80,7 @@ fun SalesHistoryScreen(
             onStatusFilter  = viewModel::setStatusFilter,
             onCustomRange   = viewModel::setCustomDateRange,
             onClearFilters  = viewModel::clearFilters,
-            onSelect        = viewModel::selectSale,
+            onSelect        = { sale -> if (sale == null) viewModel.selectSale(null) else viewModel.selectSaleAndFetchDetail(sale) },
             onPayHeldOrder  = onPayHeldOrder,
             onSplitBill     = onSplitBill,
             onAddItems      = onAddItems

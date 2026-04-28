@@ -550,6 +550,8 @@ class PaymentViewModel(
                 state.splitGroupSubtotal(group)
             SplitPaymentEntry(group.method, amount)
         }
+        val hasQrisGroup = payments.any { it.method == PaymentMethod.QRIS }
+        val qrisAmount   = payments.filter { it.method == PaymentMethod.QRIS }.sumOf { it.amount }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
@@ -568,8 +570,13 @@ class PaymentViewModel(
                 tip          = tip,
                 voucherCode  = voucherCode?.takeIf { it.isNotBlank() }
             )) {
-                is Resource.Success ->
-                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                is Resource.Success -> {
+                    if (hasQrisGroup) {
+                        initiateQrisPayment(result.data.uuid, qrisAmount)
+                    } else {
+                        _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                    }
+                }
                 is Resource.Error ->
                     _uiState.update { it.copy(isProcessing = false, error = result.message) }
                 is Resource.Loading -> {}
@@ -635,11 +642,19 @@ class PaymentViewModel(
                 state.splitGroupSubtotal(group)
             SplitPaymentEntry(group.method, amount)
         }
+        val hasQrisGroup = payments.any { it.method == PaymentMethod.QRIS }
+        val qrisAmount   = payments.filter { it.method == PaymentMethod.QRIS }.sumOf { it.amount }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
             when (val result = saleRepository.paySaleWithSplitPayment(saleUuid, payments)) {
-                is Resource.Success ->
-                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                is Resource.Success -> {
+                    if (hasQrisGroup) {
+                        initiateQrisPayment(result.data.uuid, qrisAmount)
+                    } else {
+                        _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                    }
+                }
                 is Resource.Error ->
                     _uiState.update { it.copy(isProcessing = false, error = result.message) }
                 is Resource.Loading -> {}

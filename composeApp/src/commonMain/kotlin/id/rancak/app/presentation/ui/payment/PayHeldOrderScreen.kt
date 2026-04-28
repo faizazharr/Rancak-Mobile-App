@@ -40,6 +40,7 @@ import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.payment.components.PaymentFormContent
 import id.rancak.app.presentation.ui.payment.components.PaymentSuccessContent
+import id.rancak.app.presentation.ui.payment.components.QrisWaitingContent
 import id.rancak.app.presentation.ui.payment.components.SplitPaymentPanel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
 import id.rancak.app.presentation.viewmodel.SplitableItem
@@ -103,6 +104,14 @@ fun PayHeldOrderScreen(
                     modifier = Modifier.fillMaxSize().padding(padding)
                 )
 
+                paymentState.isQrisWaiting -> QrisWaitingContent(
+                    qrString  = paymentState.qrisQrString!!,
+                    amount    = paymentState.qrisAmount,
+                    isPolling = paymentState.isQrisPolling,
+                    onCancel  = paymentViewModel::cancelQrisPayment,
+                    modifier  = Modifier.fillMaxSize().padding(padding)
+                )
+
                 loadedSale == null -> LoadingScreen(modifier = Modifier.fillMaxSize().padding(padding))
 
                 else -> Column(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -159,6 +168,9 @@ fun PayHeldOrderScreen(
                             isCashSelected     = paymentState.selectedMethod == PaymentMethod.CASH,
                             isProcessing       = paymentState.isProcessing,
                             onProcessPayment   = {
+                                paymentViewModel.processHeldOrderPayment(loadedSale.uuid, loadedSale.total)
+                            },
+                            onQrisSelected = {
                                 paymentViewModel.processHeldOrderPayment(loadedSale.uuid, loadedSale.total)
                             },
                             modifier = Modifier.fillMaxSize()

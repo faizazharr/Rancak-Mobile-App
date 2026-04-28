@@ -150,6 +150,22 @@ fun PaymentScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
+                        val processPaymentArgs = {
+                            paymentViewModel.processPayment(
+                                items        = cartState.items,
+                                orderType    = cartState.orderType,
+                                tableUuid    = cartState.tableUuid,
+                                customerName = cartState.customerName,
+                                note         = cartState.note,
+                                pax          = cartState.pax,
+                                discount     = cartState.discount,
+                                tax          = cartState.tax,
+                                adminFee     = cartState.adminFee,
+                                deliveryFee  = cartState.deliveryFee,
+                                tip          = cartState.tip,
+                                voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
+                            )
+                        }
                         PaymentFormContent(
                             itemCount          = cartState.itemCount,
                             subtotal           = cartState.subtotal,
@@ -161,22 +177,8 @@ fun PaymentScreen(
                             isProcessing       = paymentState.isProcessing,
                             isSplit            = paymentState.isSplitPayment,
                             onToggleMode       = paymentViewModel::toggleSplitPayment,
-                            onProcessPayment   = {
-                                paymentViewModel.processPayment(
-                                    items        = cartState.items,
-                                    orderType    = cartState.orderType,
-                                    tableUuid    = cartState.tableUuid,
-                                    customerName = cartState.customerName,
-                                    note         = cartState.note,
-                                    pax          = cartState.pax,
-                                    discount     = cartState.discount,
-                                    tax          = cartState.tax,
-                                    adminFee     = cartState.adminFee,
-                                    deliveryFee  = cartState.deliveryFee,
-                                    tip          = cartState.tip,
-                                    voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
-                                )
-                            },
+                            onProcessPayment   = processPaymentArgs,
+                            onQrisSelected     = processPaymentArgs,
                             onHoldOrder = {
                                 paymentViewModel.holdOrder(
                                     items        = cartState.items,
