@@ -107,12 +107,19 @@ fun CartScreenContent(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
+                            if (!hasOpenShift) {
+                                Text(
+                                    text = "Buka shift terlebih dahulu",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                         RancakButton(
-                            text = "Bayar",
+                            text = if (hasOpenShift) "Bayar" else "Shift Tutup",
                             onClick = onCheckout,
                             enabled = hasOpenShift,
-                            modifier = Modifier.width(120.dp)
+                            modifier = Modifier.width(140.dp)
                         )
                     }
                 }

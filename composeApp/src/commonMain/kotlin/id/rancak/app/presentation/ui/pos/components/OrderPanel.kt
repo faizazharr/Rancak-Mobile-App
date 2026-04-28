@@ -66,6 +66,7 @@ import id.rancak.app.presentation.viewmodel.CartUiState
 @Composable
 internal fun OrderPanel(
     cartState: CartUiState,
+    hasOpenShift: Boolean = true,
     onUpdateQty: (CartItem, Int) -> Unit,
     onUpdateNote: (CartItem, String) -> Unit,
     onClearCart: () -> Unit,
@@ -142,6 +143,7 @@ internal fun OrderPanel(
             onSurface      = onSurface,
             onSurfaceVariant = onSurfaceVariant,
             hasItems       = hasItems,
+            hasOpenShift   = hasOpenShift,
             onDiscount     = onDiscount,
             onTax          = onTax,
             onAdminFee     = onAdminFee,
@@ -473,6 +475,7 @@ private fun SummaryAndActions(
     onSurface: Color,
     onSurfaceVariant: Color,
     hasItems: Boolean,
+    hasOpenShift: Boolean,
     onDiscount: (Long) -> Unit,
     onTax: (Long) -> Unit,
     onAdminFee: (Long) -> Unit,
@@ -603,10 +606,13 @@ private fun SummaryAndActions(
                         .weight(0.62f)
                         .clip(RoundedCornerShape(10.dp))
                         .background(
-                            if (hasItems) primary
-                            else MaterialTheme.colorScheme.outlineVariant.copy(0.4f)
+                            when {
+                                !hasItems         -> MaterialTheme.colorScheme.outlineVariant.copy(0.4f)
+                                !hasOpenShift     -> MaterialTheme.colorScheme.errorContainer
+                                else              -> primary
+                            }
                         )
-                        .clickable(enabled = hasItems, onClick = onCheckoutClick)
+                        .clickable(enabled = hasItems && hasOpenShift, onClick = onCheckoutClick)
                         .padding(vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -617,14 +623,25 @@ private fun SummaryAndActions(
                         Icon(
                             Icons.Default.Payment, null,
                             Modifier.size(16.dp),
-                            tint = if (hasItems) Color.White else onSurfaceVariant
+                            tint = when {
+                                !hasItems     -> onSurfaceVariant
+                                !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer
+                                else          -> Color.White
+                            }
                         )
                         Text(
-                            if (hasItems) "Bayar ${formatRupiah(cartState.total)}"
-                            else "Pilih Produk",
+                            when {
+                                !hasItems     -> "Pilih Produk"
+                                !hasOpenShift -> "Buka Shift Dulu"
+                                else          -> "Bayar ${formatRupiah(cartState.total)}"
+                            },
                             style      = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.ExtraBold,
-                            color      = if (hasItems) Color.White else onSurfaceVariant,
+                            color      = when {
+                                !hasItems     -> onSurfaceVariant
+                                !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer
+                                else          -> Color.White
+                            },
                             maxLines   = 1,
                             overflow   = TextOverflow.Ellipsis
                         )

@@ -288,6 +288,7 @@ private fun SplitLayout(
 
         OrderPanel(
             cartState       = cartState,
+            hasOpenShift    = hasOpenShift,
             onUpdateQty     = onUpdateQty,
             onUpdateNote    = onUpdateNote,
             onClearCart     = onClearCart,
@@ -301,7 +302,7 @@ private fun SplitLayout(
             onTip           = onTip,
             onVoucherCode   = onVoucherCode,
             onSaveClick     = onSaveClick,
-            onCheckoutClick = { if (hasOpenShift) onCheckoutClick() },
+            onCheckoutClick = onCheckoutClick,
             modifier        = Modifier
                 .fillMaxHeight()
                 .weight(0.42f)
