@@ -112,7 +112,7 @@ fun ShiftScreenContent(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(Modifier.height(12.dp))
-                                SummaryRow("Kas Awal", formatRupiah(uiState.currentShift.openingCash.toLongOrNull() ?: 0L))
+                                SummaryRow("Kas Awal", formatRupiah(uiState.currentShift.openingCash.toDoubleOrNull()?.toLong() ?: 0L))
                                 uiState.currentShift.totalSales?.let {
                                     SummaryRow("Total Penjualan", formatRupiah(it))
                                 }
@@ -133,9 +133,12 @@ fun ShiftScreenContent(
 
                         OutlinedTextField(
                             value = uiState.closingCash,
-                            onValueChange = onClosingCashChange,
+                            onValueChange = { v -> onClosingCashChange(v.filter { it.isDigit() }) },
                             label = { Text("Kas Akhir") },
                             prefix = { Text("Rp ") },
+                            isError = uiState.closingCash.isNotBlank() && uiState.closingCash.toLongOrNull() == null,
+                            supportingText = if (uiState.closingCash.isNotBlank() && uiState.closingCash.toLongOrNull() == null)
+                                { { Text("Jumlah tidak valid") } } else null,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium,
@@ -183,9 +186,12 @@ fun ShiftScreenContent(
 
                         OutlinedTextField(
                             value = uiState.openingCash,
-                            onValueChange = onOpeningCashChange,
+                            onValueChange = { v -> onOpeningCashChange(v.filter { it.isDigit() }) },
                             label = { Text("Kas Awal") },
                             prefix = { Text("Rp ") },
+                            isError = uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() == null,
+                            supportingText = if (uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() == null)
+                                { { Text("Jumlah tidak valid") } } else null,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium,
@@ -198,6 +204,7 @@ fun ShiftScreenContent(
                             text = "Buka Shift",
                             onClick = onOpenShift,
                             isLoading = uiState.isLoading,
+                            enabled = uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() != null,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }

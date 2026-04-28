@@ -27,6 +27,16 @@ fun TaxFormDialog(
 
     val applyToOptions = listOf("after_discount" to "Setelah Diskon", "before_discount" to "Sebelum Diskon")
 
+    val rateNum = rate.toDoubleOrNull()
+    val rateError = when {
+        rate.isBlank() -> null
+        rateNum == null -> "Tarif tidak valid"
+        rateNum <= 0 -> "Tarif harus lebih dari 0"
+        rateNum > 100 -> "Tarif tidak boleh melebihi 100%"
+        else -> null
+    }
+    val canConfirm = !isSubmitting && name.isNotBlank() && rate.isNotBlank() && rateError == null
+
     AlertDialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
         title = { Text(if (editing == null) "Tambah Pajak" else "Edit Pajak") },
@@ -44,6 +54,8 @@ fun TaxFormDialog(
                     onValueChange = { rate = it.filter { c -> c.isDigit() || c == '.' } },
                     label = { Text("Tarif (%) *") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    isError = rateError != null,
+                    supportingText = rateError?.let { err -> { Text(err) } } ?: { Text("Contoh: 11 untuk PPN 11%") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -77,7 +89,7 @@ fun TaxFormDialog(
         confirmButton = {
             Button(
                 onClick = { onConfirm(name.trim(), rate, applyTo, sortOrder.toIntOrNull() ?: 0) },
-                enabled = !isSubmitting && name.isNotBlank() && rate.isNotBlank()
+                enabled = canConfirm
             ) {
                 if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                 else Text("Simpan")

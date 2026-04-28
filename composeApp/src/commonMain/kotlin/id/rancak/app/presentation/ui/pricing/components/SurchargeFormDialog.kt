@@ -28,6 +28,26 @@ fun SurchargeFormDialog(
     var isPercentage by remember(editing) { mutableStateOf(editing?.isPercentage ?: false) }
     var maxAmount    by remember(editing) { mutableStateOf(editing?.maxAmount?.toString() ?: "") }
 
+    val amountNum = amount.toDoubleOrNull()
+    val amountError = when {
+        amount.isBlank() -> null
+        amountNum == null -> "Nilai tidak valid"
+        amountNum <= 0 -> "Nilai harus lebih dari 0"
+        isPercentage && amountNum > 100 -> "Persen tidak boleh melebihi 100"
+        else -> null
+    }
+    val maxAmountNum = maxAmount.toDoubleOrNull()
+    val maxAmountError = when {
+        !isPercentage || maxAmount.isBlank() -> null
+        maxAmountNum == null -> "Nilai tidak valid"
+        maxAmountNum <= 0 -> "Harus lebih dari 0"
+        else -> null
+    }
+    val canConfirm = !isSubmitting &&
+        name.isNotBlank() &&
+        amount.isNotBlank() && amountError == null &&
+        maxAmountError == null
+
     val orderTypes = listOf("all" to "Semua", "dine_in" to "Dine In", "takeaway" to "Takeaway", "delivery" to "Delivery")
     var expanded by remember { mutableStateOf(false) }
 
@@ -66,8 +86,10 @@ fun SurchargeFormDialog(
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text("Jumlah *") },
+                    label = { Text(if (isPercentage) "Jumlah (%) *" else "Jumlah (Rp) *") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    isError = amountError != null,
+                    supportingText = amountError?.let { err -> { Text(err) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -87,6 +109,8 @@ fun SurchargeFormDialog(
                         onValueChange = { maxAmount = it.filter { c -> c.isDigit() } },
                         label = { Text("Maks. Nominal (Rp)") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = maxAmountError != null,
+                        supportingText = maxAmountError?.let { err -> { Text(err) } } ?: { Text("Batasi nominal meski persennya besar") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
@@ -96,7 +120,7 @@ fun SurchargeFormDialog(
         confirmButton = {
             Button(
                 onClick = { onConfirm(orderType, name.trim(), amount, isPercentage, maxAmount.ifBlank { null }) },
-                enabled = !isSubmitting && name.isNotBlank() && amount.isNotBlank()
+                enabled = canConfirm
             ) {
                 if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                 else Text("Simpan")

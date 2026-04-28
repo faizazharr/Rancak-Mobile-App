@@ -57,6 +57,19 @@ internal fun EmailFormStep(
     onLogin: () -> Unit,
     onBack: () -> Unit
 ) {
+    // Validasi — hanya tampilkan error setelah user mulai mengetik
+    val emailError = when {
+        uiState.email.isBlank() -> null
+        !uiState.email.contains("@") || !uiState.email.contains(".") -> "Format email tidak valid"
+        else -> null
+    }
+    val passwordError = when {
+        uiState.password.isBlank() -> null
+        uiState.password.length < 6 -> "Password minimal 6 karakter"
+        else -> null
+    }
+    val canLogin = uiState.email.isNotBlank() && emailError == null &&
+        uiState.password.isNotBlank() && passwordError == null
     Column(
         modifier            = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -94,6 +107,8 @@ internal fun EmailFormStep(
             value         = uiState.email,
             onValueChange = onEmailChange,
             label         = "Email",
+            isError       = emailError != null,
+            errorMessage  = emailError,
             leadingIcon   = { Icon(Icons.Default.Email, contentDescription = null) }
         )
 
@@ -115,11 +130,13 @@ internal fun EmailFormStep(
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None
                                    else PasswordVisualTransformation(),
+            isError = passwordError != null,
+            supportingText = passwordError?.let { err -> { Text(err) } },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction    = ImeAction.Done
             ),
-            keyboardActions = KeyboardActions(onDone = { onLogin() }),
+            keyboardActions = KeyboardActions(onDone = { if (canLogin) onLogin() }),
             singleLine = true,
             shape      = MaterialTheme.shapes.medium,
             modifier   = Modifier.fillMaxWidth()
@@ -155,6 +172,7 @@ internal fun EmailFormStep(
             text      = "Masuk",
             onClick   = onLogin,
             isLoading = uiState.isLoading,
+            enabled   = canLogin,
             modifier  = Modifier.fillMaxWidth()
         )
     }

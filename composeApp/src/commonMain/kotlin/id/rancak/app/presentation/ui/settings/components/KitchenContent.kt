@@ -216,6 +216,21 @@ private fun KitchenNetworkSection(
     onKitchenNetworkPort: (String) -> Unit,
     onSaveKitchenNetwork: () -> Unit
 ) {
+    val ipError = when {
+        networkIp.isBlank() -> null
+        !networkIp.matches(Regex("""^(\d{1,3}\.){3}\d{1,3}$""")) -> "Format IP tidak valid (mis. 192.168.1.101)"
+        else -> null
+    }
+    val portNum = networkPort.toIntOrNull()
+    val portError = when {
+        networkPort.isBlank() -> null
+        portNum == null -> "Port tidak valid"
+        portNum !in 1..65535 -> "Port harus 1–65535"
+        else -> null
+    }
+    val canSave = networkIp.isNotBlank() && ipError == null &&
+        networkPort.isNotBlank() && portError == null
+
     SettingsCard {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
@@ -224,6 +239,8 @@ private fun KitchenNetworkSection(
                 label = { Text("IP Printer Dapur") },
                 placeholder = { Text("192.168.1.101") },
                 singleLine = true,
+                isError = ipError != null,
+                supportingText = ipError?.let { err -> { Text(err) } },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) },
                 modifier = Modifier.weight(1f),
@@ -231,17 +248,19 @@ private fun KitchenNetworkSection(
             )
             OutlinedTextField(
                 value = networkPort,
-                onValueChange = onKitchenNetworkPort,
+                onValueChange = { onKitchenNetworkPort(it.filter { c -> c.isDigit() }) },
                 label = { Text("Port") },
                 placeholder = { Text("9100") },
                 singleLine = true,
+                isError = portError != null,
+                supportingText = portError?.let { err -> { Text(err) } },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.width(90.dp),
                 textStyle = MaterialTheme.typography.bodySmall
             )
         }
         Spacer(Modifier.height(4.dp))
-        Button(onClick = onSaveKitchenNetwork, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = onSaveKitchenNetwork, enabled = canSave, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.Done, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
             Text("Simpan Printer Dapur", style = MaterialTheme.typography.labelMedium)

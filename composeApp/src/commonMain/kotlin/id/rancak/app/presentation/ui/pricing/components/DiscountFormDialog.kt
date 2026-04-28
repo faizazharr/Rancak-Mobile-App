@@ -34,6 +34,27 @@ fun DiscountFormDialog(
     var maxDiscount   by remember(editing) { mutableStateOf(editing?.maxDiscount?.toString() ?: "") }
     var minPurchase   by remember(editing) { mutableStateOf(editing?.minPurchaseAmount?.toString() ?: "") }
 
+    val isPct = discountType == "pct"
+    val discountNum = discountValue.toDoubleOrNull()
+    val discountError = when {
+        discountValue.isBlank() -> null
+        discountNum == null -> "Nilai tidak valid"
+        discountNum <= 0 -> "Nilai harus lebih dari 0"
+        isPct && discountNum > 100 -> "Persen tidak boleh melebihi 100"
+        else -> null
+    }
+    val maxDiscountNum = maxDiscount.toDoubleOrNull()
+    val maxDiscountError = when {
+        maxDiscount.isBlank() -> null
+        maxDiscountNum == null -> "Nilai tidak valid"
+        maxDiscountNum <= 0 -> "Harus lebih dari 0"
+        else -> null
+    }
+    val canConfirm = !isSubmitting &&
+        name.isNotBlank() &&
+        discountValue.isNotBlank() && discountError == null &&
+        maxDiscountError == null
+
     AlertDialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
         title = { Text(if (editing == null) "Tambah Aturan Diskon" else "Edit Aturan Diskon") },
@@ -71,8 +92,10 @@ fun DiscountFormDialog(
                 OutlinedTextField(
                     value = discountValue,
                     onValueChange = { discountValue = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text("Nilai Diskon *") },
+                    label = { Text(if (isPct) "Nilai Diskon (%) *" else "Nilai Diskon (Rp) *") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    isError = discountError != null,
+                    supportingText = discountError?.let { err -> { Text(err) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -92,16 +115,19 @@ fun DiscountFormDialog(
                     OutlinedTextField(
                         value = minPurchase,
                         onValueChange = { minPurchase = it.filter { c -> c.isDigit() || c == '.' } },
-                        label = { Text("Min. Pembelian") },
+                        label = { Text("Min. Pembelian (Rp)") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        supportingText = { Text("0 = tanpa minimum") },
                         modifier = Modifier.weight(1f),
                         singleLine = true
                     )
                     OutlinedTextField(
                         value = maxDiscount,
                         onValueChange = { maxDiscount = it.filter { c -> c.isDigit() || c == '.' } },
-                        label = { Text("Maks. Diskon") },
+                        label = { Text("Maks. Diskon (Rp)") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        isError = maxDiscountError != null,
+                        supportingText = maxDiscountError?.let { err -> { Text(err) } },
                         modifier = Modifier.weight(1f),
                         singleLine = true
                     )
@@ -126,7 +152,7 @@ fun DiscountFormDialog(
                         maxDiscount.toDoubleOrNull(), minPurchase.toDoubleOrNull()
                     )
                 },
-                enabled = !isSubmitting && name.isNotBlank() && discountValue.isNotBlank()
+                enabled = canConfirm
             ) {
                 if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                 else Text("Simpan")
