@@ -30,6 +30,7 @@ import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.ProductManagementUiState
 import id.rancak.app.presentation.viewmodel.ProductManagementViewModel
+import kotlin.random.Random
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -841,6 +842,22 @@ private fun AddBatchDialog(
 private fun Double.toStockDisplay(): String =
     if (this == toLong().toDouble()) toLong().toString() else toString()
 
+/** Generate SKU from product name initials + 4 random digits. E.g. "Nasi Goreng" → "NG-4821" */
+private fun generateSku(name: String): String {
+    val prefix = name.trim()
+        .split(Regex("\\s+"))
+        .filter { it.isNotBlank() }
+        .take(3)
+        .joinToString("") { it.first().uppercaseChar().toString() }
+        .ifBlank { "PRD" }
+    val suffix = Random.nextInt(1000, 9999)
+    return "$prefix-$suffix"
+}
+
+/** Generate a 12-digit numeric barcode. */
+private fun generateBarcode(): String =
+    Random.nextLong(100_000_000_000L, 999_999_999_999L).toString()
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ProductFormDialog
 // ─────────────────────────────────────────────────────────────────────────────
@@ -911,15 +928,40 @@ private fun ProductFormDialog(
                         value         = sku,
                         onValueChange = { sku = it },
                         label         = { Text("SKU") },
+                        placeholder   = { Text("Otomatis", style = MaterialTheme.typography.bodySmall) },
                         modifier      = Modifier.weight(1f),
-                        singleLine    = true
+                        singleLine    = true,
+                        trailingIcon  = {
+                            if (sku.isBlank()) {
+                                IconButton(onClick = { sku = generateSku(name) }) {
+                                    Icon(Icons.Default.Refresh, contentDescription = "Generate SKU", modifier = Modifier.size(16.dp))
+                                }
+                            } else {
+                                IconButton(onClick = { sku = "" }) {
+                                    Icon(Icons.Default.Clear, contentDescription = "Hapus SKU", modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
                     )
                     OutlinedTextField(
                         value         = barcode,
-                        onValueChange = { barcode = it },
+                        onValueChange = { barcode = it.filter { c -> c.isDigit() } },
                         label         = { Text("Barcode") },
+                        placeholder   = { Text("Otomatis", style = MaterialTheme.typography.bodySmall) },
                         modifier      = Modifier.weight(1f),
-                        singleLine    = true
+                        singleLine    = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        trailingIcon  = {
+                            if (barcode.isBlank()) {
+                                IconButton(onClick = { barcode = generateBarcode() }) {
+                                    Icon(Icons.Default.Refresh, contentDescription = "Generate Barcode", modifier = Modifier.size(16.dp))
+                                }
+                            } else {
+                                IconButton(onClick = { barcode = "" }) {
+                                    Icon(Icons.Default.Clear, contentDescription = "Hapus Barcode", modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
                     )
                 }
 
