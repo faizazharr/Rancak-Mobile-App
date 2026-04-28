@@ -213,6 +213,48 @@ data class UpdateVariantRequest(
     @SerialName("sort_order") val sortOrder: Int? = null
 )
 
+// ── Product create / update ────────────────────────────────────────────────────
+
+@Serializable
+data class CreateProductRequest(
+    val name: String,
+    val price: Long,
+    val description: String? = null,
+    val sku: String? = null,
+    val barcode: String? = null,
+    @SerialName("category_uuid") val categoryUuid: String? = null,
+    val unit: String? = null,
+    val stock: Double = 0.0,
+    @SerialName("has_expiry") val hasExpiry: Boolean = false,
+    @SerialName("is_active") val isActive: Boolean = true
+)
+
+@Serializable
+data class UpdateProductRequest(
+    val name: String? = null,
+    val price: Long? = null,
+    val description: String? = null,
+    val sku: String? = null,
+    val barcode: String? = null,
+    @SerialName("category_uuid") val categoryUuid: String? = null,
+    val unit: String? = null,
+    @SerialName("is_active") val isActive: Boolean? = null
+)
+
+// ── Category create / update ───────────────────────────────────────────────────
+
+@Serializable
+data class CreateCategoryRequest(
+    val name: String,
+    val description: String? = null
+)
+
+@Serializable
+data class UpdateCategoryRequest(
+    val name: String? = null,
+    val description: String? = null
+)
+
 // ── Product batch (restock) ───────────────────────────────────────────────────
 
 @Serializable

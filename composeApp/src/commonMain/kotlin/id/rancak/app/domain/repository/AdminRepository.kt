@@ -192,6 +192,39 @@ interface AdminRepository {
         note: String? = null, receivedAt: String? = null
     ): Resource<ProductBatch>
 
+    // ── Product CRUD ───────────────────────────────────────────────────────────
+    suspend fun createProduct(
+        name: String,
+        price: Long,
+        description: String? = null,
+        sku: String? = null,
+        barcode: String? = null,
+        categoryUuid: String? = null,
+        unit: String? = null,
+        stock: Double = 0.0,
+        hasExpiry: Boolean = false,
+        isActive: Boolean = true
+    ): Resource<Product>
+
+    suspend fun updateProduct(
+        productId: String,
+        name: String? = null,
+        price: Long? = null,
+        description: String? = null,
+        sku: String? = null,
+        barcode: String? = null,
+        categoryUuid: String? = null,
+        unit: String? = null,
+        isActive: Boolean? = null
+    ): Resource<Product>
+
+    suspend fun deleteProduct(productId: String): Resource<Unit>
+
+    // ── Category CRUD ──────────────────────────────────────────────────────────
+    suspend fun createCategory(name: String, description: String? = null): Resource<Category>
+    suspend fun updateCategory(categoryId: String, name: String? = null, description: String? = null): Resource<Category>
+    suspend fun deleteCategory(categoryId: String): Resource<Unit>
+
     // ── Receipt settings ───────────────────────────────────────────────────────
     suspend fun updateReceiptSettings(update: ReceiptSettingsUpdate): Resource<ReceiptSettings>
 }

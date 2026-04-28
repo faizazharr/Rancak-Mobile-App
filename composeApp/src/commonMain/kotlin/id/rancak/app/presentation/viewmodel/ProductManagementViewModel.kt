@@ -24,6 +24,10 @@ data class ProductManagementUiState(
     val actionProduct: Product? = null,
     val showAdjustDialog: Boolean = false,
     val showBatchDialog: Boolean = false,
+    val showProductFormDialog: Boolean = false,
+    val showDeleteConfirmDialog: Boolean = false,
+    val showCategoryFormDialog: Boolean = false,
+    val editingCategory: Category? = null,
     val isSubmitting: Boolean = false,
     val successMessage: String? = null
 ) {
@@ -100,6 +104,24 @@ class ProductManagementViewModel(
     fun closeBatchDialog() =
         _uiState.update { it.copy(showBatchDialog = false, actionProduct = null) }
 
+    fun openProductForm(product: Product? = null) =
+        _uiState.update { it.copy(actionProduct = product, showProductFormDialog = true) }
+
+    fun closeProductForm() =
+        _uiState.update { it.copy(showProductFormDialog = false, actionProduct = null) }
+
+    fun openDeleteConfirm(product: Product) =
+        _uiState.update { it.copy(actionProduct = product, showDeleteConfirmDialog = true) }
+
+    fun closeDeleteConfirm() =
+        _uiState.update { it.copy(showDeleteConfirmDialog = false, actionProduct = null) }
+
+    fun openCategoryForm(category: Category? = null) =
+        _uiState.update { it.copy(editingCategory = category, showCategoryFormDialog = true) }
+
+    fun closeCategoryForm() =
+        _uiState.update { it.copy(showCategoryFormDialog = false, editingCategory = null) }
+
     // ── Stock adjustment ──────────────────────────────────────────────────────
 
     fun adjustStock(productId: String, type: String, quantity: Double, note: String?) {
@@ -156,6 +178,117 @@ class ProductManagementViewModel(
                     }
                 }
                 is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    // ── Product CRUD ──────────────────────────────────────────────────────────
+
+    fun saveProduct(
+        name: String, price: Long, description: String?, sku: String?, barcode: String?,
+        categoryUuid: String?, unit: String?, stock: Double, hasExpiry: Boolean
+    ) {
+        val existing = _uiState.value.actionProduct
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSubmitting = true) }
+            val result = if (existing == null) {
+                adminRepository.createProduct(name, price, description, sku, barcode, categoryUuid, unit, stock, hasExpiry)
+            } else {
+                adminRepository.updateProduct(existing.uuid, name, price, description, sku, barcode, categoryUuid, unit)
+            }
+            when (result) {
+                is Resource.Success -> {
+                    val saved = result.data
+                    _uiState.update { state ->
+                        val updated = if (existing == null) {
+                            state.products + saved
+                        } else {
+                            state.products.map { if (it.uuid == saved.uuid) saved else it }
+                        }
+                        state.copy(
+                            isSubmitting = false,
+                            showProductFormDialog = false,
+                            actionProduct = null,
+                            products = updated,
+                            successMessage = if (existing == null) "Produk \"${saved.name}\" berhasil ditambahkan"
+                                             else "Produk \"${saved.name}\" berhasil diperbarui"
+                        )
+                    }
+                }
+                is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun deleteProduct() {
+        val product = _uiState.value.actionProduct ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSubmitting = true) }
+            when (val result = adminRepository.deleteProduct(product.uuid)) {
+                is Resource.Success -> _uiState.update { state ->
+                    state.copy(
+                        isSubmitting = false,
+                        showDeleteConfirmDialog = false,
+                        actionProduct = null,
+                        products = state.products.filter { it.uuid != product.uuid },
+                        successMessage = "Produk \"${product.name}\" berhasil dihapus"
+                    )
+                }
+                is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    // ── Category CRUD ─────────────────────────────────────────────────────────
+
+    fun saveCategory(name: String, description: String?) {
+        val existing = _uiState.value.editingCategory
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSubmitting = true) }
+            val result = if (existing == null) {
+                adminRepository.createCategory(name, description)
+            } else {
+                adminRepository.updateCategory(existing.uuid, name, description)
+            }
+            when (result) {
+                is Resource.Success -> {
+                    val saved = result.data
+                    _uiState.update { state ->
+                        val updated = if (existing == null) {
+                            state.categories + saved
+                        } else {
+                            state.categories.map { if (it.uuid == saved.uuid) saved else it }
+                        }
+                        state.copy(
+                            isSubmitting = false,
+                            showCategoryFormDialog = false,
+                            editingCategory = null,
+                            categories = updated,
+                            successMessage = if (existing == null) "Kategori \"${saved.name}\" berhasil ditambahkan"
+                                             else "Kategori \"${saved.name}\" berhasil diperbarui"
+                        )
+                    }
+                }
+                is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun deleteCategory(category: Category) {
+        viewModelScope.launch {
+            when (val result = adminRepository.deleteCategory(category.uuid)) {
+                is Resource.Success -> _uiState.update { state ->
+                    state.copy(
+                        categories = state.categories.filter { it.uuid != category.uuid },
+                        selectedCategory = if (state.selectedCategory?.uuid == category.uuid) null else state.selectedCategory,
+                        successMessage = "Kategori \"${category.name}\" berhasil dihapus"
+                    )
+                }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }

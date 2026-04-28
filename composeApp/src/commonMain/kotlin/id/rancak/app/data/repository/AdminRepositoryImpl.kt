@@ -5,8 +5,10 @@ import id.rancak.app.data.mapper.toDomain
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.api.adjustStock
 import id.rancak.app.data.remote.api.createBundle
+import id.rancak.app.data.remote.api.createCategory
 import id.rancak.app.data.remote.api.createDiscountRule
 import id.rancak.app.data.remote.api.createModifier
+import id.rancak.app.data.remote.api.createProduct
 import id.rancak.app.data.remote.api.createProductModifier
 import id.rancak.app.data.remote.api.createProductBatch
 import id.rancak.app.data.remote.api.createSurcharge
@@ -16,8 +18,10 @@ import id.rancak.app.data.remote.api.createVariant
 import id.rancak.app.data.remote.api.createVariantGroup
 import id.rancak.app.data.remote.api.createVoucher
 import id.rancak.app.data.remote.api.deleteBundle
+import id.rancak.app.data.remote.api.deleteCategory
 import id.rancak.app.data.remote.api.deleteDiscountRule
 import id.rancak.app.data.remote.api.deleteModifier
+import id.rancak.app.data.remote.api.deleteProduct
 import id.rancak.app.data.remote.api.deleteSurcharge
 import id.rancak.app.data.remote.api.deleteTaxConfig
 import id.rancak.app.data.remote.api.deleteTable
@@ -36,8 +40,10 @@ import id.rancak.app.data.remote.api.getVariants
 import id.rancak.app.data.remote.api.getVoucher
 import id.rancak.app.data.remote.api.getVouchers
 import id.rancak.app.data.remote.api.updateBundle
+import id.rancak.app.data.remote.api.updateCategory
 import id.rancak.app.data.remote.api.updateDiscountRule
 import id.rancak.app.data.remote.api.updateModifier
+import id.rancak.app.data.remote.api.updateProduct
 import id.rancak.app.data.remote.api.updateReceiptSettings
 import id.rancak.app.data.remote.api.updateSurcharge
 import id.rancak.app.data.remote.api.updateTaxConfig
@@ -46,7 +52,9 @@ import id.rancak.app.data.remote.api.updateVariant
 import id.rancak.app.data.remote.api.updateVariantGroup
 import id.rancak.app.data.remote.api.updateVoucher
 import id.rancak.app.data.remote.dto.admin.BundleItemRequest
+import id.rancak.app.data.remote.dto.admin.CreateCategoryRequest
 import id.rancak.app.data.remote.dto.admin.CreateProductBatchRequest
+import id.rancak.app.data.remote.dto.admin.CreateProductRequest
 import id.rancak.app.data.remote.dto.admin.CreateBundleRequest
 import id.rancak.app.data.remote.dto.admin.CreateDiscountRuleRequest
 import id.rancak.app.data.remote.dto.admin.CreateModifierRequest
@@ -58,8 +66,10 @@ import id.rancak.app.data.remote.dto.admin.CreateVariantRequest
 import id.rancak.app.data.remote.dto.admin.CreateVoucherRequest
 import id.rancak.app.data.remote.dto.admin.StockAdjustmentRequest
 import id.rancak.app.data.remote.dto.admin.UpdateBundleRequest
+import id.rancak.app.data.remote.dto.admin.UpdateCategoryRequest
 import id.rancak.app.data.remote.dto.admin.UpdateDiscountRuleRequest
 import id.rancak.app.data.remote.dto.admin.UpdateModifierRequest
+import id.rancak.app.data.remote.dto.admin.UpdateProductRequest
 import id.rancak.app.data.remote.dto.admin.UpdateReceiptSettingsRequest
 import id.rancak.app.data.remote.dto.admin.UpdateSurchargeRequest
 import id.rancak.app.data.remote.dto.admin.UpdateTaxConfigRequest
@@ -356,6 +366,50 @@ class AdminRepositoryImpl(
         block = { api.createProductBatch(tenantUuid, productId, CreateProductBatchRequest(quantity, expiryDate, costPrice, batchNumber, note, receivedAt)) },
         map = { it.toDomain() },
         errorMsg = "Gagal menambah batch produk"
+    )
+
+    // ── Product CRUD ───────────────────────────────────────────────────────────
+
+    override suspend fun createProduct(
+        name: String, price: Long, description: String?, sku: String?, barcode: String?,
+        categoryUuid: String?, unit: String?, stock: Double, hasExpiry: Boolean, isActive: Boolean
+    ): Resource<Product> = safe(
+        block = { api.createProduct(tenantUuid, CreateProductRequest(name, price, description, sku, barcode, categoryUuid, unit, stock, hasExpiry, isActive)) },
+        map = { it.toDomain() },
+        errorMsg = "Gagal membuat produk"
+    )
+
+    override suspend fun updateProduct(
+        productId: String, name: String?, price: Long?, description: String?, sku: String?,
+        barcode: String?, categoryUuid: String?, unit: String?, isActive: Boolean?
+    ): Resource<Product> = safe(
+        block = { api.updateProduct(tenantUuid, productId, UpdateProductRequest(name, price, description, sku, barcode, categoryUuid, unit, isActive)) },
+        map = { it.toDomain() },
+        errorMsg = "Gagal mengupdate produk"
+    )
+
+    override suspend fun deleteProduct(productId: String): Resource<Unit> = safeUnit(
+        block = { api.deleteProduct(tenantUuid, productId) },
+        errorMsg = "Gagal menghapus produk"
+    )
+
+    // ── Category CRUD ──────────────────────────────────────────────────────────
+
+    override suspend fun createCategory(name: String, description: String?): Resource<Category> = safe(
+        block = { api.createCategory(tenantUuid, CreateCategoryRequest(name, description)) },
+        map = { it.toDomain() },
+        errorMsg = "Gagal membuat kategori"
+    )
+
+    override suspend fun updateCategory(categoryId: String, name: String?, description: String?): Resource<Category> = safe(
+        block = { api.updateCategory(tenantUuid, categoryId, UpdateCategoryRequest(name, description)) },
+        map = { it.toDomain() },
+        errorMsg = "Gagal mengupdate kategori"
+    )
+
+    override suspend fun deleteCategory(categoryId: String): Resource<Unit> = safeUnit(
+        block = { api.deleteCategory(tenantUuid, categoryId) },
+        errorMsg = "Gagal menghapus kategori"
     )
 
     // ── Receipt settings ───────────────────────────────────────────────────────

@@ -1,9 +1,13 @@
 package id.rancak.app.data.remote.api
 
 import id.rancak.app.data.remote.dto.ApiResponse
+import id.rancak.app.data.remote.dto.admin.CreateCategoryRequest
 import id.rancak.app.data.remote.dto.admin.CreateProductBatchRequest
+import id.rancak.app.data.remote.dto.admin.CreateProductRequest
 import id.rancak.app.data.remote.dto.admin.StockAdjustmentRequest
 import id.rancak.app.data.remote.dto.admin.StockAdjustmentResponseDto
+import id.rancak.app.data.remote.dto.admin.UpdateCategoryRequest
+import id.rancak.app.data.remote.dto.admin.UpdateProductRequest
 import id.rancak.app.data.remote.dto.product.CategoryDto
 import id.rancak.app.data.remote.dto.product.FavoriteProductDto
 import id.rancak.app.data.remote.dto.product.Product86Dto
@@ -13,6 +17,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -92,3 +97,57 @@ suspend fun RancakApiService.createProductBatch(
         contentType(ContentType.Application.Json)
         setBody(request)
     }.body()
+
+// ── Product CRUD ────────────────────────────────────────────────────────────────
+
+suspend fun RancakApiService.createProduct(
+    tenantUuid: String,
+    request: CreateProductRequest
+): ApiResponse<ProductDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.PRODUCTS) {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.updateProduct(
+    tenantUuid: String,
+    productId: String,
+    request: UpdateProductRequest
+): ApiResponse<ProductDto> =
+    client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.deleteProduct(
+    tenantUuid: String,
+    productId: String
+): ApiResponse<Unit> =
+    client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId").body()
+
+// ── Category CRUD ───────────────────────────────────────────────────────────────
+
+suspend fun RancakApiService.createCategory(
+    tenantUuid: String,
+    request: CreateCategoryRequest
+): ApiResponse<CategoryDto> =
+    client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.CATEGORIES) {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.updateCategory(
+    tenantUuid: String,
+    categoryId: String,
+    request: UpdateCategoryRequest
+): ApiResponse<CategoryDto> =
+    client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.CATEGORIES}/$categoryId") {
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
+suspend fun RancakApiService.deleteCategory(
+    tenantUuid: String,
+    categoryId: String
+): ApiResponse<Unit> =
+    client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.CATEGORIES}/$categoryId").body()
