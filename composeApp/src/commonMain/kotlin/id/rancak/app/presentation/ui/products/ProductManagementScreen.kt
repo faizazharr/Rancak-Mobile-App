@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.ui.products
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,6 +37,7 @@ import org.koin.compose.viewmodel.koinViewModel
 // Entry point
 // ─────────────────────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductManagementScreen(
     onBack: () -> Unit,
@@ -60,100 +63,110 @@ fun ProductManagementScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            RancakTopBar(
-                title = "Manajemen Produk",
-                icon = Icons.Default.Inventory2,
-                onBack = onBack,
-                subtitle = "${uiState.filteredProducts.size} produk"
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.openProductForm() }) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah produk")
+    // Detect tablet BEFORE Scaffold so we can control FAB visibility
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val isTablet = maxWidth >= 600.dp
+
+        Scaffold(
+            topBar = {
+                RancakTopBar(
+                    title    = "Manajemen Produk",
+                    icon     = Icons.Default.Inventory2,
+                    onBack   = onBack,
+                    subtitle = "${uiState.filteredProducts.size} produk"
+                )
+            },
+            // FAB only on phone — tablet gets inline "Tambah Produk" button in content
+            floatingActionButton = {
+                if (!isTablet) {
+                    FloatingActionButton(onClick = { viewModel.openProductForm() }) {
+                        Icon(Icons.Default.Add, contentDescription = "Tambah produk")
+                    }
+                }
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { padding ->
+            when {
+                uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
+                else -> ProductListContent(
+                    uiState          = uiState,
+                    isTablet         = isTablet,
+                    onAddProduct     = viewModel::openProductForm,
+                    onSearchChange   = viewModel::setSearchQuery,
+                    onCategorySelect = viewModel::setCategory,
+                    onAdjustStock    = viewModel::openAdjustDialog,
+                    onAddBatch       = viewModel::openBatchDialog,
+                    on86Toggle       = viewModel::toggle86,
+                    onEditProduct    = viewModel::openProductForm,
+                    onDeleteProduct  = viewModel::openDeleteConfirm,
+                    onAddCategory    = { viewModel.openCategoryForm() },
+                    onEditCategory   = { viewModel.openCategoryForm(it) },
+                    onDeleteCategory = { viewModel.deleteCategory(it) },
+                    modifier         = Modifier.padding(padding)
+                )
             }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        when {
-            uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
-            else -> ProductListContent(
-                uiState          = uiState,
-                onSearchChange   = viewModel::setSearchQuery,
-                onCategorySelect = viewModel::setCategory,
-                onAdjustStock    = viewModel::openAdjustDialog,
-                onAddBatch       = viewModel::openBatchDialog,
-                on86Toggle       = viewModel::toggle86,
-                onEditProduct    = viewModel::openProductForm,
-                onDeleteProduct  = viewModel::openDeleteConfirm,
-                onAddCategory    = { viewModel.openCategoryForm() },
-                onEditCategory   = { viewModel.openCategoryForm(it) },
-                onDeleteCategory = { viewModel.deleteCategory(it) },
-                modifier         = Modifier.padding(padding)
-            )
-        }
 
-        if (uiState.showAdjustDialog && uiState.actionProduct != null) {
-            StockAdjustDialog(
-                product     = uiState.actionProduct!!,
-                isSubmitting = uiState.isSubmitting,
-                onDismiss   = viewModel::closeAdjustDialog,
-                onConfirm   = { type, qty, note ->
-                    viewModel.adjustStock(uiState.actionProduct!!.uuid, type, qty, note)
-                }
-            )
-        }
-
-        if (uiState.showBatchDialog && uiState.actionProduct != null) {
-            AddBatchDialog(
-                product      = uiState.actionProduct!!,
-                isSubmitting = uiState.isSubmitting,
-                onDismiss    = viewModel::closeBatchDialog,
-                onConfirm    = { qty, expiry, cost, batch, note ->
-                    viewModel.createBatch(uiState.actionProduct!!.uuid, qty, expiry, cost, batch, note)
-                }
-            )
-        }
-
-        if (uiState.showProductFormDialog) {
-            ProductFormDialog(
-                editingProduct = uiState.actionProduct,
-                categories     = uiState.categories,
-                isSubmitting   = uiState.isSubmitting,
-                onDismiss      = viewModel::closeProductForm,
-                onConfirm      = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->
-                    viewModel.saveProduct(name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry)
-                }
-            )
-        }
-
-        if (uiState.showDeleteConfirmDialog && uiState.actionProduct != null) {
-            AlertDialog(
-                onDismissRequest = { if (!uiState.isSubmitting) viewModel.closeDeleteConfirm() },
-                title = { Text("Hapus Produk") },
-                text  = { Text("Hapus produk \"${uiState.actionProduct!!.name}\"? Tindakan ini tidak dapat dibatalkan.") },
-                confirmButton = {
-                    TextButton(onClick = viewModel::deleteProduct, enabled = !uiState.isSubmitting) {
-                        if (uiState.isSubmitting) CircularProgressIndicator(Modifier.size(16.dp))
-                        else Text("Hapus", color = MaterialTheme.colorScheme.error)
+            if (uiState.showAdjustDialog && uiState.actionProduct != null) {
+                StockAdjustDialog(
+                    product     = uiState.actionProduct!!,
+                    isSubmitting = uiState.isSubmitting,
+                    onDismiss   = viewModel::closeAdjustDialog,
+                    onConfirm   = { type, qty, note ->
+                        viewModel.adjustStock(uiState.actionProduct!!.uuid, type, qty, note)
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = viewModel::closeDeleteConfirm, enabled = !uiState.isSubmitting) {
-                        Text("Batal")
-                    }
-                }
-            )
-        }
+                )
+            }
 
-        if (uiState.showCategoryFormDialog) {
-            CategoryFormDialog(
-                editingCategory = uiState.editingCategory,
-                isSubmitting    = uiState.isSubmitting,
-                onDismiss       = viewModel::closeCategoryForm,
-                onConfirm       = { name, desc -> viewModel.saveCategory(name, desc) }
-            )
+            if (uiState.showBatchDialog && uiState.actionProduct != null) {
+                AddBatchDialog(
+                    product      = uiState.actionProduct!!,
+                    isSubmitting = uiState.isSubmitting,
+                    onDismiss    = viewModel::closeBatchDialog,
+                    onConfirm    = { qty, expiry, cost, batch, note ->
+                        viewModel.createBatch(uiState.actionProduct!!.uuid, qty, expiry, cost, batch, note)
+                    }
+                )
+            }
+
+            if (uiState.showProductFormDialog) {
+                ProductFormDialog(
+                    editingProduct = uiState.actionProduct,
+                    categories     = uiState.categories,
+                    isSubmitting   = uiState.isSubmitting,
+                    onDismiss      = viewModel::closeProductForm,
+                    onConfirm      = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->
+                        viewModel.saveProduct(name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry)
+                    }
+                )
+            }
+
+            if (uiState.showDeleteConfirmDialog && uiState.actionProduct != null) {
+                AlertDialog(
+                    onDismissRequest = { if (!uiState.isSubmitting) viewModel.closeDeleteConfirm() },
+                    title = { Text("Hapus Produk") },
+                    text  = { Text("Hapus produk \"${uiState.actionProduct!!.name}\"? Tindakan ini tidak dapat dibatalkan.") },
+                    confirmButton = {
+                        TextButton(onClick = viewModel::deleteProduct, enabled = !uiState.isSubmitting) {
+                            if (uiState.isSubmitting) CircularProgressIndicator(Modifier.size(16.dp))
+                            else Text("Hapus", color = MaterialTheme.colorScheme.error)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = viewModel::closeDeleteConfirm, enabled = !uiState.isSubmitting) {
+                            Text("Batal")
+                        }
+                    }
+                )
+            }
+
+            if (uiState.showCategoryFormDialog) {
+                CategoryFormDialog(
+                    editingCategory = uiState.editingCategory,
+                    isSubmitting    = uiState.isSubmitting,
+                    onDismiss       = viewModel::closeCategoryForm,
+                    onConfirm       = { name, desc -> viewModel.saveCategory(name, desc) }
+                )
+            }
         }
     }
 }
@@ -165,6 +178,8 @@ fun ProductManagementScreen(
 @Composable
 private fun ProductListContent(
     uiState: ProductManagementUiState,
+    isTablet: Boolean,
+    onAddProduct: () -> Unit,
     onSearchChange: (String) -> Unit,
     onCategorySelect: (Category?) -> Unit,
     onAdjustStock: (Product) -> Unit,
@@ -177,116 +192,191 @@ private fun ProductListContent(
     onDeleteCategory: (Category) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
-        if (isTablet) {
-            Row(Modifier.fillMaxSize()) {
-                // Kiri — panel kategori
-                Column(
-                    modifier = Modifier
-                        .width(220.dp)
-                        .fillMaxHeight()
-                        .verticalScroll(rememberScrollState())
-                        .padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+    if (isTablet) {
+        Row(modifier.fillMaxSize()) {
+            // ── Kiri — panel kategori ─────────────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .width(220.dp)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Kategori", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                        IconButton(onClick = onAddCategory, modifier = Modifier.size(28.dp)) {
-                            Icon(Icons.Default.Add, contentDescription = "Tambah kategori", modifier = Modifier.size(18.dp))
-                        }
-                    }
-                    NavigationDrawerItem(
-                        label  = { Text("Semua (${uiState.products.size})") },
-                        selected = uiState.selectedCategory == null,
-                        onClick  = { onCategorySelect(null) }
+                    Text(
+                        "Kategori",
+                        style      = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
                     )
-                    uiState.categories.forEach { cat ->
-                        NavigationDrawerItem(
-                            label    = { Text(cat.name) },
-                            selected = uiState.selectedCategory?.uuid == cat.uuid,
-                            onClick  = { onCategorySelect(cat) },
-                            badge    = {
-                                Row {
-                                    IconButton(onClick = { onEditCategory(cat) }, modifier = Modifier.size(22.dp)) {
-                                        Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(14.dp))
-                                    }
-                                    IconButton(onClick = { onDeleteCategory(cat) }, modifier = Modifier.size(22.dp)) {
-                                        Icon(Icons.Default.DeleteOutline, contentDescription = "Hapus", modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.error)
-                                    }
-                                }
-                            }
+                    IconButton(onClick = onAddCategory, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Tambah kategori",
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
-                VerticalDivider(modifier = Modifier.fillMaxHeight())
-                // Kanan — search + list
-                Column(Modifier.weight(1f).fillMaxHeight()) {
-                    ProductSearchAndList(uiState, onSearchChange, onCategorySelect, onAdjustStock, onAddBatch, on86Toggle, onEditProduct, onDeleteProduct)
-                }
-            }
-        } else {
-            Column(Modifier.fillMaxSize()) {
-                // ── Category filter chips ─────────────────────────────────────────────
+                // "Semua" row
                 Row(
                     modifier = Modifier
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment     = Alignment.CenterVertically
-                ) {
-                    FilterChip(
-                        selected = uiState.selectedCategory == null,
-                        onClick  = { onCategorySelect(null) },
-                        label    = { Text("Semua") }
-                    )
-                    uiState.categories.forEach { cat ->
-                        FilterChip(
-                            selected     = uiState.selectedCategory?.uuid == cat.uuid,
-                            onClick      = { onCategorySelect(cat) },
-                            label        = { Text(cat.name) },
-                            trailingIcon = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        Icons.Default.Edit,
-                                        contentDescription = "Edit kategori",
-                                        modifier = Modifier
-                                            .size(14.dp)
-                                            .clickable(
-                                                indication = null,
-                                                interactionSource = remember { MutableInteractionSource() }
-                                            ) { onEditCategory(cat) }
-                                    )
-                                    Spacer(Modifier.width(2.dp))
-                                    Icon(
-                                        Icons.Default.DeleteOutline,
-                                        contentDescription = "Hapus kategori",
-                                        modifier = Modifier
-                                            .size(14.dp)
-                                            .clickable(
-                                                indication = null,
-                                                interactionSource = remember { MutableInteractionSource() }
-                                            ) { onDeleteCategory(cat) },
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            }
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.small)
+                        .background(
+                            if (uiState.selectedCategory == null)
+                                MaterialTheme.colorScheme.secondaryContainer
+                            else Color.Transparent
                         )
-                    }
-                    InputChip(
-                        selected     = false,
-                        onClick      = onAddCategory,
-                        label        = { Text("Tambah") },
-                        leadingIcon  = { Icon(Icons.Default.Add, contentDescription = null, Modifier.size(14.dp)) }
+                        .clickable { onCategorySelect(null) }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Semua (${uiState.products.size})",
+                        modifier = Modifier.weight(1f),
+                        style    = MaterialTheme.typography.bodyMedium
                     )
                 }
-                HorizontalDivider()
-                ProductSearchAndList(uiState, onSearchChange, onCategorySelect, onAdjustStock, onAddBatch, on86Toggle, onEditProduct, onDeleteProduct)
+                // Per-category rows with edit/delete
+                uiState.categories.forEach { cat ->
+                    val isSelected = uiState.selectedCategory?.uuid == cat.uuid
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.small)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.secondaryContainer
+                                else Color.Transparent
+                            )
+                            .clickable { onCategorySelect(cat) }
+                            .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            cat.name,
+                            modifier = Modifier.weight(1f),
+                            style    = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1
+                        )
+                        IconButton(
+                            onClick  = { onEditCategory(cat) },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Edit kategori",
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                        IconButton(
+                            onClick  = { onDeleteCategory(cat) },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.DeleteOutline,
+                                contentDescription = "Hapus kategori",
+                                modifier = Modifier.size(14.dp),
+                                tint     = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
             }
+            VerticalDivider(modifier = Modifier.fillMaxHeight())
+            // ── Kanan — search + list ─────────────────────────────────────────
+            Column(Modifier.weight(1f).fillMaxHeight()) {
+                ProductSearchAndList(
+                    uiState        = uiState,
+                    isTablet       = true,
+                    onAddProduct   = onAddProduct,
+                    onSearchChange = onSearchChange,
+                    onCategorySelect = onCategorySelect,
+                    onAdjustStock  = onAdjustStock,
+                    onAddBatch     = onAddBatch,
+                    on86Toggle     = on86Toggle,
+                    onEditProduct  = onEditProduct,
+                    onDeleteProduct = onDeleteProduct
+                )
+            }
+        }
+    } else {
+        Column(modifier.fillMaxSize()) {
+            // ── Category filter chips + add-category button ───────────────────
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                FilterChip(
+                    selected = uiState.selectedCategory == null,
+                    onClick  = { onCategorySelect(null) },
+                    label    = { Text("Semua") }
+                )
+                uiState.categories.forEach { cat ->
+                    FilterChip(
+                        selected     = uiState.selectedCategory?.uuid == cat.uuid,
+                        onClick      = { onCategorySelect(cat) },
+                        label        = { Text(cat.name) },
+                        trailingIcon = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = "Edit kategori",
+                                    modifier = Modifier
+                                        .size(14.dp)
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }
+                                        ) { onEditCategory(cat) }
+                                )
+                                Spacer(Modifier.width(2.dp))
+                                Icon(
+                                    Icons.Default.DeleteOutline,
+                                    contentDescription = "Hapus kategori",
+                                    modifier = Modifier
+                                        .size(14.dp)
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }
+                                        ) { onDeleteCategory(cat) },
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    )
+                }
+                // Clearly labeled "Tambah Kategori" — visually distinct from the FAB (add product)
+                AssistChip(
+                    onClick      = onAddCategory,
+                    label        = { Text("Tambah Kategori") },
+                    leadingIcon  = {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = null,
+                            Modifier.size(16.dp)
+                        )
+                    }
+                )
+            }
+            HorizontalDivider()
+            ProductSearchAndList(
+                uiState         = uiState,
+                isTablet        = false,
+                onAddProduct    = onAddProduct,
+                onSearchChange  = onSearchChange,
+                onCategorySelect = onCategorySelect,
+                onAdjustStock   = onAdjustStock,
+                onAddBatch      = onAddBatch,
+                on86Toggle      = on86Toggle,
+                onEditProduct   = onEditProduct,
+                onDeleteProduct = onDeleteProduct
+            )
         }
     }
 }
@@ -294,6 +384,8 @@ private fun ProductListContent(
 @Composable
 private fun ProductSearchAndList(
     uiState: ProductManagementUiState,
+    isTablet: Boolean,
+    onAddProduct: () -> Unit,
     onSearchChange: (String) -> Unit,
     onCategorySelect: (Category?) -> Unit,
     onAdjustStock: (Product) -> Unit,
@@ -303,25 +395,41 @@ private fun ProductSearchAndList(
     onDeleteProduct: (Product) -> Unit
 ) {
     Column(Modifier.fillMaxSize()) {
-        // ── Search bar ────────────────────────────────────────────────────────
-        OutlinedTextField(
-            value       = uiState.searchQuery,
-            onValueChange = onSearchChange,
-            placeholder = { Text("Cari nama, SKU, barcode…") },
-            leadingIcon  = { Icon(Icons.Default.Search, contentDescription = null) },
-            trailingIcon = {
-                if (uiState.searchQuery.isNotBlank()) {
-                    IconButton(onClick = { onSearchChange("") }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Hapus pencarian")
-                    }
-                }
-            },
-            modifier  = Modifier
+        // ── Search bar + Tambah Produk (tablet only) ──────────────────────────
+        Row(
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 10.dp),
-            singleLine = true,
-            shape      = MaterialTheme.shapes.medium
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value         = uiState.searchQuery,
+                onValueChange = onSearchChange,
+                placeholder   = { Text("Cari nama, SKU, barcode…") },
+                leadingIcon   = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon  = {
+                    if (uiState.searchQuery.isNotBlank()) {
+                        IconButton(onClick = { onSearchChange("") }) {
+                            Icon(Icons.Default.Clear, contentDescription = "Hapus pencarian")
+                        }
+                    }
+                },
+                modifier   = Modifier.weight(1f),
+                singleLine = true,
+                shape      = MaterialTheme.shapes.medium
+            )
+            if (isTablet) {
+                Button(
+                    onClick = onAddProduct,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Tambah Produk")
+                }
+            }
+        }
 
         // ── Product list ──────────────────────────────────────────────────────
         if (uiState.filteredProducts.isEmpty()) {
