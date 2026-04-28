@@ -25,6 +25,7 @@ import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.ui.tables.components.TableCell
 import id.rancak.app.presentation.viewmodel.TableUiState
 import id.rancak.app.presentation.viewmodel.TableViewModel
 import androidx.compose.ui.tooling.preview.Preview
@@ -199,35 +200,7 @@ private fun TabletTableLayout(
     }
 }
 
-@Composable
-private fun TableCell(table: Table, size: androidx.compose.ui.unit.Dp = 100.dp, onClick: () -> Unit) {
-    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
-    val bg = when (table.status) {
-        TableStatus.AVAILABLE -> semantic.statusAvailable
-        TableStatus.OCCUPIED -> semantic.statusOccupied
-        TableStatus.INACTIVE -> semantic.statusMaintenance
-    }
-    Box(
-        modifier = Modifier
-            .size(size)
-            .clip(MaterialTheme.shapes.medium)
-            .background(bg.copy(alpha = 0.15f))
-            .clickable(enabled = table.status == TableStatus.AVAILABLE) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(table.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = bg, textAlign = TextAlign.Center)
-            Text(
-                table.status.value.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.labelSmall,
-                color = bg
-            )
-            table.capacity?.let {
-                Text("$it kursi", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-            }
-        }
-    }
-}
+// TableCell extracted to tables/components/TableCell.kt
 
 @Preview
 @Composable

@@ -20,6 +20,8 @@ import id.rancak.app.domain.model.CashIn
 import id.rancak.app.domain.model.Expense
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.ui.finance.components.CashInList
+import id.rancak.app.presentation.ui.finance.components.ExpenseList
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseUiState
@@ -271,47 +273,7 @@ private fun ExpenseForm(
     }
 }
 
-@Composable
-private fun CashInList(items: List<CashIn>, onDelete: (String) -> Unit) {
-    if (items.isEmpty()) {
-        EmptyScreen("Belum ada kas masuk")
-    } else {
-        LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(items, key = { it.uuid }) { item ->
-                Card(Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
-                            item.source?.let { Text("Sumber: $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline) }
-                        }
-                        Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = id.rancak.app.presentation.designsystem.RancakColors.semantic.success)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ExpenseList(items: List<Expense>, onDelete: (String) -> Unit) {
-    if (items.isEmpty()) {
-        EmptyScreen("Belum ada pengeluaran")
-    } else {
-        LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(items, key = { it.uuid }) { item ->
-                Card(Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
-                            item.note?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline) }
-                        }
-                        Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            }
-        }
-    }
-}
+// CashInList and ExpenseList extracted to finance/components/
 
 @Preview
 @Composable
