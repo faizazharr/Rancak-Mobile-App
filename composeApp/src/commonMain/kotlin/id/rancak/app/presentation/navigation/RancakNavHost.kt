@@ -1,6 +1,12 @@
 package id.rancak.app.presentation.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
@@ -48,6 +54,13 @@ private data class DrawerItem(
     val screen: Screen
 )
 
+private data class DrawerGroup(
+    val label: String,
+    val icon: ImageVector,
+    val items: List<DrawerItem>,
+    val expandedByDefault: Boolean = false
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RancakNavHost() {
@@ -60,23 +73,54 @@ fun RancakNavHost() {
     // TODO(role-gating): setelah backend mengembalikan field `role` pada respons
     // tenant/login, ganti semua UserRole.STAFF di bawah dengan peran yang sesuai
     // dan uncomment baris filter `visibleDrawerItems`.
-    val drawerItems = remember {
+    val drawerGroups = remember {
         listOf(
-            DrawerItem("Kasir",       Icons.Default.PointOfSale,    Screen.Pos),
-            DrawerItem("Shift",       Icons.Default.AccessTime,     Screen.Shift),
-            DrawerItem("Meja",        Icons.Default.TableBar,       Screen.Tables),
-            DrawerItem("Dapur (KDS)", Icons.Default.Restaurant,     Screen.Kds),
-            DrawerItem("Order Board", Icons.Default.Dashboard,      Screen.OrderBoard),
-            DrawerItem("Riwayat",     Icons.Default.Receipt,        Screen.SalesHistory),
-            DrawerItem("Kas & Biaya", Icons.Default.AccountBalance, Screen.CashExpense),
-            DrawerItem("Laporan",     Icons.Default.BarChart,       Screen.Reports),
-            DrawerItem("Produk",      Icons.Default.Inventory2,     Screen.ProductManagement),
-            DrawerItem("Billing",     Icons.Default.CreditCard,     Screen.Billing),
-            DrawerItem("Pengaturan",  Icons.Default.Settings,       Screen.Settings),
+            DrawerGroup(
+                label = "Kasir",
+                icon = Icons.Default.PointOfSale,
+                expandedByDefault = true,
+                items = listOf(
+                    DrawerItem("Kasir",  Icons.Default.PointOfSale, Screen.Pos),
+                    DrawerItem("Shift",  Icons.Default.AccessTime,  Screen.Shift),
+                )
+            ),
+            DrawerGroup(
+                label = "Operasional",
+                icon = Icons.Default.TableBar,
+                expandedByDefault = true,
+                items = listOf(
+                    DrawerItem("Meja",        Icons.Default.TableBar,   Screen.Tables),
+                    DrawerItem("Dapur (KDS)", Icons.Default.Restaurant, Screen.Kds),
+                    DrawerItem("Order Board", Icons.Default.Dashboard,  Screen.OrderBoard),
+                )
+            ),
+            DrawerGroup(
+                label = "Keuangan",
+                icon = Icons.Default.AccountBalance,
+                expandedByDefault = false,
+                items = listOf(
+                    DrawerItem("Riwayat",     Icons.Default.Receipt,        Screen.SalesHistory),
+                    DrawerItem("Kas & Biaya", Icons.Default.AccountBalance, Screen.CashExpense),
+                    DrawerItem("Laporan",     Icons.Default.BarChart,       Screen.Reports),
+                )
+            ),
+            DrawerGroup(
+                label = "Manajemen",
+                icon = Icons.Default.ManageAccounts,
+                expandedByDefault = false,
+                items = listOf(
+                    DrawerItem("Produk",      Icons.Default.Inventory2,  Screen.ProductManagement),
+                    DrawerItem("Billing",     Icons.Default.CreditCard,  Screen.Billing),
+                    DrawerItem("Pengaturan",  Icons.Default.Settings,    Screen.Settings),
+                )
+            ),
         )
     }
-    // Role filtering dinonaktifkan sementara — semua item ditampilkan.
-    val visibleDrawerItems = drawerItems
+    val expandedGroups = remember {
+        mutableStateMapOf<String, Boolean>().apply {
+            drawerGroups.forEach { put(it.label, it.expandedByDefault) }
+        }
+    }
 
     val showDrawer = remember(navBackStackEntry) {
         val route = navBackStackEntry?.destination?.route
@@ -154,22 +198,27 @@ fun RancakNavHost() {
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     Spacer(Modifier.height(8.dp))
 
-                    visibleDrawerItems.forEach { item ->
-                        NavigationDrawerItem(
-                            icon = { Icon(item.icon, contentDescription = null) },
-                            label = { Text(item.label) },
-                            selected = false,
-                            onClick = {
-                                navController.navigate(item.screen) {
-                                    launchSingleTop = true
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        drawerGroups.forEach { group ->
+                            DrawerAccordionGroup(
+                                group = group,
+                                isExpanded = expandedGroups[group.label] ?: group.expandedByDefault,
+                                onToggle = {
+                                    expandedGroups[group.label] =
+                                        !(expandedGroups[group.label] ?: group.expandedByDefault)
+                                },
+                                onItemClick = { item ->
+                                    navController.navigate(item.screen) { launchSingleTop = true }
+                                    scope.launch { drawerState.close() }
                                 }
-                                scope.launch { drawerState.close() }
-                            },
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        )
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
                     }
-
-                    Spacer(Modifier.weight(1f))
 
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     Spacer(Modifier.height(4.dp))
@@ -212,6 +261,75 @@ fun RancakNavHost() {
             if (showDrawer) scope.launch { drawerState.open() }
         })
     }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Accordion group composable for the nav drawer
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun DrawerAccordionGroup(
+    group: DrawerGroup,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    onItemClick: (DrawerItem) -> Unit
+) {
+    // ── Section header ────────────────────────────────────────────────────────
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Icon(
+            group.icon,
+            contentDescription = null,
+            modifier = androidx.compose.ui.Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            group.label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = androidx.compose.ui.Modifier.weight(1f)
+        )
+        Icon(
+            if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+            contentDescription = if (isExpanded) "Tutup" else "Buka",
+            modifier = androidx.compose.ui.Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+
+    // ── Items (animated) ──────────────────────────────────────────────────────
+    AnimatedVisibility(
+        visible = isExpanded,
+        enter = expandVertically(),
+        exit = shrinkVertically()
+    ) {
+        Column {
+            group.items.forEach { item ->
+                NavigationDrawerItem(
+                    icon = { Icon(item.icon, contentDescription = null) },
+                    label = { Text(item.label) },
+                    selected = false,
+                    onClick = { onItemClick(item) },
+                    modifier = androidx.compose.ui.Modifier.padding(
+                        start = 24.dp, end = 12.dp, bottom = 2.dp
+                    )
+                )
+            }
+            Spacer(androidx.compose.ui.Modifier.height(4.dp))
+        }
+    }
+
+    HorizontalDivider(
+        modifier = androidx.compose.ui.Modifier.padding(horizontal = 16.dp),
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    )
 }
 
 @Composable
