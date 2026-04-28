@@ -355,23 +355,34 @@ private fun PlanCard(
                     )
                 }
 
-                Button(
-                    onClick = onSubscribe,
-                    enabled = !isCurrentPlan,
-                    shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    if (isCurrentPlan) {
-                        Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Aktif", style = MaterialTheme.typography.labelMedium)
-                    } else {
-                        Text(if (plan.isTrial) "Coba" else "Langganan",
-                            style = MaterialTheme.typography.labelMedium)
+                if (isCurrentPlan) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.CheckCircle, null,
+                            tint = Primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            "Aktif",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Primary
+                        )
+                    }
+                } else {
+                    Button(
+                        onClick = onSubscribe,
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                    ) {
+                        Text(
+                            if (plan.isTrial) "Coba" else "Langganan",
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                 }
             }

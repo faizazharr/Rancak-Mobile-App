@@ -9,6 +9,7 @@ import id.rancak.app.domain.model.*
 interface AdminRepository {
 
     // ── Surcharges ─────────────────────────────────────────────────────────────
+    suspend fun getSurcharges(): Resource<List<Surcharge>>
     suspend fun getSurcharge(surchargeId: String): Resource<Surcharge>
     suspend fun createSurcharge(
         orderType: String,
@@ -49,6 +50,7 @@ interface AdminRepository {
     suspend fun deleteVoucher(voucherId: String): Resource<Unit>
 
     // ── Tax Configs ────────────────────────────────────────────────────────────
+    suspend fun getTaxConfigs(): Resource<List<TaxConfig>>
     suspend fun getTaxConfig(configId: String): Resource<TaxConfig>
     suspend fun createTaxConfig(
         name: String,
@@ -118,6 +120,7 @@ interface AdminRepository {
     suspend fun deleteModifier(modifierId: String): Resource<Unit>
 
     // ── Discount Rules ─────────────────────────────────────────────────────────
+    suspend fun getDiscountRules(): Resource<List<DiscountRule>>
     suspend fun getDiscountRule(ruleId: String): Resource<DiscountRule>
     suspend fun createDiscountRule(
         name: String,

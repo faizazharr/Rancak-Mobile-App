@@ -22,5 +22,8 @@ sealed class Screen {
     @Serializable data object CashExpense : Screen()
     @Serializable data object ProductManagement : Screen()
     @Serializable data object Billing : Screen()
+    @Serializable data object StockOpname : Screen()
+    @Serializable data object VoucherManagement : Screen()
+    @Serializable data object PricingManagement : Screen()
     @Serializable data object Settings : Screen()
 }

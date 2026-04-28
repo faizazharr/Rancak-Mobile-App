@@ -30,10 +30,13 @@ import id.rancak.app.data.remote.api.deleteVariantGroup
 import id.rancak.app.data.remote.api.deleteVoucher
 import id.rancak.app.data.remote.api.getBundle
 import id.rancak.app.data.remote.api.getDiscountRule
+import id.rancak.app.data.remote.api.getDiscountRules
 import id.rancak.app.data.remote.api.getModifier
 import id.rancak.app.data.remote.api.getProductBatches
 import id.rancak.app.data.remote.api.getSurcharge
+import id.rancak.app.data.remote.api.getSurcharges
 import id.rancak.app.data.remote.api.getTaxConfig
+import id.rancak.app.data.remote.api.getTaxConfigs
 import id.rancak.app.data.remote.api.getTable
 import id.rancak.app.data.remote.api.getVariantGroups
 import id.rancak.app.data.remote.api.getVariants
@@ -95,6 +98,12 @@ class AdminRepositoryImpl(
         get() = tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")
 
     // ── Surcharges ─────────────────────────────────────────────────────────────
+
+    override suspend fun getSurcharges(): Resource<List<Surcharge>> = safe(
+        block = { api.getSurcharges(tenantUuid) },
+        map = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal memuat daftar surcharge"
+    )
 
     override suspend fun getSurcharge(surchargeId: String): Resource<Surcharge> = safe(
         block = { api.getSurcharge(tenantUuid, surchargeId) },
@@ -161,6 +170,12 @@ class AdminRepositoryImpl(
     )
 
     // ── Tax Configs ────────────────────────────────────────────────────────────
+
+    override suspend fun getTaxConfigs(): Resource<List<TaxConfig>> = safe(
+        block = { api.getTaxConfigs(tenantUuid) },
+        map = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal memuat daftar pajak"
+    )
 
     override suspend fun getTaxConfig(configId: String): Resource<TaxConfig> = safe(
         block = { api.getTaxConfig(tenantUuid, configId) },
@@ -267,6 +282,12 @@ class AdminRepositoryImpl(
     )
 
     // ── Discount Rules ─────────────────────────────────────────────────────────
+
+    override suspend fun getDiscountRules(): Resource<List<DiscountRule>> = safe(
+        block = { api.getDiscountRules(tenantUuid) },
+        map = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal memuat daftar aturan diskon"
+    )
 
     override suspend fun getDiscountRule(ruleId: String): Resource<DiscountRule> = safe(
         block = { api.getDiscountRule(tenantUuid, ruleId) },
