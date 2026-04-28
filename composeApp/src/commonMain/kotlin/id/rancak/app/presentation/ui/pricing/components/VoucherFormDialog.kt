@@ -12,6 +12,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Voucher
+import id.rancak.app.presentation.components.DatePickerField
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
@@ -72,12 +73,18 @@ fun VoucherFormDialog(
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = validFrom, onValueChange = { validFrom = it },
-                        label = { Text("Berlaku Dari * (YYYY-MM-DD)") },
-                        modifier = Modifier.weight(1f), singleLine = true)
-                    OutlinedTextField(value = validUntil, onValueChange = { validUntil = it },
-                        label = { Text("Berlaku Sampai") },
-                        modifier = Modifier.weight(1f), singleLine = true)
+                    DatePickerField(
+                        label = "Berlaku Dari *",
+                        value = validFrom,
+                        onDateSelected = { validFrom = it },
+                        modifier = Modifier.weight(1f)
+                    )
+                    DatePickerField(
+                        label = "Berlaku Sampai",
+                        value = validUntil,
+                        onDateSelected = { validUntil = it },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

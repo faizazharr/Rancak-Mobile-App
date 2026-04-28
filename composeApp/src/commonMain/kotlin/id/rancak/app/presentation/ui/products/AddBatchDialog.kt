@@ -11,6 +11,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
+import id.rancak.app.presentation.components.DatePickerField
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
@@ -48,13 +49,11 @@ fun AddBatchDialog(
                         { { Text("Jumlah harus lebih dari 0") } } else null
                 )
 
-                OutlinedTextField(
-                    value         = expiryDate,
-                    onValueChange = { expiryDate = it },
-                    label         = { Text("Tanggal Kadaluarsa") },
-                    placeholder   = { Text("YYYY-MM-DD") },
-                    modifier      = Modifier.fillMaxWidth(),
-                    singleLine    = true
+                DatePickerField(
+                    label = "Tanggal Kadaluarsa",
+                    value = expiryDate,
+                    onDateSelected = { expiryDate = it },
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
