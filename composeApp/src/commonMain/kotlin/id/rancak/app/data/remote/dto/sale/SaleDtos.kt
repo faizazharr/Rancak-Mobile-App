@@ -1,5 +1,6 @@
 package id.rancak.app.data.remote.dto.sale
 
+import id.rancak.app.data.remote.dto.FlexibleLongSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -68,21 +69,21 @@ data class SaleDto(
     @SerialName("order_type") val orderType: String? = null,
     @SerialName("queue_number") val queueNumber: Int? = null,
     val status: String,
-    val subtotal: Long = 0,
-    val discount: Long = 0,
-    val surcharge: Long = 0,
-    @SerialName("voucher_discount") val voucherDiscount: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val surcharge: Long = 0,
+    @SerialName("voucher_discount") @Serializable(with = FlexibleLongSerializer::class) val voucherDiscount: Long = 0,
     @SerialName("voucher_code") val voucherCode: String? = null,
-    @SerialName("auto_discount") val autoDiscount: Long = 0,
+    @SerialName("auto_discount") @Serializable(with = FlexibleLongSerializer::class) val autoDiscount: Long = 0,
     @SerialName("auto_discount_label") val autoDiscountLabel: String? = null,
-    val tax: Long = 0,
-    @SerialName("delivery_fee") val deliveryFee: Long = 0,
-    val tip: Long = 0,
-    @SerialName("admin_fee") val adminFee: Long = 0,
-    val total: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val tax: Long = 0,
+    @SerialName("delivery_fee") @Serializable(with = FlexibleLongSerializer::class) val deliveryFee: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val tip: Long = 0,
+    @SerialName("admin_fee") @Serializable(with = FlexibleLongSerializer::class) val adminFee: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val total: Long = 0,
     @SerialName("payment_method") val paymentMethod: String? = null,
-    @SerialName("paid_amount") val paidAmount: Long = 0,
-    @SerialName("change_amount") val changeAmount: Long = 0,
+    @SerialName("paid_amount") @Serializable(with = FlexibleLongSerializer::class) val paidAmount: Long = 0,
+    @SerialName("change_amount") @Serializable(with = FlexibleLongSerializer::class) val changeAmount: Long = 0,
     @SerialName("table_uuid") val tableUuid: String? = null,
     val items: List<SaleItemDto> = emptyList(),
     val payments: List<SalePaymentDto> = emptyList(),
@@ -98,9 +99,9 @@ data class SaleItemDto(
     @SerialName("product_name") val productName: String,
     val sku: String? = null,
     val qty: String,
-    val price: Long = 0,
-    val discount: Long = 0,
-    val subtotal: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
     @SerialName("variant_name") val variantName: String? = null,
     val note: String? = null,
     val addons: List<SaleItemAddonDto> = emptyList()
@@ -109,16 +110,16 @@ data class SaleItemDto(
 @Serializable
 data class SaleItemAddonDto(
     val name: String,
-    val price: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
     val qty: Double = 1.0,
-    val subtotal: Long = 0
+    @Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0
 )
 
 @Serializable
 data class SalePaymentDto(
     val uuid: String? = null,
     val method: String,
-    val amount: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val amount: Long = 0,
     val note: String? = null
 )
 
@@ -190,14 +191,14 @@ data class RefundItemResponseDto(
     @SerialName("sale_item_uuid") val saleItemUuid: String,
     @SerialName("product_name") val productName: String,
     val qty: Double = 0.0,
-    @SerialName("refund_amount") val refundAmount: Long = 0
+    @Serializable(with = FlexibleLongSerializer::class) @SerialName("refund_amount") val refundAmount: Long = 0
 )
 
 @Serializable
 data class RefundResponseDto(
     val uuid: String,
     @SerialName("sale_uuid") val saleUuid: String,
-    @SerialName("refund_amount") val refundAmount: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) @SerialName("refund_amount") val refundAmount: Long = 0,
     val reason: String? = null,
     val items: List<RefundItemResponseDto> = emptyList(),
     @SerialName("created_at") val createdAt: String? = null
