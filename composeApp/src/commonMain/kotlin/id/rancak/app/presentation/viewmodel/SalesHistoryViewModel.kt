@@ -101,7 +101,13 @@ class SalesHistoryViewModel(
         _selectedSale.value = sale
         viewModelScope.launch {
             when (val result = saleRepository.getSaleDetail(sale.uuid)) {
-                is Resource.Success -> _selectedSale.value = result.data
+                is Resource.Success -> {
+                    _selectedSale.value = result.data
+                    // Update item count in the list so SaleCard shows correct "N item"
+                    _allSales.value = _allSales.value.map {
+                        if (it.uuid == sale.uuid) result.data else it
+                    }
+                }
                 is Resource.Error   -> { /* keep showing partial data, error handled elsewhere */ }
                 is Resource.Loading -> {}
             }

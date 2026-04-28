@@ -1,5 +1,6 @@
 package id.rancak.app.data.remote.dto.operations
 
+import id.rancak.app.data.remote.dto.FlexibleLongSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -8,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CashInDto(
     val uuid: String,
-    val amount: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val amount: Long = 0,
     val source: String? = null,
     val description: String? = null,
     val note: String? = null,
@@ -24,7 +25,7 @@ data class CashInDto(
 @Serializable
 data class ExpenseDto(
     val uuid: String,
-    val amount: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val amount: Long = 0,
     val description: String? = null,
     val note: String? = null,
     @SerialName("category_uuid") val categoryUuid: String? = null,
@@ -42,7 +43,7 @@ data class ExpenseDto(
 data class BundleDto(
     val uuid: String,
     val name: String,
-    val price: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
     @SerialName("is_active") val isActive: Boolean = true,
     val items: List<BundleItemDto> = emptyList()
 )
@@ -94,7 +95,9 @@ data class VoucherValidationDto(
 @Serializable
 data class DiscountPreviewDto(
     @SerialName("applied_rules") val appliedRules: List<AppliedRuleDto> = emptyList(),
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_discount") val totalDiscount: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("final_total") val finalTotal: Long = 0
 )
 
@@ -103,7 +106,7 @@ data class AppliedRuleDto(
     val uuid: String,
     val name: String,
     @SerialName("rule_type") val ruleType: String? = null,
-    val discount: Long = 0
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0
 )
 
 // ── Order Board ──
@@ -181,6 +184,7 @@ data class ExpiringBatchDto(
 data class DailyCategoryReportDto(
     @SerialName("category_name") val categoryName: String,
     @SerialName("total_qty") val totalQty: Double = 0.0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_revenue") val totalRevenue: Long = 0
 )
 
@@ -188,7 +192,7 @@ data class DailyCategoryReportDto(
 data class PaymentMethodReportDto(
     @SerialName("payment_method") val method: String,
     @SerialName("transaction_count") val count: Int = 0,
-    val total: Long = 0
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val total: Long = 0
 )
 
 // ── Shift Summary ──
@@ -204,14 +208,21 @@ data class ShiftSummaryDto(
     @SerialName("expected_cash") val expectedCash: String? = null,
     @SerialName("cash_difference") val cashDifference: String? = null,
     @SerialName("cashier_name") val cashierName: String? = null,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_sales") val totalSales: Long = 0,
     @SerialName("total_transactions") val totalTransactions: Int = 0,
     @SerialName("void_transactions") val voidTransactions: Int = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("gross_total") val grossTotal: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_discount") val totalDiscount: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_tax") val totalTax: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("net_total") val netTotal: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_expenses") val totalExpenses: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_cash_in") val totalCashIn: Long = 0,
     @SerialName("payment_breakdown") val paymentBreakdown: List<PaymentMethodReportDto> = emptyList(),
     // Backward compat alias — older endpoints may still return `payment_summary`.
@@ -235,15 +246,19 @@ data class ReceiptDto(
     @SerialName("queue_number") val queueNumber: Int? = null,
     @SerialName("order_type") val orderType: String? = null,
     val items: List<ReceiptItemDto> = emptyList(),
-    val subtotal: Long = 0,
-    val discount: Long = 0,
-    val surcharge: Long = 0,
-    val tax: Long = 0,
-    val tip: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val surcharge: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val tax: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val tip: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("admin_fee") val adminFee: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("delivery_fee") val deliveryFee: Long = 0,
-    val total: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val total: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("paid_amount") val paidAmount: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
     @SerialName("change_amount") val changeAmount: Long = 0,
     @SerialName("payment_method") val paymentMethod: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
@@ -254,8 +269,8 @@ data class ReceiptDto(
 data class ReceiptItemDto(
     val name: String,
     val qty: String,
-    val price: Long = 0,
-    val subtotal: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
+    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
     @SerialName("variant_name") val variantName: String? = null,
     val note: String? = null
 )

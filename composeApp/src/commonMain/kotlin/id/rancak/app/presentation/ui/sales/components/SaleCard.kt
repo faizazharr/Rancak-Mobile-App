@@ -105,7 +105,10 @@ internal fun SaleCard(
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Text(
-                        "${sale.items.size} item  •  ${sale.orderType.value.replace("_", " ")}",
+                        buildString {
+                            if (sale.items.isNotEmpty()) append("${sale.items.size} item  •  ")
+                            append(sale.orderType.value.replace("_", " "))
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

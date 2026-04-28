@@ -8,7 +8,6 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CallSplit
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
@@ -289,8 +288,8 @@ private fun PaymentInputColumn(
             selectedMethod = selectedMethod,
             onSelectMethod = { method ->
                 onSelectMethod(method)
-                // Saat QRIS dipilih, langsung trigger QR request — tidak perlu tombol
-                if (method == PaymentMethod.QRIS && !isProcessing) onQrisSelected()
+                // Auto-trigger QRIS saat chip dipilih
+                if (method == PaymentMethod.QRIS) onQrisSelected()
             }
         )
 
@@ -323,7 +322,6 @@ private fun PaymentInputColumn(
         }
 
         // Tombol sticky di bawah
-        // QRIS: tidak ada tombol — QR sudah di-request saat chip dipilih
         if (!isQris) {
             RancakButton(
                 text      = "Proses Pembayaran",
@@ -332,41 +330,15 @@ private fun PaymentInputColumn(
                 modifier  = Modifier.fillMaxWidth()
             )
         } else {
-            // Tampilkan status sedang memproses QRIS
-            Surface(
-                shape  = MaterialTheme.shapes.medium,
-                color  = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (isProcessing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Icon(
-                            Icons.Default.QrCode2,
-                            contentDescription = null,
-                            tint     = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    Text(
-                        if (isProcessing) "Membuat QR Code QRIS..."
-                        else "Pilih QRIS untuk memulai pembayaran",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
+            // QRIS: tombol eksplisit sebagai trigger utama (auto-trigger saat chip diklik,
+            // tombol ini sebagai fallback jika auto-trigger belum berhasil)
+            RancakButton(
+                text      = if (isProcessing) "Membuat QR Code QRIS..." else "Bayar dengan QRIS",
+                onClick   = onQrisSelected,
+                isLoading = isProcessing,
+                enabled   = !isProcessing,
+                modifier  = Modifier.fillMaxWidth()
+            )
         }
         if (onHoldOrder != null) {
             OutlinedButton(
