@@ -32,6 +32,7 @@ import id.rancak.app.presentation.ui.pos.PosScreen
 import id.rancak.app.presentation.ui.reports.ReportScreen
 import id.rancak.app.presentation.ui.sales.SalesHistoryScreen
 import id.rancak.app.presentation.ui.sales.AddItemsToHeldOrderScreen
+import id.rancak.app.presentation.ui.billing.BillingScreen
 import id.rancak.app.presentation.ui.products.ProductManagementScreen
 import id.rancak.app.presentation.ui.settings.SettingsScreen
 import id.rancak.app.presentation.ui.shift.ShiftScreen
@@ -70,6 +71,7 @@ fun RancakNavHost() {
             DrawerItem("Kas & Biaya", Icons.Default.AccountBalance, Screen.CashExpense),
             DrawerItem("Laporan",     Icons.Default.BarChart,       Screen.Reports),
             DrawerItem("Produk",      Icons.Default.Inventory2,     Screen.ProductManagement),
+            DrawerItem("Billing",     Icons.Default.CreditCard,     Screen.Billing),
             DrawerItem("Pengaturan",  Icons.Default.Settings,       Screen.Settings),
         )
     }
@@ -374,6 +376,10 @@ private fun NavigationContent(
 
         composable<Screen.ProductManagement> {
             ProductManagementScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable<Screen.Billing> {
+            BillingScreen(onBack = { navController.popBackStack() })
         }
     }
 }
