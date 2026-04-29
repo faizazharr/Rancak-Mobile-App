@@ -102,7 +102,7 @@ fun KdsScreenContent(
             when {
                 uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
                 uiState.error != null -> ErrorScreen(
-                    uiState.error!!,
+                    uiState.error,
                     onRetry = onReload,
                     modifier = Modifier.weight(1f)
                 )

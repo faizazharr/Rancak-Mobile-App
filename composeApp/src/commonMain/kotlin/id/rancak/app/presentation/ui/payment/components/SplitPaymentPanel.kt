@@ -9,7 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CallSplit
+import androidx.compose.material.icons.automirrored.filled.CallSplit
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Payments
@@ -269,7 +269,7 @@ private fun SplitSummaryColumn(
                 AssistChip(
                     onClick = { if (!isSplit) onToggleMode() },
                     label = { Text("Terpisah") },
-                    leadingIcon = { Icon(Icons.Default.CallSplit, null, modifier = Modifier.size(16.dp)) },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.CallSplit, null, modifier = Modifier.size(16.dp)) },
                     modifier = Modifier.weight(1f),
                     colors = if (isSplit) AssistChipDefaults.assistChipColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer

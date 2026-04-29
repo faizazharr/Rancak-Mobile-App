@@ -62,6 +62,8 @@ kotlin {
             implementation(libs.googleid)
             // Encrypted storage untuk token auth (TokenManager) dan data sensitif lain
             implementation(libs.androidx.security.crypto)
+            // ProfileInstaller — apply Compose baseline profile pada startup untuk mempercepat cold-start
+            implementation(libs.androidx.profileinstaller)
         }
         commonMain.dependencies {
             // Compose

@@ -59,10 +59,17 @@
 -keep public class * extends androidx.work.CoroutineWorker
 
 # ───────── Generic ─────────
-# Hilangkan log di release (panggilan Log.d/Log.v dihapus).
+# Hilangkan log di release (panggilan Log.d/Log.v/Log.i dihapus, w & e tetap untuk crash report).
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
+    public static *** i(...);
+}
+
+# Hindari overhead reflective println di release.
+-assumenosideeffects class java.io.PrintStream {
+    public *** println(...);
+    public *** print(...);
 }
 
 # Hindari crash dari enum valueOf reflective access.

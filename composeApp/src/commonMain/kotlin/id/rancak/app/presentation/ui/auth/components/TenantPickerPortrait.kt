@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
@@ -143,11 +143,11 @@ internal fun TenantPickerPortrait(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding      = PaddingValues(bottom = 8.dp)
             ) {
-                items(tenants) { tenant ->
+                itemsIndexed(tenants, key = { _, t -> t.uuid }) { index, tenant ->
                     GlassOutletCard(
                         name       = tenant.name,
                         isSelected = selectedTenant == tenant,
-                        colorIndex = tenants.indexOf(tenant),
+                        colorIndex = index,
                         onClick    = { onSelectTenant(tenant) }
                     )
                 }

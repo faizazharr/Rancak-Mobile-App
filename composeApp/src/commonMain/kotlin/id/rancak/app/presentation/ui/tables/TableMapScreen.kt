@@ -66,7 +66,7 @@ fun TableMapScreenContent(
             val isTablet = maxWidth >= 600.dp
             when {
                 uiState.isLoading -> LoadingScreen()
-                uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = onRetry)
+                uiState.error != null -> ErrorScreen(uiState.error, onRetry = onRetry)
                 uiState.tables.isEmpty() -> EmptyScreen("Belum ada meja")
                 isTablet -> TabletTableLayout(uiState, onTableSelect)
                 else -> {
@@ -86,7 +86,7 @@ fun TableMapScreenContent(
                                     modifier = Modifier.padding(vertical = 4.dp)
                                 )
                             }
-                            items(tables.sortedBy { it.sortOrder }, key = { it.uuid }) { table ->
+                            items(tables, key = { it.uuid }) { table ->
                                 TableCell(table, size = 100.dp) { onTableSelect?.invoke(table.uuid) }
                             }
                         }
@@ -126,7 +126,7 @@ private fun TabletTableLayout(
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
                 }
-                items(tables.sortedBy { it.sortOrder }, key = { it.uuid }) { table ->
+                items(tables, key = { it.uuid }) { table ->
                     TableCell(table, size = 130.dp) { onTableSelect?.invoke(table.uuid) }
                 }
             }

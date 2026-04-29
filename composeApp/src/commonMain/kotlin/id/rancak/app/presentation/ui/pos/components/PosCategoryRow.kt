@@ -38,7 +38,7 @@ internal fun PosCategoryRow(
         modifier              = Modifier.padding(bottom = 8.dp)
     ) {
         item { PosChip("Semua", selected == null) { onSelect(null) } }
-        items(categories) { cat ->
+        items(categories, key = { it.uuid }) { cat ->
             PosChip(cat.name, selected == cat) { onSelect(cat) }
         }
     }

@@ -107,7 +107,7 @@ fun CashExpenseScreenContent(
             val isTablet = maxWidth >= 600.dp
             when {
                 uiState.isLoading -> LoadingScreen()
-                uiState.error != null -> ErrorScreen(uiState.error!!, onRetry = actions.onRetry)
+                uiState.error != null -> ErrorScreen(uiState.error, onRetry = actions.onRetry)
                 isTablet -> TabletCashLayout(uiState, actions)
                 else -> PhoneCashLayout(uiState, selectedTab, { selectedTab = it }, actions)
             }

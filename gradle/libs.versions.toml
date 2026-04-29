@@ -34,6 +34,7 @@ ksp = "2.3.6"
 room = "2.7.1"
 sqlite = "2.5.1"
 androidxSecurity = "1.1.0-alpha07"
+profileInstaller = "1.4.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -117,6 +118,10 @@ googleid = { module = "com.google.android.libraries.identity.googleid:googleid",
 
 # AndroidX Security — EncryptedSharedPreferences untuk TokenManager terenkripsi.
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidxSecurity" }
+
+# ProfileInstaller — meng-install baseline profile bawaan Compose saat app pertama kali dijalankan
+# untuk mengurangi cold-start time (AOT-compile path kritis).
+androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileInstaller" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

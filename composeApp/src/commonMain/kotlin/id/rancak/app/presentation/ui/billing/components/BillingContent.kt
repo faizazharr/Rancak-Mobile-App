@@ -100,7 +100,7 @@ fun BillingContent(
 
                 if (plans.isNotEmpty()) {
                     item { SectionLabel(Icons.Default.Stars, "Paket Langganan") }
-                    items(plans) { plan ->
+                    items(plans, key = { it.uuid }) { plan ->
                         PlanCard(
                             plan = plan,
                             isCurrentPlan = subscription?.plan == plan.code,

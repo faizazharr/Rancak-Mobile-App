@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
@@ -161,11 +161,11 @@ internal fun TenantPickerLandscape(
                             contentPadding        = PaddingValues(bottom = 8.dp),
                             modifier              = Modifier.fillMaxSize()
                         ) {
-                            items(tenants) { tenant ->
+                            itemsIndexed(tenants, key = { _, t -> t.uuid }) { index, tenant ->
                                 GlassOutletCardLight(
                                     name       = tenant.name,
                                     isSelected = selectedTenant == tenant,
-                                    colorIndex = tenants.indexOf(tenant),
+                                    colorIndex = index,
                                     onClick    = { onSelectTenant(tenant) }
                                 )
                             }
@@ -177,11 +177,11 @@ internal fun TenantPickerLandscape(
                             contentPadding      = PaddingValues(bottom = 8.dp),
                             modifier            = Modifier.fillMaxSize()
                         ) {
-                            items(tenants) { tenant ->
+                            itemsIndexed(tenants, key = { _, t -> t.uuid }) { index, tenant ->
                                 GlassOutletCardLight(
                                     name       = tenant.name,
                                     isSelected = selectedTenant == tenant,
-                                    colorIndex = tenants.indexOf(tenant),
+                                    colorIndex = index,
                                     onClick    = { onSelectTenant(tenant) }
                                 )
                             }

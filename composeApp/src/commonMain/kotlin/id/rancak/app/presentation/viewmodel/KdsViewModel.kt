@@ -17,10 +17,11 @@ data class KdsUiState(
     val completedOrders: List<KdsOrder> = emptyList(),
     val showCompleted: Boolean = false,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    // Precomputed agar tidak diulang di setiap rekomposisi.
+    val displayOrders: List<KdsOrder> = emptyList()
 ) {
-    val displayOrders: List<KdsOrder>
-        get() = if (showCompleted) completedOrders else activeOrders
+    fun recompute() = copy(displayOrders = if (showCompleted) completedOrders else activeOrders)
 }
 
 class KdsViewModel(
@@ -31,7 +32,7 @@ class KdsViewModel(
     val uiState: StateFlow<KdsUiState> = _uiState.asStateFlow()
 
     fun toggleTab(showCompleted: Boolean) {
-        _uiState.update { it.copy(showCompleted = showCompleted) }
+        _uiState.update { it.copy(showCompleted = showCompleted).recompute() }
     }
 
     fun loadOrders() {
@@ -46,7 +47,7 @@ class KdsViewModel(
                             activeOrders = active,
                             completedOrders = completed,
                             isLoading = false
-                        )
+                        ).recompute()
                     }
                 }
                 is Resource.Error -> {

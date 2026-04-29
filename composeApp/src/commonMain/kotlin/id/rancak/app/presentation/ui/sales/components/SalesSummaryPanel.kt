@@ -15,7 +15,7 @@ import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -98,7 +98,7 @@ internal fun SalesSummaryPanel(sales: List<Sale>, modifier: Modifier = Modifier)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             SummaryStatCard(
                 modifier  = Modifier.weight(1f),
-                icon      = Icons.Default.TrendingUp,
+                icon      = Icons.AutoMirrored.Filled.TrendingUp,
                 iconColor = semantic.info,
                 label     = "Rata-rata / Transaksi",
                 value     = formatRupiah(avgRevenue),

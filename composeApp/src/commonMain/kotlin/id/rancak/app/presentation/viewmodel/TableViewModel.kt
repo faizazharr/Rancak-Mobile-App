@@ -29,7 +29,12 @@ class TableViewModel(
             _uiState.update { it.copy(isLoading = true) }
             when (val result = operationsRepository.getTables()) {
                 is Resource.Success -> {
-                    _uiState.update { it.copy(tables = result.data, isLoading = false) }
+                    _uiState.update {
+                        it.copy(
+                            tables = result.data.sortedBy { t -> t.sortOrder },
+                            isLoading = false
+                        )
+                    }
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(error = result.message, isLoading = false) }

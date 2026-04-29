@@ -10,7 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -64,7 +64,7 @@ fun AddItemsToHeldOrderScreen(
         topBar = {
             RancakTopBar(
                 title    = "Tambah Item",
-                icon     = Icons.Default.PlaylistAdd,
+                icon     = Icons.AutoMirrored.Filled.PlaylistAdd,
                 subtitle = "Tambahkan ke open bill",
                 onBack   = onBack
             )

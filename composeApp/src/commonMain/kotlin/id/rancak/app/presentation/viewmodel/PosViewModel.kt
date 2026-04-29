@@ -22,28 +22,11 @@ data class PosUiState(
     val selectedCategory: Category? = null,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
-    val error: String? = null
-) {
-    val products86Uuids: Set<String>
-        get() = products86.map { it.productUuid }.toSet()
-
-    val filteredProducts: List<Product>
-        get() {
-            var filtered = products.filter { it.isActive }
-            if (selectedCategory != null) {
-                filtered = filtered.filter { it.category?.uuid == selectedCategory.uuid }
-            }
-            if (searchQuery.isNotBlank()) {
-                val query = searchQuery.lowercase()
-                filtered = filtered.filter {
-                    it.name.lowercase().contains(query) ||
-                    it.sku?.lowercase()?.contains(query) == true ||
-                    it.barcode?.contains(query) == true
-                }
-            }
-            return filtered
-        }
-}
+    val error: String? = null,
+    // Precomputed di ViewModel agar tidak mengulang filter di setiap rekomposisi.
+    val products86Uuids: Set<String> = emptySet(),
+    val filteredProducts: List<Product> = emptyList()
+)
 
 class PosViewModel(
     private val productRepository: ProductRepository
@@ -52,12 +35,30 @@ class PosViewModel(
     private val _uiState = MutableStateFlow(PosUiState())
     val uiState: StateFlow<PosUiState> = _uiState.asStateFlow()
 
+    /** Recompute derived fields setiap kali data sumber berubah. */
+    private fun PosUiState.recompute(): PosUiState {
+        val set = products86.mapTo(mutableSetOf()) { it.productUuid }
+        var filtered = products.filter { it.isActive }
+        if (selectedCategory != null) {
+            filtered = filtered.filter { it.category?.uuid == selectedCategory.uuid }
+        }
+        if (searchQuery.isNotBlank()) {
+            val query = searchQuery.lowercase()
+            filtered = filtered.filter {
+                it.name.lowercase().contains(query) ||
+                it.sku?.lowercase()?.contains(query) == true ||
+                it.barcode?.contains(query) == true
+            }
+        }
+        return copy(products86Uuids = set, filteredProducts = filtered)
+    }
+
     fun loadProducts() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             when (val result = productRepository.getProducts()) {
                 is Resource.Success -> {
-                    _uiState.update { it.copy(products = result.data, isLoading = false) }
+                    _uiState.update { it.copy(products = result.data, isLoading = false).recompute() }
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(error = result.message, isLoading = false) }
@@ -80,12 +81,12 @@ class PosViewModel(
     }
 
     fun onSearchQueryChange(query: String) {
-        _uiState.update { it.copy(searchQuery = query) }
+        _uiState.update { it.copy(searchQuery = query).recompute() }
     }
 
     fun onCategorySelected(category: Category?) {
         _uiState.update {
-            it.copy(selectedCategory = if (it.selectedCategory == category) null else category)
+            it.copy(selectedCategory = if (it.selectedCategory == category) null else category).recompute()
         }
     }
 
@@ -109,7 +110,7 @@ class PosViewModel(
     fun load86Products() {
         viewModelScope.launch {
             when (val result = productRepository.get86Products()) {
-                is Resource.Success -> _uiState.update { it.copy(products86 = result.data) }
+                is Resource.Success -> _uiState.update { it.copy(products86 = result.data).recompute() }
                 is Resource.Error -> { /* silent fail for 86 */ }
                 is Resource.Loading -> {}
             }

@@ -110,7 +110,7 @@ fun SalesHistoryScreenContent(
         when {
             uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
             uiState.error != null -> ErrorScreen(
-                uiState.error!!,
+                uiState.error,
                 onRetry  = onRetry,
                 modifier = Modifier.padding(padding)
             )

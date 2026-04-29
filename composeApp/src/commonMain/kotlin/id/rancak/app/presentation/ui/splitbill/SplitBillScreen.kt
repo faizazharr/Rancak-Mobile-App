@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CallSplit
+import androidx.compose.material.icons.automirrored.filled.CallSplit
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material3.*
@@ -79,7 +79,7 @@ private fun SplitBillContent(
         topBar = {
             RancakTopBar(
                 title    = "Split Tagihan",
-                icon     = Icons.Default.CallSplit,
+                icon     = Icons.AutoMirrored.Filled.CallSplit,
                 subtitle = "Pilih item yang akan dipisahkan",
                 onMenu   = onBack
             )

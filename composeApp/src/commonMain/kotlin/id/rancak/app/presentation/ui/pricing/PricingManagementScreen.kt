@@ -155,7 +155,7 @@ fun PricingManagementContent(
             }
         } else {
             Column(Modifier.fillMaxSize()) {
-            TabRow(selectedTabIndex = selectedTab) {
+            PrimaryTabRow(selectedTabIndex = selectedTab) {
                 tabs.forEachIndexed { i, title ->
                     Tab(selected = selectedTab == i, onClick = { selectedTab = i }, text = { Text(title) })
                 }
@@ -185,7 +185,7 @@ fun PricingManagementContent(
         }
         if (uiState.showSurchargeDeleteConfirm && uiState.editingSurcharge != null) {
             PricingDeleteDialog(
-                name         = uiState.editingSurcharge!!.name,
+                name         = uiState.editingSurcharge.name,
                 entity       = "surcharge",
                 isSubmitting = uiState.isSubmitting,
                 onConfirm    = onConfirmDeleteSurcharge,
@@ -204,7 +204,7 @@ fun PricingManagementContent(
         }
         if (uiState.showTaxDeleteConfirm && uiState.editingTax != null) {
             PricingDeleteDialog(
-                name         = uiState.editingTax!!.name,
+                name         = uiState.editingTax.name,
                 entity       = "pajak",
                 isSubmitting = uiState.isSubmitting,
                 onConfirm    = onConfirmDeleteTax,
@@ -223,7 +223,7 @@ fun PricingManagementContent(
         }
         if (uiState.showDiscountDeleteConfirm && uiState.editingDiscount != null) {
             PricingDeleteDialog(
-                name         = uiState.editingDiscount!!.name,
+                name         = uiState.editingDiscount.name,
                 entity       = "aturan diskon",
                 isSubmitting = uiState.isSubmitting,
                 onConfirm    = onConfirmDeleteDiscount,
