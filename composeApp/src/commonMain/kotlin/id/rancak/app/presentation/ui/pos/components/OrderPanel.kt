@@ -552,23 +552,32 @@ private fun SummaryAndActions(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.5f))
             Spacer(Modifier.height(8.dp))
 
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+            // ── Total card ────────────────────────────────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(primary.copy(alpha = 0.07f))
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
             ) {
-                Text(
-                    "TOTAL",
-                    style      = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color      = onSurface
-                )
-                Text(
-                    formatRupiah(cartState.total),
-                    style      = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color      = primary
-                )
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "TOTAL",
+                        style      = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = onSurface.copy(alpha = 0.55f)
+                    )
+                    Text(
+                        formatRupiah(cartState.total),
+                        style      = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color      = primary
+                    )
+                }
             }
 
             Spacer(Modifier.height(10.dp))
@@ -581,10 +590,13 @@ private fun SummaryAndActions(
                     modifier = Modifier
                         .weight(0.38f)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(surface)
+                        .background(
+                            if (hasItems) Color(0xFFF59E0B).copy(alpha = 0.15f)
+                            else MaterialTheme.colorScheme.surfaceVariant.copy(0.4f)
+                        )
                         .border(
                             1.5.dp,
-                            if (hasItems) primary
+                            if (hasItems) Color(0xFFF59E0B)
                             else MaterialTheme.colorScheme.outlineVariant,
                             RoundedCornerShape(10.dp)
                         )
@@ -599,13 +611,13 @@ private fun SummaryAndActions(
                         Icon(
                             Icons.Default.BookmarkBorder, null,
                             Modifier.size(15.dp),
-                            tint = if (hasItems) primary else onSurfaceVariant.copy(0.4f)
+                            tint = if (hasItems) Color(0xFFF59E0B) else onSurfaceVariant.copy(0.4f)
                         )
                         Text(
-                            "Simpan",
+                            "Open Bill",
                             style      = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
-                            color      = if (hasItems) primary else onSurfaceVariant.copy(0.4f)
+                            color      = if (hasItems) Color(0xFFF59E0B) else onSurfaceVariant.copy(0.4f)
                         )
                     }
                 }

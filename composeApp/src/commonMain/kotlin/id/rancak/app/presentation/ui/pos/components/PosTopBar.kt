@@ -1,10 +1,13 @@
 package id.rancak.app.presentation.ui.pos.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
@@ -44,6 +47,7 @@ internal fun PosTopBar(
     hasOpenShift: Boolean,
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
+    onOpenBillClick: () -> Unit = {},
     showCart: Boolean = true
 ) {
     val primary = MaterialTheme.colorScheme.primary
@@ -69,7 +73,9 @@ internal fun PosTopBar(
         },
         actions = {
             ShiftStatusChip(hasOpenShift)
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(4.dp))
+            OpenBillChip(onOpenBillClick)
+            Spacer(Modifier.width(4.dp))
             if (currentTime.isNotEmpty()) {
                 Text(
                     currentTime,
@@ -143,6 +149,36 @@ private fun ShiftStatusChip(hasOpenShift: Boolean) {
                 style      = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
                 color      = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+private fun OpenBillChip(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xFFF59E0B).copy(alpha = 0.18f))
+            .border(1.dp, Color(0xFFF59E0B).copy(alpha = 0.55f), RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 9.dp, vertical = 5.dp)
+    ) {
+        Row(
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                Icons.Default.BookmarkBorder,
+                contentDescription = "Open Bill",
+                modifier = Modifier.size(13.dp),
+                tint     = Color(0xFFFBBF24)
+            )
+            Text(
+                "Open Bill",
+                style      = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color      = Color(0xFFFBBF24)
             )
         }
     }

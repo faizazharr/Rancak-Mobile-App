@@ -49,6 +49,7 @@ fun PosScreen(
     onCheckoutClick: () -> Unit,
     onMenuClick: () -> Unit,
     onSaveClick: () -> Unit = {},
+    onOpenBillClick: () -> Unit = {},
     posViewModel: PosViewModel = koinViewModel(),
     shiftViewModel: ShiftViewModel = koinViewModel(),
     cartViewModel: CartViewModel
@@ -102,6 +103,7 @@ fun PosScreen(
                 onCartClick      = onCartClick,
                 onCheckoutClick  = onCheckoutClick,
                 onSaveClick      = onSaveClick,
+                onOpenBillClick  = onOpenBillClick,
                 hasOpenShift     = hasOpenShift,
                 onSearchChange   = posViewModel::onSearchQueryChange,
                 onCategorySelect = posViewModel::onCategorySelected,
@@ -134,6 +136,7 @@ fun PosScreen(
                 hasOpenShift     = hasOpenShift,
                 onMenuClick      = onMenuClick,
                 onCartClick      = onCartClick,
+                onOpenBillClick  = onOpenBillClick,
                 onSearchChange   = posViewModel::onSearchQueryChange,
                 onCategorySelect = posViewModel::onCategorySelected,
                 onRefresh        = posViewModel::refresh,
@@ -155,6 +158,7 @@ private fun PhoneLayout(
     hasOpenShift: Boolean,
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
+    onOpenBillClick: () -> Unit = {},
     onSearchChange: (String) -> Unit,
     onCategorySelect: (Category?) -> Unit,
     onRefresh: () -> Unit,
@@ -173,6 +177,7 @@ private fun PhoneLayout(
                 hasOpenShift = hasOpenShift,
                 onMenuClick  = onMenuClick,
                 onCartClick  = onCartClick,
+                onOpenBillClick = onOpenBillClick,
                 showCart     = true
             )
         },
@@ -208,7 +213,12 @@ private fun PhoneLayout(
                 exit     = slideOutVertically(tween(180)) { it } + fadeOut(tween(180)),
                 modifier = Modifier.align(Alignment.BottomCenter)
             ) {
-                CartBar(cartState = cartState, primary = primary, onCartClick = onCartClick)
+                CartBar(
+                    cartState       = cartState,
+                    primary         = primary,
+                    onCartClick     = onCartClick,
+                    onOpenBillClick = onOpenBillClick
+                )
             }
         }
     }
@@ -227,6 +237,7 @@ private fun SplitLayout(
     onCartClick: () -> Unit,
     onCheckoutClick: () -> Unit,
     onSaveClick: () -> Unit,
+    onOpenBillClick: () -> Unit = {},
     onSearchChange: (String) -> Unit,
     onCategorySelect: (Category?) -> Unit,
     onRefresh: () -> Unit,
@@ -259,6 +270,7 @@ private fun SplitLayout(
                 hasOpenShift = hasOpenShift,
                 onMenuClick  = onMenuClick,
                 onCartClick  = onCartClick,
+                onOpenBillClick = onOpenBillClick,
                 showCart     = false
             )
             PosSearchBar(

@@ -15,6 +15,7 @@ sealed class Screen {
     @Serializable data object Reservations : Screen()
     @Serializable data object Kds : Screen()
     @Serializable data object SalesHistory : Screen()
+    @Serializable data class  OpenBillList(val dummy: Int = 0) : Screen()
     @Serializable data class  PayHeldOrder(val saleUuid: String) : Screen()
     @Serializable data class  SplitBill(val saleUuid: String) : Screen()
     @Serializable data class  AddItemsToHeldOrder(val saleUuid: String) : Screen()

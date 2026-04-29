@@ -183,10 +183,11 @@ fun TableMapScreenContent(
 
     if (uiState.showFormDialog) {
         TableFormDialog(
-            editingTable = uiState.editingTable,
-            isSubmitting = uiState.isSubmitting,
-            onDismiss    = onDismissDialog,
-            onConfirm    = onConfirmSave
+            editingTable  = uiState.editingTable,
+            isSubmitting  = uiState.isSubmitting,
+            existingAreas = uiState.tables.mapNotNull { it.area }.distinct().sorted(),
+            onDismiss     = onDismissDialog,
+            onConfirm     = onConfirmSave
         )
     }
 

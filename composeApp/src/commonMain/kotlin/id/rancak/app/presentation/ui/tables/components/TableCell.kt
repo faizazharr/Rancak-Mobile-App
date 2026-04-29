@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -53,19 +54,26 @@ fun TableCell(
     val bgAlpha   = if (isInactive) 0.05f else 0.10f
     val elevation = if (table.status == TableStatus.AVAILABLE && enabled) 2.dp else 0.dp
 
-    Box(modifier = Modifier.size(size)) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .then(if (isInactive) Modifier.alpha(0.45f) else Modifier)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .shadow(elevation, shape = MaterialTheme.shapes.medium)
                 .clip(MaterialTheme.shapes.medium)
                 .background(
-                    if (isInactive) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    if (isInactive) MaterialTheme.colorScheme.surfaceVariant
                     else MaterialTheme.colorScheme.surface
                 )
                 .border(
-                    width = if (table.status == TableStatus.AVAILABLE && enabled) 1.5.dp else 1.dp,
-                    color = statusColor.copy(alpha = if (isInactive) 0.25f else 0.6f),
+                    width = if (isInactive) 1.dp
+                            else if (table.status == TableStatus.AVAILABLE && enabled) 1.5.dp
+                            else 1.dp,
+                    color = if (isInactive) MaterialTheme.colorScheme.outlineVariant
+                            else statusColor.copy(alpha = 0.6f),
                     shape = MaterialTheme.shapes.medium
                 )
                 .then(if (enabled) Modifier.clickable { onClick() } else Modifier)
@@ -74,8 +82,11 @@ fun TableCell(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(4.dp)
-                    .background(statusColor.copy(alpha = if (isInactive) 0.25f else 1f))
+                    .height(if (isInactive) 3.dp else 4.dp)
+                    .background(
+                        if (isInactive) MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                        else statusColor
+                    )
             )
 
             // Konten meja — dipusatkan dalam sisa ruang
@@ -157,8 +168,8 @@ fun TableCell(
                 Icon(
                     imageVector        = Icons.Default.Block,
                     contentDescription = "Nonaktif",
-                    modifier           = Modifier.size(if (size >= 120.dp) 28.dp else 22.dp),
-                    tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.20f)
+                    modifier           = Modifier.size(if (size >= 120.dp) 32.dp else 26.dp),
+                    tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
                 )
             }
         }

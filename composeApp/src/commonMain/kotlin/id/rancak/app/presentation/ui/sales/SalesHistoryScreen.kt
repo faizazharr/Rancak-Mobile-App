@@ -64,11 +64,15 @@ fun SalesHistoryScreen(
     onPayHeldOrder: (String) -> Unit = {},
     onSplitBill: (String) -> Unit = {},
     onAddItems: (String) -> Unit = {},
+    initialStatusFilter: id.rancak.app.domain.model.SaleStatus? = null,
     viewModel: SalesHistoryViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) { viewModel.loadSales() }
+    LaunchedEffect(Unit) {
+        viewModel.loadSales()
+        if (initialStatusFilter != null) viewModel.setStatusFilter(initialStatusFilter)
+    }
 
     SalesHistoryScreenContent(
         uiState   = uiState,

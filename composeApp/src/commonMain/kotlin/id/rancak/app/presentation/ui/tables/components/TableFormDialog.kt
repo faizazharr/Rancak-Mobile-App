@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.designsystem.RancakTheme
+import androidx.compose.ui.focus.onFocusChanged
 
 /**
  * Dialog form tambah/edit meja. Dipakai admin di [TableMapScreen] saat
@@ -19,18 +20,25 @@ import id.rancak.app.presentation.designsystem.RancakTheme
  *
  * Validasi minimal: `name` tidak boleh kosong, `capacity` ≥ 1.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TableFormDialog(
     editingTable: Table?,
     isSubmitting: Boolean,
+    existingAreas: List<String> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (name: String, area: String?, capacity: Int, isActive: Boolean, sortOrder: Int) -> Unit
 ) {
     var name        by remember(editingTable) { mutableStateOf(editingTable?.name ?: "") }
     var area        by remember(editingTable) { mutableStateOf(editingTable?.area ?: "") }
+    var areaMenuOpen by remember { mutableStateOf(false) }
     var capacityStr by remember(editingTable) { mutableStateOf((editingTable?.capacity ?: 2).toString()) }
     var sortOrderStr by remember(editingTable) { mutableStateOf((editingTable?.sortOrder ?: 0).toString()) }
     var isActive    by remember(editingTable) { mutableStateOf(editingTable?.isActive ?: true) }
+
+    val areaSuggestions = remember(existingAreas, area) {
+        existingAreas.filter { it.contains(area, ignoreCase = true) || area.isBlank() }
+    }
 
     val capacity   = capacityStr.toIntOrNull() ?: 0
     val sortOrder  = sortOrderStr.toIntOrNull() ?: 0
@@ -50,14 +58,37 @@ fun TableFormDialog(
                     isError       = name.isBlank(),
                     modifier      = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
-                    value         = area,
-                    onValueChange = { area = it },
-                    label         = { Text("Area") },
-                    placeholder   = { Text("mis. Indoor, Outdoor, Lt. 2") },
-                    singleLine    = true,
-                    modifier      = Modifier.fillMaxWidth()
-                )
+                ExposedDropdownMenuBox(
+                    expanded         = areaMenuOpen && areaSuggestions.isNotEmpty(),
+                    onExpandedChange = { areaMenuOpen = it }
+                ) {
+                    OutlinedTextField(
+                        value         = area,
+                        onValueChange = { area = it; areaMenuOpen = true },
+                        label         = { Text("Area") },
+                        placeholder   = { Text("mis. Indoor, Outdoor, Lt. 2") },
+                        singleLine    = true,
+                        trailingIcon  = {
+                            if (areaSuggestions.isNotEmpty())
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = areaMenuOpen)
+                        },
+                        modifier      = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(MenuAnchorType.PrimaryEditable)
+                            .onFocusChanged { if (it.isFocused) areaMenuOpen = true }
+                    )
+                    ExposedDropdownMenu(
+                        expanded         = areaMenuOpen && areaSuggestions.isNotEmpty(),
+                        onDismissRequest = { areaMenuOpen = false }
+                    ) {
+                        areaSuggestions.forEach { suggestion ->
+                            DropdownMenuItem(
+                                text    = { Text(suggestion) },
+                                onClick = { area = suggestion; areaMenuOpen = false }
+                            )
+                        }
+                    }
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
                         value           = capacityStr,

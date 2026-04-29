@@ -24,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import id.rancak.app.domain.repository.AuthRepository
+import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.ui.auth.LoginScreen
 import id.rancak.app.presentation.ui.splash.SplashScreen
 import org.koin.compose.koinInject
@@ -402,7 +403,12 @@ private fun NavigationContent(
                 },
                 onMenuClick = onMenuClick,
                 onSaveClick = {
-                    // TODO: implement hold/save order when backend ready
+                    navController.navigate(Screen.Payment) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenBillClick = {
+                    navController.navigate(Screen.OpenBillList())
                 },
                 cartViewModel = cartViewModel
             )
@@ -454,6 +460,16 @@ private fun NavigationContent(
                 onPayHeldOrder = { saleUuid -> navController.navigate(Screen.PayHeldOrder(saleUuid)) },
                 onSplitBill    = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) },
                 onAddItems     = { saleUuid -> navController.navigate(Screen.AddItemsToHeldOrder(saleUuid)) }
+            )
+        }
+
+        composable<Screen.OpenBillList> {
+            SalesHistoryScreen(
+                onBack              = { navController.popBackStack() },
+                initialStatusFilter = SaleStatus.HELD,
+                onPayHeldOrder      = { saleUuid -> navController.navigate(Screen.PayHeldOrder(saleUuid)) },
+                onSplitBill         = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) },
+                onAddItems          = { saleUuid -> navController.navigate(Screen.AddItemsToHeldOrder(saleUuid)) }
             )
         }
 

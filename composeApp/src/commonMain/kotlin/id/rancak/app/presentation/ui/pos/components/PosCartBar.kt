@@ -14,8 +14,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,71 +41,121 @@ import id.rancak.app.presentation.viewmodel.CartUiState
 internal fun CartBar(
     cartState: CartUiState,
     primary: Color,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    onOpenBillClick: () -> Unit = {}
 ) {
-    Box(
-        modifier = Modifier
+    // Single unified floating card — Open Bill strip on top, cart row below
+    Surface(
+        modifier        = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 10.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(primary)
-            .clickable(onClick = onCartClick)
-            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        shape           = RoundedCornerShape(16.dp),
+        shadowElevation = 12.dp,
+        color           = primary
     ) {
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+        Column {
+            // ── Open Bill strip ───────────────────────────────────────────
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF59E0B).copy(alpha = 0.18f))
+                    .clickable(onClick = onOpenBillClick)
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    Modifier
-                        .size(30.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(0.22f)),
-                    contentAlignment = Alignment.Center
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
+                    Icon(
+                        Icons.Default.BookmarkBorder, null,
+                        Modifier.size(13.dp),
+                        tint = Color(0xFFFBBF24)
+                    )
                     Text(
-                        "${cartState.itemCount}",
-                        style      = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = Color.White
+                        "Open Bill",
+                        style      = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color      = Color(0xFFFBBF24)
                     )
                 }
-                Column {
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
                     Text(
-                        "${cartState.itemCount} item",
-                        style      = MaterialTheme.typography.labelSmall,
-                        color      = Color.White.copy(0.72f),
-                        lineHeight = 14.sp
+                        "Lihat semua",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFFFBBF24).copy(alpha = 0.82f)
                     )
-                    Text(
-                        formatRupiah(cartState.subtotal),
-                        style      = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = Color.White
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward, null,
+                        Modifier.size(11.dp),
+                        tint = Color(0xFFFBBF24).copy(alpha = 0.82f)
                     )
                 }
             }
+
+            // ── Cart row ──────────────────────────────────────────────────
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onCartClick)
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    "Keranjang",
-                    style      = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color      = Color.White
-                )
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowForward, null,
-                    Modifier.size(16.dp),
-                    tint = Color.White
-                )
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(
+                        Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(0.22f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "${cartState.itemCount}",
+                            style      = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = Color.White
+                        )
+                    }
+                    Column {
+                        Text(
+                            "${cartState.itemCount} item",
+                            style      = MaterialTheme.typography.labelSmall,
+                            color      = Color.White.copy(0.72f),
+                            lineHeight = 14.sp
+                        )
+                        Text(
+                            formatRupiah(cartState.subtotal),
+                            style      = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = Color.White
+                        )
+                    }
+                }
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        "Keranjang",
+                        style      = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color      = Color.White
+                    )
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward, null,
+                        Modifier.size(16.dp),
+                        tint = Color.White
+                    )
+                }
             }
         }
     }
@@ -125,8 +177,9 @@ private fun CartBarPreview() {
                 ),
                 orderType = OrderType.DINE_IN
             ),
-            primary     = MaterialTheme.colorScheme.primary,
-            onCartClick = {}
+            primary        = MaterialTheme.colorScheme.primary,
+            onCartClick    = {},
+            onOpenBillClick = {}
         )
     }
 }
