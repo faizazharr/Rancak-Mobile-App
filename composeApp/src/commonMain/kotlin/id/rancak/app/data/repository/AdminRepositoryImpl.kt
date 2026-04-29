@@ -88,6 +88,9 @@ import id.rancak.app.domain.repository.DiscountRuleUpdate
 import id.rancak.app.domain.repository.ReceiptSettingsUpdate
 import id.rancak.app.domain.repository.StockAdjustmentResult
 import id.rancak.app.domain.repository.VoucherUpdate
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeUnit
+import id.rancak.app.data.util.toDateTimeString
 
 class AdminRepositoryImpl(
     private val api: RancakApiService,
@@ -153,13 +156,35 @@ class AdminRepositoryImpl(
         description: String?, maxDiscount: String?, minPurchase: String, usageLimit: Int?,
         validUntil: String?, isActive: Boolean
     ): Resource<Voucher> = safe(
-        block = { api.createVoucher(tenantUuid, CreateVoucherRequest(code, name, description, discountType, discountValue, maxDiscount, minPurchase, usageLimit, validFrom, validUntil, isActive)) },
+        block = {
+            api.createVoucher(
+                tenantUuid,
+                CreateVoucherRequest(
+                    code, name, description, discountType, discountValue, maxDiscount, minPurchase,
+                    usageLimit,
+                    validFrom  = validFrom.toDateTimeString(),
+                    validUntil = validUntil?.toDateTimeString(),
+                    isActive
+                )
+            )
+        },
         map = { it.toDomain() },
         errorMsg = "Gagal membuat voucher"
     )
 
     override suspend fun updateVoucher(voucherId: String, update: VoucherUpdate): Resource<Voucher> = safe(
-        block = { api.updateVoucher(tenantUuid, voucherId, UpdateVoucherRequest(update.code, update.name, update.description, update.discountType, update.discountValue, update.maxDiscount, update.minPurchase, update.usageLimit, update.validFrom, update.validUntil, update.isActive)) },
+        block = {
+            api.updateVoucher(
+                tenantUuid, voucherId,
+                UpdateVoucherRequest(
+                    update.code, update.name, update.description, update.discountType, update.discountValue,
+                    update.maxDiscount, update.minPurchase, update.usageLimit,
+                    validFrom  = update.validFrom?.toDateTimeString(),
+                    validUntil = update.validUntil?.toDateTimeString(),
+                    update.isActive
+                )
+            )
+        },
         map = { it.toDomain() },
         errorMsg = "Gagal mengupdate voucher"
     )
@@ -440,32 +465,4 @@ class AdminRepositoryImpl(
         map = { it.toDomain() },
         errorMsg = "Gagal mengupdate pengaturan struk"
     )
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-private suspend fun <T, R> safe(
-    block: suspend () -> id.rancak.app.data.remote.dto.ApiResponse<T>,
-    map: (T) -> R,
-    errorMsg: String
-): Resource<R> = try {
-    val response = block()
-    if (response.isSuccess && response.data != null) {
-        Resource.Success(map(response.data))
-    } else {
-        Resource.Error(response.message ?: errorMsg)
-    }
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
-}
-
-private suspend fun safeUnit(
-    block: suspend () -> id.rancak.app.data.remote.dto.ApiResponse<Unit>,
-    errorMsg: String
-): Resource<Unit> = try {
-    val response = block()
-    if (response.isSuccess) Resource.Success(Unit)
-    else Resource.Error(response.message ?: errorMsg)
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
 }

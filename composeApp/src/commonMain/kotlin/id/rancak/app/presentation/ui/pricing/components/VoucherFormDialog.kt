@@ -33,7 +33,7 @@ fun VoucherFormContent(
 ) {
     var code           by remember(editing) { mutableStateOf(editing?.code ?: "") }
     var name           by remember(editing) { mutableStateOf(editing?.name ?: "") }
-    var discountType   by remember(editing) { mutableStateOf(editing?.discountType ?: "pct") }
+    var discountType   by remember(editing) { mutableStateOf(editing?.discountType ?: "percentage") }
     var discountValue  by remember(editing) { mutableStateOf(editing?.discountValue?.toString() ?: "") }
     var validFrom      by remember(editing) { mutableStateOf(editing?.validFrom?.take(10) ?: "") }
     var validUntil     by remember(editing) { mutableStateOf(editing?.validUntil?.take(10) ?: "") }
@@ -43,26 +43,7 @@ fun VoucherFormContent(
     var usageLimitText by remember(editing) { mutableStateOf(editing?.usageLimit?.toString() ?: "") }
     var isActive       by remember(editing) { mutableStateOf(editing?.isActive ?: true) }
 
-    val isPct = discountType == "pct"
-    val discountValueNum = discountValue.toDoubleOrNull()
-    val discountValueError = when {
-        discountValue.isBlank() -> null
-        discountValueNum == null -> "Nilai tidak valid"
-        isPct && discountValueNum > 100 -> "Persen tidak boleh melebihi 100"
-        discountValueNum <= 0 -> "Nilai harus lebih dari 0"
-        else -> null
-    }
-    val validUntilError = when {
-        validUntil.isBlank() || validFrom.isBlank() -> null
-        validUntil <= validFrom -> "Harus setelah tanggal berlaku"
-        else -> null
-    }
-    val canConfirm = !isSubmitting &&
-        code.isNotBlank() && name.isNotBlank() &&
-        discountValue.isNotBlank() && discountValueError == null &&
-        validFrom.isNotBlank() && validUntilError == null
-
-    BackHandler(enabled = !isSubmitting, onBack = onBack)
+    val isPct = discountType == "percentage"
 
     Scaffold(
         topBar = {
@@ -158,7 +139,7 @@ fun VoucherFormContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("pct" to "Persen (%)", "flat" to "Nominal (Rp)").forEach { (value, label) ->
+                    listOf("percentage" to "Persen (%)", "nominal" to "Nominal (Rp)").forEach { (value, label) ->
                         FilterChip(selected = discountType == value,
                             onClick = { discountType = value }, label = { Text(label) })
                     }
@@ -278,7 +259,7 @@ fun VoucherFormPanel(
 ) {
     var code           by remember(editing) { mutableStateOf(editing?.code ?: "") }
     var name           by remember(editing) { mutableStateOf(editing?.name ?: "") }
-    var discountType   by remember(editing) { mutableStateOf(editing?.discountType ?: "pct") }
+    var discountType   by remember(editing) { mutableStateOf(editing?.discountType ?: "percentage") }
     var discountValue  by remember(editing) { mutableStateOf(editing?.discountValue?.toString() ?: "") }
     var validFrom      by remember(editing) { mutableStateOf(editing?.validFrom?.take(10) ?: "") }
     var validUntil     by remember(editing) { mutableStateOf(editing?.validUntil?.take(10) ?: "") }
@@ -288,7 +269,7 @@ fun VoucherFormPanel(
     var usageLimitText by remember(editing) { mutableStateOf(editing?.usageLimit?.toString() ?: "") }
     var isActive       by remember(editing) { mutableStateOf(editing?.isActive ?: true) }
 
-    val isPct = discountType == "pct"
+    val isPct = discountType == "percentage"
     val discountValueNum = discountValue.toDoubleOrNull()
     val discountValueError = when {
         discountValue.isBlank() -> null
@@ -369,7 +350,7 @@ fun VoucherFormPanel(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("pct" to "Persen (%)", "flat" to "Nominal (Rp)").forEach { (value, label) ->
+                    listOf("percentage" to "Persen (%)", "nominal" to "Nominal (Rp)").forEach { (value, label) ->
                         FilterChip(selected = discountType == value,
                             onClick = { discountType = value }, label = { Text(label) })
                     }
