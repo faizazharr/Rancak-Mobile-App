@@ -105,26 +105,12 @@ class OperationsRepositoryImpl(
         map      = { list -> list.map { it.toDomain() } },
         errorMsg = "Gagal memuat pesanan KDS"
     )
-    override suspend fun getKdsOrders(): Resource<List<KdsOrder>> = safe(
-        block    = { api.getKdsOrders(tenantUuid) },
-        map      = { list -> list.map { it.toDomain() } },
-        errorMsg = "Gagal memuat pesanan KDS"
-    )
 
     override suspend fun updateKdsStatus(kdsUuid: String, status: KdsStatus): Resource<Unit> = safeUnit(
         block    = { api.updateKdsStatus(tenantUuid, kdsUuid, status.value) },
         errorMsg = "Gagal memperbarui status"
     )
-    override suspend fun updateKdsStatus(kdsUuid: String, status: KdsStatus): Resource<Unit> = safeUnit(
-        block    = { api.updateKdsStatus(tenantUuid, kdsUuid, status.value) },
-        errorMsg = "Gagal memperbarui status"
-    )
 
-    override suspend fun getSurcharges(): Resource<List<Surcharge>> = safe(
-        block    = { api.getSurcharges(tenantUuid) },
-        map      = { list -> list.map { it.toDomain() } },
-        errorMsg = "Gagal mengambil surcharge"
-    )
     override suspend fun getSurcharges(): Resource<List<Surcharge>> = safe(
         block    = { api.getSurcharges(tenantUuid) },
         map      = { list -> list.map { it.toDomain() } },
@@ -136,17 +122,7 @@ class OperationsRepositoryImpl(
         map      = { list -> list.map { it.toDomain() } },
         errorMsg = "Gagal mengambil konfigurasi pajak"
     )
-    override suspend fun getTaxConfigs(): Resource<List<TaxConfig>> = safe(
-        block    = { api.getTaxConfigs(tenantUuid) },
-        map      = { list -> list.map { it.toDomain() } },
-        errorMsg = "Gagal mengambil konfigurasi pajak"
-    )
 
-    override suspend fun getDiscountRules(): Resource<List<DiscountRule>> = safe(
-        block    = { api.getDiscountRules(tenantUuid) },
-        map      = { list -> list.map { it.toDomain() } },
-        errorMsg = "Gagal mengambil aturan diskon"
-    )
     override suspend fun getDiscountRules(): Resource<List<DiscountRule>> = safe(
         block    = { api.getDiscountRules(tenantUuid) },
         map      = { list -> list.map { it.toDomain() } },
@@ -158,17 +134,7 @@ class OperationsRepositoryImpl(
         map      = { it.toDomain() },
         errorMsg = "Voucher tidak valid"
     )
-    override suspend fun validateVoucher(code: String, subtotal: Long): Resource<VoucherValidation> = safe(
-        block    = { api.validateVoucher(tenantUuid, code, subtotal) },
-        map      = { it.toDomain() },
-        errorMsg = "Voucher tidak valid"
-    )
 
-    override suspend fun previewDiscount(total: Long): Resource<DiscountPreview> = safe(
-        block    = { api.previewDiscount(tenantUuid, total) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal mengambil preview diskon"
-    )
     override suspend fun previewDiscount(total: Long): Resource<DiscountPreview> = safe(
         block    = { api.previewDiscount(tenantUuid, total) },
         map      = { it.toDomain() },
@@ -186,28 +152,13 @@ class OperationsRepositoryImpl(
         map      = { it.hasOpenShift },
         errorMsg = "Gagal mengecek status sinkronisasi"
     )
-    override suspend fun syncStatus(): Resource<Boolean> = safe(
-        block    = { api.syncStatus(tenantUuid) },
-        map      = { it.hasOpenShift },
-        errorMsg = "Gagal mengecek status sinkronisasi"
-    )
 
     override suspend fun getShiftSummaryById(shiftUuid: String): Resource<ShiftSummary> = safe(
         block    = { api.getShiftSummaryById(tenantUuid, shiftUuid) },
         map      = { it.toDomain() },
         errorMsg = "Gagal mengambil ringkasan shift"
     )
-    override suspend fun getShiftSummaryById(shiftUuid: String): Resource<ShiftSummary> = safe(
-        block    = { api.getShiftSummaryById(tenantUuid, shiftUuid) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal mengambil ringkasan shift"
-    )
 
-    override suspend fun getCashCounts(shiftUuid: String): Resource<List<CashCount>> = safe(
-        block    = { api.getCashCounts(tenantUuid, shiftUuid) },
-        map      = { list -> list.map { it.toDomain() } },
-        errorMsg = "Gagal mengambil cash count"
-    )
     override suspend fun getCashCounts(shiftUuid: String): Resource<List<CashCount>> = safe(
         block    = { api.getCashCounts(tenantUuid, shiftUuid) },
         map      = { list -> list.map { it.toDomain() } },
@@ -224,17 +175,7 @@ class OperationsRepositoryImpl(
         map      = { it.toDomain() },
         errorMsg = "Gagal menyimpan hitungan kas"
     )
-    ): Resource<CashCount> = safe(
-        block    = { api.submitCashCount(tenantUuid, shiftUuid, SubmitCashCountRequest(actualCash, denominations, note)) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal menyimpan hitungan kas"
-    )
 
-    override suspend fun getKdsDetail(kdsUuid: String): Resource<KdsOrder> = safe(
-        block    = { api.getKdsDetail(tenantUuid, kdsUuid) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal memuat detail KDS"
-    )
     override suspend fun getKdsDetail(kdsUuid: String): Resource<KdsOrder> = safe(
         block    = { api.getKdsDetail(tenantUuid, kdsUuid) },
         map      = { it.toDomain() },
@@ -245,10 +186,6 @@ class OperationsRepositoryImpl(
         kdsUuid: String,
         itemUuid: String,
         status: String
-    ): Resource<Unit> = safeUnit(
-        block    = { api.updateKdsItemStatus(tenantUuid, kdsUuid, itemUuid, status) },
-        errorMsg = "Gagal update status item"
-    )
     ): Resource<Unit> = safeUnit(
         block    = { api.updateKdsItemStatus(tenantUuid, kdsUuid, itemUuid, status) },
         errorMsg = "Gagal update status item"
