@@ -123,10 +123,17 @@ fun ReservationScreenContent(
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 ReservationStatusFilter.entries.forEach { filter ->
+                    val count = when (filter) {
+                        ReservationStatusFilter.ALL -> uiState.reservations.size
+                        else -> uiState.reservations.count { it.status == filter.apiValue }
+                    }
                     FilterChip(
                         selected = uiState.statusFilter == filter,
                         onClick  = { onFilterChange(filter) },
-                        label    = { Text(filter.label, style = MaterialTheme.typography.labelMedium) }
+                        label    = {
+                            val countText = if (count > 0) " $count" else ""
+                            Text("${filter.label}$countText", style = MaterialTheme.typography.labelMedium)
+                        }
                     )
                 }
             }
@@ -317,7 +324,7 @@ private fun ReservationSummaryStrip(reservations: List<Reservation>) {
         ) {
             SummaryItem("Total", "$total", MaterialTheme.colorScheme.onSurface)
             VerticalDivider(modifier = Modifier.height(30.dp))
-            SummaryItem("Menunggu", "$pending", if (pending > 0) RancakColors.semantic.let { MaterialTheme.colorScheme.error } else MaterialTheme.colorScheme.onSurfaceVariant)
+            SummaryItem("Menunggu", "$pending", if (pending > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
             VerticalDivider(modifier = Modifier.height(30.dp))
             SummaryItem("Konfirm", "$confirmed", if (confirmed > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
             VerticalDivider(modifier = Modifier.height(30.dp))

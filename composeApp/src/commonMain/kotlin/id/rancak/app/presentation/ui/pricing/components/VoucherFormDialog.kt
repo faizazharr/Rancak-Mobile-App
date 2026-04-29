@@ -1,6 +1,5 @@
 package id.rancak.app.presentation.ui.pricing.components
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
@@ -61,8 +60,6 @@ fun VoucherFormContent(
         code.isNotBlank() && name.isNotBlank() &&
         discountValue.isNotBlank() && discountValueError == null &&
         validFrom.isNotBlank() && validUntilError == null
-
-    BackHandler(enabled = !isSubmitting, onBack = onBack)
 
     Scaffold(
         topBar = {

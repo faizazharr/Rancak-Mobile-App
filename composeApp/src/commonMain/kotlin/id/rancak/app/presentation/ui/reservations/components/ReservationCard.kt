@@ -1,9 +1,11 @@
 package id.rancak.app.presentation.ui.reservations.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
@@ -51,12 +53,19 @@ fun ReservationCard(
         .take(2)
         .joinToString("") { it.firstOrNull()?.uppercase() ?: "" }
 
+    val isTerminal = reservation.status in listOf("completed", "cancelled", "no_show")
+
     Card(
         modifier  = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isTerminal) 0.dp else 1.dp),
+        colors    = CardDefaults.cardColors(
+            containerColor = if (isTerminal)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            else MaterialTheme.colorScheme.surface
+        )
     ) {
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+        Box {
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
             // ── Accent strip kiri ────────────────────────────────────────────
             Box(
                 modifier = Modifier
@@ -258,20 +267,46 @@ fun ReservationCard(
                 }
             }
         }
+
+            // ── Stamp overlay untuk status terminal ──────────────────────────
+            if (isTerminal) {
+                val stampIcon = if (reservation.status == "completed") Icons.Default.CheckCircle
+                                else Icons.Default.Cancel
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 10.dp, end = 12.dp)
+                ) {
+                    Icon(
+                        imageVector        = stampIcon,
+                        contentDescription = null,
+                        modifier           = Modifier.size(20.dp),
+                        tint               = statusColor.copy(alpha = 0.35f)
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
 private fun InfoChip(icon: ImageVector, text: String, color: Color) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    Surface(
+        shape = CircleShape,
+        color = color.copy(alpha = 0.10f),
+        modifier = Modifier.border(0.5.dp, color.copy(alpha = 0.25f), CircleShape)
     ) {
-        Icon(icon, contentDescription = null,
-            modifier = Modifier.size(13.dp), tint = color.copy(alpha = 0.75f))
-        Text(text,
-            style = MaterialTheme.typography.bodySmall,
-            color = color)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Icon(icon, contentDescription = null,
+                modifier = Modifier.size(11.dp), tint = color.copy(alpha = 0.85f))
+            Text(text,
+                style = MaterialTheme.typography.labelSmall,
+                color = color)
+        }
     }
 }
 

@@ -1,6 +1,5 @@
 package id.rancak.app.presentation.ui.pricing
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -42,10 +41,6 @@ fun VoucherManagementScreen(
             scope.launch { snackbarHostState.showSnackbar("⚠ $it") }
             viewModel.clearError()
         }
-    }
-
-    BackHandler(enabled = uiState.showFormDialog && !uiState.isSubmitting) {
-        viewModel.closeForm()
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {

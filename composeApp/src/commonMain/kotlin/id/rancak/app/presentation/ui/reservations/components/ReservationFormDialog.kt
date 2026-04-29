@@ -5,30 +5,34 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import id.rancak.app.domain.model.Reservation
 import id.rancak.app.domain.model.ReservationInput
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
+import id.rancak.app.presentation.components.DatePickerField
+import id.rancak.app.presentation.components.TimePickerField
 
 /**
- * Dialog untuk membuat / mengedit reservasi dengan layout bertahap (section).
- *
- * Field wajib: nama tamu, jumlah orang, tanggal+jam (ISO-8601).
+ * Form reservasi full-screen agar DatePickerField dan TimePickerField
+ * punya cukup ruang horizontal (kiri-kanan).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,40 +66,77 @@ fun ReservationFormDialog(
         tables.firstOrNull { it.uuid == tableUuid }
     }
 
-    AlertDialog(
+    Dialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    if (editing == null) "Reservasi Baru" else "Edit Reservasi",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress      = !isSubmitting,
+            dismissOnClickOutside   = false
+        )
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            if (editing == null) "Reservasi Baru" else "Edit Reservasi",
+                            style      = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onDismiss, enabled = !isSubmitting) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Tutup")
+                        }
+                    },
+                    actions = {
+                        Button(
+                            onClick = {
+                                onConfirm(
+                                    ReservationInput(
+                                        customerName    = customerName.trim(),
+                                        customerPhone   = customerPhone.ifBlank { null }?.trim(),
+                                        partySize       = partySize,
+                                        reservedAt      = "${reservedDate.trim()}T${reservedTime.trim()}",
+                                        durationMinutes = duration,
+                                        tableUuid       = tableUuid,
+                                        note            = note.ifBlank { null }?.trim()
+                                    )
+                                )
+                            },
+                            enabled  = canConfirm,
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            if (isSubmitting)
+                                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                            else
+                                Text("Simpan")
+                        }
+                    }
                 )
             }
-        },
-        text = {
+        ) { innerPadding ->
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // ── Seksi 1: Tamu ─────────────────────────────────────────
                 SectionLabel("Informasi Tamu", Icons.Default.Person)
 
                 OutlinedTextField(
-                    value         = customerName,
-                    onValueChange = { customerName = it },
-                    label         = { Text("Nama Tamu *") },
-                    placeholder   = { Text("Nama lengkap tamu") },
-                    singleLine    = true,
-                    isError       = customerName.isBlank(),
-                    leadingIcon   = { Icon(Icons.Default.Person, null, modifier = Modifier.size(18.dp)) },
-                    supportingText = if (customerName.isBlank()) {
-                        { Text("Wajib diisi") }
-                    } else null,
-                    modifier      = Modifier.fillMaxWidth()
+                    value          = customerName,
+                    onValueChange  = { customerName = it },
+                    label          = { Text("Nama Tamu *") },
+                    placeholder    = { Text("Nama lengkap tamu") },
+                    singleLine     = true,
+                    isError        = customerName.isBlank(),
+                    leadingIcon    = { Icon(Icons.Default.Person, null, modifier = Modifier.size(18.dp)) },
+                    supportingText = if (customerName.isBlank()) {{ Text("Wajib diisi") }} else null,
+                    modifier       = Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
@@ -112,37 +153,33 @@ fun ReservationFormDialog(
                 // ── Seksi 2: Jadwal ───────────────────────────────────────
                 SectionLabel("Jadwal", Icons.Default.Event)
 
+                // Tanggal (kiri) + Jam (kanan) — ruang penuh layar
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.Top,
-                    modifier = Modifier.fillMaxWidth()
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment     = Alignment.Top,
+                    modifier              = Modifier.fillMaxWidth()
                 ) {
-                    OutlinedTextField(
-                        value         = reservedDate,
-                        onValueChange = { reservedDate = it },
-                        label         = { Text("Tanggal *") },
-                        placeholder   = { Text("2026-05-01") },
-                        singleLine    = true,
-                        isError       = reservedDate.isBlank(),
-                        leadingIcon   = { Icon(Icons.Default.Event, null, modifier = Modifier.size(18.dp)) },
-                        modifier      = Modifier.weight(1.5f)
+                    DatePickerField(
+                        label          = "Tanggal *",
+                        value          = reservedDate,
+                        onDateSelected = { reservedDate = it },
+                        isError        = reservedDate.isBlank(),
+                        modifier       = Modifier.weight(1.6f)
                     )
-                    OutlinedTextField(
-                        value           = reservedTime,
-                        onValueChange   = { reservedTime = it },
-                        label           = { Text("Jam *") },
-                        placeholder     = { Text("19:30") },
-                        singleLine      = true,
-                        isError         = reservedTime.isBlank(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        leadingIcon     = { Icon(Icons.Default.Schedule, null, modifier = Modifier.size(18.dp)) },
-                        modifier        = Modifier.weight(1f)
+                    TimePickerField(
+                        label          = "Jam *",
+                        value          = reservedTime,
+                        onTimeSelected = { reservedTime = it },
+                        isError        = reservedTime.isBlank(),
+                        modifier       = Modifier.weight(1f)
                     )
                 }
 
+                // Jumlah tamu (kiri) + Durasi (kanan)
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.Top
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment     = Alignment.Top,
+                    modifier              = Modifier.fillMaxWidth()
                 ) {
                     OutlinedTextField(
                         value           = partySizeStr,
@@ -184,7 +221,9 @@ fun ReservationFormDialog(
                         label         = { Text("Pilih Meja (opsional)") },
                         leadingIcon   = { Icon(Icons.Default.TableBar, null, modifier = Modifier.size(18.dp)) },
                         trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = tableMenuOpen) },
-                        modifier      = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                        modifier      = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(
                         expanded         = tableMenuOpen,
@@ -199,9 +238,11 @@ fun ReservationFormDialog(
                                 text = {
                                     Column {
                                         Text("${t.name}${t.area?.let { a -> " · $a" } ?: ""}")
-                                        Text("${t.capacity} kursi",
+                                        Text(
+                                            "${t.capacity} kursi",
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     }
                                 },
                                 onClick = { tableUuid = t.uuid; tableMenuOpen = false }
@@ -220,36 +261,12 @@ fun ReservationFormDialog(
                     modifier      = Modifier.fillMaxWidth()
                 )
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onConfirm(
-                        ReservationInput(
-                            customerName    = customerName.trim(),
-                            customerPhone   = customerPhone.ifBlank { null }?.trim(),
-                            partySize       = partySize,
-                            reservedAt      = "${reservedDate.trim()}T${reservedTime.trim()}",
-                            durationMinutes = duration,
-                            tableUuid       = tableUuid,
-                            note            = note.ifBlank { null }?.trim()
-                        )
-                    )
-                },
-                enabled = canConfirm
-            ) {
-                if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                else Text("Simpan")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Batal") }
         }
-    )
+    }
 }
 
 @Composable
-private fun SectionLabel(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+private fun SectionLabel(title: String, icon: ImageVector) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),

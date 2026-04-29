@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Chair
 import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.*
@@ -48,92 +49,116 @@ fun TableCell(
         label = "tableStatusColor"
     )
 
-    val bgAlpha   = if (table.status == TableStatus.INACTIVE) 0.05f else 0.10f
+    val isInactive = table.status == TableStatus.INACTIVE
+    val bgAlpha   = if (isInactive) 0.05f else 0.10f
     val elevation = if (table.status == TableStatus.AVAILABLE && enabled) 2.dp else 0.dp
 
-    Column(
-        modifier = Modifier
-            .size(size)
-            .shadow(elevation, shape = MaterialTheme.shapes.medium)
-            .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.surface)
-            .border(
-                width = if (table.status == TableStatus.AVAILABLE && enabled) 1.5.dp else 1.dp,
-                color = statusColor.copy(alpha = if (table.status == TableStatus.INACTIVE) 0.3f else 0.6f),
-                shape = MaterialTheme.shapes.medium
-            )
-            .clickable(enabled = enabled) { onClick() }
-    ) {
-        // Status accent strip di atas
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .background(statusColor.copy(alpha = if (table.status == TableStatus.INACTIVE) 0.35f else 1f))
-        )
-
-        // Konten meja — dipusatkan dalam sisa ruang
+    Box(modifier = Modifier.size(size)) {
         Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
+                .fillMaxSize()
+                .shadow(elevation, shape = MaterialTheme.shapes.medium)
+                .clip(MaterialTheme.shapes.medium)
+                .background(
+                    if (isInactive) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    else MaterialTheme.colorScheme.surface
+                )
+                .border(
+                    width = if (table.status == TableStatus.AVAILABLE && enabled) 1.5.dp else 1.dp,
+                    color = statusColor.copy(alpha = if (isInactive) 0.25f else 0.6f),
+                    shape = MaterialTheme.shapes.medium
+                )
+                .then(if (enabled) Modifier.clickable { onClick() } else Modifier)
         ) {
-            // Nama meja
-            Text(
-                text      = table.name,
-                style     = MaterialTheme.typography.titleSmall.copy(fontSize = if (size >= 120.dp) 14.sp else 12.sp),
-                fontWeight = FontWeight.Bold,
-                color     = if (table.status == TableStatus.INACTIVE)
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            else MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                maxLines  = 1,
-                overflow  = TextOverflow.Ellipsis
+        // Status accent strip di atas
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .background(statusColor.copy(alpha = if (isInactive) 0.25f else 1f))
             )
 
-            // Status label chip
-            Surface(
-                shape = CircleShape,
-                color = statusColor.copy(alpha = bgAlpha + 0.05f)
+            // Konten meja — dipusatkan dalam sisa ruang
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
             ) {
+                // Nama meja
                 Text(
-                    text  = statusLabel(table.status),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = statusColor,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    maxLines = 1
+                    text      = table.name,
+                    style     = MaterialTheme.typography.titleSmall.copy(fontSize = if (size >= 120.dp) 14.sp else 12.sp),
+                    fontWeight = FontWeight.Bold,
+                    color     = if (isInactive)
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                else MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    maxLines  = 1,
+                    overflow  = TextOverflow.Ellipsis
                 )
-            }
 
-            // Kapasitas
-            table.capacity?.let { cap ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                // Status label chip
+                Surface(
+                    shape = CircleShape,
+                    color = statusColor.copy(alpha = bgAlpha + 0.05f)
                 ) {
-                    Icon(
-                        imageVector        = Icons.Default.Chair,
-                        contentDescription = null,
-                        modifier           = Modifier.size(10.dp),
-                        tint               = MaterialTheme.colorScheme.outline
-                    )
                     Text(
-                        text  = "$cap",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = MaterialTheme.colorScheme.outline
+                        text  = statusLabel(table.status),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = statusColor.copy(alpha = if (isInactive) 0.5f else 1f),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        maxLines = 1
+                    )
+                }
+
+                // Kapasitas
+                table.capacity?.let { cap ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Icon(
+                            imageVector        = Icons.Default.Chair,
+                            contentDescription = null,
+                            modifier           = Modifier.size(10.dp),
+                            tint               = MaterialTheme.colorScheme.outline.copy(alpha = if (isInactive) 0.4f else 1f)
+                        )
+                        Text(
+                            text  = "$cap",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = if (isInactive) 0.4f else 1f)
+                        )
+                    }
+                }
+
+                // Dot "ada transaksi aktif" saat occupied
+                if (table.status == TableStatus.OCCUPIED) {
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .background(statusColor, CircleShape)
                     )
                 }
             }
+        }
 
-            // Dot "ada transaksi aktif" saat occupied
-            if (table.status == TableStatus.OCCUPIED) {
-                Box(
-                    modifier = Modifier
-                        .size(6.dp)
-                        .background(statusColor, CircleShape)
+        // Overlay scrim + ikon Block untuk meja INACTIVE
+        if (isInactive) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector        = Icons.Default.Block,
+                    contentDescription = "Nonaktif",
+                    modifier           = Modifier.size(if (size >= 120.dp) 28.dp else 22.dp),
+                    tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.20f)
                 )
             }
         }
