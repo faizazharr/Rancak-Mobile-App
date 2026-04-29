@@ -21,7 +21,9 @@ import id.rancak.app.domain.model.Expense
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.finance.components.CashInList
+import id.rancak.app.presentation.ui.finance.components.CashInItemCard
 import id.rancak.app.presentation.ui.finance.components.ExpenseList
+import id.rancak.app.presentation.ui.finance.components.ExpenseItemCard
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseUiState
@@ -150,15 +152,7 @@ private fun TabletCashLayout(
                 EmptyScreen("Belum ada kas masuk")
             } else {
                 uiState.cashIns.forEach { item ->
-                    Card(Modifier.fillMaxWidth()) {
-                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
-                                item.source?.let { Text("Sumber: $it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline) }
-                            }
-                            Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = id.rancak.app.presentation.designsystem.RancakColors.semantic.success)
-                        }
-                    }
+                    CashInItemCard(item = item)
                 }
             }
         }
@@ -195,15 +189,7 @@ private fun TabletCashLayout(
                 EmptyScreen("Belum ada pengeluaran")
             } else {
                 uiState.expenses.forEach { item ->
-                    Card(Modifier.fillMaxWidth()) {
-                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
-                                item.note?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline) }
-                            }
-                            Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
-                        }
-                    }
+                    ExpenseItemCard(item = item)
                 }
             }
         }

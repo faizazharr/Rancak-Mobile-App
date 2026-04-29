@@ -18,6 +18,39 @@ import id.rancak.app.presentation.util.formatDateFriendly
 import id.rancak.app.presentation.util.formatRupiah
 
 @Composable
+fun CashInItemCard(
+    item: CashIn,
+    modifier: Modifier = Modifier
+) {
+    Card(modifier.fillMaxWidth()) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
+                item.source?.let {
+                    Text(
+                        "Sumber: $it",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+                val displayDate = formatDateFriendly(item.cashInDate ?: item.createdAt)
+                Text(
+                    text = displayDate ?: "-",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+            Text(
+                text = formatRupiah(item.amount),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = RancakColors.semantic.success
+            )
+        }
+    }
+}
+
+@Composable
 fun CashInList(
     items: List<CashIn>,
     onDelete: (String) -> Unit,
@@ -32,25 +65,7 @@ fun CashInList(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items, key = { it.uuid }) { item ->
-                Card(Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
-                            item.source?.let {
-                                Text("Sumber: $it", style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.outline)
-                            }
-                            val displayDate = formatDateFriendly(item.cashInDate ?: item.createdAt)
-                            Text(
-                                text = displayDate ?: "-",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.outline
-                            )
-                        }
-                        Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold, color = RancakColors.semantic.success)
-                    }
-                }
+                CashInItemCard(item = item)
             }
         }
     }

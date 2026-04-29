@@ -17,6 +17,46 @@ import id.rancak.app.presentation.util.formatDateFriendly
 import id.rancak.app.presentation.util.formatRupiah
 
 @Composable
+fun ExpenseItemCard(
+    item: Expense,
+    modifier: Modifier = Modifier
+) {
+    Card(modifier.fillMaxWidth()) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
+                item.note?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+                item.categoryName?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+                val displayDate = formatDateFriendly(item.expenseDate ?: item.createdAt)
+                Text(
+                    text = displayDate ?: "-",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+            Text(
+                text = formatRupiah(item.amount),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+@Composable
 fun ExpenseList(
     items: List<Expense>,
     onDelete: (String) -> Unit,
@@ -31,29 +71,7 @@ fun ExpenseList(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items, key = { it.uuid }) { item ->
-                Card(Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(item.description ?: "-", style = MaterialTheme.typography.bodyMedium)
-                            item.note?.let {
-                                Text(it, style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.outline)
-                            }
-                            item.categoryName?.let {
-                                Text(it, style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.outline)
-                            }
-                            val displayDate = formatDateFriendly(item.expenseDate ?: item.createdAt)
-                            Text(
-                                text = displayDate ?: "-",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.outline
-                            )
-                        }
-                        Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
-                    }
-                }
+                ExpenseItemCard(item = item)
             }
         }
     }
