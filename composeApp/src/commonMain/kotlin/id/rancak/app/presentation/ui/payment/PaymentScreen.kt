@@ -31,7 +31,6 @@ import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.payment.components.PaymentFormContent
 import id.rancak.app.presentation.ui.payment.components.PaymentSuccessContent
-import id.rancak.app.presentation.ui.payment.components.QrisWaitingContent
 import id.rancak.app.presentation.ui.payment.components.SplitPaymentPanel
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
@@ -89,14 +88,6 @@ fun PaymentScreen(
                         cartViewModel.clearCart()
                     },
                     modifier = Modifier.fillMaxSize().padding(padding)
-                )
-
-                paymentState.isQrisWaiting -> QrisWaitingContent(
-                    qrString  = paymentState.qrisQrString!!,
-                    amount    = paymentState.qrisAmount,
-                    isPolling = paymentState.isQrisPolling,
-                    onCancel  = paymentViewModel::cancelQrisPayment,
-                    modifier  = Modifier.fillMaxSize().padding(padding)
                 )
 
                 else -> Column(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -179,6 +170,16 @@ fun PaymentScreen(
                             onToggleMode       = paymentViewModel::toggleSplitPayment,
                             onProcessPayment   = processPaymentArgs,
                             onQrisSelected     = processPaymentArgs,
+                            isQrisWaiting      = paymentState.isQrisWaiting,
+                            qrisQrString       = paymentState.qrisQrString,
+                            qrisAmount         = paymentState.qrisAmount,
+                            isQrisPolling      = paymentState.isQrisPolling,
+                            onCancelQris       = paymentViewModel::cancelQrisPayment,
+                            discount           = cartState.discount,
+                            tax                = cartState.tax,
+                            adminFee           = cartState.adminFee,
+                            deliveryFee        = cartState.deliveryFee,
+                            tip                = cartState.tip,
                             onHoldOrder = {
                                 paymentViewModel.holdOrder(
                                     items        = cartState.items,

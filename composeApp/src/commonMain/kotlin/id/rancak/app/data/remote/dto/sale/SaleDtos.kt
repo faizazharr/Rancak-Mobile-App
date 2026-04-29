@@ -239,7 +239,7 @@ data class QrPaymentDto(
     @SerialName("sale_uuid")    val saleUuid: String,
     @SerialName("xendit_qr_id") val xenditQrId: String? = null,
     @SerialName("qr_string")    val qrString: String = "",
-    val amount: Long = 0L,
+    val amount: String = "0",
     val status: String = "pending",
     @SerialName("expires_at")   val expiresAt: String? = null,
     @SerialName("using_webhook") val usingWebhook: Boolean = false
@@ -263,8 +263,8 @@ data class BatchSaleResult(
 )
 
 /** Response untuk POST /sales/{id}/reprint — wrapper data + sale lengkap. */
-@kotlinx.serialization.Serializable
+@Serializable
 data class ReprintResponseDto(
-    @kotlinx.serialization.SerialName("print_type") val printType: String,
+    @SerialName("print_type") val printType: String,
     val sale: SaleDto
 )

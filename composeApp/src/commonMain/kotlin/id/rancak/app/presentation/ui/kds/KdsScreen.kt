@@ -40,7 +40,6 @@ import org.koin.compose.viewmodel.koinViewModel
 private const val PAGE_SIZE = 6
 private const val PAGE_SIZE_TABLET = 12
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KdsScreen(
     onBack: () -> Unit,
@@ -59,7 +58,6 @@ fun KdsScreen(
 }
 
 /** Pure-UI content — tidak mengakses ViewModel, aman di-preview. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KdsScreenContent(
     uiState: KdsUiState,

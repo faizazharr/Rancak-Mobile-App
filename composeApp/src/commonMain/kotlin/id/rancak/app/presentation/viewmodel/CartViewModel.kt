@@ -24,12 +24,18 @@ data class CartUiState(
     val note: String = "",
     val pax: Int = 1,
     // ── Komponen biaya (dihitung di frontend) ────────────────────────────
-    /** Diskon nominal keseluruhan (Rp). */
-    val discount: Long = 0,
-    /** PPN/pajak nominal. 0 = tidak ada pajak. */
-    val tax: Long = 0,
-    /** Biaya admin (mis. biaya platform/grab, dll). */
-    val adminFee: Long = 0,
+    /** Nilai input diskon: nominal Rp jika !discountIsPercent, atau angka 0–100 jika discountIsPercent. */
+    val discountInput: Long = 0,
+    /** True = diskon dihitung sebagai persen dari subtotal; False = nominal Rp tetap. */
+    val discountIsPercent: Boolean = false,
+    /** Nilai input pajak: nominal Rp atau angka 0–100 jika taxIsPercent. */
+    val taxInput: Long = 0,
+    /** True = pajak dihitung sebagai persen dari subtotal. */
+    val taxIsPercent: Boolean = false,
+    /** Nilai input biaya admin: nominal Rp atau angka 0–100 jika adminFeeIsPercent. */
+    val adminFeeInput: Long = 0,
+    /** True = biaya admin dihitung sebagai persen dari subtotal. */
+    val adminFeeIsPercent: Boolean = false,
     /** Ongkos kirim (hanya relevan saat orderType = DELIVERY). */
     val deliveryFee: Long = 0,
     /** Tip opsional dari pelanggan. */
@@ -40,6 +46,21 @@ data class CartUiState(
     val subtotal: Long get() = items.sumOf { it.subtotal }
     val itemCount: Int get() = items.sumOf { it.qty }
     val isEmpty: Boolean get() = items.isEmpty()
+
+    /** Diskon nominal Rp aktual — computed dari discountInput + discountIsPercent. */
+    val discount: Long get() = if (discountIsPercent)
+        (subtotal * discountInput / 100L).coerceIn(0L, subtotal)
+    else discountInput
+
+    /** Pajak nominal Rp aktual — computed dari taxInput + taxIsPercent. */
+    val tax: Long get() = if (taxIsPercent)
+        ((subtotal - discount) * taxInput / 100L).coerceAtLeast(0L)
+    else taxInput
+
+    /** Biaya admin nominal Rp aktual — computed dari adminFeeInput + adminFeeIsPercent. */
+    val adminFee: Long get() = if (adminFeeIsPercent)
+        ((subtotal - discount) * adminFeeInput / 100L).coerceAtLeast(0L)
+    else adminFeeInput
 
     /** Total akhir yang harus dibayar pelanggan. */
     val total: Long get() = subtotal - discount + tax + adminFee + deliveryFee + tip
@@ -53,9 +74,12 @@ class CartViewModel(private val cartDao: CartDao) : ViewModel() {
         val customerName: String = "",
         val note: String = "",
         val pax: Int = 1,
-        val discount: Long = 0,
-        val tax: Long = 0,
-        val adminFee: Long = 0,
+        val discountInput: Long = 0,
+        val discountIsPercent: Boolean = false,
+        val taxInput: Long = 0,
+        val taxIsPercent: Boolean = false,
+        val adminFeeInput: Long = 0,
+        val adminFeeIsPercent: Boolean = false,
         val deliveryFee: Long = 0,
         val tip: Long = 0,
         val voucherCode: String = ""
@@ -73,9 +97,12 @@ class CartViewModel(private val cartDao: CartDao) : ViewModel() {
                 customerName = extras.customerName,
                 note = extras.note,
                 pax = extras.pax,
-                discount = extras.discount,
-                tax = extras.tax,
-                adminFee = extras.adminFee,
+                discountInput = extras.discountInput,
+                discountIsPercent = extras.discountIsPercent,
+                taxInput = extras.taxInput,
+                taxIsPercent = extras.taxIsPercent,
+                adminFeeInput = extras.adminFeeInput,
+                adminFeeIsPercent = extras.adminFeeIsPercent,
                 deliveryFee = extras.deliveryFee,
                 tip = extras.tip,
                 voucherCode = extras.voucherCode
@@ -129,9 +156,24 @@ class CartViewModel(private val cartDao: CartDao) : ViewModel() {
     fun setCustomerName(name: String) = _extras.update { it.copy(customerName = name) }
     fun setNote(note: String) = _extras.update { it.copy(note = note) }
     fun setPax(pax: Int) { if (pax >= 1) _extras.update { it.copy(pax = pax) } }
-    fun setDiscount(discount: Long) = _extras.update { it.copy(discount = discount.coerceAtLeast(0L)) }
-    fun setTax(tax: Long) = _extras.update { it.copy(tax = tax.coerceAtLeast(0L)) }
-    fun setAdminFee(adminFee: Long) = _extras.update { it.copy(adminFee = adminFee.coerceAtLeast(0L)) }
+    fun setDiscount(value: Long, isPercent: Boolean = false) = _extras.update {
+        it.copy(
+            discountInput     = value.coerceIn(0L, if (isPercent) 100L else Long.MAX_VALUE),
+            discountIsPercent = isPercent
+        )
+    }
+    fun setTax(value: Long, isPercent: Boolean = false) = _extras.update {
+        it.copy(
+            taxInput     = value.coerceIn(0L, if (isPercent) 100L else Long.MAX_VALUE),
+            taxIsPercent = isPercent
+        )
+    }
+    fun setAdminFee(value: Long, isPercent: Boolean = false) = _extras.update {
+        it.copy(
+            adminFeeInput     = value.coerceIn(0L, if (isPercent) 100L else Long.MAX_VALUE),
+            adminFeeIsPercent = isPercent
+        )
+    }
     fun setDeliveryFee(deliveryFee: Long) = _extras.update { it.copy(deliveryFee = deliveryFee.coerceAtLeast(0L)) }
     fun setTip(tip: Long) = _extras.update { it.copy(tip = tip.coerceAtLeast(0L)) }
     fun setVoucherCode(code: String) = _extras.update { it.copy(voucherCode = code) }

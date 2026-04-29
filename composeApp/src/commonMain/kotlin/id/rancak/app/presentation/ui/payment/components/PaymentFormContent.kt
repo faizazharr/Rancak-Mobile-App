@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.ui.payment.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,19 +51,31 @@ internal fun PaymentFormContent(
     isSplit: Boolean = false,
     onToggleMode: () -> Unit = {},
     onHoldOrder: (() -> Unit)? = null,
+    isQrisWaiting: Boolean = false,
+    qrisQrString: String? = null,
+    qrisAmount: Long = 0L,
+    isQrisPolling: Boolean = false,
+    onCancelQris: () -> Unit = {},
+    discount: Long = 0L,
+    tax: Long = 0L,
+    adminFee: Long = 0L,
+    deliveryFee: Long = 0L,
+    tip: Long = 0L,
     modifier: Modifier = Modifier
 ) {
-    val changeAmount = remember(paidAmount, subtotal) {
+    val total = subtotal - discount + tax + adminFee + deliveryFee + tip
+
+    val changeAmount = remember(paidAmount, total) {
         val paid = paidAmount.toLongOrNull() ?: 0L
-        if (paid > subtotal) paid - subtotal else 0L
+        if (paid > total) paid - total else 0L
     }
 
-    val quickAmounts = remember(subtotal) {
+    val quickAmounts = remember(total) {
         listOf(
-            subtotal,
-            ((subtotal / 10_000) + 1) * 10_000,
-            ((subtotal / 50_000) + 1) * 50_000,
-            ((subtotal / 100_000) + 1) * 100_000
+            total,
+            ((total / 10_000) + 1) * 10_000,
+            ((total / 50_000) + 1) * 50_000,
+            ((total / 100_000) + 1) * 100_000
         ).distinct().sorted()
     }
 
@@ -72,6 +86,12 @@ internal fun PaymentFormContent(
         OrderSummaryColumn(
             itemCount      = itemCount,
             subtotal       = subtotal,
+            total          = total,
+            discount       = discount,
+            tax            = tax,
+            adminFee       = adminFee,
+            deliveryFee    = deliveryFee,
+            tip            = tip,
             isCashSelected = isCashSelected,
             changeAmount   = changeAmount,
             isSplit        = isSplit,
@@ -89,6 +109,11 @@ internal fun PaymentFormContent(
             onQrisSelected     = onQrisSelected,
             onHoldOrder        = onHoldOrder,
             quickAmounts       = quickAmounts,
+            isQrisWaiting      = isQrisWaiting,
+            qrisQrString       = qrisQrString,
+            qrisAmount         = qrisAmount,
+            isQrisPolling      = isQrisPolling,
+            onCancelQris       = onCancelQris,
             modifier           = Modifier.weight(0.58f).fillMaxHeight()
         )
     }
@@ -100,6 +125,12 @@ internal fun PaymentFormContent(
 private fun OrderSummaryColumn(
     itemCount: Int,
     subtotal: Long,
+    total: Long,
+    discount: Long,
+    tax: Long,
+    adminFee: Long,
+    deliveryFee: Long,
+    tip: Long,
     isCashSelected: Boolean,
     changeAmount: Long,
     isSplit: Boolean,
@@ -110,8 +141,8 @@ private fun OrderSummaryColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        HeroTotalCard(itemCount, subtotal)
-        SummaryCard(itemCount, subtotal)
+        HeroTotalCard(itemCount, total)
+        SummaryCard(itemCount, subtotal, discount, tax, adminFee, deliveryFee, tip, total)
         if (isCashSelected && changeAmount > 0) ChangeDueCard(changeAmount)
         Spacer(Modifier.weight(1f))
         PaymentModeToggleColumn(isSplit = isSplit, onToggle = onToggleMode)
@@ -194,7 +225,16 @@ private fun HeroTotalCard(itemCount: Int, subtotal: Long) {
 }
 
 @Composable
-private fun SummaryCard(itemCount: Int, subtotal: Long) {
+private fun SummaryCard(
+    itemCount: Int,
+    subtotal: Long,
+    discount: Long,
+    tax: Long,
+    adminFee: Long,
+    deliveryFee: Long,
+    tip: Long,
+    total: Long
+) {
     Card(
         shape  = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
@@ -211,13 +251,22 @@ private fun SummaryCard(itemCount: Int, subtotal: Long) {
             )
             Spacer(Modifier.height(10.dp))
             SummaryRow(label = "$itemCount item", value = formatRupiah(subtotal))
+            if (discount > 0) SummaryRow(
+                label      = "Diskon",
+                value      = "− ${formatRupiah(discount)}",
+                valueColor = MaterialTheme.colorScheme.error
+            )
+            if (tax > 0) SummaryRow(label = "Pajak", value = formatRupiah(tax))
+            if (adminFee > 0) SummaryRow(label = "Biaya Admin", value = formatRupiah(adminFee))
+            if (deliveryFee > 0) SummaryRow(label = "Ongkir", value = formatRupiah(deliveryFee))
+            if (tip > 0) SummaryRow(label = "Tip", value = formatRupiah(tip))
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
             SummaryRow(
                 label      = "Total",
-                value      = formatRupiah(subtotal),
+                value      = formatRupiah(total),
                 isBold     = true,
                 valueColor = MaterialTheme.colorScheme.primary
             )
@@ -277,6 +326,11 @@ private fun PaymentInputColumn(
     onQrisSelected: () -> Unit = {},
     onHoldOrder: (() -> Unit)? = null,
     quickAmounts: List<Long>,
+    isQrisWaiting: Boolean = false,
+    qrisQrString: String? = null,
+    qrisAmount: Long = 0L,
+    isQrisPolling: Boolean = false,
+    onCancelQris: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val isQris = selectedMethod == PaymentMethod.QRIS
@@ -287,13 +341,29 @@ private fun PaymentInputColumn(
         MethodSelector(
             selectedMethod = selectedMethod,
             onSelectMethod = { method ->
+                // Jika sedang menunggu QRIS dan user pindah ke metode lain, batalkan QRIS dulu
+                if (isQrisWaiting && method != PaymentMethod.QRIS) onCancelQris()
                 onSelectMethod(method)
                 // Auto-trigger QRIS saat chip dipilih
                 if (method == PaymentMethod.QRIS) onQrisSelected()
             }
         )
 
-        if (isCashSelected) {
+        if (isQrisWaiting && qrisQrString != null) {
+            // QRIS QR code tampil inline di kolom kanan — tidak replace halaman
+            QrisWaitingContent(
+                qrString  = qrisQrString,
+                amount    = qrisAmount,
+                isPolling = isQrisPolling,
+                onCancel  = onCancelQris,
+                modifier  = Modifier.weight(1f).fillMaxWidth()
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        MaterialTheme.shapes.large
+                    )
+                    .clip(MaterialTheme.shapes.large)
+            )
+        } else if (isCashSelected) {
             PaidAmountDisplay(
                 paidAmount = paidAmount,
                 onClear    = { onPaidAmountChange("") }
@@ -321,26 +391,28 @@ private fun PaymentInputColumn(
             Spacer(Modifier.weight(1f))
         }
 
-        // Tombol sticky di bawah
-        if (!isQris) {
-            RancakButton(
-                text      = "Proses Pembayaran",
-                onClick   = onProcessPayment,
-                isLoading = isProcessing,
-                modifier  = Modifier.fillMaxWidth()
-            )
-        } else {
-            // QRIS: tombol eksplisit sebagai trigger utama (auto-trigger saat chip diklik,
-            // tombol ini sebagai fallback jika auto-trigger belum berhasil)
-            RancakButton(
-                text      = if (isProcessing) "Membuat QR Code QRIS..." else "Bayar dengan QRIS",
-                onClick   = onQrisSelected,
-                isLoading = isProcessing,
-                enabled   = !isProcessing,
-                modifier  = Modifier.fillMaxWidth()
-            )
+        // Tombol sticky di bawah — disembunyikan saat menunggu QR QRIS
+        if (!isQrisWaiting) {
+            if (!isQris) {
+                RancakButton(
+                    text      = "Proses Pembayaran",
+                    onClick   = onProcessPayment,
+                    isLoading = isProcessing,
+                    modifier  = Modifier.fillMaxWidth()
+                )
+            } else {
+                // QRIS: tombol eksplisit sebagai trigger utama (auto-trigger saat chip diklik,
+                // tombol ini sebagai fallback jika auto-trigger belum berhasil)
+                RancakButton(
+                    text      = if (isProcessing) "Membuat QR Code QRIS..." else "Bayar dengan QRIS",
+                    onClick   = onQrisSelected,
+                    isLoading = isProcessing,
+                    enabled   = !isProcessing,
+                    modifier  = Modifier.fillMaxWidth()
+                )
+            }
         }
-        if (onHoldOrder != null) {
+        if (onHoldOrder != null && !isQrisWaiting) {
             OutlinedButton(
                 onClick = onHoldOrder,
                 enabled = !isProcessing,

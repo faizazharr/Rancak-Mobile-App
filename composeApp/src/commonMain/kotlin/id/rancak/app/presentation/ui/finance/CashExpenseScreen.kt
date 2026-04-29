@@ -44,7 +44,6 @@ data class CashExpenseActions(
     val onDeleteExpense: (String) -> Unit = {}
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CashExpenseScreen(
     onBack: () -> Unit,
@@ -73,7 +72,6 @@ fun CashExpenseScreen(
 }
 
 /** Pure-UI content — tanpa ViewModel, aman di-preview. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CashExpenseScreenContent(
     uiState: CashExpenseUiState,

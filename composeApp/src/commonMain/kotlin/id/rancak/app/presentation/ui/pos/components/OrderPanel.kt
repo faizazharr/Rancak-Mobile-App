@@ -73,9 +73,9 @@ internal fun OrderPanel(
     onOrderType: (OrderType) -> Unit,
     onCustomerName: (String) -> Unit,
     onPax: (Int) -> Unit,
-    onDiscount: (Long) -> Unit,
-    onTax: (Long) -> Unit,
-    onAdminFee: (Long) -> Unit,
+    onDiscount: (Long, Boolean) -> Unit,
+    onTax: (Long, Boolean) -> Unit,
+    onAdminFee: (Long, Boolean) -> Unit,
     onDeliveryFee: (Long) -> Unit,
     onTip: (Long) -> Unit,
     @Suppress("UNUSED_PARAMETER") onVoucherCode: (String) -> Unit,
@@ -476,9 +476,9 @@ private fun SummaryAndActions(
     onSurfaceVariant: Color,
     hasItems: Boolean,
     hasOpenShift: Boolean,
-    onDiscount: (Long) -> Unit,
-    onTax: (Long) -> Unit,
-    onAdminFee: (Long) -> Unit,
+    onDiscount: (Long, Boolean) -> Unit,
+    onTax: (Long, Boolean) -> Unit,
+    onAdminFee: (Long, Boolean) -> Unit,
     onDeliveryFee: (Long) -> Unit,
     onTip: (Long) -> Unit,
     onSaveClick: () -> Unit,
@@ -506,37 +506,46 @@ private fun SummaryAndActions(
             Spacer(Modifier.height(6.dp))
 
             FeeInputRow(
-                label      = "Diskon",
-                icon       = Icons.Default.Discount,
-                value      = cartState.discount,
-                onValue    = onDiscount,
-                isNegative = true
+                label             = "Diskon",
+                icon              = Icons.Default.Discount,
+                value             = cartState.discountInput,
+                onValue           = onDiscount,
+                isNegative        = true,
+                showPercentToggle = true,
+                valueIsPercent    = cartState.discountIsPercent,
+                computedAmount    = cartState.discount
             )
             FeeInputRow(
-                label   = "Pajak",
-                icon    = Icons.Default.AccountBalance,
-                value   = cartState.tax,
-                onValue = onTax
+                label             = "Pajak",
+                icon              = Icons.Default.AccountBalance,
+                value             = cartState.taxInput,
+                onValue           = onTax,
+                showPercentToggle = true,
+                valueIsPercent    = cartState.taxIsPercent,
+                computedAmount    = cartState.tax
             )
             FeeInputRow(
-                label   = "Biaya Admin",
-                icon    = Icons.Default.Receipt,
-                value   = cartState.adminFee,
-                onValue = onAdminFee
+                label             = "Biaya Admin",
+                icon              = Icons.Default.Receipt,
+                value             = cartState.adminFeeInput,
+                onValue           = onAdminFee,
+                showPercentToggle = true,
+                valueIsPercent    = cartState.adminFeeIsPercent,
+                computedAmount    = cartState.adminFee
             )
             if (cartState.orderType == OrderType.DELIVERY) {
                 FeeInputRow(
                     label   = "Ongkir",
                     icon    = Icons.Default.DeliveryDining,
                     value   = cartState.deliveryFee,
-                    onValue = onDeliveryFee
+                    onValue = { v, _ -> onDeliveryFee(v) }
                 )
             }
             FeeInputRow(
                 label   = "Tip",
                 icon    = Icons.Default.Favorite,
                 value   = cartState.tip,
-                onValue = onTip
+                onValue = { v, _ -> onTip(v) }
             )
 
             Spacer(Modifier.height(4.dp))
@@ -656,11 +665,15 @@ private fun SummaryAndActions(
 
 @Composable
 private fun FeeInputRow(
-    label:      String,
-    icon:       ImageVector,
-    value:      Long,
-    onValue:    (Long) -> Unit,
-    isNegative: Boolean = false
+    label:             String,
+    icon:              ImageVector,
+    value:             Long,
+    onValue:           (Long, Boolean) -> Unit,
+    isNegative:        Boolean = false,
+    showPercentToggle: Boolean = false,
+    valueIsPercent:    Boolean = false,
+    /** Nominal Rp hasil hitung (dipakai saat valueIsPercent = true untuk tampilkan Rp di samping %). */
+    computedAmount:    Long    = 0L
 ) {
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
     val primary          = MaterialTheme.colorScheme.primary
@@ -670,13 +683,15 @@ private fun FeeInputRow(
 
     if (showDialog) {
         FeeInputDialog(
-            title        = label,
-            icon         = icon,
-            initialValue = value,
-            isNegative   = isNegative,
-            onDismiss    = { showDialog = false },
-            onConfirm    = { amount ->
-                onValue(amount)
+            title             = label,
+            icon              = icon,
+            initialValue      = value,
+            isNegative        = isNegative,
+            showPercentToggle = showPercentToggle,
+            initialIsPercent  = valueIsPercent,
+            onDismiss         = { showDialog = false },
+            onConfirm         = { amount, isPercent ->
+                onValue(amount, isPercent)
                 showDialog = false
             }
         )
@@ -711,12 +726,33 @@ private fun FeeInputRow(
                         fontWeight = FontWeight.SemiBold, color = error
                     )
                 }
-                Text(
-                    "Rp ${feeFormatNumber(value)}",
-                    style      = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = if (isNegative) error else primary
-                )
+                val valueColor = if (isNegative) error else primary
+                if (valueIsPercent) {
+                    // Tampilkan "%  ·  Rp nominal"
+                    Text(
+                        "${value}%",
+                        style      = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = valueColor
+                    )
+                    Text(
+                        "·",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = onSurfaceVariant.copy(0.4f)
+                    )
+                    Text(
+                        "Rp ${feeFormatNumber(computedAmount)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = onSurfaceVariant.copy(0.75f)
+                    )
+                } else {
+                    Text(
+                        "Rp ${feeFormatNumber(value)}",
+                        style      = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = valueColor
+                    )
+                }
             } else {
                 Text(
                     "Ketuk untuk isi",
@@ -759,7 +795,7 @@ private fun OrderItemRow(
             initialValue = item.qty.toLong(),
             prefix       = "",
             onDismiss    = { showQtyDialog = false },
-            onConfirm    = { qty ->
+            onConfirm    = { qty, _ ->
                 onSetQty(qty.toInt().coerceAtLeast(0))
                 showQtyDialog = false
             }
@@ -943,9 +979,9 @@ private fun OrderPanelPreview_Empty() {
             onOrderType    = {},
             onCustomerName = {},
             onPax          = {},
-            onDiscount     = {},
-            onTax          = {},
-            onAdminFee     = {},
+            onDiscount     = { _, _ -> },
+            onTax          = { _, _ -> },
+            onAdminFee     = { _, _ -> },
             onDeliveryFee  = {},
             onTip          = {},
             onVoucherCode  = {},
@@ -976,10 +1012,10 @@ private fun OrderPanelPreview_WithItems() {
                         note        = "dihangatkan"
                     )
                 ),
-                customerName = "Budi",
-                pax          = 2,
-                discount     = 5_000L,
-                tax          = 6_000L
+                customerName  = "Budi",
+                pax           = 2,
+                discountInput = 5_000L,
+                taxInput      = 6_000L
             ),
             onUpdateQty    = { _, _ -> },
             onUpdateNote   = { _, _ -> },
@@ -987,9 +1023,9 @@ private fun OrderPanelPreview_WithItems() {
             onOrderType    = {},
             onCustomerName = {},
             onPax          = {},
-            onDiscount     = {},
-            onTax          = {},
-            onAdminFee     = {},
+            onDiscount     = { _, _ -> },
+            onTax          = { _, _ -> },
+            onAdminFee     = { _, _ -> },
             onDeliveryFee  = {},
             onTip          = {},
             onVoucherCode  = {},

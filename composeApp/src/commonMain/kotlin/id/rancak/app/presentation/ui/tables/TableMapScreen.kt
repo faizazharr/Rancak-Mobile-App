@@ -31,7 +31,6 @@ import id.rancak.app.presentation.viewmodel.TableViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TableMapScreen(
     onBack: () -> Unit,
@@ -50,7 +49,6 @@ fun TableMapScreen(
 }
 
 /** Pure-UI content — tanpa ViewModel, aman di-preview. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TableMapScreenContent(
     uiState: TableUiState,

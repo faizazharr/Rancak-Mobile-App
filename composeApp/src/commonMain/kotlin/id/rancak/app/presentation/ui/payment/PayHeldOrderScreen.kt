@@ -3,19 +3,11 @@ package id.rancak.app.presentation.ui.payment
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CallSplit
-import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PointOfSale
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,7 +32,6 @@ import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.payment.components.PaymentFormContent
 import id.rancak.app.presentation.ui.payment.components.PaymentSuccessContent
-import id.rancak.app.presentation.ui.payment.components.QrisWaitingContent
 import id.rancak.app.presentation.ui.payment.components.SplitPaymentPanel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
 import id.rancak.app.presentation.viewmodel.SplitableItem
@@ -50,7 +41,6 @@ import org.koin.compose.viewmodel.koinViewModel
 /**
  * Layar pembayaran untuk held order — mendukung single dan split payment.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PayHeldOrderScreen(
     saleUuid: String,
@@ -84,7 +74,7 @@ fun PayHeldOrderScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             ErrorBanner(
                 error     = paymentState.error ?: loadError,
                 onDismiss = paymentViewModel::clearError,
@@ -101,24 +91,12 @@ fun PayHeldOrderScreen(
                         paymentViewModel.reset()
                         onPaymentComplete()
                     },
-                    modifier = Modifier.fillMaxSize().padding(padding)
+                    modifier = Modifier.fillMaxSize()
                 )
 
-                paymentState.isQrisWaiting -> QrisWaitingContent(
-                    qrString  = paymentState.qrisQrString!!,
-                    amount    = paymentState.qrisAmount,
-                    isPolling = paymentState.isQrisPolling,
-                    onCancel  = paymentViewModel::cancelQrisPayment,
-                    modifier  = Modifier.fillMaxSize().padding(padding)
-                )
+                loadedSale == null -> LoadingScreen(modifier = Modifier.fillMaxSize())
 
-                loadedSale == null -> LoadingScreen(modifier = Modifier.fillMaxSize().padding(padding))
-
-                else -> Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-                    PayHeldOrderModeToggle(
-                        isSplit  = paymentState.isSplitPayment,
-                        onToggle = paymentViewModel::toggleSplitPayment
-                    )
+                else -> Column(modifier = Modifier.fillMaxSize()) {
 
                     if (paymentState.isSplitPayment) {
                         LaunchedEffect(Unit) {
@@ -173,6 +151,13 @@ fun PayHeldOrderScreen(
                             onQrisSelected = {
                                 paymentViewModel.processHeldOrderPayment(loadedSale.uuid, loadedSale.total)
                             },
+                            isQrisWaiting      = paymentState.isQrisWaiting,
+                            qrisQrString       = paymentState.qrisQrString,
+                            qrisAmount         = paymentState.qrisAmount,
+                            isQrisPolling      = paymentState.isQrisPolling,
+                            onCancelQris       = paymentViewModel::cancelQrisPayment,
+                            isSplit            = paymentState.isSplitPayment,
+                            onToggleMode       = paymentViewModel::toggleSplitPayment,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -182,30 +167,4 @@ fun PayHeldOrderScreen(
     }
 }
 
-@Composable
-private fun PayHeldOrderModeToggle(
-    isSplit: Boolean,
-    onToggle: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        AssistChip(
-            onClick = { if (isSplit) onToggle() },
-            label = { Text("Bayar Tunggal") },
-            leadingIcon = { Icon(Icons.Default.Payments, null) },
-            colors = if (!isSplit) AssistChipDefaults.assistChipColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ) else AssistChipDefaults.assistChipColors()
-        )
-        AssistChip(
-            onClick = { if (!isSplit) onToggle() },
-            label = { Text("Bayar Terpisah") },
-            leadingIcon = { Icon(Icons.Default.CallSplit, null) },
-            colors = if (isSplit) AssistChipDefaults.assistChipColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ) else AssistChipDefaults.assistChipColors()
-        )
-    }
-}
+

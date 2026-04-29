@@ -2,10 +2,13 @@ package id.rancak.app.data.remote.api
 
 import id.rancak.app.data.remote.dto.ApiResponse
 import id.rancak.app.data.remote.dto.operations.CashInDto
+import id.rancak.app.data.remote.dto.operations.CreateCashInRequest
 import id.rancak.app.data.remote.dto.operations.CreateExpenseCategoryRequest
+import id.rancak.app.data.remote.dto.operations.CreateExpenseRequest
 import id.rancak.app.data.remote.dto.operations.ExpenseCategoryDto
 import id.rancak.app.data.remote.dto.operations.ExpenseDto
 import id.rancak.app.data.remote.dto.operations.UpdateExpenseCategoryRequest
+import id.rancak.app.data.remote.dto.operations.UpdateExpenseRequest
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -51,13 +54,7 @@ suspend fun RancakApiService.createCashIn(
 ): ApiResponse<CashInDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.CASH_INS) {
         contentType(ContentType.Application.Json)
-        setBody(buildMap {
-            put("amount", amount)
-            put("source", source)
-            put("description", description)
-            note?.let { put("note", it) }
-            cashInDate?.let { put("cash_in_date", it) }
-        })
+        setBody(CreateCashInRequest(amount = amount, source = source, description = description, note = note, cashInDate = cashInDate))
     }.body()
 
 suspend fun RancakApiService.deleteCashIn(tenantUuid: String, cashInId: String): ApiResponse<Unit> =
@@ -94,13 +91,7 @@ suspend fun RancakApiService.createExpense(
 ): ApiResponse<ExpenseDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.EXPENSES) {
         contentType(ContentType.Application.Json)
-        setBody(buildMap {
-            put("amount", amount)
-            put("description", description)
-            note?.let { put("note", it) }
-            categoryUuid?.let { put("category_uuid", it) }
-            expenseDate?.let { put("expense_date", it) }
-        })
+        setBody(CreateExpenseRequest(amount = amount, description = description, note = note, categoryUuid = categoryUuid, expenseDate = expenseDate))
     }.body()
 
 suspend fun RancakApiService.updateExpense(
@@ -114,13 +105,7 @@ suspend fun RancakApiService.updateExpense(
 ): ApiResponse<ExpenseDto> =
     client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/$expenseId") {
         contentType(ContentType.Application.Json)
-        setBody(buildMap {
-            amount?.let { put("amount", it) }
-            description?.let { put("description", it) }
-            note?.let { put("note", it) }
-            categoryUuid?.let { put("category_uuid", it) }
-            expenseDate?.let { put("expense_date", it) }
-        })
+        setBody(UpdateExpenseRequest(amount = amount, description = description, note = note, categoryUuid = categoryUuid, expenseDate = expenseDate))
     }.body()
 
 suspend fun RancakApiService.deleteExpense(tenantUuid: String, expenseId: String): ApiResponse<Unit> =

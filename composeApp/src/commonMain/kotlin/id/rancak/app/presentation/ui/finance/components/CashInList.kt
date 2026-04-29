@@ -14,6 +14,7 @@ import id.rancak.app.domain.model.CashIn
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.util.formatDateFriendly
 import id.rancak.app.presentation.util.formatRupiah
 
 @Composable
@@ -39,6 +40,12 @@ fun CashInList(
                                 Text("Sumber: $it", style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.outline)
                             }
+                            val displayDate = formatDateFriendly(item.cashInDate ?: item.createdAt)
+                            Text(
+                                text = displayDate ?: "-",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.outline
+                            )
                         }
                         Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold, color = RancakColors.semantic.success)
@@ -58,9 +65,9 @@ private fun CashInListPreview() {
         CashInList(
             items = listOf(
                 CashIn(uuid = "1", amount = 500000, source = "Modal", description = "Kas Awal", note = null,
-                    cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null),
+                    cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = "2026-04-29", createdAt = "2026-04-29T07:00:00Z"),
                 CashIn(uuid = "2", amount = 200000, source = "Pinjaman", description = "Tambahan Modal", note = "Dari owner",
-                    cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null)
+                    cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = "2026-04-28T09:15:00Z")
             ),
             onDelete = {}
         )

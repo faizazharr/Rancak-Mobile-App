@@ -34,16 +34,25 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
 fun FeeInputDialog(
-    title:        String,
-    icon:         ImageVector,
-    initialValue: Long = 0L,
-    isNegative:   Boolean = false,
-    prefix:       String = "Rp ",   // kosong ("") untuk input qty/jumlah
-    onDismiss:    () -> Unit,
-    onConfirm:    (Long) -> Unit
+    title:              String,
+    icon:               ImageVector,
+    initialValue:       Long = 0L,
+    isNegative:         Boolean = false,
+    prefix:             String = "Rp ",   // kosong ("") untuk input qty/jumlah
+    showPercentToggle:  Boolean = false,
+    initialIsPercent:   Boolean = false,
+    onDismiss:          () -> Unit,
+    onConfirm:          (value: Long, isPercent: Boolean) -> Unit
 ) {
+    var isPercent by remember { mutableStateOf(initialIsPercent) }
     var raw by remember {
         mutableStateOf(if (initialValue > 0L) initialValue.toString() else "")
+    }
+
+    // Saat mode beralih, reset input agar tidak ada nilai tidak valid
+    val onToggleMode: (Boolean) -> Unit = { toPercent ->
+        isPercent = toPercent
+        raw = ""
     }
 
     val amount    = raw.toLongOrNull() ?: 0L
@@ -54,6 +63,12 @@ fun FeeInputDialog(
         isNegative && hasValue -> error
         hasValue               -> primary
         else                   -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+    }
+    val displayText = when {
+        isPercent && hasValue -> "${amount}%"
+        isPercent             -> "0%"
+        hasValue              -> "$prefix${feeFormatNumber(amount)}"
+        else                  -> "${prefix}0"
     }
 
     Dialog(
@@ -97,6 +112,46 @@ fun FeeInputDialog(
 
                 Spacer(Modifier.height(14.dp))
 
+                // ── Toggle Rp / % (hanya tampil jika showPercentToggle = true) ─────────
+                if (showPercentToggle) {
+                    Row(
+                        modifier              = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        listOf(false to "Rp", true to "%").forEach { (pct, label) ->
+                            val selected = isPercent == pct
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(3.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(
+                                        if (selected) primary
+                                        else          MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                    .clickable(
+                                        indication        = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) { if (!selected) onToggleMode(pct) }
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    label,
+                                    style      = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color      = if (selected) MaterialTheme.colorScheme.onPrimary
+                                                 else         MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
+
                 // ── Display nominal ─────────────────────────────────────────
                 Box(
                     modifier = Modifier
@@ -109,14 +164,14 @@ fun FeeInputDialog(
                     Column(horizontalAlignment = Alignment.End) {
                         if (isNegative && hasValue) {
                             Text(
-                                "− (Pengurangan)",
+                                if (isPercent) "− (Diskon Persen)" else "− (Pengurangan)",
                                 style    = MaterialTheme.typography.labelSmall,
                                 color    = error.copy(alpha = 0.65f),
                                 fontSize = 10.sp
                             )
                         }
                         Text(
-                            "$prefix${feeFormatNumber(amount)}",
+                            displayText,
                             style      = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.ExtraBold,
                             color      = valueColor,
@@ -148,11 +203,16 @@ fun FeeInputDialog(
                                 onClick    = {
                                     raw = when (key) {
                                         "⌫"   -> raw.dropLast(1)
-                                        "000" -> (raw + "000").trimStart('0').ifEmpty { "" }
-                                            .let { if (it.length > 12) raw else raw + "000" }
+                                        "000" -> if (isPercent) raw  // tidak relevan dalam mode persen
+                                                 else (raw + "000").trimStart('0').ifEmpty { "" }
+                                                     .let { if (it.length > 12) raw else raw + "000" }
                                         else  -> {
                                             val next = if (raw == "0") key else raw + key
-                                            if (next.length > 12) raw else next
+                                            when {
+                                                isPercent && (next.toLongOrNull() ?: 0L) > 100L -> raw
+                                                !isPercent && next.length > 12                  -> raw
+                                                else                                             -> next
+                                            }
                                         }
                                     }
                                 }
@@ -177,7 +237,7 @@ fun FeeInputDialog(
                         Text("Batal")
                     }
                     Button(
-                        onClick  = { onConfirm(raw.toLongOrNull() ?: 0L) },
+                        onClick  = { onConfirm(raw.toLongOrNull() ?: 0L, isPercent) },
                         modifier = Modifier.weight(1f),
                         shape    = RoundedCornerShape(12.dp),
                         colors   = ButtonDefaults.buttonColors(
@@ -265,8 +325,26 @@ private fun FeeInputDialogPreview() {
             icon = Icons.Default.Check,
             initialValue = 15000L,
             isNegative = true,
+            showPercentToggle = true,
             onDismiss = {},
-            onConfirm = {}
+            onConfirm = { _, _ -> }
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun FeeInputDialogPercentPreview() {
+    RancakTheme {
+        FeeInputDialog(
+            title = "Diskon",
+            icon = Icons.Default.Check,
+            initialValue = 10L,
+            isNegative = true,
+            showPercentToggle = true,
+            initialIsPercent = true,
+            onDismiss = {},
+            onConfirm = { _, _ -> }
         )
     }
 }
@@ -281,7 +359,7 @@ private fun FeeInputDialogEmptyPreview() {
             initialValue = 0L,
             isNegative = false,
             onDismiss = {},
-            onConfirm = {}
+            onConfirm = { _, _ -> }
         )
     }
 }

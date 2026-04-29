@@ -67,7 +67,7 @@ fun TaxFormDialog(
                         readOnly = true,
                         label = { Text("Diterapkan Pada") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor()
+                        modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         applyToOptions.forEach { (value, label) ->

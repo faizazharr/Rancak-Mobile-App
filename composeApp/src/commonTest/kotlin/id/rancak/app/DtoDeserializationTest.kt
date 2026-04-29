@@ -5,6 +5,7 @@ import id.rancak.app.data.remote.dto.operations.PaymentMethodReportDto
 import id.rancak.app.data.remote.dto.operations.ShiftSummaryDto
 import id.rancak.app.data.remote.dto.sale.SaleDto
 import id.rancak.app.data.remote.dto.auth.MyTenantDto
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -31,7 +32,7 @@ class DtoDeserializationTest {
     fun `ApiResponse envelope - success case`() {
         val raw = """{"status_code":200,"message":"Success","data":{"name":"Test"}}"""
 
-        @kotlinx.serialization.Serializable
+        @Serializable
         data class Simple(val name: String)
 
         val response = json.decodeFromString<ApiResponse<Simple>>(raw)
@@ -45,7 +46,7 @@ class DtoDeserializationTest {
     fun `ApiResponse envelope - error case returns isSuccess=false`() {
         val raw = """{"status_code":422,"message":"Stok tidak cukup","data":null}"""
 
-        @kotlinx.serialization.Serializable
+        @Serializable
         data class Empty(val dummy: String? = null)
 
         val response = json.decodeFromString<ApiResponse<Empty>>(raw)

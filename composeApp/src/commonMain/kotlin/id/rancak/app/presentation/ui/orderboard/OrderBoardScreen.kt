@@ -39,7 +39,6 @@ import org.koin.compose.viewmodel.koinViewModel
 private const val PAGE_SIZE = 6
 private const val PAGE_SIZE_TABLET = 12
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderBoardScreen(
     onBack: () -> Unit,
@@ -58,7 +57,6 @@ fun OrderBoardScreen(
 }
 
 /** Pure-UI content — tanpa ViewModel, aman di-preview. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderBoardScreenContent(
     uiState: OrderBoardUiState,

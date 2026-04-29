@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Expense
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.util.formatDateFriendly
 import id.rancak.app.presentation.util.formatRupiah
 
 @Composable
@@ -38,6 +39,16 @@ fun ExpenseList(
                                 Text(it, style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.outline)
                             }
+                            item.categoryName?.let {
+                                Text(it, style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.outline)
+                            }
+                            val displayDate = formatDateFriendly(item.expenseDate ?: item.createdAt)
+                            Text(
+                                text = displayDate ?: "-",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.outline
+                            )
                         }
                         Text(formatRupiah(item.amount), style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
@@ -57,11 +68,11 @@ private fun ExpenseListPreview() {
         ExpenseList(
             items = listOf(
                 Expense(uuid = "1", amount = 50000, description = "Beli Gas", note = "2 tabung",
-                    categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null,
-                    expenseDate = null, createdAt = null, updatedAt = null),
+                    categoryUuid = null, categoryName = "Operasional", cashierUuid = null, cashierName = null,
+                    expenseDate = "2026-04-29", createdAt = "2026-04-29T10:00:00Z", updatedAt = null),
                 Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null,
                     categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null,
-                    expenseDate = null, createdAt = null, updatedAt = null)
+                    expenseDate = null, createdAt = "2026-04-28T08:30:00Z", updatedAt = null)
             ),
             onDelete = {}
         )

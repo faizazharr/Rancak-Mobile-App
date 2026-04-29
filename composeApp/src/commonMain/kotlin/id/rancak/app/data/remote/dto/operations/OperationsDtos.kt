@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CashInDto(
     val uuid: String,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val amount: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val amount: Long = 0,
     val source: String? = null,
     val description: String? = null,
     val note: String? = null,
@@ -25,7 +25,7 @@ data class CashInDto(
 @Serializable
 data class ExpenseDto(
     val uuid: String,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val amount: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val amount: Long = 0,
     val description: String? = null,
     val note: String? = null,
     @SerialName("category_uuid") val categoryUuid: String? = null,
@@ -43,7 +43,7 @@ data class ExpenseDto(
 data class BundleDto(
     val uuid: String,
     val name: String,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
     @SerialName("is_active") val isActive: Boolean = true,
     val items: List<BundleItemDto> = emptyList()
 )
@@ -95,9 +95,9 @@ data class VoucherValidationDto(
 @Serializable
 data class DiscountPreviewDto(
     @SerialName("applied_rules") val appliedRules: List<AppliedRuleDto> = emptyList(),
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_discount") val totalDiscount: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("final_total") val finalTotal: Long = 0
 )
 
@@ -106,7 +106,7 @@ data class AppliedRuleDto(
     val uuid: String,
     val name: String,
     @SerialName("rule_type") val ruleType: String? = null,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0
+    @Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0
 )
 
 // ── Order Board ──
@@ -184,7 +184,7 @@ data class ExpiringBatchDto(
 data class DailyCategoryReportDto(
     @SerialName("category_name") val categoryName: String,
     @SerialName("total_qty") val totalQty: Double = 0.0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_revenue") val totalRevenue: Long = 0
 )
 
@@ -192,7 +192,7 @@ data class DailyCategoryReportDto(
 data class PaymentMethodReportDto(
     @SerialName("payment_method") val method: String,
     @SerialName("transaction_count") val count: Int = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val total: Long = 0
+    @Serializable(with = FlexibleLongSerializer::class) val total: Long = 0
 )
 
 // ── Shift Summary ──
@@ -208,21 +208,21 @@ data class ShiftSummaryDto(
     @SerialName("expected_cash") val expectedCash: String? = null,
     @SerialName("cash_difference") val cashDifference: String? = null,
     @SerialName("cashier_name") val cashierName: String? = null,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_sales") val totalSales: Long = 0,
     @SerialName("total_transactions") val totalTransactions: Int = 0,
     @SerialName("void_transactions") val voidTransactions: Int = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("gross_total") val grossTotal: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_discount") val totalDiscount: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_tax") val totalTax: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("net_total") val netTotal: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_expenses") val totalExpenses: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_cash_in") val totalCashIn: Long = 0,
     @SerialName("payment_breakdown") val paymentBreakdown: List<PaymentMethodReportDto> = emptyList(),
     // Backward compat alias — older endpoints may still return `payment_summary`.
@@ -246,19 +246,19 @@ data class ReceiptDto(
     @SerialName("queue_number") val queueNumber: Int? = null,
     @SerialName("order_type") val orderType: String? = null,
     val items: List<ReceiptItemDto> = emptyList(),
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val surcharge: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val tax: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val tip: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val surcharge: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val tax: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val tip: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("admin_fee") val adminFee: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("delivery_fee") val deliveryFee: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val total: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class) val total: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("paid_amount") val paidAmount: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class)
+    @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("change_amount") val changeAmount: Long = 0,
     @SerialName("payment_method") val paymentMethod: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
@@ -269,79 +269,106 @@ data class ReceiptDto(
 data class ReceiptItemDto(
     val name: String,
     val qty: String,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
-    @kotlinx.serialization.Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
+    @Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
     @SerialName("variant_name") val variantName: String? = null,
     val note: String? = null
 )
 
 // ── Reports: stock-alerts read-all + shift-by-cashier ───────────────────────
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class DismissedCountDto(
-    @kotlinx.serialization.SerialName("dismissed_count") val dismissedCount: Int
+    @SerialName("dismissed_count") val dismissedCount: Int
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class CashierShiftSummaryDto(
-    @kotlinx.serialization.SerialName("cashier_uuid") val cashierUuid: String? = null,
-    @kotlinx.serialization.SerialName("cashier_name") val cashierName: String,
-    @kotlinx.serialization.SerialName("shift_uuid")   val shiftUuid: String? = null,
-    @kotlinx.serialization.SerialName("opened_at")    val openedAt: String,
-    @kotlinx.serialization.SerialName("closed_at")    val closedAt: String? = null,
-    @kotlinx.serialization.SerialName("shift_status") val shiftStatus: String,
-    @kotlinx.serialization.SerialName("total_transactions") val totalTransactions: Int = 0,
-    @kotlinx.serialization.SerialName("void_count")   val voidCount: Int = 0,
-    @kotlinx.serialization.SerialName("refund_count") val refundCount: Int = 0,
-    @kotlinx.serialization.SerialName("gross_total")  val grossTotal: Double = 0.0,
-    @kotlinx.serialization.SerialName("cash_total")   val cashTotal: Double = 0.0,
-    @kotlinx.serialization.SerialName("non_cash_total") val nonCashTotal: Double = 0.0,
-    @kotlinx.serialization.SerialName("cash_difference") val cashDifference: Double? = null
+    @SerialName("cashier_uuid") val cashierUuid: String? = null,
+    @SerialName("cashier_name") val cashierName: String,
+    @SerialName("shift_uuid")   val shiftUuid: String? = null,
+    @SerialName("opened_at")    val openedAt: String,
+    @SerialName("closed_at")    val closedAt: String? = null,
+    @SerialName("shift_status") val shiftStatus: String,
+    @SerialName("total_transactions") val totalTransactions: Int = 0,
+    @SerialName("void_count")   val voidCount: Int = 0,
+    @SerialName("refund_count") val refundCount: Int = 0,
+    @SerialName("gross_total")  val grossTotal: Double = 0.0,
+    @SerialName("cash_total")   val cashTotal: Double = 0.0,
+    @SerialName("non_cash_total") val nonCashTotal: Double = 0.0,
+    @SerialName("cash_difference") val cashDifference: Double? = null
 )
 
 // ── Cash count (rekonsiliasi kas shift) ─────────────────────────────────────
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class CashCountDto(
     val uuid: String,
-    @kotlinx.serialization.SerialName("shift_uuid")    val shiftUuid: String,
-    @kotlinx.serialization.SerialName("expected_cash") val expectedCash: Double,
-    @kotlinx.serialization.SerialName("actual_cash")   val actualCash: Double,
+    @SerialName("shift_uuid")    val shiftUuid: String,
+    @SerialName("expected_cash") val expectedCash: Double,
+    @SerialName("actual_cash")   val actualCash: Double,
     val difference: Double,
     val denominations: Map<String, Int>? = null,
     val note: String? = null,
-    @kotlinx.serialization.SerialName("counted_at")    val countedAt: String
+    @SerialName("counted_at")    val countedAt: String
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class SubmitCashCountRequest(
-    @kotlinx.serialization.SerialName("actual_cash") val actualCash: Double,
+    @SerialName("actual_cash") val actualCash: Double,
     val denominations: Map<String, Int>? = null,
     val note: String? = null
 )
 
 // ── Expense categories CRUD ─────────────────────────────────────────────────
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class ExpenseCategoryDto(
     val uuid: String,
     val name: String,
-    @kotlinx.serialization.SerialName("is_active")  val isActive: Boolean = true,
-    @kotlinx.serialization.SerialName("sort_order") val sortOrder: Int = 0,
-    @kotlinx.serialization.SerialName("created_at") val createdAt: String? = null,
-    @kotlinx.serialization.SerialName("updated_at") val updatedAt: String? = null
+    @SerialName("is_active")  val isActive: Boolean = true,
+    @SerialName("sort_order") val sortOrder: Int = 0,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("updated_at") val updatedAt: String? = null
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class CreateExpenseCategoryRequest(
     val name: String,
-    @kotlinx.serialization.SerialName("is_active")  val isActive: Boolean = true,
-    @kotlinx.serialization.SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("is_active")  val isActive: Boolean = true,
+    @SerialName("sort_order") val sortOrder: Int = 0
 )
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class UpdateExpenseCategoryRequest(
     val name: String? = null,
-    @kotlinx.serialization.SerialName("is_active")  val isActive: Boolean? = null,
-    @kotlinx.serialization.SerialName("sort_order") val sortOrder: Int? = null
+    @SerialName("is_active")  val isActive: Boolean? = null,
+    @SerialName("sort_order") val sortOrder: Int? = null
+)
+
+@Serializable
+data class CreateCashInRequest(
+    val amount: Long,
+    val source: String,
+    val description: String,
+    val note: String? = null,
+    @SerialName("cash_in_date") val cashInDate: String? = null
+)
+
+@Serializable
+data class CreateExpenseRequest(
+    val amount: Long,
+    val description: String,
+    val note: String? = null,
+    @SerialName("category_uuid") val categoryUuid: String? = null,
+    @SerialName("expense_date") val expenseDate: String? = null
+)
+
+@Serializable
+data class UpdateExpenseRequest(
+    val amount: Long? = null,
+    val description: String? = null,
+    val note: String? = null,
+    @SerialName("category_uuid") val categoryUuid: String? = null,
+    @SerialName("expense_date") val expenseDate: String? = null
 )

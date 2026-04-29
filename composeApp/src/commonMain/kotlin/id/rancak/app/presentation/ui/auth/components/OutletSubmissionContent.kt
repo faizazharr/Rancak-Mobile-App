@@ -632,7 +632,7 @@ private fun BusinessTypeDropdown(
             readOnly      = true,
             leadingIcon   = { Icon(Icons.Default.Category, null, Modifier.size(20.dp)) },
             trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier      = Modifier.menuAnchor()
+            modifier      = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)
         )
         ExposedDropdownMenu(
             expanded         = expanded,

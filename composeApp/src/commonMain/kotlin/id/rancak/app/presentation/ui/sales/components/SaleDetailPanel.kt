@@ -165,7 +165,7 @@ private fun SaleDetailBody(
 
                 ReceiptNotch(atTop = false)
 
-                val canPrint = sale.status != SaleStatus.VOID && sale.status != SaleStatus.CANCELLED
+                val canPrint = sale.status == SaleStatus.PAID || sale.status == SaleStatus.REFUNDED
                 if (canPrint) {
                     ReprintButton(onClick = onRequestPrint)
                 }
@@ -422,8 +422,11 @@ private fun ReceiptPricingSummary(sale: Sale) {
                 valueColor = MaterialTheme.colorScheme.error
             )
         }
-        if (sale.surcharge > 0) ReceiptRow("Biaya Tambahan", formatRupiah(sale.surcharge))
-        if (sale.tax > 0)       ReceiptRow("Pajak",          formatRupiah(sale.tax))
+        if (sale.surcharge > 0)  ReceiptRow("Biaya Tambahan", formatRupiah(sale.surcharge))
+        if (sale.tax > 0)        ReceiptRow("Pajak",          formatRupiah(sale.tax))
+        if (sale.adminFee > 0)   ReceiptRow("Biaya Admin",    formatRupiah(sale.adminFee))
+        if (sale.deliveryFee > 0) ReceiptRow("Ongkir",        formatRupiah(sale.deliveryFee))
+        if (sale.tip > 0)        ReceiptRow("Tip",            formatRupiah(sale.tip))
     }
 }
 

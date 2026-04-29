@@ -154,7 +154,7 @@ fun ProductFormDialog(
                         readOnly      = true,
                         label         = { Text("Kategori") },
                         trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
-                        modifier      = Modifier.fillMaxWidth().menuAnchor()
+                        modifier      = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(
                         expanded         = categoryExpanded,

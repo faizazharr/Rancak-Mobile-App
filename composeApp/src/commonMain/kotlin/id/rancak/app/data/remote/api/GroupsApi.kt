@@ -14,6 +14,7 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.serialization.json.JsonElement
 
 // ── Groups CRUD ───────────────────────────────────────────────────────────────
 
@@ -72,32 +73,32 @@ suspend fun RancakApiService.getGroupBranches(groupUuid: String, start: String? 
         end?.let { parameter("end", it) }
     }.body()
 
-suspend fun RancakApiService.getGroupRevenueSeries(groupUuid: String, start: String? = null, end: String? = null): ApiResponse<kotlinx.serialization.json.JsonElement> =
+suspend fun RancakApiService.getGroupRevenueSeries(groupUuid: String, start: String? = null, end: String? = null): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/revenue") {
         start?.let { parameter("start", it) }
         end?.let { parameter("end", it) }
     }.body()
 
-suspend fun RancakApiService.getGroupTopProducts(groupUuid: String): ApiResponse<kotlinx.serialization.json.JsonElement> =
+suspend fun RancakApiService.getGroupTopProducts(groupUuid: String): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/products").body()
 
-suspend fun RancakApiService.getGroupPaymentMethods(groupUuid: String): ApiResponse<kotlinx.serialization.json.JsonElement> =
+suspend fun RancakApiService.getGroupPaymentMethods(groupUuid: String): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/payment-methods").body()
 
-suspend fun RancakApiService.getGroupPeakHours(groupUuid: String): ApiResponse<kotlinx.serialization.json.JsonElement> =
+suspend fun RancakApiService.getGroupPeakHours(groupUuid: String): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/peak-hours").body()
 
-suspend fun RancakApiService.getGroupPnl(groupUuid: String): ApiResponse<kotlinx.serialization.json.JsonElement> =
+suspend fun RancakApiService.getGroupPnl(groupUuid: String): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/pnl").body()
 
-suspend fun RancakApiService.getGroupCategories(groupUuid: String): ApiResponse<kotlinx.serialization.json.JsonElement> =
+suspend fun RancakApiService.getGroupCategories(groupUuid: String): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/categories").body()
 
-suspend fun RancakApiService.getGroupCashiers(groupUuid: String): ApiResponse<kotlinx.serialization.json.JsonElement> =
+suspend fun RancakApiService.getGroupCashiers(groupUuid: String): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/cashiers").body()
 
-suspend fun RancakApiService.getGroupDiscounts(groupUuid: String): ApiResponse<kotlinx.serialization.json.JsonElement> =
+suspend fun RancakApiService.getGroupDiscounts(groupUuid: String): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/discounts").body()
 
-suspend fun RancakApiService.getGroupVoidRefund(groupUuid: String): ApiResponse<kotlinx.serialization.json.JsonElement> =
+suspend fun RancakApiService.getGroupVoidRefund(groupUuid: String): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/void-refund").body()

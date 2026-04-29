@@ -74,7 +74,7 @@ fun SurchargeFormDialog(
                         readOnly = true,
                         label = { Text("Tipe Pesanan") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor()
+                        modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         orderTypes.forEach { (value, label) ->
