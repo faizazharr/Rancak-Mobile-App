@@ -1,12 +1,9 @@
 package id.rancak.app.presentation.ui.finance
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material3.*
@@ -22,8 +19,10 @@ import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.finance.components.CashInList
 import id.rancak.app.presentation.ui.finance.components.CashInItemCard
+import id.rancak.app.presentation.ui.finance.components.CashInForm
 import id.rancak.app.presentation.ui.finance.components.ExpenseList
 import id.rancak.app.presentation.ui.finance.components.ExpenseItemCard
+import id.rancak.app.presentation.ui.finance.components.ExpenseForm
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseUiState
@@ -218,92 +217,8 @@ private fun PhoneCashLayout(
     }
 }
 
-@Composable
-private fun CashInForm(
-    uiState: CashExpenseUiState,
-    actions: CashExpenseActions
-) {
-    val amountNum = uiState.formAmount.toLongOrNull()
-    val amountError = when {
-        uiState.formAmount.isBlank() -> null
-        amountNum == null -> "Jumlah tidak valid"
-        amountNum <= 0 -> "Jumlah harus lebih dari 0"
-        else -> null
-    }
-    val canSubmit = uiState.formAmount.isNotBlank() && amountError == null &&
-        uiState.formSource.isNotBlank()
-
-    Card(Modifier.fillMaxWidth().padding(12.dp)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Tambah Kas Masuk", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            RancakTextField(
-                value         = uiState.formAmount,
-                onValueChange = actions.onAmountChange,
-                label         = "Jumlah (Rp) *",
-                isError       = amountError != null,
-                errorMessage  = amountError,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-            )
-            RancakTextField(
-                value         = uiState.formSource,
-                onValueChange = actions.onSourceChange,
-                label         = "Sumber *",
-                isError       = uiState.formSource.isBlank() && uiState.formAmount.isNotBlank(),
-                errorMessage  = if (uiState.formSource.isBlank() && uiState.formAmount.isNotBlank()) "Sumber wajib diisi" else null
-            )
-            RancakTextField(value = uiState.formDescription, onValueChange = actions.onDescriptionChange, label = "Keterangan")
-            RancakTextField(value = uiState.formNote,        onValueChange = actions.onNoteChange,        label = "Catatan (opsional)")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RancakOutlinedButton("Batal",  onClick = actions.onToggleCashInForm, modifier = Modifier.weight(1f))
-                RancakButton       ("Simpan", onClick = actions.onSubmitCashIn,     modifier = Modifier.weight(1f), enabled = canSubmit)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ExpenseForm(
-    uiState: CashExpenseUiState,
-    actions: CashExpenseActions
-) {
-    val amountNum = uiState.formAmount.toLongOrNull()
-    val amountError = when {
-        uiState.formAmount.isBlank() -> null
-        amountNum == null -> "Jumlah tidak valid"
-        amountNum <= 0 -> "Jumlah harus lebih dari 0"
-        else -> null
-    }
-    val canSubmit = uiState.formAmount.isNotBlank() && amountError == null &&
-        uiState.formDescription.isNotBlank()
-
-    Card(Modifier.fillMaxWidth().padding(12.dp)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Tambah Pengeluaran", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            RancakTextField(
-                value         = uiState.formAmount,
-                onValueChange = actions.onAmountChange,
-                label         = "Jumlah (Rp) *",
-                isError       = amountError != null,
-                errorMessage  = amountError,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-            )
-            RancakTextField(
-                value         = uiState.formDescription,
-                onValueChange = actions.onDescriptionChange,
-                label         = "Keterangan *",
-                isError       = uiState.formDescription.isBlank() && uiState.formAmount.isNotBlank(),
-                errorMessage  = if (uiState.formDescription.isBlank() && uiState.formAmount.isNotBlank()) "Keterangan wajib diisi" else null
-            )
-            RancakTextField(value = uiState.formNote, onValueChange = actions.onNoteChange, label = "Catatan (opsional)")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RancakOutlinedButton("Batal",  onClick = actions.onToggleExpenseForm, modifier = Modifier.weight(1f))
-                RancakButton       ("Simpan", onClick = actions.onSubmitExpense,     modifier = Modifier.weight(1f), enabled = canSubmit)
-            }
-        }
-    }
-}
-
-// CashInList and ExpenseList extracted to finance/components/
+// CashInList, ExpenseList, CashInItemCard, ExpenseItemCard extracted to finance/components/
+// CashInForm, ExpenseForm extracted to finance/components/
 
 @Preview
 @Composable

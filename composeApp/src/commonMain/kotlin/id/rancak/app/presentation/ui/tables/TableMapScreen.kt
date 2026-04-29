@@ -1,7 +1,5 @@
 package id.rancak.app.presentation.ui.tables
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -9,16 +7,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
@@ -26,6 +20,8 @@ import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.tables.components.TableCell
+import id.rancak.app.presentation.ui.tables.components.TableSummaryCard
+import id.rancak.app.presentation.ui.tables.components.AreaSummaryCard
 import id.rancak.app.presentation.viewmodel.TableUiState
 import id.rancak.app.presentation.viewmodel.TableViewModel
 import androidx.compose.ui.tooling.preview.Preview
@@ -106,7 +102,6 @@ private fun TabletTableLayout(
     uiState: TableUiState,
     onTableSelect: ((String) -> Unit)?
 ) {
-    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
     val available = uiState.tables.count { it.status == TableStatus.AVAILABLE }
     val occupied  = uiState.tables.count { it.status == TableStatus.OCCUPIED }
     val inactive  = uiState.tables.count { it.status == TableStatus.INACTIVE }
@@ -150,49 +145,21 @@ private fun TabletTableLayout(
         ) {
             Text("Ringkasan", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Total Meja", style = MaterialTheme.typography.bodySmall)
-                        Text("${uiState.tables.size}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-                    }
-                    HorizontalDivider()
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Box(Modifier.size(10.dp).background(semantic.statusAvailable, MaterialTheme.shapes.small))
-                            Text("Tersedia", style = MaterialTheme.typography.bodySmall)
-                        }
-                        Text("$available", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = semantic.statusAvailable)
-                    }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Box(Modifier.size(10.dp).background(semantic.statusOccupied, MaterialTheme.shapes.small))
-                            Text("Terisi", style = MaterialTheme.typography.bodySmall)
-                        }
-                        Text("$occupied", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = semantic.statusOccupied)
-                    }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Box(Modifier.size(10.dp).background(semantic.statusMaintenance, MaterialTheme.shapes.small))
-                            Text("Tidak Aktif", style = MaterialTheme.typography.bodySmall)
-                        }
-                        Text("$inactive", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = semantic.statusMaintenance)
-                    }
-                }
-            }
+            TableSummaryCard(
+                total     = uiState.tables.size,
+                available = available,
+                occupied  = occupied,
+                inactive  = inactive
+            )
 
             Text("Area", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            areas.keys.forEach { area ->
-                val areaCount = areas[area]?.size ?: 0
-                val areaOccupied = areas[area]?.count { it.status == TableStatus.OCCUPIED } ?: 0
-                Card(Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(area, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                            Text("$areaCount meja · $areaOccupied terisi", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-                        }
-                    }
-                }
+            areas.forEach { (area, tables) ->
+                val areaOccupied = tables.count { it.status == TableStatus.OCCUPIED }
+                AreaSummaryCard(
+                    area          = area,
+                    totalCount    = tables.size,
+                    occupiedCount = areaOccupied
+                )
             }
         }
     }
