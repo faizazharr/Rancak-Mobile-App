@@ -2,6 +2,8 @@ package id.rancak.app.presentation.ui.inventory.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,7 +21,8 @@ fun OpnameItemCard(
     isDraft: Boolean,
     stockInputValue: String,
     onStockInputChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDelete: (() -> Unit)? = null
 ) {
     val diffColor = when {
         item.difference < 0 -> MaterialTheme.colorScheme.error
@@ -54,6 +57,16 @@ fun OpnameItemCard(
                     modifier = Modifier.width(100.dp),
                     singleLine = true
                 )
+                if (onDelete != null) {
+                    Spacer(Modifier.width(4.dp))
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Hapus item",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             }
         }
     }

@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package id.rancak.app.data.local
 
 import android.content.Context
@@ -28,16 +30,13 @@ actual fun createSecureSettings(namespace: String): Settings {
     // androidx.security:security-crypto 1.1.x ditandai @Deprecated oleh AndroidX
     // karena akan diganti di masa depan, namun belum ada pengganti stabil dan
     // library ini masih aman digunakan di produksi. Suppress supaya log bersih.
-    @Suppress("DEPRECATION")
     val ctx = SecureContextHolder.appContext
         ?: error("SecureContextHolder.appContext belum di-set — panggil di Application.onCreate()")
 
-    @Suppress("DEPRECATION")
     val masterKey = MasterKey.Builder(ctx)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
-    @Suppress("DEPRECATION")
     val encryptedPrefs = EncryptedSharedPreferences.create(
         ctx,
         SECURE_PREFS_PREFIX + namespace,

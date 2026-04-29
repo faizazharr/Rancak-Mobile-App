@@ -108,7 +108,10 @@ class StockOpnameViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true) }
             when (val result = inventoryRepository.upsertOpnameItems(opnameId, items)) {
-                is Resource.Success -> _uiState.update { it.copy(isSubmitting = false, detail = result.data, successMessage = "Item berhasil disimpan") }
+                is Resource.Success -> {
+                    _uiState.update { it.copy(isSubmitting = false, successMessage = "Item berhasil disimpan") }
+                    loadDetail(opnameId)
+                }
                 is Resource.Error   -> _uiState.update { it.copy(isSubmitting = false, error = result.message) }
                 is Resource.Loading -> {}
             }
@@ -124,17 +127,10 @@ class StockOpnameViewModel(
             _uiState.update { it.copy(isSubmitting = true, showFinalizeConfirm = false) }
             when (val result = inventoryRepository.finalizeStockOpname(opnameId)) {
                 is Resource.Success -> {
-                    _uiState.update { state ->
-                        val updated = state.opnames.map {
-                            if (it.uuid == opnameId) result.data.opname else it
-                        }
-                        state.copy(
-                            isSubmitting = false,
-                            detail = result.data,
-                            opnames = updated,
-                            successMessage = "Opname berhasil difinalisasi. Stok telah disesuaikan."
-                        )
-                    }
+                    _uiState.update { it.copy(isSubmitting = false, successMessage = "Opname berhasil difinalisasi. Stok telah disesuaikan.") }
+                    // Reload detail to get finalized state, then refresh the list
+                    loadDetail(opnameId)
+                    loadOpnames()
                 }
                 is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = result.message) }
                 is Resource.Loading -> {}
@@ -147,15 +143,25 @@ class StockOpnameViewModel(
             when (val result = inventoryRepository.cancelStockOpname(opname.uuid)) {
                 is Resource.Success -> {
                     _uiState.update { state ->
-                        val updated = state.opnames.map { if (it.uuid == opname.uuid) result.data else it }
                         state.copy(
-                            opnames = updated,
-                            detail = if (state.detail?.opname?.uuid == opname.uuid) state.detail.copy(opname = result.data) else state.detail,
-                            successMessage = "Opname #${opname.opnameNo} dibatalkan"
+                            opnames = state.opnames.filter { it.uuid != opname.uuid },
+                            detail  = if (state.detail?.opname?.uuid == opname.uuid) null else state.detail,
+                            successMessage = "Opname #${opname.opnameNo} dihapus"
                         )
                     }
                 }
                 is Resource.Error -> _uiState.update { it.copy(error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun deleteItem(productUuid: String) {
+        val opnameId = _uiState.value.detail?.opname?.uuid ?: return
+        viewModelScope.launch {
+            when (val result = inventoryRepository.deleteOpnameItem(opnameId, productUuid)) {
+                is Resource.Success -> loadDetail(opnameId)
+                is Resource.Error   -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }

@@ -18,6 +18,7 @@ fun OpnameCard(
     opname: StockOpname,
     onOpen: () -> Unit,
     onCancel: () -> Unit,
+    isSelected: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val statusColor = when (opname.status) {
@@ -31,7 +32,14 @@ fun OpnameCard(
         else        -> "Draft"
     }
 
-    Card(modifier = modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(1.dp)) {
+    Card(
+        modifier  = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(if (isSelected) 3.dp else 1.dp),
+        colors    = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                             else MaterialTheme.colorScheme.surface
+        )
+    ) {
         Row(
             modifier = Modifier.padding(14.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

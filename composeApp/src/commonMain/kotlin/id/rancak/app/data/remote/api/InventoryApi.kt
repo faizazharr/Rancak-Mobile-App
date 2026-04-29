@@ -63,14 +63,14 @@ suspend fun RancakApiService.getStockOpnameDetail(
 suspend fun RancakApiService.cancelStockOpname(
     tenantUuid: String,
     opnameId: String
-): ApiResponse<OpnameDto> =
+): ApiResponse<Unit> =
     client.delete(tenantUrl(tenantUuid) + "/stock-opname/$opnameId").body()
 
 suspend fun RancakApiService.upsertOpnameItems(
     tenantUuid: String,
     opnameId: String,
     request: UpsertOpnameItemsRequest
-): ApiResponse<OpnameDetailDto> =
+): ApiResponse<Unit> =
     client.post(tenantUrl(tenantUuid) + "/stock-opname/$opnameId/items") {
         contentType(ContentType.Application.Json)
         setBody(request)
@@ -86,7 +86,7 @@ suspend fun RancakApiService.deleteOpnameItem(
 suspend fun RancakApiService.finalizeStockOpname(
     tenantUuid: String,
     opnameId: String
-): ApiResponse<OpnameDetailDto> =
+): ApiResponse<Unit> =
     client.post(tenantUrl(tenantUuid) + "/stock-opname/$opnameId/finalize").body()
 
 // ── Suppliers ───────────────────────────────────────────────────────────────

@@ -75,16 +75,15 @@ class InventoryRepositoryImpl(
         errorMsg = "Opname tidak ditemukan"
     )
 
-    override suspend fun cancelStockOpname(opnameId: String): Resource<StockOpname> = safe(
+    override suspend fun cancelStockOpname(opnameId: String): Resource<Unit> = safeUnit(
         block = { api.cancelStockOpname(tenantUuid, opnameId) },
-        map = { it.toDomain() },
         errorMsg = "Gagal membatalkan opname"
     )
 
     override suspend fun upsertOpnameItems(
         opnameId: String,
         items: List<OpnameItemEntry>
-    ): Resource<StockOpnameDetail> = safe(
+    ): Resource<Unit> = safeUnit(
         block = {
             api.upsertOpnameItems(
                 tenantUuid,
@@ -94,7 +93,6 @@ class InventoryRepositoryImpl(
                 )
             )
         },
-        map = { it.toDomain() },
         errorMsg = "Gagal menyimpan item opname"
     )
 
@@ -103,9 +101,8 @@ class InventoryRepositoryImpl(
         errorMsg = "Gagal menghapus item opname"
     )
 
-    override suspend fun finalizeStockOpname(opnameId: String): Resource<StockOpnameDetail> = safe(
+    override suspend fun finalizeStockOpname(opnameId: String): Resource<Unit> = safeUnit(
         block = { api.finalizeStockOpname(tenantUuid, opnameId) },
-        map = { it.toDomain() },
         errorMsg = "Gagal mem-finalize opname"
     )
 

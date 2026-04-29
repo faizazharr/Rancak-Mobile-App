@@ -20,11 +20,11 @@ interface InventoryRepository {
     suspend fun getStockOpnames(status: String? = null, page: Int = 1, limit: Int = 20): Resource<List<StockOpname>>
     suspend fun createStockOpname(note: String? = null): Resource<StockOpname>
     suspend fun getStockOpnameDetail(opnameId: String): Resource<StockOpnameDetail>
-    suspend fun cancelStockOpname(opnameId: String): Resource<StockOpname>
-    suspend fun upsertOpnameItems(opnameId: String, items: List<OpnameItemEntry>): Resource<StockOpnameDetail>
+    suspend fun cancelStockOpname(opnameId: String): Resource<Unit>
+    suspend fun upsertOpnameItems(opnameId: String, items: List<OpnameItemEntry>): Resource<Unit>
     suspend fun deleteOpnameItem(opnameId: String, productUuid: String): Resource<Unit>
     /** Kunci hasil opname dan terapkan adjustment stok. Tidak bisa dibatalkan. */
-    suspend fun finalizeStockOpname(opnameId: String): Resource<StockOpnameDetail>
+    suspend fun finalizeStockOpname(opnameId: String): Resource<Unit>
 
     // ── Suppliers ────────────────────────────────────────────────────────────
     suspend fun getSuppliers(isActive: Boolean? = null): Resource<List<Supplier>>
