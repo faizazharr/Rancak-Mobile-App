@@ -10,13 +10,16 @@ import id.rancak.app.data.remote.dto.auth.LoginRequest
 import id.rancak.app.data.remote.dto.auth.LogoutRequest
 import id.rancak.app.data.remote.dto.auth.RefreshTokenRequest
 import id.rancak.app.data.remote.dto.auth.SubmitApplicationRequest
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeUnit
 import id.rancak.app.domain.model.*
 import id.rancak.app.domain.repository.AuthRepository
+import id.rancak.app.domain.repository.UserSessionProvider
 
 class AuthRepositoryImpl(
     private val api: RancakApiService,
     private val tokenManager: TokenManager
-) : AuthRepository {
+) : AuthRepository, UserSessionProvider {
 
     override suspend fun login(email: String, password: String): Resource<LoginResult> {
         return try {
@@ -86,18 +89,11 @@ class AuthRepositoryImpl(
         }
     }
 
-    override suspend fun getMe(): Resource<User> {
-        return try {
-            val response = api.getMe()
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil data pengguna")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getMe(): Resource<User> = safe(
+        block    = { api.getMe() },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal mengambil data pengguna"
+    )
 
     override fun isLoggedIn(): Boolean = tokenManager.isLoggedIn
 
@@ -111,81 +107,39 @@ class AuthRepositoryImpl(
 
     override fun getUserRole(): UserRole = UserRole.from(tokenManager.userRole)
 
-    override suspend fun getMyTenants(): Resource<List<Tenant>> {
-        return try {
-            val response = api.getMyTenants()
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil data tenant")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getMyTenants(): Resource<List<Tenant>> = safe(
+        block    = { api.getMyTenants() },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil data tenant"
+    )
 
-    override suspend fun getTenantSettings(): Resource<TenantSettings> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getTenantSettings(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil pengaturan tenant")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getTenantSettings(): Resource<TenantSettings> = safe(
+        block    = { api.getTenantSettings(tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal mengambil pengaturan tenant"
+    )
 
-    override suspend fun getReceiptSettings(): Resource<ReceiptSettings> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getReceiptSettings(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil pengaturan struk")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getReceiptSettings(): Resource<ReceiptSettings> = safe(
+        block    = { api.getReceiptSettings(tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal mengambil pengaturan struk"
+    )
 
-    override suspend fun changePassword(currentPassword: String, newPassword: String): Resource<Unit> {
-        return try {
-            val response = api.changePassword(
-                id.rancak.app.data.remote.dto.auth.ChangePasswordRequest(currentPassword, newPassword)
-            )
-            if (response.isSuccess) Resource.Success(Unit)
-            else Resource.Error(response.message ?: "Gagal mengubah password")
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun changePassword(currentPassword: String, newPassword: String): Resource<Unit> = safeUnit(
+        block    = { api.changePassword(id.rancak.app.data.remote.dto.auth.ChangePasswordRequest(currentPassword, newPassword)) },
+        errorMsg = "Gagal mengubah password"
+    )
 
-    override suspend fun getSessions(): Resource<List<Session>> {
-        return try {
-            val response = api.getSessions()
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil daftar sesi")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getSessions(): Resource<List<Session>> = safe(
+        block    = { api.getSessions() },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil daftar sesi"
+    )
 
-    override suspend fun revokeSession(sessionId: String): Resource<Unit> {
-        return try {
-            val response = api.revokeSession(sessionId)
-            if (response.isSuccess) Resource.Success(Unit)
-            else Resource.Error(response.message ?: "Gagal menghapus sesi")
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun revokeSession(sessionId: String): Resource<Unit> = safeUnit(
+        block    = { api.revokeSession(sessionId) },
+        errorMsg = "Gagal menghapus sesi"
+    )
 
     override suspend fun submitOutletApplication(
         outletName: String,

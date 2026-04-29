@@ -50,7 +50,9 @@ val dataModule = module {
 
 // Repository bindings — semua memakai API backend sungguhan
 val repositoryModule = module {
-    singleOf(::AuthRepositoryImpl) bind AuthRepository::class
+    single<AuthRepository> { get<AuthRepositoryImpl>() }
+    single<UserSessionProvider> { get<AuthRepositoryImpl>() }
+    singleOf(::AuthRepositoryImpl)
     single<ProductRepository> { ProductRepositoryImpl(get(), get(), get(), get()) }
     single<SaleRepository> { SaleRepositoryImpl(get(), get(), get(), get(), get()) }
     single<OperationsRepository> { OperationsRepositoryImpl(get(), get(), get(), get()) }
@@ -61,6 +63,7 @@ val repositoryModule = module {
     singleOf(::AdminRepositoryImpl) bind AdminRepository::class
     singleOf(::BillingRepositoryImpl) bind BillingRepository::class
     singleOf(::GroupsRepositoryImpl) bind GroupsRepository::class
+    singleOf(::CartRepositoryImpl) bind CartRepository::class
 }
 
 val viewModelModule = module {
@@ -73,6 +76,7 @@ val viewModelModule = module {
     viewModelOf(::PaymentViewModel)
     viewModelOf(::ShiftViewModel)
     viewModelOf(::TableViewModel)
+    viewModelOf(::ReservationViewModel)
     viewModelOf(::KdsViewModel)
     viewModelOf(::SalesHistoryViewModel)
     viewModelOf(::SplitBillViewModel)

@@ -45,6 +45,9 @@ import id.rancak.app.domain.model.StockOpname
 import id.rancak.app.domain.model.StockOpnameDetail
 import id.rancak.app.domain.model.Supplier
 import id.rancak.app.domain.model.SupplierInput
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeList
+import id.rancak.app.data.util.safeUnit
 import id.rancak.app.domain.repository.InventoryRepository
 
 class InventoryRepositoryImpl(
@@ -300,45 +303,4 @@ class InventoryRepositoryImpl(
     )
 }
 
-// ── Helpers (file-private) ──────────────────────────────────────────────────
 
-private suspend fun <T, R> safe(
-    block: suspend () -> id.rancak.app.data.remote.dto.ApiResponse<T>,
-    map: (T) -> R,
-    errorMsg: String
-): Resource<R> = try {
-    val response = block()
-    if (response.isSuccess && response.data != null) {
-        Resource.Success(map(response.data))
-    } else {
-        Resource.Error(response.message ?: errorMsg)
-    }
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
-}
-
-private suspend fun <T, R> safeList(
-    block: suspend () -> id.rancak.app.data.remote.dto.ApiResponse<List<T>>,
-    errorMsg: String,
-    map: (T) -> R
-): Resource<List<R>> = try {
-    val response = block()
-    if (response.isSuccess && response.data != null) {
-        Resource.Success(response.data.map(map))
-    } else {
-        Resource.Error(response.message ?: errorMsg)
-    }
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
-}
-
-private suspend fun safeUnit(
-    block: suspend () -> id.rancak.app.data.remote.dto.ApiResponse<Unit>,
-    errorMsg: String
-): Resource<Unit> = try {
-    val response = block()
-    if (response.isSuccess) Resource.Success(Unit)
-    else Resource.Error(response.message ?: errorMsg)
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
-}

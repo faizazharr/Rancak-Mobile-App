@@ -3,9 +3,9 @@ package id.rancak.app.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.*
-import id.rancak.app.domain.repository.CartItem
+import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.repository.SaleRepository
-import id.rancak.app.domain.repository.SplitPaymentEntry
+import id.rancak.app.domain.model.SplitPaymentEntry
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,7 +78,13 @@ data class PaymentUiState(
     /** Nominal QRIS yang harus dibayar. */
     val qrisAmount: Long = 0,
     /** True saat polling aktif. */
-    val isQrisPolling: Boolean = false
+    val isQrisPolling: Boolean = false,
+
+    // ── Held-order loading ────────────────────────────────────────────────────
+    /** Sale yang sedang dibayar dari held order — dimuat via [PaymentViewModel.loadHeldSale]. */
+    val heldSale: Sale? = null,
+    /** Pesan error saat memuat held sale, jika ada. */
+    val heldSaleError: String? = null
 ) {
     val paidAmountLong: Long get() = paidAmount.toLongOrNull() ?: 0L
 
@@ -657,6 +663,17 @@ class PaymentViewModel(
                 }
                 is Resource.Error ->
                     _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /** Muat detail held sale berdasarkan [saleUuid] — hasilnya tersedia di [PaymentUiState.heldSale]. */
+    fun loadHeldSale(saleUuid: String) {
+        viewModelScope.launch {
+            when (val result = saleRepository.getSaleDetail(saleUuid)) {
+                is Resource.Success -> _uiState.update { it.copy(heldSale = result.data, heldSaleError = null) }
+                is Resource.Error   -> _uiState.update { it.copy(heldSaleError = result.message) }
                 is Resource.Loading -> {}
             }
         }

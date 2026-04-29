@@ -20,8 +20,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Product
-import id.rancak.app.domain.repository.AuthRepository
-import id.rancak.app.domain.repository.CartItem
+import id.rancak.app.domain.model.CartItem
 import id.rancak.app.presentation.barcode.BarcodeScannerView
 import id.rancak.app.presentation.ui.pos.components.CartBar
 import id.rancak.app.presentation.ui.pos.components.OrderPanel
@@ -34,7 +33,6 @@ import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.PosUiState
 import id.rancak.app.presentation.viewmodel.PosViewModel
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -58,8 +56,6 @@ fun PosScreen(
     val uiState    by posViewModel.uiState.collectAsStateWithLifecycle()
     val cartState  by cartViewModel.uiState.collectAsStateWithLifecycle()
     val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
-    val authRepo: AuthRepository = koinInject()
-    val outletName = remember { authRepo.getCurrentTenantName() ?: "" }
     var showScanner by remember { mutableStateOf(false) }
 
     val hasOpenShift = shiftState.currentShift != null
@@ -101,7 +97,7 @@ fun PosScreen(
                 uiState          = uiState,
                 cartState        = cartState,
                 cartQtyMap       = cartQtyMap,
-                outletName       = outletName,
+                outletName       = uiState.outletName,
                 onMenuClick      = onMenuClick,
                 onCartClick      = onCartClick,
                 onCheckoutClick  = onCheckoutClick,
@@ -134,7 +130,7 @@ fun PosScreen(
                 uiState          = uiState,
                 cartState        = cartState,
                 cartQtyMap       = cartQtyMap,
-                outletName       = outletName,
+                outletName       = uiState.outletName,
                 hasOpenShift     = hasOpenShift,
                 onMenuClick      = onMenuClick,
                 onCartClick      = onCartClick,

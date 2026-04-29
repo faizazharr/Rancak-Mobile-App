@@ -8,6 +8,7 @@ import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.Product86
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.ProductRepository
+import id.rancak.app.domain.repository.UserSessionProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class PosUiState(
+    val outletName: String = "",
     val products: List<Product> = emptyList(),
     val categories: List<Category> = emptyList(),
     val favoriteProducts: List<FavoriteProduct> = emptyList(),
@@ -29,10 +31,13 @@ data class PosUiState(
 )
 
 class PosViewModel(
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val sessionProvider: UserSessionProvider
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(PosUiState())
+    private val _uiState = MutableStateFlow(PosUiState(
+        outletName = sessionProvider.getCurrentTenantName() ?: ""
+    ))
     val uiState: StateFlow<PosUiState> = _uiState.asStateFlow()
 
     /** Recompute derived fields setiap kali data sumber berubah. */

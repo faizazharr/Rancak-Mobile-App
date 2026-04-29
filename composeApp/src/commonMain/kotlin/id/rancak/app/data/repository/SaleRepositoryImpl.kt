@@ -9,16 +9,15 @@ import id.rancak.app.data.local.db.entity.toEntity
 import id.rancak.app.data.local.db.entity.toDomain
 import id.rancak.app.data.mapper.toDomain
 import id.rancak.app.data.remote.dto.sale.SplitBillRequest
-import id.rancak.app.domain.repository.SplitBillResult
-import id.rancak.app.domain.repository.SplitPaymentEntry
 import id.rancak.app.data.remote.api.splitBill
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.api.*
 import id.rancak.app.data.remote.dto.sale.CreateSaleRequest
 import id.rancak.app.data.remote.dto.sale.SaleItemRequest
 import id.rancak.app.data.sync.SyncScheduler
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeUnit
 import id.rancak.app.domain.model.*
-import id.rancak.app.domain.repository.CartItem
 import id.rancak.app.domain.repository.SaleRepository
 import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
@@ -261,18 +260,11 @@ class SaleRepositoryImpl(
         }
     }
 
-    override suspend fun serveSale(saleUuid: String): Resource<Sale> {
-        return try {
-            val response = api.serveSale(tenantUuid, saleUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal menyajikan pesanan")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun serveSale(saleUuid: String): Resource<Sale> = safe(
+        block    = { api.serveSale(tenantUuid, saleUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal menyajikan pesanan"
+    )
 
     override suspend fun paySale(saleUuid: String, paymentMethod: PaymentMethod, paidAmount: Long): Resource<Sale> {
         return try {
@@ -360,44 +352,23 @@ class SaleRepositoryImpl(
         }
     }
 
-    override suspend fun removeHeldOrderItem(saleUuid: String, itemUuid: String): Resource<Sale> {
-        return try {
-            val response = api.deleteHeldOrderItem(tenantUuid, saleUuid, itemUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal menghapus item dari pesanan")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun removeHeldOrderItem(saleUuid: String, itemUuid: String): Resource<Sale> = safe(
+        block    = { api.deleteHeldOrderItem(tenantUuid, saleUuid, itemUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal menghapus item dari pesanan"
+    )
 
-    override suspend fun voidSale(saleUuid: String, reason: String?): Resource<Sale> {
-        return try {
-            val response = api.voidSale(tenantUuid, saleUuid, reason)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal membatalkan penjualan")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun voidSale(saleUuid: String, reason: String?): Resource<Sale> = safe(
+        block    = { api.voidSale(tenantUuid, saleUuid, reason) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal membatalkan penjualan"
+    )
 
-    override suspend fun cancelSale(saleUuid: String, reason: String?): Resource<Sale> {
-        return try {
-            val response = api.cancelSale(tenantUuid, saleUuid, reason)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal membatalkan pesanan")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun cancelSale(saleUuid: String, reason: String?): Resource<Sale> = safe(
+        block    = { api.cancelSale(tenantUuid, saleUuid, reason) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal membatalkan pesanan"
+    )
 
     override suspend fun refundSale(saleUuid: String, amount: Long?, reason: String?): Resource<Sale> {
         return try {
@@ -427,18 +398,11 @@ class SaleRepositoryImpl(
         }
     }
 
-    override suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale> {
-        return try {
-            val response = api.moveTable(tenantUuid, saleUuid, tableUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal memindahkan meja")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale> = safe(
+        block    = { api.moveTable(tenantUuid, saleUuid, tableUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal memindahkan meja"
+    )
 
     override suspend fun createQrPayment(saleUuid: String): Resource<QrPayment> {
         return try {
@@ -454,32 +418,17 @@ class SaleRepositoryImpl(
         }
     }
 
-    override suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment> {
-        return try {
-            val response = api.getQrPaymentStatus(tenantUuid, saleUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal mengecek status QR")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment> = safe(
+        block    = { api.getQrPaymentStatus(tenantUuid, saleUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal mengecek status QR"
+    )
 
-    override suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getSaleReceipt(tenantUuid, saleUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil struk")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt> = safe(
+        block    = { api.getSaleReceipt(tenantUuid, saleUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal mengambil struk"
+    )
 
     override suspend fun getReceiptEscpos(saleUuid: String): Resource<ByteArray> {
         val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
@@ -517,32 +466,17 @@ class SaleRepositoryImpl(
         return Resource.Success(Unit)
     }
 
-    override suspend fun getOrderBoard(date: String?, includeDone: Boolean): Resource<List<OrderBoardOrder>> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getOrderBoard(tenantUuid, date, includeDone)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil order board")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getOrderBoard(date: String?, includeDone: Boolean): Resource<List<OrderBoardOrder>> = safe(
+        block    = { api.getOrderBoard(tenantUuid, date, includeDone) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil order board"
+    )
 
-    override suspend fun mergeSale(targetUuid: String, sourceUuid: String): Resource<Sale> {
-        return try {
-            val response = api.mergeSale(tenantUuid, targetUuid, sourceUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal menggabungkan order")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun mergeSale(targetUuid: String, sourceUuid: String): Resource<Sale> = safe(
+        block    = { api.mergeSale(tenantUuid, targetUuid, sourceUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal menggabungkan order"
+    )
 
     override suspend fun getReceiptQueue(saleUuid: String): Resource<ByteArray> {
         return try {
@@ -557,12 +491,12 @@ class SaleRepositoryImpl(
         saleUuid: String,
         printType: String,
         reason: String?
-    ): Resource<id.rancak.app.domain.repository.ReprintResult> {
+    ): Resource<ReprintResult> {
         return try {
             val response = api.reprintSale(tenantUuid, saleUuid, reason, printType)
             if (response.isSuccess && response.data != null) {
                 Resource.Success(
-                    id.rancak.app.domain.repository.ReprintResult(
+                    ReprintResult(
                         printType = response.data.printType,
                         sale = response.data.sale.toDomain()
                     )

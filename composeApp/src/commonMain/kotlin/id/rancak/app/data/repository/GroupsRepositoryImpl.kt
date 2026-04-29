@@ -23,6 +23,8 @@ import id.rancak.app.data.remote.api.getGroups
 import id.rancak.app.data.remote.api.removeTenantFromGroup
 import id.rancak.app.data.remote.api.updateGroup
 import id.rancak.app.data.remote.dto.ApiResponse
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeUnit
 import id.rancak.app.domain.model.BranchReport
 import id.rancak.app.domain.model.Group
 import id.rancak.app.domain.model.GroupOverview
@@ -127,27 +129,4 @@ class GroupsRepositoryImpl(
     } catch (e: Exception) {
         Resource.Error(e.message ?: "Kesalahan jaringan")
     }
-}
-
-private suspend fun <T, R> safe(
-    block: suspend () -> ApiResponse<T>,
-    map: (T) -> R,
-    errorMsg: String
-): Resource<R> = try {
-    val response = block()
-    if (response.isSuccess && response.data != null) Resource.Success(map(response.data))
-    else Resource.Error(response.message ?: errorMsg)
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
-}
-
-private suspend fun safeUnit(
-    block: suspend () -> ApiResponse<Unit>,
-    errorMsg: String
-): Resource<Unit> = try {
-    val response = block()
-    if (response.isSuccess) Resource.Success(Unit)
-    else Resource.Error(response.message ?: errorMsg)
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
 }

@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.UserRole
-import id.rancak.app.domain.repository.AuthRepository
+import id.rancak.app.domain.repository.UserSessionProvider
 import org.koin.compose.koinInject
 
 /**
@@ -35,8 +35,8 @@ fun RoleGate(
     fallback: @Composable () -> Unit = {},
     content: @Composable () -> Unit
 ) {
-    val authRepository: AuthRepository = koinInject()
-    val currentRole = authRepository.getUserRole()
+    val sessionProvider: UserSessionProvider = koinInject()
+    val currentRole = sessionProvider.getUserRole()
     if (currentRole.atLeast(minRole)) {
         content()
     } else {
@@ -91,8 +91,4 @@ fun RoleGatedScreen(
     )
 }
 
-private fun UserRole.displayName(): String = when (this) {
-    UserRole.STAFF -> "Staff"
-    UserRole.ADMIN -> "Admin"
-    UserRole.OWNER -> "Owner"
-}
+

@@ -18,6 +18,8 @@ import id.rancak.app.domain.model.Reservation
 import id.rancak.app.domain.model.ReservationInput
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.ReservationRepository
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeUnit
 
 class ReservationRepositoryImpl(
     private val api: RancakApiService,
@@ -27,37 +29,35 @@ class ReservationRepositoryImpl(
     private val tenantUuid: String
         get() = tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")
 
-    override suspend fun getReservations(status: String?, date: String?): Resource<List<Reservation>> =
-        try {
-            val response = api.getReservations(tenantUuid, status, date)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal memuat reservasi")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
+    override suspend fun getReservations(status: String?, date: String?): Resource<List<Reservation>> = safe(
+        block    = { api.getReservations(tenantUuid, status, date) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal memuat reservasi"
+    )
 
-    override suspend fun getReservation(reservationId: String): Resource<Reservation> =
-        single({ api.getReservation(tenantUuid, reservationId) }, "Reservasi tidak ditemukan")
+    override suspend fun getReservation(reservationId: String): Resource<Reservation> = safe(
+        block    = { api.getReservation(tenantUuid, reservationId) },
+        map      = { it.toDomain() },
+        errorMsg = "Reservasi tidak ditemukan"
+    )
 
-    override suspend fun createReservation(input: ReservationInput): Resource<Reservation> = single(
-        {
+    override suspend fun createReservation(input: ReservationInput): Resource<Reservation> = safe(
+        block    = {
             api.createReservation(
                 tenantUuid,
                 CreateReservationRequest(
-                    customerName = input.customerName,
-                    customerPhone = input.customerPhone,
-                    partySize = input.partySize,
-                    reservedAt = input.reservedAt,
+                    customerName    = input.customerName,
+                    customerPhone   = input.customerPhone,
+                    partySize       = input.partySize,
+                    reservedAt      = input.reservedAt,
                     durationMinutes = input.durationMinutes,
-                    tableUuid = input.tableUuid,
-                    note = input.note
+                    tableUuid       = input.tableUuid,
+                    note            = input.note
                 )
             )
         },
-        "Gagal membuat reservasi"
+        map      = { it.toDomain() },
+        errorMsg = "Gagal membuat reservasi"
     )
 
     override suspend fun updateReservation(
@@ -69,8 +69,8 @@ class ReservationRepositoryImpl(
         durationMinutes: Int?,
         tableUuid: String?,
         note: String?
-    ): Resource<Reservation> = single(
-        {
+    ): Resource<Reservation> = safe(
+        block    = {
             api.updateReservation(
                 tenantUuid,
                 reservationId,
@@ -79,40 +79,36 @@ class ReservationRepositoryImpl(
                 )
             )
         },
-        "Gagal memperbarui reservasi"
+        map      = { it.toDomain() },
+        errorMsg = "Gagal memperbarui reservasi"
     )
 
-    override suspend fun deleteReservation(reservationId: String): Resource<Unit> = try {
-        val response = api.deleteReservation(tenantUuid, reservationId)
-        if (response.isSuccess) Resource.Success(Unit)
-        else Resource.Error(response.message ?: "Gagal menghapus reservasi")
-    } catch (e: Exception) {
-        Resource.Error(e.message ?: "Kesalahan jaringan")
-    }
+    override suspend fun deleteReservation(reservationId: String): Resource<Unit> = safeUnit(
+        block    = { api.deleteReservation(tenantUuid, reservationId) },
+        errorMsg = "Gagal menghapus reservasi"
+    )
 
-    override suspend fun confirmReservation(reservationId: String): Resource<Reservation> =
-        single({ api.confirmReservation(tenantUuid, reservationId) }, "Gagal konfirmasi reservasi")
+    override suspend fun confirmReservation(reservationId: String): Resource<Reservation> = safe(
+        block    = { api.confirmReservation(tenantUuid, reservationId) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal konfirmasi reservasi"
+    )
 
-    override suspend fun seatReservation(reservationId: String, tableUuid: String): Resource<Reservation> =
-        single({ api.seatReservation(tenantUuid, reservationId, tableUuid) }, "Gagal seat reservasi")
+    override suspend fun seatReservation(reservationId: String, tableUuid: String): Resource<Reservation> = safe(
+        block    = { api.seatReservation(tenantUuid, reservationId, tableUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal seat reservasi"
+    )
 
-    override suspend fun completeReservation(reservationId: String): Resource<Reservation> =
-        single({ api.completeReservation(tenantUuid, reservationId) }, "Gagal menyelesaikan reservasi")
+    override suspend fun completeReservation(reservationId: String): Resource<Reservation> = safe(
+        block    = { api.completeReservation(tenantUuid, reservationId) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal menyelesaikan reservasi"
+    )
 
-    override suspend fun cancelReservation(reservationId: String, reason: String?): Resource<Reservation> =
-        single({ api.cancelReservation(tenantUuid, reservationId, reason) }, "Gagal membatalkan reservasi")
-
-    private suspend fun single(
-        block: suspend () -> id.rancak.app.data.remote.dto.ApiResponse<id.rancak.app.data.remote.dto.reservation.ReservationDto>,
-        errorMsg: String
-    ): Resource<Reservation> = try {
-        val response = block()
-        if (response.isSuccess && response.data != null) {
-            Resource.Success(response.data.toDomain())
-        } else {
-            Resource.Error(response.message ?: errorMsg)
-        }
-    } catch (e: Exception) {
-        Resource.Error(e.message ?: "Kesalahan jaringan")
-    }
+    override suspend fun cancelReservation(reservationId: String, reason: String?): Resource<Reservation> = safe(
+        block    = { api.cancelReservation(tenantUuid, reservationId, reason) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal membatalkan reservasi"
+    )
 }

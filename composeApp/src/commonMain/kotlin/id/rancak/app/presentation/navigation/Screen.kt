@@ -12,6 +12,7 @@ sealed class Screen {
     @Serializable data object Payment : Screen()
     @Serializable data object Shift : Screen()
     @Serializable data object Tables : Screen()
+    @Serializable data object Reservations : Screen()
     @Serializable data object Kds : Screen()
     @Serializable data object SalesHistory : Screen()
     @Serializable data class  PayHeldOrder(val saleUuid: String) : Screen()

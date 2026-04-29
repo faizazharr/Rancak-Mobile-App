@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
-import id.rancak.app.domain.repository.CartItem
+import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.repository.ProductRepository
 import id.rancak.app.domain.repository.SaleRepository
 import kotlinx.coroutines.flow.MutableStateFlow

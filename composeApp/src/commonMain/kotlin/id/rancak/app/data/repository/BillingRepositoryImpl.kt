@@ -9,7 +9,8 @@ import id.rancak.app.data.remote.api.getBillingPlans
 import id.rancak.app.data.remote.api.getInvoice
 import id.rancak.app.data.remote.api.getInvoices
 import id.rancak.app.data.remote.api.getSubscription
-import id.rancak.app.data.remote.dto.ApiResponse
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeUnit
 import id.rancak.app.domain.model.Invoice
 import id.rancak.app.domain.model.Plan
 import id.rancak.app.domain.model.Resource
@@ -58,27 +59,4 @@ class BillingRepositoryImpl(
         block = { api.cancelInvoice(tenantUuid, invoiceUuid) },
         errorMsg = "Gagal membatalkan invoice"
     )
-}
-
-private suspend fun <T, R> safe(
-    block: suspend () -> ApiResponse<T>,
-    map: (T) -> R,
-    errorMsg: String
-): Resource<R> = try {
-    val response = block()
-    if (response.isSuccess && response.data != null) Resource.Success(map(response.data))
-    else Resource.Error(response.message ?: errorMsg)
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
-}
-
-private suspend fun safeUnit(
-    block: suspend () -> ApiResponse<Unit>,
-    errorMsg: String
-): Resource<Unit> = try {
-    val response = block()
-    if (response.isSuccess) Resource.Success(Unit)
-    else Resource.Error(response.message ?: errorMsg)
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
 }

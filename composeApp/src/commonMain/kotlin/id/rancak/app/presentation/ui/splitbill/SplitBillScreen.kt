@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.SaleItem
-import id.rancak.app.domain.repository.SplitBillResult
+import id.rancak.app.domain.model.SplitBillResult
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.ui.splitbill.components.SplitBillItemCard
 import id.rancak.app.presentation.components.LoadingScreen

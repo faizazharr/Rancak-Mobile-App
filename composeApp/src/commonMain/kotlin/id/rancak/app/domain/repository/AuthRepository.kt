@@ -2,7 +2,13 @@ package id.rancak.app.domain.repository
 
 import id.rancak.app.domain.model.*
 
-interface AuthRepository {
+/**
+ * Kontrak auth: operasi async ke backend.
+ * Mewarisi [UserSessionProvider] sehingga VM yang butuh keduanya cukup
+ * menyuntikkan satu dependensi. VM yang hanya butuh baca/tulis sesi lokal
+ * (mis. [RoleGate]) menyuntikkan [UserSessionProvider] langsung.
+ */
+interface AuthRepository : UserSessionProvider {
     suspend fun login(email: String, password: String): Resource<LoginResult>
     suspend fun loginWithGoogle(idToken: String): Resource<LoginResult>
     suspend fun refreshToken(): Resource<LoginResult>
@@ -35,12 +41,4 @@ interface AuthRepository {
 
     /** Riwayat pengajuan outlet milik user yang login. */
     suspend fun getMyApplications(): Resource<List<TenantApplication>>
-
-    fun isLoggedIn(): Boolean
-    fun getCurrentTenantUuid(): String?
-    fun getCurrentTenantName(): String?
-    fun setTenant(uuid: String, name: String)
-    fun setUserRole(role: String)
-    /** Peran user saat ini. STAFF sebagai fallback aman bila belum ter-set. */
-    fun getUserRole(): UserRole
 }

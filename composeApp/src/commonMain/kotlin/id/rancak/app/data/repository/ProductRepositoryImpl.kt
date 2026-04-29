@@ -8,6 +8,8 @@ import id.rancak.app.data.local.db.entity.toEntity
 import id.rancak.app.data.mapper.toDomain
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.api.*
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeUnit
 import id.rancak.app.domain.model.*
 import id.rancak.app.domain.repository.ProductRepository
 
@@ -61,18 +63,11 @@ class ProductRepositoryImpl(
         }
     }
 
-    override suspend fun getProductByUuid(productUuid: String): Resource<Product> {
-        return try {
-            val response = api.getProductByUuid(tenantUuid, productUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Produk tidak ditemukan")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getProductByUuid(productUuid: String): Resource<Product> = safe(
+        block    = { api.getProductByUuid(tenantUuid, productUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Produk tidak ditemukan"
+    )
 
     override suspend fun getProductByBarcode(barcode: String): Resource<Product> {
         return try {
@@ -112,44 +107,22 @@ class ProductRepositoryImpl(
         }
     }
 
-    override suspend fun getFavoriteProducts(): Resource<List<FavoriteProduct>> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getFavoriteProducts(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil produk favorit")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getFavoriteProducts(): Resource<List<FavoriteProduct>> = safe(
+        block    = { api.getFavoriteProducts(tenantUuid) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil produk favorit"
+    )
 
-    override suspend fun get86Products(): Resource<List<Product86>> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.get86Products(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil produk 86")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun get86Products(): Resource<List<Product86>> = safe(
+        block    = { api.get86Products(tenantUuid) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil produk 86"
+    )
 
-    override suspend fun mark86(productUuid: String): Resource<Unit> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.mark86(tenantUuid, productUuid)
-            if (response.isSuccess) Resource.Success(Unit)
-            else Resource.Error(response.message ?: "Gagal menandai produk 86")
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun mark86(productUuid: String): Resource<Unit> = safeUnit(
+        block    = { api.mark86(tenantUuid, productUuid) },
+        errorMsg = "Gagal menandai produk 86"
+    )
 
     override suspend fun unmark86(productUuid: String): Resource<Unit> {
         val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
@@ -163,33 +136,17 @@ class ProductRepositoryImpl(
         }
     }
 
-    override suspend fun getBundles(): Resource<List<Bundle>> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getBundles(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil data bundle")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getBundles(): Resource<List<Bundle>> = safe(
+        block    = { api.getBundles(tenantUuid) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil data bundle"
+    )
 
-    override suspend fun getModifiers(productUuid: String): Resource<List<Modifier>> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getProductModifiers(tenantUuid, productUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil modifier")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getModifiers(productUuid: String): Resource<List<Modifier>> = safe(
+        block    = { api.getProductModifiers(tenantUuid, productUuid) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil modifier"
+    )
 }
 
 

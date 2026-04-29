@@ -1,10 +1,8 @@
 package id.rancak.app.domain.model
 
 import androidx.compose.runtime.Immutable
-import kotlinx.serialization.Serializable
 
 @Immutable
-@Serializable
 data class Product(
     val uuid: String,
     val sku: String?,
@@ -22,14 +20,12 @@ data class Product(
 )
 
 @Immutable
-@Serializable
 data class Category(
     val uuid: String,
     val name: String,
     val description: String?
 )
 
-@Serializable
 data class VariantGroup(
     val uuid: String,
     val name: String,
@@ -38,7 +34,6 @@ data class VariantGroup(
     val variants: List<Variant>
 )
 
-@Serializable
 data class Variant(
     val uuid: String,
     val name: String,

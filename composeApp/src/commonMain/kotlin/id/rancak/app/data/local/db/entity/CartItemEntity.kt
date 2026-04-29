@@ -2,7 +2,7 @@ package id.rancak.app.data.local.db.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import id.rancak.app.domain.repository.CartItem
+import id.rancak.app.domain.model.CartItem
 
 @Entity(tableName = "cart_items")
 data class CartItemEntity(

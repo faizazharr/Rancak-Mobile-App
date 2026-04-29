@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.OrderType
-import id.rancak.app.domain.repository.CartItem
+import id.rancak.app.domain.model.CartItem
 import id.rancak.app.presentation.ui.cart.components.CartItemCard
 import id.rancak.app.presentation.components.*
 import id.rancak.app.presentation.components.RancakTopBar

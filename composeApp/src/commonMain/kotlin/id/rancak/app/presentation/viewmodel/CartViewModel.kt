@@ -2,12 +2,10 @@ package id.rancak.app.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import id.rancak.app.data.local.db.dao.CartDao
-import id.rancak.app.data.local.db.entity.CartItemEntity
-import id.rancak.app.data.local.db.entity.toDomain
+import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Product
-import id.rancak.app.domain.repository.CartItem
+import id.rancak.app.domain.repository.CartRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -66,7 +64,7 @@ data class CartUiState(
     val total: Long get() = subtotal - discount + tax + adminFee + deliveryFee + tip
 }
 
-class CartViewModel(private val cartDao: CartDao) : ViewModel() {
+class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
 
     private data class CartExtras(
         val orderType: OrderType = OrderType.DINE_IN,
@@ -87,11 +85,11 @@ class CartViewModel(private val cartDao: CartDao) : ViewModel() {
 
     private val _extras = MutableStateFlow(CartExtras())
 
-    // Room emits whenever the cart_items table changes — UI auto-updates
-    val uiState: StateFlow<CartUiState> = cartDao.observeAll()
-        .combine(_extras) { entities, extras ->
+    // Repository emits whenever the cart_items table changes — UI auto-updates
+    val uiState: StateFlow<CartUiState> = cartRepository.observeItems()
+        .combine(_extras) { items, extras ->
             CartUiState(
-                items = entities.map { it.toDomain() },
+                items = items,
                 orderType = extras.orderType,
                 tableUuid = extras.tableUuid,
                 customerName = extras.customerName,
@@ -112,42 +110,25 @@ class CartViewModel(private val cartDao: CartDao) : ViewModel() {
 
     fun addProduct(product: Product, variantUuid: String? = null, variantName: String? = null) {
         viewModelScope.launch {
-            val id = cartItemId(product.uuid, variantUuid)
-            val existing = cartDao.findById(id)
-            cartDao.upsert(
-                if (existing != null) {
-                    existing.copy(qty = existing.qty + 1)
-                } else {
-                    CartItemEntity(
-                        id = id,
-                        productUuid = product.uuid,
-                        productName = product.name,
-                        qty = 1,
-                        price = product.price,
-                        variantUuid = variantUuid,
-                        variantName = variantName,
-                        note = null,
-                        imageUrl = product.imageUrl
-                    )
-                }
-            )
+            cartRepository.addOrIncrement(product, variantUuid, variantName)
         }
     }
 
     fun updateQuantity(productUuid: String, variantUuid: String?, qty: Int) {
         viewModelScope.launch {
-            val id = cartItemId(productUuid, variantUuid)
-            if (qty <= 0) cartDao.deleteById(id) else cartDao.updateQty(id, qty)
+            cartRepository.updateQuantity(productUuid, variantUuid, qty)
         }
     }
 
     fun removeItem(productUuid: String, variantUuid: String?) {
-        updateQuantity(productUuid, variantUuid, 0)
+        viewModelScope.launch {
+            cartRepository.removeItem(productUuid, variantUuid)
+        }
     }
 
     fun updateItemNote(productUuid: String, variantUuid: String?, note: String) {
         viewModelScope.launch {
-            cartDao.updateNote(cartItemId(productUuid, variantUuid), note.ifBlank { null })
+            cartRepository.updateNote(productUuid, variantUuid, note)
         }
     }
 
@@ -179,10 +160,7 @@ class CartViewModel(private val cartDao: CartDao) : ViewModel() {
     fun setVoucherCode(code: String) = _extras.update { it.copy(voucherCode = code) }
 
     fun clearCart() {
-        viewModelScope.launch { cartDao.deleteAll() }
+        viewModelScope.launch { cartRepository.clearAll() }
         _extras.value = CartExtras()
     }
-
-    private fun cartItemId(productUuid: String, variantUuid: String?) =
-        "$productUuid:${variantUuid ?: "_"}"
 }

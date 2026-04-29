@@ -8,6 +8,9 @@ import id.rancak.app.data.local.db.entity.toEntity
 import id.rancak.app.data.mapper.toDomain
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.api.*
+import id.rancak.app.data.remote.dto.operations.SubmitCashCountRequest
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeUnit
 import id.rancak.app.domain.model.*
 import id.rancak.app.domain.repository.OperationsRepository
 
@@ -97,200 +100,95 @@ class OperationsRepositoryImpl(
         }
     }
 
-    override suspend fun getKdsOrders(): Resource<List<KdsOrder>> {
-        return try {
-            val response = api.getKdsOrders(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal memuat pesanan KDS")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getKdsOrders(): Resource<List<KdsOrder>> = safe(
+        block    = { api.getKdsOrders(tenantUuid) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal memuat pesanan KDS"
+    )
 
-    override suspend fun updateKdsStatus(kdsUuid: String, status: KdsStatus): Resource<Unit> {
-        return try {
-            val response = api.updateKdsStatus(tenantUuid, kdsUuid, status.value)
-            if (response.isSuccess) {
-                Resource.Success(Unit)
-            } else {
-                Resource.Error(response.message ?: "Gagal memperbarui status")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun updateKdsStatus(kdsUuid: String, status: KdsStatus): Resource<Unit> = safeUnit(
+        block    = { api.updateKdsStatus(tenantUuid, kdsUuid, status.value) },
+        errorMsg = "Gagal memperbarui status"
+    )
 
-    override suspend fun getSurcharges(): Resource<List<Surcharge>> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getSurcharges(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil surcharge")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getSurcharges(): Resource<List<Surcharge>> = safe(
+        block    = { api.getSurcharges(tenantUuid) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil surcharge"
+    )
 
-    override suspend fun getTaxConfigs(): Resource<List<TaxConfig>> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getTaxConfigs(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil konfigurasi pajak")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getTaxConfigs(): Resource<List<TaxConfig>> = safe(
+        block    = { api.getTaxConfigs(tenantUuid) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil konfigurasi pajak"
+    )
 
-    override suspend fun getDiscountRules(): Resource<List<DiscountRule>> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.getDiscountRules(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil aturan diskon")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getDiscountRules(): Resource<List<DiscountRule>> = safe(
+        block    = { api.getDiscountRules(tenantUuid) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil aturan diskon"
+    )
 
-    override suspend fun validateVoucher(code: String, subtotal: Long): Resource<VoucherValidation> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.validateVoucher(tenantUuid, code, subtotal)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Voucher tidak valid")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun validateVoucher(code: String, subtotal: Long): Resource<VoucherValidation> = safe(
+        block    = { api.validateVoucher(tenantUuid, code, subtotal) },
+        map      = { it.toDomain() },
+        errorMsg = "Voucher tidak valid"
+    )
 
-    override suspend fun previewDiscount(total: Long): Resource<DiscountPreview> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.previewDiscount(tenantUuid, total)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil preview diskon")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun previewDiscount(total: Long): Resource<DiscountPreview> = safe(
+        block    = { api.previewDiscount(tenantUuid, total) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal mengambil preview diskon"
+    )
 
-    override suspend fun syncCatalog(updatedAfter: String?): Resource<Unit> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.syncCatalog(tenantUuid, updatedAfter)
-            if (response.isSuccess) Resource.Success(Unit)
-            else Resource.Error(response.message ?: "Gagal sinkronisasi katalog")
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun syncCatalog(updatedAfter: String?): Resource<Unit> = safe(
+        block    = { api.syncCatalog(tenantUuid, updatedAfter) },
+        map      = { _ -> },
+        errorMsg = "Gagal sinkronisasi katalog"
+    )
 
-    override suspend fun syncStatus(): Resource<Boolean> {
-        val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
-        return try {
-            val response = api.syncStatus(tenantUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.hasOpenShift)
-            } else {
-                Resource.Error(response.message ?: "Gagal mengecek status sinkronisasi")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun syncStatus(): Resource<Boolean> = safe(
+        block    = { api.syncStatus(tenantUuid) },
+        map      = { it.hasOpenShift },
+        errorMsg = "Gagal mengecek status sinkronisasi"
+    )
 
-    override suspend fun getShiftSummaryById(shiftUuid: String): Resource<ShiftSummary> {
-        return try {
-            val response = api.getShiftSummaryById(tenantUuid, shiftUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil ringkasan shift")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getShiftSummaryById(shiftUuid: String): Resource<ShiftSummary> = safe(
+        block    = { api.getShiftSummaryById(tenantUuid, shiftUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal mengambil ringkasan shift"
+    )
 
-    override suspend fun getCashCounts(shiftUuid: String): Resource<List<CashCount>> {
-        return try {
-            val response = api.getCashCounts(tenantUuid, shiftUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.map { it.toDomain() })
-            } else {
-                Resource.Error(response.message ?: "Gagal mengambil cash count")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getCashCounts(shiftUuid: String): Resource<List<CashCount>> = safe(
+        block    = { api.getCashCounts(tenantUuid, shiftUuid) },
+        map      = { list -> list.map { it.toDomain() } },
+        errorMsg = "Gagal mengambil cash count"
+    )
 
     override suspend fun submitCashCount(
         shiftUuid: String,
         actualCash: Double,
         denominations: Map<String, Int>?,
         note: String?
-    ): Resource<CashCount> {
-        return try {
-            val response = api.submitCashCount(
-                tenantUuid,
-                shiftUuid,
-                id.rancak.app.data.remote.dto.operations.SubmitCashCountRequest(actualCash, denominations, note)
-            )
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal menyimpan hitungan kas")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    ): Resource<CashCount> = safe(
+        block    = { api.submitCashCount(tenantUuid, shiftUuid, SubmitCashCountRequest(actualCash, denominations, note)) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal menyimpan hitungan kas"
+    )
 
-    override suspend fun getKdsDetail(kdsUuid: String): Resource<KdsOrder> {
-        return try {
-            val response = api.getKdsDetail(tenantUuid, kdsUuid)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal memuat detail KDS")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun getKdsDetail(kdsUuid: String): Resource<KdsOrder> = safe(
+        block    = { api.getKdsDetail(tenantUuid, kdsUuid) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal memuat detail KDS"
+    )
 
     override suspend fun updateKdsItemStatus(
         kdsUuid: String,
         itemUuid: String,
         status: String
-    ): Resource<Unit> {
-        return try {
-            val response = api.updateKdsItemStatus(tenantUuid, kdsUuid, itemUuid, status)
-            if (response.isSuccess) Resource.Success(Unit)
-            else Resource.Error(response.message ?: "Gagal update status item")
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    ): Resource<Unit> = safeUnit(
+        block    = { api.updateKdsItemStatus(tenantUuid, kdsUuid, itemUuid, status) },
+        errorMsg = "Gagal update status item"
+    )
 }
 

@@ -6,7 +6,7 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleItem
 import id.rancak.app.domain.repository.SaleRepository
-import id.rancak.app.domain.repository.SplitBillResult
+import id.rancak.app.domain.model.SplitBillResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

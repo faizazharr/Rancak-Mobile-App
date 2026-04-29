@@ -14,9 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -24,9 +21,6 @@ import androidx.compose.ui.zIndex
 import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.printing.PrinterManager
 import id.rancak.app.domain.model.PaymentMethod
-import id.rancak.app.domain.model.Resource
-import id.rancak.app.domain.model.Sale
-import id.rancak.app.domain.repository.SaleRepository
 import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
@@ -48,40 +42,30 @@ fun PayHeldOrderScreen(
     onPaymentComplete: () -> Unit,
     paymentViewModel: PaymentViewModel = koinViewModel()
 ) {
-    val saleRepository: SaleRepository = koinInject()
     val printerManager: PrinterManager = koinInject()
     val settingsStore: SettingsStore   = koinInject()
     val paymentState by paymentViewModel.uiState.collectAsStateWithLifecycle()
 
-    var sale by remember { mutableStateOf<Sale?>(null) }
-    var loadError by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(saleUuid) {
-        when (val result = saleRepository.getSaleDetail(saleUuid)) {
-            is Resource.Success -> sale = result.data
-            is Resource.Error   -> loadError = result.message
-            is Resource.Loading -> {}
-        }
-    }
+    LaunchedEffect(saleUuid) { paymentViewModel.loadHeldSale(saleUuid) }
 
     Scaffold(
         topBar = {
             RancakTopBar(
                 title    = "Bayar Pesanan",
                 icon     = Icons.Default.PointOfSale,
-                subtitle = sale?.invoiceNo ?: "Memuat...",
+                subtitle = paymentState.heldSale?.invoiceNo ?: "Memuat...",
                 onBack   = onBack
             )
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             ErrorBanner(
-                error     = paymentState.error ?: loadError,
+                error     = paymentState.error ?: paymentState.heldSaleError,
                 onDismiss = paymentViewModel::clearError,
                 modifier  = Modifier.fillMaxWidth().align(Alignment.TopCenter).zIndex(10f)
             )
 
-            val loadedSale = sale
+            val loadedSale = paymentState.heldSale
             when {
                 paymentState.completedSale != null -> PaymentSuccessContent(
                     sale             = paymentState.completedSale!!,

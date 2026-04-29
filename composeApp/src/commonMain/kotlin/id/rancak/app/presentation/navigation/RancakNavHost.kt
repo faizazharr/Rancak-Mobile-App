@@ -43,6 +43,7 @@ import id.rancak.app.presentation.ui.inventory.StockOpnameScreen
 import id.rancak.app.presentation.ui.pricing.PricingManagementScreen
 import id.rancak.app.presentation.ui.pricing.VoucherManagementScreen
 import id.rancak.app.presentation.ui.products.ProductManagementScreen
+import id.rancak.app.presentation.ui.reservations.ReservationScreen
 import id.rancak.app.presentation.ui.settings.SettingsScreen
 import id.rancak.app.presentation.ui.shift.ShiftScreen
 import id.rancak.app.presentation.ui.splitbill.SplitBillScreen
@@ -93,6 +94,7 @@ fun RancakNavHost() {
                 expandedByDefault = true,
                 items = listOf(
                     DrawerItem("Meja",        Icons.Default.TableBar,   Screen.Tables),
+                    DrawerItem("Reservasi",   Icons.Default.EventSeat,  Screen.Reservations),
                     DrawerItem("Dapur (KDS)", Icons.Default.Restaurant, Screen.Kds),
                     DrawerItem("Order Board", Icons.Default.Dashboard,  Screen.OrderBoard),
                 )
@@ -432,6 +434,10 @@ private fun NavigationContent(
 
         composable<Screen.Tables> {
             TableMapScreen(onBack = onMenuClick)
+        }
+
+        composable<Screen.Reservations> {
+            ReservationScreen(onBack = onMenuClick)
         }
 
         composable<Screen.Kds> {

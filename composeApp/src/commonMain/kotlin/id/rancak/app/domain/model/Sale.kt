@@ -149,3 +149,36 @@ data class RefundItem(
     val qty: Double,
     val refundAmount: Long
 )
+
+/** Item yang akan ditambahkan ke keranjang belanja. */
+data class CartItem(
+    val productUuid: String,
+    val productName: String,
+    val qty: Int,
+    val price: Long,
+    val variantUuid: String? = null,
+    val variantName: String? = null,
+    val note: String? = null,
+    val imageUrl: String? = null
+) {
+    val subtotal: Long get() = price * qty
+}
+
+/** Satu metode bayar dalam split payment. */
+data class SplitPaymentEntry(
+    val method: PaymentMethod,
+    val amount: Long,
+    val note: String? = null
+)
+
+/** Hasil split bill — transaksi asal + transaksi baru. */
+data class SplitBillResult(
+    val original: Sale,
+    val newSale: Sale
+)
+
+/** Hasil reprint — tipe cetak + sale lengkap. */
+data class ReprintResult(
+    val printType: String,
+    val sale: Sale
+)

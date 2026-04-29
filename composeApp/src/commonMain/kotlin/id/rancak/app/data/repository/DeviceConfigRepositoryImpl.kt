@@ -17,6 +17,8 @@ import id.rancak.app.data.remote.dto.deviceconfig.UpdatePrinterConfigRequest
 import id.rancak.app.domain.model.AppConfig
 import id.rancak.app.domain.model.Printer
 import id.rancak.app.domain.model.Resource
+import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeUnit
 import id.rancak.app.domain.repository.DeviceConfigRepository
 
 class DeviceConfigRepositoryImpl(
@@ -116,32 +118,4 @@ class DeviceConfigRepositoryImpl(
         block = { api.deleteAppConfig(tenantUuid, key) },
         errorMsg = "Gagal menghapus config"
     )
-}
-
-// ── Helpers ─────────────────────────────────────────────────────────────────
-
-private suspend fun <T, R> safe(
-    block: suspend () -> id.rancak.app.data.remote.dto.ApiResponse<T>,
-    map: (T) -> R,
-    errorMsg: String
-): Resource<R> = try {
-    val response = block()
-    if (response.isSuccess && response.data != null) {
-        Resource.Success(map(response.data))
-    } else {
-        Resource.Error(response.message ?: errorMsg)
-    }
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
-}
-
-private suspend fun safeUnit(
-    block: suspend () -> id.rancak.app.data.remote.dto.ApiResponse<Unit>,
-    errorMsg: String
-): Resource<Unit> = try {
-    val response = block()
-    if (response.isSuccess) Resource.Success(Unit)
-    else Resource.Error(response.message ?: errorMsg)
-} catch (e: Exception) {
-    Resource.Error(e.message ?: "Kesalahan jaringan")
 }
