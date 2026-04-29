@@ -43,17 +43,16 @@ fun VoucherFormContent(
     var usageLimitText by remember(editing) { mutableStateOf(editing?.usageLimit?.toString() ?: "") }
     var isActive       by remember(editing) { mutableStateOf(editing?.isActive ?: true) }
 
-    val isPct = discountType == "percentage"
-
+    val isPct = discountType == "pct"
     val discountValueNum = discountValue.toDoubleOrNull()
-    val discountValueError: String? = when {
+    val discountValueError = when {
         discountValue.isBlank() -> null
         discountValueNum == null -> "Nilai tidak valid"
         isPct && discountValueNum > 100 -> "Persen tidak boleh melebihi 100"
         discountValueNum <= 0 -> "Nilai harus lebih dari 0"
         else -> null
     }
-    val validUntilError: String? = when {
+    val validUntilError = when {
         validUntil.isBlank() || validFrom.isBlank() -> null
         validUntil <= validFrom -> "Harus setelah tanggal berlaku"
         else -> null
@@ -62,6 +61,8 @@ fun VoucherFormContent(
         code.isNotBlank() && name.isNotBlank() &&
         discountValue.isNotBlank() && discountValueError == null &&
         validFrom.isNotBlank() && validUntilError == null
+
+    BackHandler(enabled = !isSubmitting, onBack = onBack)
 
     Scaffold(
         topBar = {
