@@ -28,4 +28,7 @@ interface CartDao {
 
     @Query("DELETE FROM cart_items")
     suspend fun deleteAll()
+
+    @Upsert
+    suspend fun upsertAll(items: List<CartItemEntity>)
 }

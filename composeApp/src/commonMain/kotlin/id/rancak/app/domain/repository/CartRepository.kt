@@ -33,4 +33,7 @@ interface CartRepository {
 
     /** Kosongkan seluruh keranjang. */
     suspend fun clearAll()
+
+    /** Ganti semua item keranjang dengan [items] yang diberikan secara atomik. */
+    suspend fun replaceAll(items: List<CartItem>)
 }

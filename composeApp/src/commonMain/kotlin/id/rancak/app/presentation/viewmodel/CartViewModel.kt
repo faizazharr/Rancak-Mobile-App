@@ -2,6 +2,8 @@ package id.rancak.app.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import id.rancak.app.data.local.LocalOpenBill
+import id.rancak.app.data.local.toDomain
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Product
@@ -39,7 +41,11 @@ data class CartUiState(
     /** Tip opsional dari pelanggan. */
     val tip: Long = 0,
     /** Kode voucher/promo yang diaplikasikan (validasi di backend). */
-    val voucherCode: String = ""
+    val voucherCode: String = "",
+    /** ID open bill lokal yang sedang diubah — null jika ini adalah pesanan baru. */
+    val activeOpenBillId: String? = null,
+    /** Nama open bill yang sedang aktif, untuk ditampilkan di UI. */
+    val activeOpenBillName: String = ""
 ) {
     val subtotal: Long get() = items.sumOf { it.subtotal }
     val itemCount: Int get() = items.sumOf { it.qty }
@@ -80,7 +86,9 @@ class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
         val adminFeeIsPercent: Boolean = false,
         val deliveryFee: Long = 0,
         val tip: Long = 0,
-        val voucherCode: String = ""
+        val voucherCode: String = "",
+        val activeOpenBillId: String? = null,
+        val activeOpenBillName: String = ""
     )
 
     private val _extras = MutableStateFlow(CartExtras())
@@ -103,7 +111,9 @@ class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
                 adminFeeIsPercent = extras.adminFeeIsPercent,
                 deliveryFee = extras.deliveryFee,
                 tip = extras.tip,
-                voucherCode = extras.voucherCode
+                voucherCode = extras.voucherCode,
+                activeOpenBillId   = extras.activeOpenBillId,
+                activeOpenBillName = extras.activeOpenBillName
             )
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, CartUiState())
@@ -162,5 +172,37 @@ class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
     fun clearCart() {
         viewModelScope.launch { cartRepository.clearAll() }
         _extras.value = CartExtras()
+    }
+
+    /**
+     * Muat open bill lokal ke dalam keranjang secara atomik.
+     * Item yang ada sebelumnya dihapus dan diganti dengan item dari [bill].
+     * [CartUiState.activeOpenBillId] di-set agar UI tahu bill mana yang sedang diubah.
+     */
+    fun loadOpenBill(bill: LocalOpenBill) {
+        viewModelScope.launch {
+            cartRepository.replaceAll(bill.items.map { it.toDomain() })
+            _extras.update {
+                it.copy(
+                    orderType          = runCatching { OrderType.valueOf(bill.orderType) }
+                                            .getOrDefault(OrderType.DINE_IN),
+                    tableUuid          = bill.tableUuid,
+                    customerName       = bill.customerName,
+                    note               = bill.note,
+                    pax                = bill.pax,
+                    discountInput      = bill.discountInput,
+                    discountIsPercent  = bill.discountIsPercent,
+                    taxInput           = bill.taxInput,
+                    taxIsPercent       = bill.taxIsPercent,
+                    adminFeeInput      = bill.adminFeeInput,
+                    adminFeeIsPercent  = bill.adminFeeIsPercent,
+                    deliveryFee        = bill.deliveryFee,
+                    tip                = bill.tip,
+                    voucherCode        = bill.voucherCode,
+                    activeOpenBillId   = bill.id,
+                    activeOpenBillName = bill.name
+                )
+            }
+        }
     }
 }

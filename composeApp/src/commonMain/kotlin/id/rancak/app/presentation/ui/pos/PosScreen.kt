@@ -23,6 +23,7 @@ import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.presentation.barcode.BarcodeScannerView
 import id.rancak.app.presentation.ui.pos.components.CartBar
+import id.rancak.app.presentation.ui.pos.components.OpenBillNameDialog
 import id.rancak.app.presentation.ui.pos.components.OrderPanel
 import id.rancak.app.presentation.ui.pos.components.PosCategoryRow
 import id.rancak.app.presentation.ui.pos.components.PosSearchBar
@@ -30,6 +31,7 @@ import id.rancak.app.presentation.ui.pos.components.PosTopBar
 import id.rancak.app.presentation.ui.pos.components.ProductGridContent
 import id.rancak.app.presentation.viewmodel.CartUiState
 import id.rancak.app.presentation.viewmodel.CartViewModel
+import id.rancak.app.presentation.viewmodel.OpenBillViewModel
 import id.rancak.app.presentation.viewmodel.PosUiState
 import id.rancak.app.presentation.viewmodel.PosViewModel
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
@@ -48,18 +50,53 @@ fun PosScreen(
     onCartClick: () -> Unit,
     onCheckoutClick: () -> Unit,
     onMenuClick: () -> Unit,
-    onSaveClick: () -> Unit = {},
+    /** Dipanggil setelah open bill berhasil dibuat — gunakan untuk navigasi ke daftar open bill. */
+    onHoldSuccess: () -> Unit = {},
     onOpenBillClick: () -> Unit = {},
     posViewModel: PosViewModel = koinViewModel(),
     shiftViewModel: ShiftViewModel = koinViewModel(),
+    openBillViewModel: OpenBillViewModel = koinViewModel(),
     cartViewModel: CartViewModel
 ) {
-    val uiState    by posViewModel.uiState.collectAsStateWithLifecycle()
-    val cartState  by cartViewModel.uiState.collectAsStateWithLifecycle()
-    val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
-    var showScanner by remember { mutableStateOf(false) }
+    val uiState       by posViewModel.uiState.collectAsStateWithLifecycle()
+    val cartState     by cartViewModel.uiState.collectAsStateWithLifecycle()
+    val shiftState    by shiftViewModel.uiState.collectAsStateWithLifecycle()
+    val openBillState by openBillViewModel.uiState.collectAsStateWithLifecycle()
+    var showScanner   by remember { mutableStateOf(false) }
 
     val hasOpenShift = shiftState.currentShift != null
+
+    // Dialog nama open bill — tampilkan saat openBillState.showNameDialog = true
+    if (openBillState.showNameDialog) {
+        OpenBillNameDialog(
+            initialName = openBillState.dialogInitialName,
+            isUpdate    = openBillState.editingBillId != null,
+            onConfirm   = { name ->
+                openBillViewModel.saveCart(
+                    name              = name,
+                    items             = cartState.items,
+                    orderType         = cartState.orderType,
+                    tableUuid         = cartState.tableUuid,
+                    customerName      = cartState.customerName,
+                    note              = cartState.note,
+                    pax               = cartState.pax,
+                    discountInput     = cartState.discountInput,
+                    discountIsPercent = cartState.discountIsPercent,
+                    taxInput          = cartState.taxInput,
+                    taxIsPercent      = cartState.taxIsPercent,
+                    adminFeeInput     = cartState.adminFeeInput,
+                    adminFeeIsPercent = cartState.adminFeeIsPercent,
+                    deliveryFee       = cartState.deliveryFee,
+                    tip               = cartState.tip,
+                    voucherCode       = cartState.voucherCode,
+                    editingBillId     = cartState.activeOpenBillId
+                )
+                cartViewModel.clearCart()
+                openBillViewModel.hideDialog()
+            },
+            onDismiss = openBillViewModel::hideDialog
+        )
+    }
 
     LaunchedEffect(Unit) {
         posViewModel.loadProducts()
@@ -102,7 +139,12 @@ fun PosScreen(
                 onMenuClick      = onMenuClick,
                 onCartClick      = onCartClick,
                 onCheckoutClick  = onCheckoutClick,
-                onSaveClick      = onSaveClick,
+                onSaveClick      = {
+                    openBillViewModel.showDialog(
+                        initialName   = cartState.activeOpenBillName,
+                        editingBillId = cartState.activeOpenBillId
+                    )
+                },
                 onOpenBillClick  = onOpenBillClick,
                 hasOpenShift     = hasOpenShift,
                 onSearchChange   = posViewModel::onSearchQueryChange,
@@ -295,23 +337,23 @@ private fun SplitLayout(
         VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.5f))
 
         OrderPanel(
-            cartState       = cartState,
-            hasOpenShift    = hasOpenShift,
-            onUpdateQty     = onUpdateQty,
-            onUpdateNote    = onUpdateNote,
-            onClearCart     = onClearCart,
-            onOrderType     = onOrderType,
-            onCustomerName  = onCustomerName,
-            onPax           = onPax,
-            onDiscount      = onDiscount,
-            onTax           = onTax,
-            onAdminFee      = onAdminFee,
-            onDeliveryFee   = onDeliveryFee,
-            onTip           = onTip,
-            onVoucherCode   = onVoucherCode,
-            onSaveClick     = onSaveClick,
-            onCheckoutClick = onCheckoutClick,
-            modifier        = Modifier
+            cartState         = cartState,
+            hasOpenShift      = hasOpenShift,
+            onUpdateQty       = onUpdateQty,
+            onUpdateNote      = onUpdateNote,
+            onClearCart       = onClearCart,
+            onOrderType       = onOrderType,
+            onCustomerName    = onCustomerName,
+            onPax             = onPax,
+            onDiscount        = onDiscount,
+            onTax             = onTax,
+            onAdminFee        = onAdminFee,
+            onDeliveryFee     = onDeliveryFee,
+            onTip             = onTip,
+            onVoucherCode     = onVoucherCode,
+            onSaveClick       = onSaveClick,
+            onCheckoutClick   = onCheckoutClick,
+            modifier          = Modifier
                 .fillMaxHeight()
                 .weight(0.42f)
         )

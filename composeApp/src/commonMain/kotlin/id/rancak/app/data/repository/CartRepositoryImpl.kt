@@ -3,6 +3,7 @@ package id.rancak.app.data.repository
 import id.rancak.app.data.local.db.dao.CartDao
 import id.rancak.app.data.local.db.entity.CartItemEntity
 import id.rancak.app.data.local.db.entity.toDomain
+import id.rancak.app.data.local.db.entity.toEntity
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.repository.CartRepository
@@ -51,6 +52,11 @@ class CartRepositoryImpl(private val cartDao: CartDao) : CartRepository {
 
     override suspend fun clearAll() {
         cartDao.deleteAll()
+    }
+
+    override suspend fun replaceAll(items: List<CartItem>) {
+        cartDao.deleteAll()
+        cartDao.upsertAll(items.map { it.toEntity() })
     }
 
     private fun cartItemId(productUuid: String, variantUuid: String?) =

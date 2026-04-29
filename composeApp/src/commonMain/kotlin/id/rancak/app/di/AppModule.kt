@@ -2,6 +2,7 @@ package id.rancak.app.di
 
 import com.russhwolf.settings.Settings
 import id.rancak.app.data.local.OfflineSaleQueue
+import id.rancak.app.data.local.OpenBillStore
 import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.local.createSecureSettings
@@ -68,10 +69,13 @@ val repositoryModule = module {
 
 val viewModelModule = module {
     single { SettingsStore() }
+    single { OpenBillStore() }
     viewModelOf(::LoginViewModel)
     viewModelOf(::SplashViewModel)
     viewModelOf(::TenantPickerViewModel)
     viewModelOf(::PosViewModel)
+    viewModelOf(::HoldOrderViewModel)
+    viewModelOf(::OpenBillViewModel)
     viewModelOf(::CartViewModel)
     viewModelOf(::PaymentViewModel)
     viewModelOf(::ShiftViewModel)

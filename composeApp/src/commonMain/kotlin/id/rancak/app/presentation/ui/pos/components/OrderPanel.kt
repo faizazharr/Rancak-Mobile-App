@@ -27,12 +27,14 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.ShoppingCartCheckout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,10 +45,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,9 +84,12 @@ internal fun OrderPanel(
     onAdminFee: (Long, Boolean) -> Unit,
     onDeliveryFee: (Long) -> Unit,
     onTip: (Long) -> Unit,
-    @Suppress("UNUSED_PARAMETER") onVoucherCode: (String) -> Unit,
+    onVoucherCode: (String) -> Unit,
     onSaveClick: () -> Unit,
     onCheckoutClick: () -> Unit,
+    isHolding: Boolean = false,
+    holdError: String? = null,
+    onHoldErrorDismiss: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val primary          = MaterialTheme.colorScheme.primary
@@ -137,20 +146,24 @@ internal fun OrderPanel(
         )
 
         SummaryAndActions(
-            cartState      = cartState,
-            surface        = surface,
-            primary        = primary,
-            onSurface      = onSurface,
-            onSurfaceVariant = onSurfaceVariant,
-            hasItems       = hasItems,
-            hasOpenShift   = hasOpenShift,
-            onDiscount     = onDiscount,
-            onTax          = onTax,
-            onAdminFee     = onAdminFee,
-            onDeliveryFee  = onDeliveryFee,
-            onTip          = onTip,
-            onSaveClick    = onSaveClick,
-            onCheckoutClick = onCheckoutClick
+            cartState          = cartState,
+            surface            = surface,
+            primary            = primary,
+            onSurface          = onSurface,
+            onSurfaceVariant   = onSurfaceVariant,
+            hasItems           = hasItems,
+            hasOpenShift       = hasOpenShift,
+            isHolding          = isHolding,
+            holdError          = holdError,
+            onHoldErrorDismiss = onHoldErrorDismiss,
+            onDiscount         = onDiscount,
+            onTax              = onTax,
+            onAdminFee         = onAdminFee,
+            onDeliveryFee      = onDeliveryFee,
+            onTip              = onTip,
+            onVoucherCode      = onVoucherCode,
+            onSaveClick        = onSaveClick,
+            onCheckoutClick    = onCheckoutClick
         )
     }
 }
@@ -476,11 +489,15 @@ private fun SummaryAndActions(
     onSurfaceVariant: Color,
     hasItems: Boolean,
     hasOpenShift: Boolean,
+    isHolding: Boolean = false,
+    holdError: String? = null,
+    onHoldErrorDismiss: () -> Unit = {},
     onDiscount: (Long, Boolean) -> Unit,
     onTax: (Long, Boolean) -> Unit,
     onAdminFee: (Long, Boolean) -> Unit,
     onDeliveryFee: (Long) -> Unit,
     onTip: (Long) -> Unit,
+    onVoucherCode: (String) -> Unit,
     onSaveClick: () -> Unit,
     onCheckoutClick: () -> Unit
 ) {
@@ -548,6 +565,12 @@ private fun SummaryAndActions(
                 onValue = { v, _ -> onTip(v) }
             )
 
+            VoucherInputRow(
+                value   = cartState.voucherCode,
+                primary = primary,
+                onApply = onVoucherCode
+            )
+
             Spacer(Modifier.height(4.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.5f))
             Spacer(Modifier.height(8.dp))
@@ -582,10 +605,42 @@ private fun SummaryAndActions(
 
             Spacer(Modifier.height(10.dp))
 
+            // ── Hold error chip ───────────────────────────────────────────
+            if (holdError != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .clickable(onClick = onHoldErrorDismiss)
+                        .padding(horizontal = 10.dp, vertical = 7.dp)
+                ) {
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            holdError,
+                            style    = MaterialTheme.typography.labelSmall,
+                            color    = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            "✕",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+            }
+
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // ── Open Bill button ──────────────────────────────────────
                 Box(
                     modifier = Modifier
                         .weight(0.38f)
@@ -596,29 +651,38 @@ private fun SummaryAndActions(
                         )
                         .border(
                             1.5.dp,
-                            if (hasItems) Color(0xFFF59E0B)
+                            if (hasItems && !isHolding) Color(0xFFF59E0B)
                             else MaterialTheme.colorScheme.outlineVariant,
                             RoundedCornerShape(10.dp)
                         )
-                        .clickable(enabled = hasItems, onClick = onSaveClick)
+                        .clickable(enabled = hasItems && !isHolding, onClick = onSaveClick)
                         .padding(vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.BookmarkBorder, null,
-                            Modifier.size(15.dp),
-                            tint = if (hasItems) Color(0xFFF59E0B) else onSurfaceVariant.copy(0.4f)
+                    if (isHolding) {
+                        CircularProgressIndicator(
+                            modifier  = Modifier.size(16.dp),
+                            color     = Color(0xFFF59E0B),
+                            strokeWidth = 2.dp
                         )
-                        Text(
-                            "Open Bill",
-                            style      = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color      = if (hasItems) Color(0xFFF59E0B) else onSurfaceVariant.copy(0.4f)
-                        )
+                    } else {
+                        val isUpdate = cartState.activeOpenBillId != null
+                        Row(
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.BookmarkBorder, null,
+                                Modifier.size(15.dp),
+                                tint = if (hasItems) Color(0xFFF59E0B) else onSurfaceVariant.copy(0.4f)
+                            )
+                            Text(
+                                if (isUpdate) "Perbarui" else "Open Bill",
+                                style      = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color      = if (hasItems) Color(0xFFF59E0B) else onSurfaceVariant.copy(0.4f)
+                            )
+                        }
                     }
                 }
 
@@ -671,6 +735,122 @@ private fun SummaryAndActions(
             }
         }
     }
+}
+
+// ── VoucherInputRow ──────────────────────────────────────────────────────────
+
+@Composable
+private fun VoucherInputRow(
+    value: String,
+    primary: Color,
+    onApply: (String) -> Unit
+) {
+    var text by remember(value) { mutableStateOf(value) }
+    val keyboard = LocalSoftwareKeyboardController.current
+    val applied  = value.isNotBlank() && value == text
+
+    Spacer(Modifier.height(4.dp))
+    Row(
+        modifier              = Modifier.fillMaxWidth(),
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Icon(
+            Icons.Default.LocalOffer, null,
+            Modifier.size(15.dp),
+            tint = if (applied) primary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        // Text field
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.6f))
+                .border(
+                    1.dp,
+                    if (applied) primary.copy(0.6f) else MaterialTheme.colorScheme.outlineVariant,
+                    RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 7.dp)
+        ) {
+            if (text.isEmpty()) {
+                Text(
+                    "Kode voucher",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.45f)
+                )
+            }
+            androidx.compose.foundation.text.BasicTextField(
+                value         = text,
+                onValueChange = {
+                    text = it.uppercase().trim()
+                    if (it.isBlank()) onApply("")   // clear immediately when user erases
+                },
+                singleLine    = true,
+                textStyle     = MaterialTheme.typography.bodySmall.copy(
+                    color      = if (applied) primary else MaterialTheme.colorScheme.onSurface,
+                    fontWeight = if (applied) FontWeight.Bold else FontWeight.Normal
+                ),
+                cursorBrush   = SolidColor(primary),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    if (text.isNotBlank()) onApply(text)
+                    keyboard?.hide()
+                })
+            )
+        }
+        // Apply / Clear button
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(
+                    if (applied) MaterialTheme.colorScheme.errorContainer
+                    else if (text.isNotBlank()) primary
+                    else MaterialTheme.colorScheme.outlineVariant.copy(0.4f)
+                )
+                .clickable(enabled = text.isNotBlank()) {
+                    if (applied) {
+                        text = ""
+                        onApply("")
+                    } else {
+                        onApply(text)
+                        keyboard?.hide()
+                    }
+                }
+                .padding(horizontal = 10.dp, vertical = 7.dp)
+        ) {
+            Text(
+                if (applied) "Hapus" else "Pakai",
+                style      = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color      = when {
+                    applied          -> MaterialTheme.colorScheme.onErrorContainer
+                    text.isNotBlank() -> Color.White
+                    else             -> MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f)
+                }
+            )
+        }
+    }
+    if (applied) {
+        Spacer(Modifier.height(2.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            modifier              = Modifier.padding(start = 21.dp)
+        ) {
+            Icon(
+                Icons.Default.LocalOffer, null,
+                Modifier.size(10.dp),
+                tint = primary.copy(0.7f)
+            )
+            Text(
+                "Voucher \"$value\" diterapkan",
+                style = MaterialTheme.typography.labelSmall,
+                color = primary.copy(0.85f)
+            )
+        }
+    }
+    Spacer(Modifier.height(4.dp))
 }
 
 // ── FeeInputRow ─────────────────────────────────────────────────────────────
