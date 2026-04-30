@@ -19,15 +19,20 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 /**
- * Panel pengaturan umum — mengaktifkan auto-print setelah bayar serta memilih
- * lebar kertas (58 mm vs 80 mm).
+ * Panel pengaturan umum thermal print — auto-print struk, lebar kertas,
+ * jumlah salinan struk, dan auto-print tiket antrian. Semua nilai
+ * disinkronkan ke server via `/device-config/app`.
  */
 @Composable
 internal fun GeneralContent(
     autoPrint: Boolean,
     paperWidth: Int,
+    receiptCopies: Int,
+    autoPrintQueue: Boolean,
     onAutoPrint: (Boolean) -> Unit,
-    onPaperWidth: (Int) -> Unit
+    onPaperWidth: (Int) -> Unit,
+    onReceiptCopies: (Int) -> Unit,
+    onAutoPrintQueue: (Boolean) -> Unit
 ) {
     SettingsCard {
         Row(
@@ -37,7 +42,7 @@ internal fun GeneralContent(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Auto Print",
+                    "Auto Print Struk",
                     style      = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -48,6 +53,28 @@ internal fun GeneralContent(
                 )
             }
             Switch(checked = autoPrint, onCheckedChange = onAutoPrint)
+        }
+    }
+
+    SettingsCard {
+        Row(
+            modifier              = Modifier.fillMaxWidth(),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Auto Print Antrian",
+                    style      = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    "Cetak tiket nomor antrian otomatis saat pesanan dibuat",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(checked = autoPrintQueue, onCheckedChange = onAutoPrintQueue)
         }
     }
 
@@ -74,6 +101,36 @@ internal fun GeneralContent(
             )
         }
     }
+
+    SettingsCard {
+        Text(
+            "Jumlah Salinan Struk",
+            style      = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color      = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            "Berapa lembar struk dicetak per transaksi",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            (1..3).forEach { copies ->
+                PrimaryFilterChip(
+                    selected = receiptCopies == copies,
+                    onClick  = { onReceiptCopies(copies) },
+                    label    = {
+                        Text(
+                            "$copies lembar",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
 }
 
 @Preview
@@ -85,10 +142,14 @@ private fun GeneralContentPreview() {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             GeneralContent(
-                autoPrint    = true,
-                paperWidth   = 58,
-                onAutoPrint  = {},
-                onPaperWidth = {}
+                autoPrint        = true,
+                paperWidth       = 58,
+                receiptCopies    = 1,
+                autoPrintQueue   = false,
+                onAutoPrint      = {},
+                onPaperWidth     = {},
+                onReceiptCopies  = {},
+                onAutoPrintQueue = {}
             )
         }
     }

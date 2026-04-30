@@ -44,6 +44,8 @@ import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.QrPayment
 import id.rancak.app.domain.model.Receipt
+import id.rancak.app.domain.model.Refund
+import id.rancak.app.domain.model.RefundItemInput
 import id.rancak.app.domain.model.ReprintResult
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
@@ -401,33 +403,26 @@ class SaleRepositoryImpl(
         errorMsg = "Gagal membatalkan pesanan"
     )
 
-    override suspend fun refundSale(saleUuid: String, amount: Long?, reason: String?): Resource<Sale> {
-        return try {
-            // For now, refund all items — caller should provide specific items for per-item refund
-            val saleDetail = api.getSaleDetail(tenantUuid, saleUuid)
-            val items = saleDetail.data?.items?.map {
-                id.rancak.app.data.remote.dto.sale.RefundItemRequest(
-                    saleItemUuid = it.uuid,
-                    qty = it.qty.toDoubleOrNull()?.toInt() ?: 1
-                )
-            } ?: emptyList()
-            val request = id.rancak.app.data.remote.dto.sale.RefundRequest(items = items, reason = reason)
-            val response = api.refundSale(tenantUuid, saleUuid, request)
-            if (response.isSuccess && response.data != null) {
-                // Re-fetch the sale to get updated status
-                val updated = api.getSaleDetail(tenantUuid, saleUuid)
-                if (updated.isSuccess && updated.data != null) {
-                    Resource.Success(updated.data.toDomain())
-                } else {
-                    Resource.Error("Refund berhasil, gagal memuat detail")
-                }
-            } else {
-                Resource.Error(response.message ?: "Gagal melakukan refund")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    override suspend fun refundSale(
+        saleUuid: String,
+        items: List<RefundItemInput>,
+        reason: String?
+    ): Resource<Refund> = safe(
+        block = {
+            val request = id.rancak.app.data.remote.dto.sale.RefundRequest(
+                items = items.map {
+                    id.rancak.app.data.remote.dto.sale.RefundItemRequest(
+                        saleItemUuid = it.saleItemUuid,
+                        qty          = it.qty
+                    )
+                },
+                reason = reason
+            )
+            api.refundSale(tenantUuid, saleUuid, request)
+        },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal memproses refund"
+    )
 
     override suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale> = safe(
         block    = { api.moveTable(tenantUuid, saleUuid, tableUuid) },

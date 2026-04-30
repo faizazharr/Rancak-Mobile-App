@@ -19,7 +19,9 @@ import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.ui.sales.components.RefundBottomSheet
 import id.rancak.app.presentation.ui.sales.components.SaleCard
+import kotlinx.coroutines.launch
 import id.rancak.app.presentation.ui.sales.components.SaleDetailPanel
 import id.rancak.app.presentation.ui.sales.components.SalesSummaryPanel
 import id.rancak.app.presentation.ui.sales.components.SearchAndFilterBar
@@ -46,7 +48,8 @@ data class SalesHistoryActions(
     val onSelect: (Sale?) -> Unit = {},
     val onPayHeldOrder: (String) -> Unit = {},
     val onSplitBill: (String) -> Unit = {},
-    val onAddItems: (String) -> Unit = {}
+    val onAddItems: (String) -> Unit = {},
+    val onRefund: (Sale) -> Unit = {}
 )
 
 /**
@@ -68,6 +71,9 @@ fun SalesHistoryScreen(
     viewModel: SalesHistoryViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var refundTarget by remember { mutableStateOf<Sale?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.loadSales()
@@ -78,6 +84,7 @@ fun SalesHistoryScreen(
         uiState   = uiState,
         onBack    = onBack,
         onRetry   = viewModel::loadSales,
+        snackbarHostState = snackbarHostState,
         actions   = SalesHistoryActions(
             onSearch        = viewModel::setSearchQuery,
             onDateFilter    = viewModel::setDateFilter,
@@ -87,9 +94,23 @@ fun SalesHistoryScreen(
             onSelect        = { sale -> if (sale == null) viewModel.selectSale(null) else viewModel.selectSaleAndFetchDetail(sale) },
             onPayHeldOrder  = onPayHeldOrder,
             onSplitBill     = onSplitBill,
-            onAddItems      = onAddItems
+            onAddItems      = onAddItems,
+            onRefund        = { sale -> refundTarget = sale }
         )
     )
+
+    refundTarget?.let { sale ->
+        RefundBottomSheet(
+            sale            = sale,
+            onDismiss       = { refundTarget = null },
+            onRefundSuccess = {
+                refundTarget = null
+                viewModel.selectSaleAndFetchDetail(sale)
+                viewModel.loadSales()
+                scope.launch { snackbarHostState.showSnackbar("Refund berhasil diproses") }
+            }
+        )
+    }
 }
 
 /** Pure-UI content — tanpa ViewModel, aman di-preview. */
@@ -99,7 +120,8 @@ fun SalesHistoryScreenContent(
     uiState: SalesHistoryUiState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
-    actions: SalesHistoryActions
+    actions: SalesHistoryActions,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     Scaffold(
         topBar = {
@@ -109,7 +131,8 @@ fun SalesHistoryScreenContent(
                 subtitle = "Catatan seluruh transaksi",
                 onMenu   = onBack
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         when {
             uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
@@ -160,6 +183,7 @@ private fun TabletLayout(
                     onPayHeldOrder = actions.onPayHeldOrder,
                     onSplitBill    = actions.onSplitBill,
                     onAddItems     = actions.onAddItems,
+                    onRefund       = actions.onRefund,
                     modifier       = Modifier.fillMaxSize()
                 )
             } else {
@@ -210,6 +234,7 @@ private fun PhoneLayout(
                     onPayHeldOrder = actions.onPayHeldOrder,
                     onSplitBill    = actions.onSplitBill,
                     onAddItems     = actions.onAddItems,
+                    onRefund       = actions.onRefund,
                     modifier       = Modifier.fillMaxWidth()
                 )
             },

@@ -50,6 +50,7 @@ import id.rancak.app.presentation.viewmodel.PricingManagementViewModel
 import id.rancak.app.presentation.viewmodel.ProductManagementViewModel
 import id.rancak.app.presentation.viewmodel.ReportViewModel
 import id.rancak.app.presentation.viewmodel.ReservationViewModel
+import id.rancak.app.presentation.viewmodel.RefundViewModel
 import id.rancak.app.presentation.viewmodel.SalesHistoryViewModel
 import id.rancak.app.presentation.viewmodel.SettingsViewModel
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
@@ -129,6 +130,7 @@ val viewModelModule = module {
     viewModelOf(::ReservationViewModel)
     viewModelOf(::KdsViewModel)
     viewModelOf(::SalesHistoryViewModel)
+    viewModelOf(::RefundViewModel)
     viewModelOf(::SplitBillViewModel)
     viewModelOf(::AddItemsToHeldOrderViewModel)
     viewModelOf(::OrderBoardViewModel)

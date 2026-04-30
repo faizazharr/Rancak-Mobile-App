@@ -150,6 +150,12 @@ data class RefundItem(
     val refundAmount: Long
 )
 
+/** Input untuk request refund: refund [qty] unit dari [saleItemUuid]. */
+data class RefundItemInput(
+    val saleItemUuid: String,
+    val qty: Int
+)
+
 /** Item yang akan ditambahkan ke keranjang belanja. */
 data class CartItem(
     val productUuid: String,

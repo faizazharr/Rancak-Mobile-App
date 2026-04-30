@@ -6,6 +6,8 @@ import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.QrPayment
 import id.rancak.app.domain.model.Receipt
+import id.rancak.app.domain.model.Refund
+import id.rancak.app.domain.model.RefundItemInput
 import id.rancak.app.domain.model.ReprintResult
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
@@ -69,7 +71,17 @@ interface SaleRepository {
     suspend fun serveSale(saleUuid: String): Resource<Sale>
     suspend fun voidSale(saleUuid: String, reason: String? = null): Resource<Sale>
     suspend fun cancelSale(saleUuid: String, reason: String? = null): Resource<Sale>
-    suspend fun refundSale(saleUuid: String, amount: Long? = null, reason: String? = null): Resource<Sale>
+
+    /**
+     * Partial / full refund: kembalikan sebagian atau seluruh item.
+     * Backend akan mengembalikan stok otomatis dan men-set status sale ke
+     * `refunded` jika seluruh item sudah di-refund.
+     */
+    suspend fun refundSale(
+        saleUuid: String,
+        items: List<RefundItemInput>,
+        reason: String? = null
+    ): Resource<Refund>
     suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale>
 
     /** Create (or retrieve) a Xendit QRIS QR code for the given sale. */

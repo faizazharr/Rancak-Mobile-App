@@ -107,6 +107,16 @@ class SettingsStore {
         get() = settings.getInt(KEY_PAPER_WIDTH, 58)
         set(value) { settings[KEY_PAPER_WIDTH] = value }
 
+    /** Jumlah salinan struk yang dicetak per transaksi. Default 1, max 3. */
+    var receiptCopies: Int
+        get() = settings.getInt(KEY_RECEIPT_COPIES, 1)
+        set(value) { settings[KEY_RECEIPT_COPIES] = value.coerceIn(1, 3) }
+
+    /** Cetak otomatis tiket nomor antrian setelah pesanan dibuat. */
+    var autoPrintQueue: Boolean
+        get() = settings.getBoolean(KEY_AUTO_PRINT_QUEUE, false)
+        set(value) { settings[KEY_AUTO_PRINT_QUEUE] = value }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     fun clearPrinter() {
@@ -150,5 +160,7 @@ class SettingsStore {
         private const val KEY_MERCHANT_QRIS = "rancak_merchant_qris"
         private const val KEY_AUTO_PRINT = "rancak_auto_print"
         private const val KEY_PAPER_WIDTH = "rancak_paper_width"
+        private const val KEY_RECEIPT_COPIES = "rancak_receipt_copies"
+        private const val KEY_AUTO_PRINT_QUEUE = "rancak_auto_print_queue"
     }
 }

@@ -88,6 +88,8 @@ fun SettingsScreen(
         onMerchantQrisString   = viewModel::setMerchantQrisString,
         onAutoPrint            = viewModel::setAutoPrint,
         onPaperWidth           = viewModel::setPaperWidth,
+        onReceiptCopies        = viewModel::setReceiptCopies,
+        onAutoPrintQueue       = viewModel::setAutoPrintQueue,
         onClearMessage         = viewModel::clearMessage
     )
 }
@@ -122,6 +124,8 @@ fun SettingsScreenContent(
     onMerchantQrisString: (String) -> Unit = {},
     onAutoPrint: (Boolean) -> Unit = {},
     onPaperWidth: (Int) -> Unit = {},
+    onReceiptCopies: (Int) -> Unit = {},
+    onAutoPrintQueue: (Boolean) -> Unit = {},
     onClearMessage: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -171,7 +175,9 @@ fun SettingsScreenContent(
                     onFooterText           = onFooterText,
                     onMerchantQrisString   = onMerchantQrisString,
                     onAutoPrint            = onAutoPrint,
-                    onPaperWidth           = onPaperWidth
+                    onPaperWidth           = onPaperWidth,
+                    onReceiptCopies        = onReceiptCopies,
+                    onAutoPrintQueue       = onAutoPrintQueue
                 )
             } else {
                 PhoneLayout(
@@ -197,7 +203,9 @@ fun SettingsScreenContent(
                     onFooterText           = onFooterText,
                     onMerchantQrisString   = onMerchantQrisString,
                     onAutoPrint            = onAutoPrint,
-                    onPaperWidth           = onPaperWidth
+                    onPaperWidth           = onPaperWidth,
+                    onReceiptCopies        = onReceiptCopies,
+                    onAutoPrintQueue       = onAutoPrintQueue
                 )
             }
         }
@@ -232,7 +240,9 @@ private fun TabletLayout(
     onFooterText: (String) -> Unit,
     onMerchantQrisString: (String) -> Unit,
     onAutoPrint: (Boolean) -> Unit,
-    onPaperWidth: (Int) -> Unit
+    onPaperWidth: (Int) -> Unit,
+    onReceiptCopies: (Int) -> Unit,
+    onAutoPrintQueue: (Boolean) -> Unit
 ) {
     var selected by remember { mutableStateOf(SettingsNav.PRINTER) }
 
@@ -371,10 +381,14 @@ private fun TabletLayout(
                     onMerchantQrisString = onMerchantQrisString
                 )
                 SettingsNav.GENERAL -> GeneralContent(
-                    autoPrint    = uiState.autoPrint,
-                    paperWidth   = uiState.paperWidth,
-                    onAutoPrint  = onAutoPrint,
-                    onPaperWidth = onPaperWidth
+                    autoPrint        = uiState.autoPrint,
+                    paperWidth       = uiState.paperWidth,
+                    receiptCopies    = uiState.receiptCopies,
+                    autoPrintQueue   = uiState.autoPrintQueue,
+                    onAutoPrint      = onAutoPrint,
+                    onPaperWidth     = onPaperWidth,
+                    onReceiptCopies  = onReceiptCopies,
+                    onAutoPrintQueue = onAutoPrintQueue
                 )
                 SettingsNav.PREVIEW -> ReceiptPreviewContent(
                     storeName    = uiState.storeName,
@@ -416,7 +430,9 @@ private fun PhoneLayout(
     onFooterText: (String) -> Unit,
     onMerchantQrisString: (String) -> Unit,
     onAutoPrint: (Boolean) -> Unit,
-    onPaperWidth: (Int) -> Unit
+    onPaperWidth: (Int) -> Unit,
+    onReceiptCopies: (Int) -> Unit,
+    onAutoPrintQueue: (Boolean) -> Unit
 ) {
     LazyColumn(
         modifier            = Modifier.fillMaxSize(),
@@ -479,7 +495,16 @@ private fun PhoneLayout(
         item {
             ContentSectionTitle(Icons.Default.Settings, "Umum", Color(0xFF555555))
             Spacer(Modifier.height(8.dp))
-            GeneralContent(uiState.autoPrint, uiState.paperWidth, onAutoPrint, onPaperWidth)
+            GeneralContent(
+                autoPrint        = uiState.autoPrint,
+                paperWidth       = uiState.paperWidth,
+                receiptCopies    = uiState.receiptCopies,
+                autoPrintQueue   = uiState.autoPrintQueue,
+                onAutoPrint      = onAutoPrint,
+                onPaperWidth     = onPaperWidth,
+                onReceiptCopies  = onReceiptCopies,
+                onAutoPrintQueue = onAutoPrintQueue
+            )
         }
         item {
             ContentSectionTitle(Icons.Default.Receipt, "Preview Struk", Color(0xFF0D9373))

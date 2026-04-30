@@ -57,7 +57,11 @@ data class SettingsUiState(
 
     // General
     val autoPrint: Boolean = false,
-    val paperWidth: Int = 58
+    val paperWidth: Int = 58,
+    /** Jumlah salinan struk per transaksi (1–3). */
+    val receiptCopies: Int = 1,
+    /** Auto-cetak tiket nomor antrian saat pesanan dibuat. */
+    val autoPrintQueue: Boolean = false
 ) {
     val hasPrinter: Boolean
         get() = savedPrinterName.isNotBlank() && savedPrinterAddress.isNotBlank()
@@ -96,6 +100,8 @@ class SettingsViewModel(
             merchantQrisString = settingsStore.merchantQrisString,
             autoPrint = settingsStore.autoPrintReceipt,
             paperWidth = settingsStore.paperWidth,
+            receiptCopies = settingsStore.receiptCopies,
+            autoPrintQueue = settingsStore.autoPrintQueue,
             isBluetoothOn = try { printerManager.isBluetoothEnabled() } catch (_: Exception) { false }
         )
         // Tarik konfigurasi dari server (fire-and-forget) — override nilai lokal
@@ -123,6 +129,16 @@ class SettingsViewModel(
                         val enabled = value.equals("true", ignoreCase = true)
                         settingsStore.autoPrintReceipt = enabled
                         _uiState.update { it.copy(autoPrint = enabled) }
+                    }
+                    map["receipt_copies"]?.toIntOrNull()?.let { copies ->
+                        val safe = copies.coerceIn(1, 3)
+                        settingsStore.receiptCopies = safe
+                        _uiState.update { it.copy(receiptCopies = safe) }
+                    }
+                    map["auto_print_queue"]?.let { value ->
+                        val enabled = value.equals("true", ignoreCase = true)
+                        settingsStore.autoPrintQueue = enabled
+                        _uiState.update { it.copy(autoPrintQueue = enabled) }
                     }
                 }
                 else -> Unit // diam — fallback ke nilai lokal
@@ -472,6 +488,19 @@ class SettingsViewModel(
         settingsStore.paperWidth = width
         _uiState.update { it.copy(paperWidth = width) }
         pushAppConfig("paper_width_mm", width.toString())
+    }
+
+    fun setReceiptCopies(copies: Int) {
+        val safe = copies.coerceIn(1, 3)
+        settingsStore.receiptCopies = safe
+        _uiState.update { it.copy(receiptCopies = safe) }
+        pushAppConfig("receipt_copies", safe.toString())
+    }
+
+    fun setAutoPrintQueue(enabled: Boolean) {
+        settingsStore.autoPrintQueue = enabled
+        _uiState.update { it.copy(autoPrintQueue = enabled) }
+        pushAppConfig("auto_print_queue", if (enabled) "true" else "false")
     }
 
     fun clearMessage() {

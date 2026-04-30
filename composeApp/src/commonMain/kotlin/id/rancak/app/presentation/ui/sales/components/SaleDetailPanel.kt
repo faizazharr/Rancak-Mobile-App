@@ -35,7 +35,9 @@ import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleItem
 import id.rancak.app.domain.model.SaleStatus
+import id.rancak.app.domain.model.UserRole
 import id.rancak.app.presentation.components.PrintDialog
+import id.rancak.app.presentation.components.RoleGate
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
@@ -51,6 +53,7 @@ internal fun SaleDetailPanel(
     onPayHeldOrder: (String) -> Unit = {},
     onSplitBill: (String) -> Unit = {},
     onAddItems: (String) -> Unit = {},
+    onRefund: (Sale) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val printerManager: PrinterManager = koinInject()
@@ -70,6 +73,7 @@ internal fun SaleDetailPanel(
         onPayHeldOrder = onPayHeldOrder,
         onSplitBill    = onSplitBill,
         onAddItems     = onAddItems,
+        onRefund       = onRefund,
         modifier      = modifier
     )
 
@@ -94,6 +98,7 @@ private fun SaleDetailBody(
     onPayHeldOrder: (String) -> Unit = {},
     onSplitBill: (String) -> Unit = {},
     onAddItems: (String) -> Unit = {},
+    onRefund: (Sale) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val semantic = RancakColors.semantic
@@ -170,6 +175,12 @@ private fun SaleDetailBody(
                     ReprintButton(onClick = onRequestPrint)
                 }
 
+                if (sale.status == SaleStatus.PAID) {
+                    RoleGate(minRole = UserRole.ADMIN) {
+                        RefundActionButton(onClick = { onRefund(sale) })
+                    }
+                }
+
                 if (sale.status == SaleStatus.HELD) {
                     HeldOrderActions(
                         onPay      = { onPayHeldOrder(sale.uuid) },
@@ -210,6 +221,20 @@ private fun HeldOrderActions(
             ) { Text("Pisah Tagihan") }
         }
     }
+}
+
+@Composable
+private fun RefundActionButton(onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .heightIn(min = 48.dp),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = MaterialTheme.colorScheme.error
+        )
+    ) { Text("Refund Item") }
 }
 
 // ── Sub-sections ────────────────────────────────────────────────────────────
