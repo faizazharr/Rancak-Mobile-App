@@ -7,6 +7,10 @@ import id.rancak.app.data.local.toDomain
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Product
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.model.Surcharge
+import id.rancak.app.domain.model.TaxConfig
+import id.rancak.app.domain.repository.AdminRepository
 import id.rancak.app.domain.repository.CartRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -47,7 +51,12 @@ data class CartUiState(
     /** Nama open bill yang sedang aktif, untuk ditampilkan di UI. */
     val activeOpenBillName: String = "",
     /** UUID sale di backend (HELD) yang sedang aktif — non-null saat keranjang berasal dari open bill yang sudah tersinkron ke KDS. */
-    val activeOpenBillSaleUuid: String? = null
+    val activeOpenBillSaleUuid: String? = null,
+    // ── Auto-applied dari Pricing Settings ───────────────────────────────
+    /** Daftar TaxConfig aktif yang otomatis dipakai (mis. PPN 11%). */
+    val activeTaxConfigs: List<TaxConfig> = emptyList(),
+    /** Daftar Surcharge aktif yang cocok dengan orderType saat ini. */
+    val activeSurcharges: List<Surcharge> = emptyList()
 ) {
     val subtotal: Long get() = items.sumOf { it.subtotal }
     val itemCount: Int get() = items.sumOf { it.qty }
@@ -63,16 +72,48 @@ data class CartUiState(
         ((subtotal - discount) * taxInput / 100L).coerceAtLeast(0L)
     else taxInput
 
+    /**
+     * Pajak otomatis dari [activeTaxConfigs]. Untuk apply_to:
+     * - `subtotal`        → rate × subtotal
+     * - `after_discount`  → rate × (subtotal - discount)
+     */
+    val autoTax: Long get() = activeTaxConfigs.sumOf { cfg ->
+        val basis = if (cfg.applyTo == "subtotal") subtotal
+                    else (subtotal - discount).coerceAtLeast(0L)
+        ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
+    }
+
+    /** Total pajak yang akan dibayar = manual + otomatis. */
+    val totalTax: Long get() = tax + autoTax
+
     /** Biaya admin nominal Rp aktual — computed dari adminFeeInput + adminFeeIsPercent. */
     val adminFee: Long get() = if (adminFeeIsPercent)
         ((subtotal - discount) * adminFeeInput / 100L).coerceAtLeast(0L)
     else adminFeeInput
 
+    /**
+     * Surcharge otomatis dari [activeSurcharges]. Persentase dihitung dari
+     * (subtotal - diskon), dengan cap [Surcharge.maxAmount] bila diset.
+     */
+    val autoSurcharge: Long get() = activeSurcharges.sumOf { sc ->
+        val raw = if (sc.isPercentage) {
+            val basis = (subtotal - discount).coerceAtLeast(0L)
+            (basis * sc.amount / 100L).coerceAtLeast(0L)
+        } else sc.amount
+        sc.maxAmount?.let { cap -> raw.coerceAtMost(cap) } ?: raw
+    }
+
+    /** Total surcharge yang akan dibayar = manual + otomatis. */
+    val totalSurcharge: Long get() = adminFee + autoSurcharge
+
     /** Total akhir yang harus dibayar pelanggan. */
-    val total: Long get() = subtotal - discount + tax + adminFee + deliveryFee + tip
+    val total: Long get() = subtotal - discount + totalTax + totalSurcharge + deliveryFee + tip
 }
 
-class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
+class CartViewModel(
+    private val cartRepository: CartRepository,
+    private val adminRepository: AdminRepository
+) : ViewModel() {
 
     private data class CartExtras(
         val orderType: OrderType = OrderType.DINE_IN,
@@ -96,31 +137,66 @@ class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
 
     private val _extras = MutableStateFlow(CartExtras())
 
-    // Repository emits whenever the cart_items table changes — UI auto-updates
-    val uiState: StateFlow<CartUiState> = cartRepository.observeItems()
-        .combine(_extras) { items, extras ->
-            CartUiState(
-                items = items,
-                orderType = extras.orderType,
-                tableUuid = extras.tableUuid,
-                customerName = extras.customerName,
-                note = extras.note,
-                pax = extras.pax,
-                discountInput = extras.discountInput,
-                discountIsPercent = extras.discountIsPercent,
-                taxInput = extras.taxInput,
-                taxIsPercent = extras.taxIsPercent,
-                adminFeeInput = extras.adminFeeInput,
-                adminFeeIsPercent = extras.adminFeeIsPercent,
-                deliveryFee = extras.deliveryFee,
-                tip = extras.tip,
-                voucherCode = extras.voucherCode,
-                activeOpenBillId       = extras.activeOpenBillId,
-                activeOpenBillName     = extras.activeOpenBillName,
-                activeOpenBillSaleUuid = extras.activeOpenBillSaleUuid
-            )
+    /** TaxConfig aktif dari server (Pricing Settings). */
+    private val _taxConfigs  = MutableStateFlow<List<TaxConfig>>(emptyList())
+    /** Surcharge aktif dari server (Pricing Settings). */
+    private val _surcharges  = MutableStateFlow<List<Surcharge>>(emptyList())
+
+    init {
+        loadPricingConfigs()
+    }
+
+    /**
+     * Muat TaxConfig & Surcharge aktif dari server agar otomatis diaplikasikan
+     * ke setiap transaksi. Dipanggil saat init dan dapat dipanggil ulang setelah
+     * pengguna mengubah konfigurasi di halaman Pricing.
+     */
+    fun loadPricingConfigs() {
+        viewModelScope.launch {
+            (adminRepository.getTaxConfigs() as? Resource.Success)?.let { res ->
+                _taxConfigs.value = res.data.filter { it.isActive }
+            }
+            (adminRepository.getSurcharges() as? Resource.Success)?.let { res ->
+                _surcharges.value = res.data.filter { it.isActive }
+            }
         }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, CartUiState())
+    }
+
+    // Repository emits whenever the cart_items table changes — UI auto-updates
+    val uiState: StateFlow<CartUiState> = combine(
+        cartRepository.observeItems(),
+        _extras,
+        _taxConfigs,
+        _surcharges
+    ) { items, extras, taxConfigs, surcharges ->
+        // Surcharge yang berlaku: yang orderType-nya null (semua), atau cocok dengan orderType saat ini.
+        val orderTypeKey = extras.orderType.name.lowercase()
+        val applicableSurcharges = surcharges.filter { sc ->
+            sc.orderType.isNullOrBlank() || sc.orderType.equals(orderTypeKey, ignoreCase = true)
+        }
+        CartUiState(
+            items = items,
+            orderType = extras.orderType,
+            tableUuid = extras.tableUuid,
+            customerName = extras.customerName,
+            note = extras.note,
+            pax = extras.pax,
+            discountInput = extras.discountInput,
+            discountIsPercent = extras.discountIsPercent,
+            taxInput = extras.taxInput,
+            taxIsPercent = extras.taxIsPercent,
+            adminFeeInput = extras.adminFeeInput,
+            adminFeeIsPercent = extras.adminFeeIsPercent,
+            deliveryFee = extras.deliveryFee,
+            tip = extras.tip,
+            voucherCode = extras.voucherCode,
+            activeOpenBillId       = extras.activeOpenBillId,
+            activeOpenBillName     = extras.activeOpenBillName,
+            activeOpenBillSaleUuid = extras.activeOpenBillSaleUuid,
+            activeTaxConfigs       = taxConfigs,
+            activeSurcharges       = applicableSurcharges
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, CartUiState())
 
     fun addProduct(product: Product, variantUuid: String? = null, variantName: String? = null) {
         viewModelScope.launch {

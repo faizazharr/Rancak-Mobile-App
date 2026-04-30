@@ -541,6 +541,19 @@ private fun SummaryAndActions(
                 valueIsPercent    = cartState.taxIsPercent,
                 computedAmount    = cartState.tax
             )
+            // Pajak otomatis dari konfigurasi Pricing (read-only).
+            cartState.activeTaxConfigs.forEach { cfg ->
+                AutoFeeRow(
+                    label   = "${cfg.name} (${cfg.rate}%)",
+                    amount  = run {
+                        val basis = if (cfg.applyTo == "subtotal") cartState.subtotal
+                                    else (cartState.subtotal - cartState.discount).coerceAtLeast(0L)
+                        ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
+                    },
+                    onSurfaceVariant = onSurfaceVariant,
+                    onSurface = onSurface
+                )
+            }
             FeeInputRow(
                 label             = "Biaya Admin",
                 icon              = Icons.Default.Receipt,
@@ -550,6 +563,20 @@ private fun SummaryAndActions(
                 valueIsPercent    = cartState.adminFeeIsPercent,
                 computedAmount    = cartState.adminFee
             )
+            // Surcharge otomatis dari konfigurasi Pricing (read-only).
+            cartState.activeSurcharges.forEach { sc ->
+                val raw = if (sc.isPercentage) {
+                    val basis = (cartState.subtotal - cartState.discount).coerceAtLeast(0L)
+                    (basis * sc.amount / 100L).coerceAtLeast(0L)
+                } else sc.amount
+                val amt = sc.maxAmount?.let { cap -> raw.coerceAtMost(cap) } ?: raw
+                AutoFeeRow(
+                    label   = sc.name + if (sc.isPercentage) " (${sc.amount}%)" else "",
+                    amount  = amt,
+                    onSurfaceVariant = onSurfaceVariant,
+                    onSurface = onSurface
+                )
+            }
             if (cartState.orderType == OrderType.DELIVERY) {
                 FeeInputRow(
                     label   = "Ongkir",
@@ -851,6 +878,36 @@ private fun VoucherInputRow(
         }
     }
     Spacer(Modifier.height(4.dp))
+}
+
+// ── AutoFeeRow ──────────────────────────────────────────────────────────────
+// Baris read-only untuk pajak/surcharge yang otomatis diaplikasikan dari
+// konfigurasi Pricing.
+
+@Composable
+private fun AutoFeeRow(
+    label: String,
+    amount: Long,
+    onSurfaceVariant: androidx.compose.ui.graphics.Color,
+    onSurface: androidx.compose.ui.graphics.Color
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment     = Alignment.CenterVertically
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = onSurfaceVariant
+        )
+        Text(
+            formatRupiah(amount),
+            style      = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+            color      = onSurface
+        )
+    }
 }
 
 // ── FeeInputRow ─────────────────────────────────────────────────────────────

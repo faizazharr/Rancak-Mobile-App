@@ -25,7 +25,11 @@ fun TaxFormDialog(
     var sortOrder by remember(editing) { mutableStateOf(editing?.sortOrder?.toString() ?: "0") }
     var expanded  by remember { mutableStateOf(false) }
 
-    val applyToOptions = listOf("after_discount" to "Setelah Diskon", "before_discount" to "Sebelum Diskon")
+    // Backend hanya menerima dua nilai: "after_discount" atau "subtotal".
+    val applyToOptions = listOf(
+        "after_discount" to "Setelah Diskon",
+        "subtotal"       to "Dari Subtotal"
+    )
 
     val rateNum = rate.toDoubleOrNull()
     val rateError = when {

@@ -211,8 +211,8 @@ fun PaymentScreen(
                                         note         = cartState.note,
                                         pax          = cartState.pax,
                                         discount     = cartState.discount,
-                                        tax          = cartState.tax,
-                                        adminFee     = cartState.adminFee,
+                                        tax          = cartState.totalTax,
+                                        adminFee     = cartState.totalSurcharge,
                                         deliveryFee  = cartState.deliveryFee,
                                         tip          = cartState.tip,
                                         voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
@@ -238,8 +238,8 @@ fun PaymentScreen(
                                     note         = cartState.note,
                                     pax          = cartState.pax,
                                     discount     = cartState.discount,
-                                    tax          = cartState.tax,
-                                    adminFee     = cartState.adminFee,
+                                    tax          = cartState.totalTax,
+                                    adminFee     = cartState.totalSurcharge,
                                     deliveryFee  = cartState.deliveryFee,
                                     tip          = cartState.tip,
                                     voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
@@ -265,8 +265,8 @@ fun PaymentScreen(
                             isQrisPolling      = paymentState.isQrisPolling,
                             onCancelQris       = paymentViewModel::cancelQrisPayment,
                             discount           = cartState.discount,
-                            tax                = cartState.tax,
-                            adminFee           = cartState.adminFee,
+                            tax                = cartState.totalTax,
+                            adminFee           = cartState.totalSurcharge,
                             deliveryFee        = cartState.deliveryFee,
                             tip                = cartState.tip,
                             orderItems         = cartState.items.map { item ->
