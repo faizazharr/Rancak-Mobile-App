@@ -18,6 +18,7 @@ fun TaxTab(
     taxConfigs: List<TaxConfig>,
     onEdit: (TaxConfig) -> Unit,
     onDelete: (TaxConfig) -> Unit,
+    onToggleActive: (TaxConfig, Boolean) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     if (taxConfigs.isEmpty()) {
@@ -37,7 +38,8 @@ fun TaxTab(
                 subtitle = "${item.rate}% · ${item.applyTo}",
                 isActive = item.isActive,
                 onEdit   = { onEdit(item) },
-                onDelete = { onDelete(item) }
+                onDelete = { onDelete(item) },
+                onToggleActive = { isActive -> onToggleActive(item, isActive) }
             )
         }
     }

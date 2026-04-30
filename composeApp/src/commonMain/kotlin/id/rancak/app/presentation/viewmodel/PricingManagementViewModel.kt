@@ -2,6 +2,7 @@ package id.rancak.app.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import id.rancak.app.data.local.PricingConfigStore
 import id.rancak.app.domain.model.DiscountRule
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Surcharge
@@ -37,34 +38,38 @@ data class PricingManagementUiState(
 )
 
 class PricingManagementViewModel(
-    private val adminRepository: AdminRepository
+    private val adminRepository: AdminRepository,
+    private val pricingStore: PricingConfigStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PricingManagementUiState())
     val uiState: StateFlow<PricingManagementUiState> = _uiState.asStateFlow()
 
-    init { loadAll() }
+    init {
+        // Sinkronkan dari store agar perubahan dari kasir / panel lain langsung terlihat.
+        viewModelScope.launch {
+            pricingStore.taxConfigs.collect { list ->
+                _uiState.update { it.copy(taxConfigs = list) }
+            }
+        }
+        viewModelScope.launch {
+            pricingStore.surcharges.collect { list ->
+                _uiState.update { it.copy(surcharges = list) }
+            }
+        }
+        viewModelScope.launch {
+            pricingStore.discountRules.collect { list ->
+                _uiState.update { it.copy(discountRules = list) }
+            }
+        }
+        loadAll()
+    }
 
     fun loadAll() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            val s = adminRepository.getSurcharges()
-            val t = adminRepository.getTaxConfigs()
-            val d = adminRepository.getDiscountRules()
-            _uiState.update { state ->
-                state.copy(
-                    isLoading = false,
-                    surcharges = if (s is Resource.Success) s.data else state.surcharges,
-                    taxConfigs = if (t is Resource.Success) t.data else state.taxConfigs,
-                    discountRules = if (d is Resource.Success) d.data else state.discountRules,
-                    error = when {
-                        s is Resource.Error -> s.message
-                        t is Resource.Error -> t.message
-                        d is Resource.Error -> d.message
-                        else -> null
-                    }
-                )
-            }
+            pricingStore.refresh()
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -93,11 +98,9 @@ class PricingManagementViewModel(
             when (result) {
                 is Resource.Success -> {
                     val saved = result.data
+                    pricingStore.upsertSurcharge(saved)
                     _uiState.update { state ->
-                        val updated = if (existing == null) state.surcharges + saved
-                                      else state.surcharges.map { if (it.uuid == saved.uuid) saved else it }
                         state.copy(isSubmitting = false, showSurchargeForm = false, editingSurcharge = null,
-                            surcharges = updated,
                             successMessage = if (existing == null) "Surcharge \"${saved.name}\" berhasil ditambahkan"
                                              else "Surcharge \"${saved.name}\" berhasil diperbarui")
                     }
@@ -113,12 +116,28 @@ class PricingManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true) }
             when (val r = adminRepository.deleteSurcharge(surcharge.uuid)) {
-                is Resource.Success -> _uiState.update { state ->
-                    state.copy(isSubmitting = false, showSurchargeDeleteConfirm = false, editingSurcharge = null,
-                        surcharges = state.surcharges.filter { it.uuid != surcharge.uuid },
-                        successMessage = "Surcharge \"${surcharge.name}\" berhasil dihapus")
+                is Resource.Success -> {
+                    pricingStore.removeSurcharge(surcharge.uuid)
+                    _uiState.update { state ->
+                        state.copy(isSubmitting = false, showSurchargeDeleteConfirm = false, editingSurcharge = null,
+                            successMessage = "Surcharge \"${surcharge.name}\" berhasil dihapus")
+                    }
                 }
                 is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = r.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /** Toggle aktif/nonaktif Surcharge — langsung sinkron ke kasir. */
+    fun toggleSurchargeActive(surcharge: Surcharge, isActive: Boolean) {
+        viewModelScope.launch {
+            when (val r = pricingStore.toggleSurchargeActive(surcharge, isActive)) {
+                is Resource.Success -> _uiState.update {
+                    it.copy(successMessage = if (isActive) "Surcharge \"${r.data.name}\" diaktifkan"
+                                             else "Surcharge \"${r.data.name}\" dinonaktifkan")
+                }
+                is Resource.Error -> _uiState.update { it.copy(error = r.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -146,11 +165,9 @@ class PricingManagementViewModel(
             when (result) {
                 is Resource.Success -> {
                     val saved = result.data
+                    pricingStore.upsertTax(saved)
                     _uiState.update { state ->
-                        val updated = if (existing == null) state.taxConfigs + saved
-                                      else state.taxConfigs.map { if (it.uuid == saved.uuid) saved else it }
                         state.copy(isSubmitting = false, showTaxForm = false, editingTax = null,
-                            taxConfigs = updated,
                             successMessage = if (existing == null) "Pajak \"${saved.name}\" berhasil ditambahkan"
                                              else "Pajak \"${saved.name}\" berhasil diperbarui")
                     }
@@ -166,12 +183,28 @@ class PricingManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true) }
             when (val r = adminRepository.deleteTaxConfig(tax.uuid)) {
-                is Resource.Success -> _uiState.update { state ->
-                    state.copy(isSubmitting = false, showTaxDeleteConfirm = false, editingTax = null,
-                        taxConfigs = state.taxConfigs.filter { it.uuid != tax.uuid },
-                        successMessage = "Pajak \"${tax.name}\" berhasil dihapus")
+                is Resource.Success -> {
+                    pricingStore.removeTax(tax.uuid)
+                    _uiState.update { state ->
+                        state.copy(isSubmitting = false, showTaxDeleteConfirm = false, editingTax = null,
+                            successMessage = "Pajak \"${tax.name}\" berhasil dihapus")
+                    }
                 }
                 is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = r.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /** Toggle aktif/nonaktif Pajak — langsung sinkron ke kasir. */
+    fun toggleTaxActive(tax: TaxConfig, isActive: Boolean) {
+        viewModelScope.launch {
+            when (val r = pricingStore.toggleTaxActive(tax, isActive)) {
+                is Resource.Success -> _uiState.update {
+                    it.copy(successMessage = if (isActive) "Pajak \"${r.data.name}\" diaktifkan"
+                                             else "Pajak \"${r.data.name}\" dinonaktifkan")
+                }
+                is Resource.Error -> _uiState.update { it.copy(error = r.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -209,11 +242,9 @@ class PricingManagementViewModel(
             when (result) {
                 is Resource.Success -> {
                     val saved = result.data
+                    pricingStore.upsertDiscountRule(saved)
                     _uiState.update { state ->
-                        val updated = if (existing == null) state.discountRules + saved
-                                      else state.discountRules.map { if (it.uuid == saved.uuid) saved else it }
                         state.copy(isSubmitting = false, showDiscountForm = false, editingDiscount = null,
-                            discountRules = updated,
                             successMessage = if (existing == null) "Aturan diskon \"${saved.name}\" berhasil ditambahkan"
                                              else "Aturan diskon \"${saved.name}\" berhasil diperbarui")
                     }
@@ -229,12 +260,28 @@ class PricingManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true) }
             when (val r = adminRepository.deleteDiscountRule(rule.uuid)) {
-                is Resource.Success -> _uiState.update { state ->
-                    state.copy(isSubmitting = false, showDiscountDeleteConfirm = false, editingDiscount = null,
-                        discountRules = state.discountRules.filter { it.uuid != rule.uuid },
-                        successMessage = "Aturan diskon \"${rule.name}\" berhasil dihapus")
+                is Resource.Success -> {
+                    pricingStore.removeDiscountRule(rule.uuid)
+                    _uiState.update { state ->
+                        state.copy(isSubmitting = false, showDiscountDeleteConfirm = false, editingDiscount = null,
+                            successMessage = "Aturan diskon \"${rule.name}\" berhasil dihapus")
+                    }
                 }
                 is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = r.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /** Toggle aktif/nonaktif Aturan Diskon — langsung sinkron ke kasir. */
+    fun toggleDiscountActive(rule: DiscountRule, isActive: Boolean) {
+        viewModelScope.launch {
+            when (val r = pricingStore.toggleDiscountRuleActive(rule, isActive)) {
+                is Resource.Success -> _uiState.update {
+                    it.copy(successMessage = if (isActive) "Aturan diskon \"${r.data.name}\" diaktifkan"
+                                             else "Aturan diskon \"${r.data.name}\" dinonaktifkan")
+                }
+                is Resource.Error -> _uiState.update { it.copy(error = r.message) }
                 is Resource.Loading -> {}
             }
         }

@@ -73,6 +73,9 @@ fun PricingManagementScreen(
         onCloseDiscountForm     = viewModel::closeDiscountForm,
         onConfirmDeleteDiscount = viewModel::deleteDiscount,
         onCloseDiscountDelete   = viewModel::closeDiscountDeleteConfirm,
+        onToggleSurchargeActive = viewModel::toggleSurchargeActive,
+        onToggleTaxActive       = viewModel::toggleTaxActive,
+        onToggleDiscountActive  = viewModel::toggleDiscountActive,
         snackbarHostState   = snackbarHostState
     )
 }
@@ -106,6 +109,9 @@ fun PricingManagementContent(
     onCloseDiscountForm: () -> Unit,
     onConfirmDeleteDiscount: () -> Unit,
     onCloseDiscountDelete: () -> Unit,
+    onToggleSurchargeActive: (id.rancak.app.domain.model.Surcharge, Boolean) -> Unit = { _, _ -> },
+    onToggleTaxActive: (id.rancak.app.domain.model.TaxConfig, Boolean) -> Unit = { _, _ -> },
+    onToggleDiscountActive: (id.rancak.app.domain.model.DiscountRule, Boolean) -> Unit = { _, _ -> },
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -176,9 +182,9 @@ fun PricingManagementContent(
                                 LoadingScreen()
                             } else {
                                 when (selectedTab) {
-                                    0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge)
-                                    1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax)
-                                    else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount)
+                                    0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge, onToggleActive = onToggleSurchargeActive)
+                                    1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax, onToggleActive = onToggleTaxActive)
+                                    else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount, onToggleActive = onToggleDiscountActive)
                                 }
                             }
                         }
@@ -212,9 +218,9 @@ fun PricingManagementContent(
                             LoadingScreen()
                         } else {
                             when (selectedTab) {
-                                0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge)
-                                1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax)
-                                else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount)
+                                0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge, onToggleActive = onToggleSurchargeActive)
+                                1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax, onToggleActive = onToggleTaxActive)
+                                else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount, onToggleActive = onToggleDiscountActive)
                             }
                         }
                     }

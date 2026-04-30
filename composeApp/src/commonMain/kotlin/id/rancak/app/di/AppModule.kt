@@ -3,6 +3,7 @@ package id.rancak.app.di
 import com.russhwolf.settings.Settings
 import id.rancak.app.data.local.OfflineSaleQueue
 import id.rancak.app.data.local.OpenBillStore
+import id.rancak.app.data.local.PricingConfigStore
 import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.local.createSecureSettings
@@ -112,6 +113,7 @@ val repositoryModule = module {
     singleOf(::BillingRepositoryImpl) bind BillingRepository::class
     singleOf(::GroupsRepositoryImpl) bind GroupsRepository::class
     singleOf(::CartRepositoryImpl) bind CartRepository::class
+    single { PricingConfigStore(get()) }
 }
 
 val viewModelModule = module {

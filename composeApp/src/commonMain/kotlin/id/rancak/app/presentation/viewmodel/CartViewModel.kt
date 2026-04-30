@@ -3,6 +3,7 @@ package id.rancak.app.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.data.local.LocalOpenBill
+import id.rancak.app.data.local.PricingConfigStore
 import id.rancak.app.data.local.toDomain
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.OrderType
@@ -10,7 +11,6 @@ import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Surcharge
 import id.rancak.app.domain.model.TaxConfig
-import id.rancak.app.domain.repository.AdminRepository
 import id.rancak.app.domain.repository.CartRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -112,7 +112,7 @@ data class CartUiState(
 
 class CartViewModel(
     private val cartRepository: CartRepository,
-    private val adminRepository: AdminRepository
+    private val pricingStore: PricingConfigStore
 ) : ViewModel() {
 
     private data class CartExtras(
@@ -137,41 +137,33 @@ class CartViewModel(
 
     private val _extras = MutableStateFlow(CartExtras())
 
-    /** TaxConfig aktif dari server (Pricing Settings). */
-    private val _taxConfigs  = MutableStateFlow<List<TaxConfig>>(emptyList())
-    /** Surcharge aktif dari server (Pricing Settings). */
-    private val _surcharges  = MutableStateFlow<List<Surcharge>>(emptyList())
-
     init {
-        loadPricingConfigs()
+        // Pastikan pricing configs sudah ter-load minimal sekali (idempotent).
+        viewModelScope.launch { pricingStore.ensureLoaded() }
     }
 
     /**
-     * Muat TaxConfig & Surcharge aktif dari server agar otomatis diaplikasikan
-     * ke setiap transaksi. Dipanggil saat init dan dapat dipanggil ulang setelah
-     * pengguna mengubah konfigurasi di halaman Pricing.
+     * Memaksa reload dari server. Biasanya tidak perlu dipanggil manual karena
+     * [PricingConfigStore] otomatis menyiarkan perubahan ke semua observer; ini
+     * disediakan untuk kasus pull-to-refresh.
      */
     fun loadPricingConfigs() {
-        viewModelScope.launch {
-            (adminRepository.getTaxConfigs() as? Resource.Success)?.let { res ->
-                _taxConfigs.value = res.data.filter { it.isActive }
-            }
-            (adminRepository.getSurcharges() as? Resource.Success)?.let { res ->
-                _surcharges.value = res.data.filter { it.isActive }
-            }
-        }
+        viewModelScope.launch { pricingStore.refresh() }
     }
 
     // Repository emits whenever the cart_items table changes — UI auto-updates
     val uiState: StateFlow<CartUiState> = combine(
         cartRepository.observeItems(),
         _extras,
-        _taxConfigs,
-        _surcharges
+        pricingStore.taxConfigs,
+        pricingStore.surcharges
     ) { items, extras, taxConfigs, surcharges ->
+        // Hanya konfigurasi yang `isActive` yang ikut diperhitungkan di kasir.
+        val activeTax = taxConfigs.filter { it.isActive }
+        val activeSurcharges = surcharges.filter { it.isActive }
         // Surcharge yang berlaku: yang orderType-nya null (semua), atau cocok dengan orderType saat ini.
         val orderTypeKey = extras.orderType.name.lowercase()
-        val applicableSurcharges = surcharges.filter { sc ->
+        val applicableSurcharges = activeSurcharges.filter { sc ->
             sc.orderType.isNullOrBlank() || sc.orderType.equals(orderTypeKey, ignoreCase = true)
         }
         CartUiState(
@@ -193,7 +185,7 @@ class CartViewModel(
             activeOpenBillId       = extras.activeOpenBillId,
             activeOpenBillName     = extras.activeOpenBillName,
             activeOpenBillSaleUuid = extras.activeOpenBillSaleUuid,
-            activeTaxConfigs       = taxConfigs,
+            activeTaxConfigs       = activeTax,
             activeSurcharges       = applicableSurcharges
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, CartUiState())

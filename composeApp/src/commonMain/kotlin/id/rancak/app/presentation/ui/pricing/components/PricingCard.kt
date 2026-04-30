@@ -20,6 +20,7 @@ fun PricingCard(
     isActive: Boolean,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onToggleActive: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(modifier = modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(1.dp)) {
@@ -28,35 +29,25 @@ fun PricingCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = if (isActive) MaterialTheme.colorScheme.primaryContainer
-                                else MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Text(
-                            if (isActive) "Aktif" else "Nonaktif",
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isActive) MaterialTheme.colorScheme.onSurface
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Text(
                     subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            // Switch aktif/nonaktif — langsung sinkron ke kasir secara realtime.
+            Switch(
+                checked = isActive,
+                onCheckedChange = onToggleActive,
+                modifier = Modifier.padding(end = 4.dp)
+            )
             IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(18.dp))
             }

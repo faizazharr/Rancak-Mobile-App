@@ -19,6 +19,7 @@ fun SurchargeTab(
     surcharges: List<Surcharge>,
     onEdit: (Surcharge) -> Unit,
     onDelete: (Surcharge) -> Unit,
+    onToggleActive: (Surcharge, Boolean) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     if (surcharges.isEmpty()) {
@@ -39,7 +40,8 @@ fun SurchargeTab(
                 subtitle = "$valueLabel · ${item.orderType ?: "Semua"}",
                 isActive = item.isActive,
                 onEdit   = { onEdit(item) },
-                onDelete = { onDelete(item) }
+                onDelete = { onDelete(item) },
+                onToggleActive = { isActive -> onToggleActive(item, isActive) }
             )
         }
     }

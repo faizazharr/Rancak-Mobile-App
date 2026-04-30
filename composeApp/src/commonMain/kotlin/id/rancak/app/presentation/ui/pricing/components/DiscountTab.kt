@@ -19,6 +19,7 @@ fun DiscountTab(
     rules: List<DiscountRule>,
     onEdit: (DiscountRule) -> Unit,
     onDelete: (DiscountRule) -> Unit,
+    onToggleActive: (DiscountRule, Boolean) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     if (rules.isEmpty()) {
@@ -39,7 +40,8 @@ fun DiscountTab(
                 subtitle = "$valueLabel · ${item.ruleType}",
                 isActive = item.isActive,
                 onEdit   = { onEdit(item) },
-                onDelete = { onDelete(item) }
+                onDelete = { onDelete(item) },
+                onToggleActive = { isActive -> onToggleActive(item, isActive) }
             )
         }
     }
