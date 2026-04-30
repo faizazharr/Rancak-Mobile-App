@@ -12,6 +12,8 @@ import id.rancak.app.data.printing.PrinterManager
 import id.rancak.app.data.printing.ReceiptData
 import id.rancak.app.data.printing.KitchenTicketData
 import id.rancak.app.data.printing.KitchenTicketItem
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.repository.DeviceConfigRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -66,7 +68,8 @@ data class SettingsUiState(
 
 class SettingsViewModel(
     private val settingsStore: SettingsStore,
-    private val printerManager: PrinterManager
+    private val printerManager: PrinterManager,
+    private val deviceConfigRepository: DeviceConfigRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -95,6 +98,45 @@ class SettingsViewModel(
             paperWidth = settingsStore.paperWidth,
             isBluetoothOn = try { printerManager.isBluetoothEnabled() } catch (_: Exception) { false }
         )
+        // Tarik konfigurasi dari server (fire-and-forget) — override nilai lokal
+        // kalau server punya nilai berbeda. Aman karena cuma key kecil & deterministik.
+        loadAppConfigFromServer()
+    }
+
+    /**
+     * Tarik konfigurasi `/device-config/app` dari server. Untuk key yang relevan
+     * dengan thermal print (`paper_width_mm`, `auto_print_receipt`, `receipt_copies`)
+     * sync ke state lokal supaya seragam antar perangkat.
+     */
+    private fun loadAppConfigFromServer() {
+        viewModelScope.launch {
+            when (val result = deviceConfigRepository.getAppConfig()) {
+                is Resource.Success -> {
+                    val map = result.data.associate { it.key to it.value }
+                    map["paper_width_mm"]?.toIntOrNull()?.let { width ->
+                        if (width == 58 || width == 80) {
+                            settingsStore.paperWidth = width
+                            _uiState.update { it.copy(paperWidth = width) }
+                        }
+                    }
+                    map["auto_print_receipt"]?.let { value ->
+                        val enabled = value.equals("true", ignoreCase = true)
+                        settingsStore.autoPrintReceipt = enabled
+                        _uiState.update { it.copy(autoPrint = enabled) }
+                    }
+                }
+                else -> Unit // diam — fallback ke nilai lokal
+            }
+        }
+    }
+
+    /** Push satu key ke `/device-config/app/{key}` (fire-and-forget). */
+    private fun pushAppConfig(key: String, value: String) {
+        viewModelScope.launch {
+            // Hasil sengaja diabaikan: bila gagal (offline / 4xx) tetap simpan
+            // lokal supaya UX tidak ketahan.
+            deviceConfigRepository.upsertAppConfig(key, value)
+        }
     }
 
     fun checkBluetoothState() {
@@ -423,11 +465,13 @@ class SettingsViewModel(
     fun setAutoPrint(enabled: Boolean) {
         settingsStore.autoPrintReceipt = enabled
         _uiState.update { it.copy(autoPrint = enabled) }
+        pushAppConfig("auto_print_receipt", if (enabled) "true" else "false")
     }
 
     fun setPaperWidth(width: Int) {
         settingsStore.paperWidth = width
         _uiState.update { it.copy(paperWidth = width) }
+        pushAppConfig("paper_width_mm", width.toString())
     }
 
     fun clearMessage() {

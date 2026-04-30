@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.RancakDesign
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.pricing.components.DiscountFormDialog
 import id.rancak.app.presentation.ui.pricing.components.DiscountTab
@@ -139,69 +140,82 @@ fun PricingManagementContent(
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
             val isTablet = maxWidth >= 600.dp
-            val contentMaxWidth = if (isTablet) 720.dp else maxWidth
 
-            Column(
-                modifier = Modifier
-                    .widthIn(max = contentMaxWidth)
-                    .align(Alignment.TopCenter)
-                    .fillMaxHeight()
-            ) {
-                // ── Summary cards row (mirip kategori chip di POS) ─────────
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    sections.forEachIndexed { i, section ->
-                        SectionSummaryCard(
-                            section    = section,
-                            isSelected = selectedTab == i,
-                            onClick    = { selectedTab = i },
-                            modifier   = Modifier.weight(1f)
-                        )
+            if (isTablet) {
+                // ── Tablet: master-detail (sidebar kiri + list kanan) ─────────
+                Row(Modifier.fillMaxSize()) {
+                    // Sidebar: summary cards stacked vertical
+                    Column(
+                        modifier = Modifier
+                            .width(260.dp)
+                            .fillMaxHeight()
+                            .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        sections.forEachIndexed { i, section ->
+                            SectionSummaryCard(
+                                section    = section,
+                                isSelected = selectedTab == i,
+                                onClick    = { selectedTab = i },
+                                modifier   = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+
+                    VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                    // Detail: header + content list
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                    ) {
+                        SectionDetailHeader(activeSection)
+                        Box(Modifier.fillMaxSize()) {
+                            if (uiState.isLoading) {
+                                LoadingScreen()
+                            } else {
+                                when (selectedTab) {
+                                    0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge)
+                                    1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax)
+                                    else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount)
+                                }
+                            }
+                        }
                     }
                 }
+            } else {
+                // ── Phone: sequential (summary row di atas, list di bawah) ────
+                Column(Modifier.fillMaxSize()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        sections.forEachIndexed { i, section ->
+                            SectionSummaryCard(
+                                section    = section,
+                                isSelected = selectedTab == i,
+                                onClick    = { selectedTab = i },
+                                modifier   = Modifier.weight(1f)
+                            )
+                        }
+                    }
 
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                // ── Header section aktif ───────────────────────────────────
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        activeSection.icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        activeSection.label,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(Modifier.weight(1f))
-                    AssistChip(
-                        onClick = {},
-                        enabled = false,
-                        label = { Text("${activeSection.activeCount}/${activeSection.totalCount} aktif") }
-                    )
-                }
+                    SectionDetailHeader(activeSection)
 
-                // ── Konten ─────────────────────────────────────────────────
-                Box(Modifier.fillMaxSize()) {
-                    if (uiState.isLoading) {
-                        LoadingScreen()
-                    } else {
-                        when (selectedTab) {
-                            0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge)
-                            1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax)
-                            else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount)
+                    Box(Modifier.fillMaxSize()) {
+                        if (uiState.isLoading) {
+                            LoadingScreen()
+                        } else {
+                            when (selectedTab) {
+                                0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge)
+                                1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax)
+                                else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount)
+                            }
                         }
                     }
                 }
@@ -267,6 +281,36 @@ fun PricingManagementContent(
     }
 }
 
+@Composable
+private fun SectionDetailHeader(activeSection: PricingSection) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            activeSection.icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            activeSection.label,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(Modifier.weight(1f))
+        AssistChip(
+            onClick = {},
+            enabled = false,
+            label = { Text("${activeSection.activeCount}/${activeSection.totalCount} aktif") }
+        )
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Section model + summary card
 // ──────────────────────────────────────────────────────────────────────────────
@@ -289,15 +333,17 @@ private fun SectionSummaryCard(
                     else MaterialTheme.colorScheme.surface
     val onContainer = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
                       else MaterialTheme.colorScheme.onSurface
-    val border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
-                 else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    val border = if (isSelected) BorderStroke(RancakDesign.sizes.borderEmphasis, MaterialTheme.colorScheme.primary)
+                 else BorderStroke(RancakDesign.sizes.borderThin, MaterialTheme.colorScheme.outlineVariant)
 
     Card(
         onClick = onClick,
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = container, contentColor = onContainer),
         border = border,
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 2.dp else 0.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) RancakDesign.elevation.cardSelected else RancakDesign.elevation.none
+        )
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),

@@ -133,6 +133,8 @@ fun RancakTheme(
 ) {
     CompositionLocalProvider(
         LocalSpacing provides Spacing(),
+        LocalElevation provides Elevation(),
+        LocalSizes provides Sizes(),
         LocalSemanticColors provides LightSemanticColors
     ) {
         MaterialTheme(

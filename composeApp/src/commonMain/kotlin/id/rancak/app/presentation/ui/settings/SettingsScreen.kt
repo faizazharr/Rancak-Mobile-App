@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Store
@@ -37,6 +38,7 @@ import id.rancak.app.presentation.ui.settings.components.GeneralContent
 import id.rancak.app.presentation.ui.settings.components.KitchenContent
 import id.rancak.app.presentation.ui.settings.components.PrintModeContent
 import id.rancak.app.presentation.ui.settings.components.PrinterContent
+import id.rancak.app.presentation.ui.settings.components.ReceiptPreviewContent
 import id.rancak.app.presentation.ui.settings.components.SettingsNavItem
 import id.rancak.app.presentation.ui.settings.components.StoreContent
 import id.rancak.app.presentation.viewmodel.SettingsUiState
@@ -47,7 +49,7 @@ import org.koin.compose.viewmodel.koinViewModel
  * Kategori pengaturan yang dipilih di panel kiri (tablet) atau diurut ke bawah
  * (phone).
  */
-private enum class SettingsNav { PRINTER, PRINT_MODE, KITCHEN, STORE, GENERAL }
+private enum class SettingsNav { PRINTER, PRINT_MODE, KITCHEN, STORE, GENERAL, PREVIEW }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Entry point — menghubungkan [SettingsViewModel] ke [SettingsScreenContent].
@@ -308,6 +310,14 @@ private fun TabletLayout(
                 selected = selected == SettingsNav.GENERAL,
                 onClick  = { selected = SettingsNav.GENERAL }
             )
+            SettingsNavItem(
+                icon     = Icons.Default.Receipt,
+                iconBg   = Color(0xFF0D9373),
+                title    = "Preview Struk",
+                subtitle = "${uiState.paperWidth} mm",
+                selected = selected == SettingsNav.PREVIEW,
+                onClick  = { selected = SettingsNav.PREVIEW }
+            )
         }
 
         VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
@@ -365,6 +375,13 @@ private fun TabletLayout(
                     paperWidth   = uiState.paperWidth,
                     onAutoPrint  = onAutoPrint,
                     onPaperWidth = onPaperWidth
+                )
+                SettingsNav.PREVIEW -> ReceiptPreviewContent(
+                    storeName    = uiState.storeName,
+                    storeAddress = uiState.storeAddress,
+                    storePhone   = uiState.storePhone,
+                    footerText   = uiState.footerText,
+                    paperWidthMm = uiState.paperWidth
                 )
             }
         }
@@ -463,6 +480,17 @@ private fun PhoneLayout(
             ContentSectionTitle(Icons.Default.Settings, "Umum", Color(0xFF555555))
             Spacer(Modifier.height(8.dp))
             GeneralContent(uiState.autoPrint, uiState.paperWidth, onAutoPrint, onPaperWidth)
+        }
+        item {
+            ContentSectionTitle(Icons.Default.Receipt, "Preview Struk", Color(0xFF0D9373))
+            Spacer(Modifier.height(8.dp))
+            ReceiptPreviewContent(
+                storeName    = uiState.storeName,
+                storeAddress = uiState.storeAddress,
+                storePhone   = uiState.storePhone,
+                footerText   = uiState.footerText,
+                paperWidthMm = uiState.paperWidth
+            )
         }
         item { Spacer(Modifier.height(16.dp)) }
     }
