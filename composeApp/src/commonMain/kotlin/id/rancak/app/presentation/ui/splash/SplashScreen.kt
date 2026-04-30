@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -44,8 +45,15 @@ fun SplashScreen(
     val destination by viewModel.destination.collectAsStateWithLifecycle()
 
     // ── Navigasi otomatis setelah ViewModel menyelesaikan validasi ────────────
+    // Single-shot guard: setelah onNavigate dipanggil sekali, jangan pernah
+    // dipanggil lagi meskipun composable sempat recompose dengan destination
+    // non-null sebelum di-dispose. Mencegah double-navigate yang bisa
+    // memicu state nav yang aneh → white-screen flash.
+    var hasNavigated by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(destination) {
+        if (hasNavigated) return@LaunchedEffect
         val dest = destination ?: return@LaunchedEffect
+        hasNavigated = true
         onNavigate(
             when (dest) {
                 SplashDestination.LOGIN         -> Screen.Login

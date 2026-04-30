@@ -15,7 +15,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
-import id.rancak.app.presentation.ui.inventory.components.*
+import id.rancak.app.presentation.ui.inventory.components.CreateOpnameDialog
+import id.rancak.app.presentation.ui.inventory.components.OpnameCard
+import id.rancak.app.presentation.ui.inventory.components.OpnameDetailContent
+import id.rancak.app.presentation.ui.inventory.components.OpnameDetailTabletPanel
 import id.rancak.app.presentation.viewmodel.StockOpnameViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -62,7 +65,7 @@ fun StockOpnameScreen(
                     RancakTopBar(
                         title    = "Stok Opname",
                         icon     = Icons.Default.Inventory,
-                        onBack   = onBack,
+                        onMenu   = onBack,
                         subtitle = "${uiState.opnames.size} sesi"
                     )
                 },

@@ -42,7 +42,7 @@ fun VoucherFormContent(
     var usageLimitText by remember(editing) { mutableStateOf(editing?.usageLimit?.toString() ?: "") }
     var isActive       by remember(editing) { mutableStateOf(editing?.isActive ?: true) }
 
-    val isPct = discountType == "pct"
+    val isPct = discountType == "percentage"
     val discountValueNum = discountValue.toDoubleOrNull()
     val discountValueError = when {
         discountValue.isBlank() -> null

@@ -80,7 +80,20 @@ import id.rancak.app.data.remote.dto.admin.UpdateTableRequest
 import id.rancak.app.data.remote.dto.admin.UpdateVariantGroupRequest
 import id.rancak.app.data.remote.dto.admin.UpdateVariantRequest
 import id.rancak.app.data.remote.dto.admin.UpdateVoucherRequest
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.Bundle
+import id.rancak.app.domain.model.Category
+import id.rancak.app.domain.model.DiscountRule
+import id.rancak.app.domain.model.Modifier
+import id.rancak.app.domain.model.Product
+import id.rancak.app.domain.model.ProductBatch
+import id.rancak.app.domain.model.ReceiptSettings
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.model.Surcharge
+import id.rancak.app.domain.model.Table
+import id.rancak.app.domain.model.TaxConfig
+import id.rancak.app.domain.model.Variant
+import id.rancak.app.domain.model.VariantGroup
+import id.rancak.app.domain.model.Voucher
 import id.rancak.app.domain.repository.AdminRepository
 import id.rancak.app.domain.repository.BundleItemEntry
 import id.rancak.app.domain.repository.BundleUpdate
@@ -177,7 +190,7 @@ class AdminRepositoryImpl(
             api.updateVoucher(
                 tenantUuid, voucherId,
                 UpdateVoucherRequest(
-                    update.code, update.name, update.description, update.discountType, update.discountValue,
+                    update.name, update.description, update.discountValue,
                     update.maxDiscount, update.minPurchase, update.usageLimit,
                     validFrom  = update.validFrom?.toDateTimeString(),
                     validUntil = update.validUntil?.toDateTimeString(),

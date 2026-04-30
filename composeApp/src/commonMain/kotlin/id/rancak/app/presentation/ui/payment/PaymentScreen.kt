@@ -19,22 +19,33 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.printing.PrinterManager
+import id.rancak.app.data.printing.ReceiptData
+import id.rancak.app.data.printing.ReceiptItem
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.presentation.components.ErrorBanner
+import id.rancak.app.presentation.components.PartialReceiptPrintDialog
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.ui.payment.components.OrderLineItem
 import id.rancak.app.presentation.ui.payment.components.PaymentFormContent
 import id.rancak.app.presentation.ui.payment.components.PaymentSuccessContent
+import id.rancak.app.presentation.ui.payment.components.QrisWaitingContent
 import id.rancak.app.presentation.ui.payment.components.SplitPaymentPanel
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
 import id.rancak.app.presentation.viewmodel.SplitableItem
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -55,6 +66,56 @@ fun PaymentScreen(
     val paymentState by paymentViewModel.uiState.collectAsStateWithLifecycle()
     val printerManager: PrinterManager = koinInject()
     val settingsStore: SettingsStore   = koinInject()
+
+    // Per-customer receipt printing (split payment)
+    var pendingGroupReceiptData by remember { mutableStateOf<ReceiptData?>(null) }
+    var pendingGroupLabel       by remember { mutableStateOf("") }
+
+    // Builds ReceiptData from the current in-progress group and triggers print dialog
+    val onConfirmAndPrint: (Long) -> Unit = { groupActualTotal ->
+        val state = paymentViewModel.uiState.value
+        val currentItemQtys = state.currentSplitItemQtys
+        val currentMethod   = state.currentSplitMethod
+        val cashPaid        = state.currentSplitCashInput.toLongOrNull() ?: 0L
+        val groupId         = (state.splitGroups.maxOfOrNull { it.id } ?: 0) + 1
+
+        val receiptItems = state.splitableItems.mapNotNull { item ->
+            val qty = currentItemQtys[item.index] ?: return@mapNotNull null
+            if (qty <= 0) return@mapNotNull null
+            ReceiptItem(
+                name        = item.name,
+                variantName = item.variantName,
+                qty         = qty,
+                price       = item.price,
+                subtotal    = item.price * qty
+            )
+        }
+        val subtotal = receiptItems.sumOf { it.subtotal }
+        val paid     = if (currentMethod == PaymentMethod.CASH) cashPaid else subtotal
+        val change   = if (currentMethod == PaymentMethod.CASH) maxOf(0L, cashPaid - subtotal) else 0L
+
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        val createdAt = "${now.date} ${now.hour.toString().padStart(2,'0')}:${now.minute.toString().padStart(2,'0')}"
+
+        pendingGroupLabel       = "Pelanggan $groupId"
+        pendingGroupReceiptData = ReceiptData(
+            storeName     = settingsStore.receiptStoreName.ifBlank { "Rancak" },
+            storeAddress  = settingsStore.receiptStoreAddress.ifBlank { null },
+            storePhone    = settingsStore.receiptStorePhone.ifBlank { null },
+            invoiceNo     = "Pelanggan $groupId",
+            orderType     = "Bayar Terpisah",
+            createdAt     = createdAt,
+            items         = receiptItems,
+            subtotal      = subtotal,
+            total         = subtotal,
+            paymentMethod = currentMethod.value,
+            paidAmount    = paid,
+            changeAmount  = change,
+            footerText    = settingsStore.receiptFooter.ifBlank { null }
+        )
+
+        paymentViewModel.confirmCurrentSplitGroup(groupActualTotal)
+    }
 
     Scaffold(
         topBar = {
@@ -89,6 +150,17 @@ fun PaymentScreen(
                     modifier = Modifier.fillMaxSize().padding(padding)
                 )
 
+                // QRIS waiting dalam split mode — tampil sebagai full-screen overlay
+                paymentState.isQrisWaiting && paymentState.isSplitPayment -> {
+                    QrisWaitingContent(
+                        qrString  = paymentState.qrisQrString!!,
+                        amount    = paymentState.qrisAmount,
+                        isPolling = paymentState.isQrisPolling,
+                        onCancel  = paymentViewModel::cancelQrisPayment,
+                        modifier  = Modifier.fillMaxSize().padding(padding)
+                    )
+                }
+
                 else -> Column(modifier = Modifier.fillMaxSize().padding(padding)) {
                     if (paymentState.isSplitPayment) {
                         // Init split items whenever entering split mode
@@ -113,17 +185,53 @@ fun PaymentScreen(
                             currentCashInput = paymentState.currentSplitCashInput,
                             orderTotal      = cartState.total,
                             isProcessing    = paymentState.isProcessing,
+                            merchantQrisString = settingsStore.merchantQrisString,
                             onSetItemQty    = paymentViewModel::setCurrentSplitItemQty,
                             onSetMethod     = paymentViewModel::setCurrentSplitMethod,
                             onSetCashInput  = paymentViewModel::setCurrentSplitCashInput,
-                            onConfirmGroup  = paymentViewModel::confirmCurrentSplitGroup,
+                            onConfirmGroup  = { groupActualTotal -> paymentViewModel.confirmCurrentSplitGroup(groupActualTotal) },
+                            onConfirmAndPrint = onConfirmAndPrint,
                             onRemoveGroup   = paymentViewModel::removeSplitGroup,
                             isSplit         = paymentState.isSplitPayment,
                             onToggleMode    = paymentViewModel::toggleSplitPayment,
                             onProcess            = {
-                                paymentViewModel.processPaymentWithSplit(
+                                val heldUuid = cartState.activeOpenBillSaleUuid
+                                if (heldUuid != null) {
+                                    paymentViewModel.processHeldOrderPaymentWithSplit(
+                                        saleUuid   = heldUuid,
+                                        orderTotal = cartState.total
+                                    )
+                                } else {
+                                    paymentViewModel.processPaymentWithSplit(
+                                        items        = cartState.items,
+                                        orderTotal   = cartState.total,
+                                        orderType    = cartState.orderType,
+                                        tableUuid    = cartState.tableUuid,
+                                        customerName = cartState.customerName,
+                                        note         = cartState.note,
+                                        pax          = cartState.pax,
+                                        discount     = cartState.discount,
+                                        tax          = cartState.tax,
+                                        adminFee     = cartState.adminFee,
+                                        deliveryFee  = cartState.deliveryFee,
+                                        tip          = cartState.tip,
+                                        voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        val processPaymentArgs = {
+                            val heldUuid = cartState.activeOpenBillSaleUuid
+                            if (heldUuid != null) {
+                                paymentViewModel.processHeldOrderPayment(
+                                    saleUuid  = heldUuid,
+                                    saleTotal = cartState.total
+                                )
+                            } else {
+                                paymentViewModel.processPayment(
                                     items        = cartState.items,
-                                    orderTotal   = cartState.total,
                                     orderType    = cartState.orderType,
                                     tableUuid    = cartState.tableUuid,
                                     customerName = cartState.customerName,
@@ -136,25 +244,7 @@ fun PaymentScreen(
                                     tip          = cartState.tip,
                                     voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
                                 )
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        val processPaymentArgs = {
-                            paymentViewModel.processPayment(
-                                items        = cartState.items,
-                                orderType    = cartState.orderType,
-                                tableUuid    = cartState.tableUuid,
-                                customerName = cartState.customerName,
-                                note         = cartState.note,
-                                pax          = cartState.pax,
-                                discount     = cartState.discount,
-                                tax          = cartState.tax,
-                                adminFee     = cartState.adminFee,
-                                deliveryFee  = cartState.deliveryFee,
-                                tip          = cartState.tip,
-                                voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
-                            )
+                            }
                         }
                         PaymentFormContent(
                             itemCount          = cartState.itemCount,
@@ -179,20 +269,13 @@ fun PaymentScreen(
                             adminFee           = cartState.adminFee,
                             deliveryFee        = cartState.deliveryFee,
                             tip                = cartState.tip,
-                            onHoldOrder = {
-                                paymentViewModel.holdOrder(
-                                    items        = cartState.items,
-                                    orderType    = cartState.orderType,
-                                    tableUuid    = cartState.tableUuid,
-                                    customerName = cartState.customerName,
-                                    note         = cartState.note,
-                                    pax          = cartState.pax,
-                                    discount     = cartState.discount,
-                                    tax          = cartState.tax,
-                                    adminFee     = cartState.adminFee,
-                                    deliveryFee  = cartState.deliveryFee,
-                                    tip          = cartState.tip,
-                                    voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
+                            orderItems         = cartState.items.map { item ->
+                                OrderLineItem(
+                                    name        = item.productName,
+                                    variantName = item.variantName,
+                                    qty         = item.qty,
+                                    price       = item.price,
+                                    subtotal    = item.subtotal
                                 )
                             },
                             modifier = Modifier.fillMaxSize()
@@ -201,6 +284,18 @@ fun PaymentScreen(
                 }
             }
         }
+    }
+
+    // Dialog cetak struk per-pelanggan (split payment)
+    val receiptData = pendingGroupReceiptData
+    if (receiptData != null) {
+        PartialReceiptPrintDialog(
+            groupLabel     = pendingGroupLabel,
+            receiptData    = receiptData,
+            printerManager = printerManager,
+            settingsStore  = settingsStore,
+            onDismiss      = { pendingGroupReceiptData = null }
+        )
     }
 }
 

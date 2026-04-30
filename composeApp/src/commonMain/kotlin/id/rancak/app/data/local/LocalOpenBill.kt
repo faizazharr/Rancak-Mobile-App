@@ -28,7 +28,12 @@ data class LocalOpenBill(
     val tip: Long = 0,
     val voucherCode: String = "",
     /** Epoch millis saat open bill pertama kali dibuat. */
-    val createdAt: Long = 0L
+    val createdAt: Long = 0L,
+    /**
+     * UUID sale di backend (status HELD) — non-null jika open bill sudah disinkronkan ke server
+     * sehingga muncul di KDS. Saat dibayar/dibatalkan, UUID ini dipakai untuk menghindari KDS card ganda.
+     */
+    val remoteSaleUuid: String? = null
 ) {
     val subtotal: Long get() = items.sumOf { it.price * it.qty }
     val itemCount: Int get() = items.sumOf { it.qty }

@@ -14,7 +14,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.OrderBoardItem
+import id.rancak.app.domain.model.OrderBoardOrder
+import id.rancak.app.domain.model.OrderType
+import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.designsystem.RancakTheme
 import kotlin.time.Clock
 

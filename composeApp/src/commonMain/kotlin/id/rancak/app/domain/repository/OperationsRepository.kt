@@ -1,6 +1,17 @@
 package id.rancak.app.domain.repository
 
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.CashCount
+import id.rancak.app.domain.model.DiscountPreview
+import id.rancak.app.domain.model.DiscountRule
+import id.rancak.app.domain.model.KdsOrder
+import id.rancak.app.domain.model.KdsStatus
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.model.Shift
+import id.rancak.app.domain.model.ShiftSummary
+import id.rancak.app.domain.model.Surcharge
+import id.rancak.app.domain.model.Table
+import id.rancak.app.domain.model.TaxConfig
+import id.rancak.app.domain.model.VoucherValidation
 
 interface OperationsRepository {
     suspend fun getTables(): Resource<List<Table>>

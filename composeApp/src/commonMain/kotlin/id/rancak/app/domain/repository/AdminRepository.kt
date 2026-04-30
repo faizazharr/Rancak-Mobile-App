@@ -1,6 +1,19 @@
 package id.rancak.app.domain.repository
 
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.Bundle
+import id.rancak.app.domain.model.Category
+import id.rancak.app.domain.model.DiscountRule
+import id.rancak.app.domain.model.Modifier
+import id.rancak.app.domain.model.Product
+import id.rancak.app.domain.model.ProductBatch
+import id.rancak.app.domain.model.ReceiptSettings
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.model.Surcharge
+import id.rancak.app.domain.model.Table
+import id.rancak.app.domain.model.TaxConfig
+import id.rancak.app.domain.model.Variant
+import id.rancak.app.domain.model.VariantGroup
+import id.rancak.app.domain.model.Voucher
 
 /**
  * Admin/Owner write operations: pricing rules, tables, bundles, modifiers,
@@ -235,10 +248,8 @@ interface AdminRepository {
 // ── Support types ──────────────────────────────────────────────────────────────
 
 data class VoucherUpdate(
-    val code: String? = null,
     val name: String? = null,
     val description: String? = null,
-    val discountType: String? = null,
     val discountValue: String? = null,
     val maxDiscount: String? = null,
     val minPurchase: String? = null,

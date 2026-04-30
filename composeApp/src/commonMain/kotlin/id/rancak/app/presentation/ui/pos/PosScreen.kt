@@ -69,15 +69,17 @@ fun PosScreen(
     // Dialog nama open bill — tampilkan saat openBillState.showNameDialog = true
     if (openBillState.showNameDialog) {
         OpenBillNameDialog(
-            initialName = openBillState.dialogInitialName,
-            isUpdate    = openBillState.editingBillId != null,
-            onConfirm   = { name ->
+            initialName         = openBillState.dialogInitialName,
+            initialCustomerName = cartState.customerName,
+            isUpdate            = openBillState.editingBillId != null,
+            onConfirm   = { name, customerName ->
+                cartViewModel.setCustomerName(customerName)
                 openBillViewModel.saveCart(
                     name              = name,
                     items             = cartState.items,
                     orderType         = cartState.orderType,
                     tableUuid         = cartState.tableUuid,
-                    customerName      = cartState.customerName,
+                    customerName      = customerName,
                     note              = cartState.note,
                     pax               = cartState.pax,
                     discountInput     = cartState.discountInput,
@@ -89,7 +91,8 @@ fun PosScreen(
                     deliveryFee       = cartState.deliveryFee,
                     tip               = cartState.tip,
                     voucherCode       = cartState.voucherCode,
-                    editingBillId     = cartState.activeOpenBillId
+                    editingBillId          = cartState.activeOpenBillId,
+                    existingRemoteSaleUuid = cartState.activeOpenBillSaleUuid
                 )
                 cartViewModel.clearCart()
                 openBillViewModel.hideDialog()

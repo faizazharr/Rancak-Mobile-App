@@ -7,10 +7,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Kitchen
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.ShoppingCartCheckout
 import androidx.compose.material3.*
@@ -23,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.data.local.LocalOpenBill
 import id.rancak.app.presentation.util.formatRupiah
@@ -34,14 +38,22 @@ import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * Layar daftar open bill lokal.
- * Kasir bisa melanjutkan (lanjutkan ke kasir) atau menghapus tagihan yang tersimpan.
+ * Layar daftar open bill.
+ *
+ * Bill yang sudah tersinkron ke backend ([LocalOpenBill.remoteSaleUuid] != null) muncul
+ * di KDS & Order Board — action-nya adalah "Tambah Item" dan "Bayar".
+ * Bill lokal saja (belum online) — action-nya adalah "Lanjutkan ke Kasir" dan "Hapus".
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OpenBillListScreen(
     onBack: () -> Unit,
+    /** Untuk bill lokal (belum tersinkron) — muat ke cart dan kembali ke POS. */
     onResume: (LocalOpenBill) -> Unit,
+    /** Untuk bill synced — navigasi ke PayHeldOrderScreen. */
+    onPayHeldOrder: (saleUuid: String) -> Unit = {},
+    /** Untuk bill synced — navigasi ke AddItemsToHeldOrderScreen. */
+    onAddItems: (saleUuid: String) -> Unit = {},
     viewModel: OpenBillViewModel = koinViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -122,7 +134,9 @@ fun OpenBillListScreen(
                             viewModel.remove(bill.id)
                             onResume(bill)
                         },
-                        onDelete = { viewModel.remove(bill.id) }
+                        onDelete  = { viewModel.remove(bill.id) },
+                        onPay     = bill.remoteSaleUuid?.let { uuid -> { onPayHeldOrder(uuid) } },
+                        onAddItems = bill.remoteSaleUuid?.let { uuid -> { onAddItems(uuid) } }
                     )
                     Spacer(Modifier.height(10.dp))
                 }
@@ -198,28 +212,45 @@ private fun OpenBillCard(
     bill: LocalOpenBill,
     amber: Color,
     onResume: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    /** Non-null saat bill sudah tersinkron ke KDS; menampilkan tombol "Bayar". */
+    onPay: (() -> Unit)? = null,
+    /** Non-null saat bill sudah tersinkron ke KDS; menampilkan tombol "Tambah Item". */
+    onAddItems: (() -> Unit)? = null
 ) {
+    val isSynced         = bill.remoteSaleUuid != null
     var showDeleteDialog by remember { mutableStateOf(false) }
     val surface          = MaterialTheme.colorScheme.surface
     val onSurface        = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+    val kdsGreen         = Color(0xFF2E7D32)
 
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             icon    = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) },
-            title   = { Text("Hapus Open Bill?", fontWeight = FontWeight.Bold) },
-            text    = { Text("\"${bill.name}\" akan dihapus permanen dari daftar.") },
+            title   = {
+                Text(
+                    if (isSynced) "Batalkan Pesanan?" else "Hapus Open Bill?",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text    = {
+                if (isSynced) {
+                    Text("\"${bill.name}\" sudah dikirim ke dapur (KDS). Membatalkan akan menutup antrian dapur dan menghentikan persiapan pesanan.")
+                } else {
+                    Text("\"${bill.name}\" akan dihapus permanen dari daftar.")
+                }
+            },
             confirmButton = {
                 Button(
                     onClick = { showDeleteDialog = false; onDelete() },
                     colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape   = RoundedCornerShape(8.dp)
-                ) { Text("Hapus") }
+                ) { Text(if (isSynced) "Batalkan Pesanan" else "Hapus") }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Batal") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Kembali") }
             },
             shape = RoundedCornerShape(16.dp)
         )
@@ -262,27 +293,47 @@ private fun OpenBillCard(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(amber.copy(alpha = 0.12f)),
+                                .background(if (isSynced) kdsGreen.copy(alpha = 0.12f) else amber.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Default.BookmarkBorder, null,
-                                tint     = amber,
+                                if (isSynced) Icons.Default.Kitchen else Icons.Default.BookmarkBorder,
+                                null,
+                                tint     = if (isSynced) kdsGreen else amber,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
                         Column {
-                            Text(
-                                text       = bill.name,
-                                style      = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color      = onSurface,
-                                maxLines   = 1,
-                                overflow   = TextOverflow.Ellipsis
-                            )
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text       = bill.name,
+                                    style      = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color      = onSurface,
+                                    maxLines   = 1,
+                                    overflow   = TextOverflow.Ellipsis
+                                )
+                                if (isSynced) {
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = kdsGreen.copy(alpha = 0.12f)
+                                    ) {
+                                        Text(
+                                            "KDS",
+                                            modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                                            fontSize   = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color      = kdsGreen
+                                        )
+                                    }
+                                }
+                            }
                             if (bill.customerName.isNotBlank()) {
                                 Text(
-                                    bill.customerName,
+                                    "a/n ${bill.customerName}",
                                     style  = MaterialTheme.typography.labelSmall,
                                     color  = onSurfaceVariant.copy(alpha = 0.6f),
                                     maxLines = 1
@@ -390,7 +441,7 @@ private fun OpenBillCard(
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Hapus
+                        // Hapus / Batalkan
                         OutlinedButton(
                             onClick       = { showDeleteDialog = true },
                             shape         = RoundedCornerShape(8.dp),
@@ -404,23 +455,58 @@ private fun OpenBillCard(
                         ) {
                             Icon(Icons.Default.Delete, null, modifier = Modifier.size(14.dp))
                         }
-                        // Lanjutkan
-                        Button(
-                            onClick        = onResume,
-                            shape          = RoundedCornerShape(8.dp),
-                            colors         = ButtonDefaults.buttonColors(
-                                containerColor = amber,
-                                contentColor   = Color.White
-                            ),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Icon(Icons.Default.ShoppingCartCheckout, null, modifier = Modifier.size(15.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                "Lanjutkan",
-                                style      = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold
-                            )
+
+                        if (isSynced) {
+                            // ── Bill sudah di KDS: Tambah Item + Bayar ───────
+                            OutlinedButton(
+                                onClick        = { onAddItems?.invoke() },
+                                shape          = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Icon(Icons.Default.AddShoppingCart, null, modifier = Modifier.size(14.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    "Tambah Item",
+                                    style      = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Button(
+                                onClick        = { onPay?.invoke() },
+                                shape          = RoundedCornerShape(8.dp),
+                                colors         = ButtonDefaults.buttonColors(
+                                    containerColor = kdsGreen,
+                                    contentColor   = Color.White
+                                ),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Icon(Icons.Default.Payments, null, modifier = Modifier.size(15.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "Bayar",
+                                    style      = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        } else {
+                            // ── Bill lokal: Lanjutkan ke kasir ───────────────
+                            Button(
+                                onClick        = onResume,
+                                shape          = RoundedCornerShape(8.dp),
+                                colors         = ButtonDefaults.buttonColors(
+                                    containerColor = amber,
+                                    contentColor   = Color.White
+                                ),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Icon(Icons.Default.ShoppingCartCheckout, null, modifier = Modifier.size(15.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "Lanjutkan",
+                                    style      = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }

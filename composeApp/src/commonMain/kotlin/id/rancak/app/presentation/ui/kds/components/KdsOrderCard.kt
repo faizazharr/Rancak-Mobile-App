@@ -13,7 +13,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.KdsItem
+import id.rancak.app.domain.model.KdsItemStatus
+import id.rancak.app.domain.model.KdsOrder
+import id.rancak.app.domain.model.KdsStatus
+import id.rancak.app.domain.model.OrderType
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 // ── Helpers (package-private) ─────────────────────────────────────────────────
@@ -78,6 +82,16 @@ fun KdsOrderCard(
                         Text("$orderTypeLabel${order.tableName?.let { " · $it" } ?: ""}",
                             color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp, fontWeight = FontWeight.Medium,
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (!order.customerName.isNullOrBlank()) {
+                            Text(
+                                "a/n ${order.customerName}",
+                                color = Color.White.copy(alpha = 0.95f),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                     if (time.isNotBlank()) {
                         Column(horizontalAlignment = Alignment.End) {

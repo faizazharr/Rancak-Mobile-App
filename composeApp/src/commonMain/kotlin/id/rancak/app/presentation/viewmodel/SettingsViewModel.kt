@@ -50,6 +50,9 @@ data class SettingsUiState(
     val storePhone: String = "",
     val footerText: String = "Terima kasih!",
 
+    // Merchant Static QRIS
+    val merchantQrisString: String = "",
+
     // General
     val autoPrint: Boolean = false,
     val paperWidth: Int = 58
@@ -87,6 +90,7 @@ class SettingsViewModel(
             storeAddress = settingsStore.receiptStoreAddress,
             storePhone = settingsStore.receiptStorePhone,
             footerText = settingsStore.receiptFooter,
+            merchantQrisString = settingsStore.merchantQrisString,
             autoPrint = settingsStore.autoPrintReceipt,
             paperWidth = settingsStore.paperWidth,
             isBluetoothOn = try { printerManager.isBluetoothEnabled() } catch (_: Exception) { false }
@@ -407,6 +411,11 @@ class SettingsViewModel(
     fun setFooterText(value: String) {
         settingsStore.receiptFooter = value
         _uiState.update { it.copy(footerText = value) }
+    }
+
+    fun setMerchantQrisString(value: String) {
+        settingsStore.merchantQrisString = value
+        _uiState.update { it.copy(merchantQrisString = value) }
     }
 
     // ── General settings ─────────────────────────────────────────────────────

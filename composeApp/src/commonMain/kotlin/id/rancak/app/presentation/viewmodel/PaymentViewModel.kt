@@ -2,10 +2,16 @@ package id.rancak.app.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import id.rancak.app.domain.model.*
 import id.rancak.app.domain.model.CartItem
-import id.rancak.app.domain.repository.SaleRepository
+import id.rancak.app.domain.model.OrderType
+import id.rancak.app.domain.model.PaymentMethod
+import id.rancak.app.domain.model.QrPayment
+import id.rancak.app.domain.model.QrPaymentStatus
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SplitPaymentEntry
+import id.rancak.app.domain.model.User
+import id.rancak.app.domain.repository.SaleRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,12 +47,14 @@ data class SplitableItem(
 
 /** Satu grup pelanggan dalam split bill.
  *  [itemQtys]: itemIndex → jumlah qty yang dibayar oleh grup ini.
+ *  [groupActualTotal]: total yang harus dibayar grup ini (item subtotal + biaya proporsional).
  */
 data class SplitGroup(
     val id: Int,
     val itemQtys: Map<Int, Int>,
     val method: PaymentMethod,
-    val cashPaid: Long = 0L  // hanya untuk CASH; QRIS menggunakan subtotal item
+    val cashPaid: Long = 0L,  // hanya untuk CASH; QRIS menggunakan groupActualTotal
+    val groupActualTotal: Long = 0L  // item subtotal + biaya proporsional
 )
 
 data class PaymentUiState(
@@ -480,29 +488,34 @@ class PaymentViewModel(
         _uiState.update { it.copy(currentSplitCashInput = clamped, error = null) }
     }
 
-    /** Konfirmasi grup saat ini dan tambahkan ke daftar split groups. */
-    fun confirmCurrentSplitGroup() {
+    /** Konfirmasi grup saat ini dan tambahkan ke daftar split groups.
+     *  [groupActualTotal]: total yang harus dibayar grup ini (item subtotal + biaya proporsional).
+     *  Gunakan 0 sebagai default saat tidak ada biaya tambahan.
+     */
+    fun confirmCurrentSplitGroup(groupActualTotal: Long = 0L) {
         val state = _uiState.value
         if (state.currentSplitItemQtys.isEmpty()) {
             _uiState.update { it.copy(error = "Pilih minimal satu item untuk grup ini") }
             return
         }
         val subtotal = state.currentSplitSubtotal
+        val expectedAmount = if (groupActualTotal > 0) groupActualTotal else subtotal
         if (state.currentSplitMethod == PaymentMethod.CASH) {
             val cashPaid = state.currentSplitCashInput.toLongOrNull() ?: 0L
-            if (cashPaid < subtotal) {
+            if (cashPaid < expectedAmount) {
                 _uiState.update { it.copy(error = "Uang yang diberikan kurang dari total item") }
                 return
             }
         }
         val newId = (state.splitGroups.maxOfOrNull { it.id } ?: 0) + 1
         val newGroup = SplitGroup(
-            id       = newId,
-            itemQtys = state.currentSplitItemQtys,
-            method   = state.currentSplitMethod,
-            cashPaid = if (state.currentSplitMethod == PaymentMethod.CASH)
-                           state.currentSplitCashInput.toLongOrNull() ?: 0L
-                       else 0L
+            id               = newId,
+            itemQtys         = state.currentSplitItemQtys,
+            method           = state.currentSplitMethod,
+            cashPaid         = if (state.currentSplitMethod == PaymentMethod.CASH)
+                                   state.currentSplitCashInput.toLongOrNull() ?: 0L
+                               else 0L,
+            groupActualTotal = if (groupActualTotal > 0) groupActualTotal else subtotal
         )
         _uiState.update {
             it.copy(
@@ -553,11 +566,11 @@ class PaymentViewModel(
             val amount = if (group.method == PaymentMethod.CASH && group.cashPaid > 0)
                 group.cashPaid
             else
-                state.splitGroupSubtotal(group)
+                group.groupActualTotal.takeIf { it > 0 } ?: state.splitGroupSubtotal(group)
             SplitPaymentEntry(group.method, amount)
         }
-        val hasQrisGroup = payments.any { it.method == PaymentMethod.QRIS }
-        val qrisAmount   = payments.filter { it.method == PaymentMethod.QRIS }.sumOf { it.amount }
+        // Catatan: untuk split bill, QRIS dibayar per pelanggan via QRIS statis merchant
+        // (di luar backend). Tidak perlu generate QR dinamis Xendit di sini.
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
@@ -577,11 +590,7 @@ class PaymentViewModel(
                 voucherCode  = voucherCode?.takeIf { it.isNotBlank() }
             )) {
                 is Resource.Success -> {
-                    if (hasQrisGroup) {
-                        initiateQrisPayment(result.data.uuid, qrisAmount)
-                    } else {
-                        _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
-                    }
+                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
                 }
                 is Resource.Error ->
                     _uiState.update { it.copy(isProcessing = false, error = result.message) }
@@ -645,21 +654,17 @@ class PaymentViewModel(
             val amount = if (group.method == PaymentMethod.CASH && group.cashPaid > 0)
                 group.cashPaid
             else
-                state.splitGroupSubtotal(group)
+                group.groupActualTotal.takeIf { it > 0 } ?: state.splitGroupSubtotal(group)
             SplitPaymentEntry(group.method, amount)
         }
-        val hasQrisGroup = payments.any { it.method == PaymentMethod.QRIS }
-        val qrisAmount   = payments.filter { it.method == PaymentMethod.QRIS }.sumOf { it.amount }
+        // Catatan: QRIS pada split bill dibayar via QRIS statis merchant per pelanggan
+        // (lihat dialog QRIS di SplitPaymentColumn). Tidak perlu generate QR dinamis di sini.
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
             when (val result = saleRepository.paySaleWithSplitPayment(saleUuid, payments)) {
                 is Resource.Success -> {
-                    if (hasQrisGroup) {
-                        initiateQrisPayment(result.data.uuid, qrisAmount)
-                    } else {
-                        _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
-                    }
+                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
                 }
                 is Resource.Error ->
                     _uiState.update { it.copy(isProcessing = false, error = result.message) }

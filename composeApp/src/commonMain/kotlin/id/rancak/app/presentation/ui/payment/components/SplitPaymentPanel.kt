@@ -4,21 +4,24 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.CallSplit
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.presentation.components.PaymentMethodChip
+import id.rancak.app.presentation.components.QrisQrCode
 import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.SummaryRow
 import id.rancak.app.presentation.util.formatRupiah
@@ -44,10 +48,10 @@ private val groupAccentColors = listOf(
 )
 
 /**
- * Panel split payment — layout konsisten dengan [PaymentFormContent].
+ * Panel split payment.
  *
- * - Kiri  : hero total card + daftar grup terkonfirmasi + mode toggle
- * - Kanan : qty stepper per item + pilih metode + input cash/QRIS + tombol konfirmasi + proses
+ * - Kiri  : hero total + pilih item (stepper scrollable) + grup terkonfirmasi + mode toggle
+ * - Kanan : header pelanggan N + input pembayaran (metode / numpad / QRIS) + tombol aksi
  */
 @Composable
 internal fun SplitPaymentPanel(
@@ -61,14 +65,18 @@ internal fun SplitPaymentPanel(
     onSetItemQty: (index: Int, qty: Int) -> Unit,
     onSetMethod: (PaymentMethod) -> Unit,
     onSetCashInput: (String) -> Unit,
-    onConfirmGroup: () -> Unit,
+    /** Called with the group's actual total (item subtotal + proportional fees). */
+    onConfirmGroup: (Long) -> Unit,
+    /** Called with the group's actual total — confirms group AND triggers print. */
+    onConfirmAndPrint: (Long) -> Unit,
     onRemoveGroup: (Int) -> Unit,
     onProcess: () -> Unit,
     isSplit: Boolean,
     onToggleMode: () -> Unit,
+    /** QRIS string statis merchant; bila kosong dialog QRIS jadi info‐only. */
+    merchantQrisString: String = "",
     modifier: Modifier = Modifier
 ) {
-    // Confirmed qty map: itemIndex -> total qty already in confirmed groups
     val confirmedQtyMap: Map<Int, Int> = remember(splitGroups) {
         buildMap {
             splitGroups.forEach { g ->
@@ -77,78 +85,93 @@ internal fun SplitPaymentPanel(
         }
     }
     val allAssigned = items.isNotEmpty() && items.all { (confirmedQtyMap[it.index] ?: 0) >= it.qty }
-    val currentSubtotal: Long = remember(currentItemQtys, items) {
+
+    // Sum of ALL items' (price × qty) — used to compute each group's fee proportion
+    val orderItemSubtotal: Long = remember(items) { items.sumOf { it.price * it.qty } }
+
+    val currentItemSubtotal: Long = remember(currentItemQtys, items) {
         val priceMap = items.associate { it.index to it.price }
         currentItemQtys.entries.sumOf { (idx, qty) -> (priceMap[idx] ?: 0L) * qty }
     }
-    val cashPaid = currentCashInput.toLongOrNull() ?: 0L
-    val change = if (currentMethod == PaymentMethod.CASH && cashPaid >= currentSubtotal)
-        cashPaid - currentSubtotal else 0L
-    val canConfirm = currentItemQtys.isNotEmpty() &&
-        currentItemQtys.values.any { it > 0 } &&
-        (currentMethod != PaymentMethod.CASH || cashPaid >= currentSubtotal)
+
+    // Proportional total: this group pays (its item share / all items) × orderTotal
+    // If there are no surcharges, groupActualTotal == currentItemSubtotal
+    val groupActualTotal: Long = remember(currentItemSubtotal, orderItemSubtotal, orderTotal) {
+        if (orderItemSubtotal > 0L)
+            (currentItemSubtotal.toDouble() / orderItemSubtotal.toDouble() * orderTotal.toDouble()).toLong()
+        else currentItemSubtotal
+    }
+
+    val cashPaid  = currentCashInput.toLongOrNull() ?: 0L
+    val change    = if (currentMethod == PaymentMethod.CASH && cashPaid >= groupActualTotal)
+        cashPaid - groupActualTotal else 0L
+    val canConfirm = currentItemQtys.values.any { it > 0 } &&
+        (currentMethod != PaymentMethod.CASH || cashPaid >= groupActualTotal)
     val groupNumber = splitGroups.size + 1
 
     Row(
         modifier = modifier.padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // ── LEFT: summary + confirmed groups + mode toggle ────────────────────
-        SplitSummaryColumn(
-            orderTotal     = orderTotal,
-            totalItems     = items.size,
-            splitGroups    = splitGroups,
-            items          = items,
-            allAssigned    = allAssigned,
-            isSplit        = isSplit,
-            onToggleMode   = onToggleMode,
-            onRemoveGroup  = onRemoveGroup,
-            modifier       = Modifier.weight(0.42f).fillMaxHeight()
+        // ── LEFT: item selection + confirmed groups + mode toggle ─────────────
+        SplitItemColumn(
+            orderTotal      = orderTotal,
+            items           = items,
+            confirmedQtyMap = confirmedQtyMap,
+            currentItemQtys = currentItemQtys,
+            splitGroups     = splitGroups,
+            isSplit         = isSplit,
+            onSetItemQty    = onSetItemQty,
+            onToggleMode    = onToggleMode,
+            onRemoveGroup   = onRemoveGroup,
+            modifier        = Modifier.weight(0.45f).fillMaxHeight()
         )
 
-        // ── RIGHT: group builder ──────────────────────────────────────────────
-        SplitBuilderColumn(
-            items             = items,
-            confirmedQtyMap   = confirmedQtyMap,
-            currentItemQtys   = currentItemQtys,
-            currentSubtotal   = currentSubtotal,
-            currentMethod     = currentMethod,
-            currentCashInput  = currentCashInput,
-            change            = change,
-            groupNumber       = groupNumber,
-            canConfirm        = canConfirm,
-            allAssigned       = allAssigned,
-            hasConfirmedGroups = splitGroups.isNotEmpty(),
-            isProcessing      = isProcessing,
-            onSetItemQty      = onSetItemQty,
-            onSetMethod       = onSetMethod,
-            onSetCashInput    = onSetCashInput,
-            onConfirmGroup    = onConfirmGroup,
-            onProcess         = onProcess,
-            modifier          = Modifier.weight(0.58f).fillMaxHeight()
+        // ── RIGHT: payment input ──────────────────────────────────────────────
+        SplitPaymentColumn(
+            groupNumber          = groupNumber,
+            currentItemSubtotal  = currentItemSubtotal,
+            groupActualTotal     = groupActualTotal,
+            hasFeeShare          = groupActualTotal != currentItemSubtotal && currentItemSubtotal > 0,
+            currentMethod        = currentMethod,
+            currentCashInput     = currentCashInput,
+            change               = change,
+            canConfirm           = canConfirm,
+            allAssigned          = allAssigned,
+            hasConfirmedGroups   = splitGroups.isNotEmpty(),
+            isProcessing         = isProcessing,
+            anyItemSelected      = currentItemQtys.values.any { it > 0 },
+            merchantQrisString   = merchantQrisString,
+            onSetMethod          = onSetMethod,
+            onSetCashInput       = onSetCashInput,
+            onConfirmGroup       = { onConfirmGroup(groupActualTotal) },
+            onConfirmAndPrint    = { onConfirmAndPrint(groupActualTotal) },
+            onProcess            = onProcess,
+            modifier             = Modifier.weight(0.55f).fillMaxHeight()
         )
     }
 }
 
-// ── Left column ───────────────────────────────────────────────────────────────
+// ── Left column — item selection ──────────────────────────────────────────────
 
 @Composable
-private fun SplitSummaryColumn(
+private fun SplitItemColumn(
     orderTotal: Long,
-    totalItems: Int,
-    splitGroups: List<SplitGroup>,
     items: List<SplitableItem>,
-    allAssigned: Boolean,
+    confirmedQtyMap: Map<Int, Int>,
+    currentItemQtys: Map<Int, Int>,
+    splitGroups: List<SplitGroup>,
     isSplit: Boolean,
+    onSetItemQty: (Int, Int) -> Unit,
     onToggleMode: () -> Unit,
     onRemoveGroup: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Hero card — sama persis dengan PaymentFormContent
+        // Hero total card
         Card(
             shape  = MaterialTheme.shapes.large,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
@@ -157,9 +180,9 @@ private fun SplitSummaryColumn(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -171,7 +194,7 @@ private fun SplitSummaryColumn(
                         modifier = Modifier.size(13.dp)
                     )
                     Text(
-                        "$totalItems item",
+                        "${items.size} item",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
                     )
@@ -190,51 +213,59 @@ private fun SplitSummaryColumn(
             }
         }
 
-        // Ringkasan split
-        Card(
-            shape  = MaterialTheme.shapes.medium,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-            ),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+        // Item steppers — scrollable, fills remaining space
+        Text(
+            "Pilih Item untuk Pelanggan",
+            style      = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color      = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (items.isEmpty()) {
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 Text(
-                    "Ringkasan",
-                    style      = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = MaterialTheme.colorScheme.onSurfaceVariant
+                    "Memuat item...",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(10.dp))
-                SummaryRow(label = "$totalItems item", value = formatRupiah(orderTotal))
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
-                SummaryRow(
-                    label      = "Total",
-                    value      = formatRupiah(orderTotal),
-                    isBold     = true,
-                    valueColor = MaterialTheme.colorScheme.primary
-                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 4.dp)
+            ) {
+                items(items, key = { it.index }) { item ->
+                    val confirmedQty = confirmedQtyMap[item.index] ?: 0
+                    val remainingQty = item.qty - confirmedQty
+                    val selectedQty  = currentItemQtys[item.index] ?: 0
+                    ItemQtyStepper(
+                        item         = item,
+                        selectedQty  = selectedQty,
+                        confirmedQty = confirmedQty,
+                        remainingQty = remainingQty,
+                        onSetQty     = { qty -> onSetItemQty(item.index, qty) }
+                    )
+                }
             }
         }
 
-        // Daftar grup terkonfirmasi
+        // Confirmed groups
         if (splitGroups.isNotEmpty()) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             Text(
                 "Sudah Dikonfirmasi",
-                style = MaterialTheme.typography.labelMedium,
+                style      = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color      = MaterialTheme.colorScheme.onSurfaceVariant
             )
             LazyColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.heightIn(max = 180.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 itemsIndexed(splitGroups) { index, group ->
-                    val groupSubtotal = items
-                        .sumOf { item -> (group.itemQtys[item.index] ?: 0) * item.price }
+                    val groupSubtotal = items.sumOf { item ->
+                        (group.itemQtys[item.index] ?: 0) * item.price
+                    }
                     val accentColor = groupAccentColors.getOrElse(index) { groupAccentColors.first() }
                     ConfirmedGroupRow(
                         group         = group,
@@ -245,12 +276,10 @@ private fun SplitSummaryColumn(
                     )
                 }
             }
-        } else {
-            Spacer(Modifier.weight(1f))
         }
 
-        // Mode toggle — sama persis dengan PaymentFormContent
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        // Mode toggle
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 "Mode Pembayaran",
                 style = MaterialTheme.typography.labelSmall,
@@ -259,7 +288,7 @@ private fun SplitSummaryColumn(
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 AssistChip(
                     onClick = { if (isSplit) onToggleMode() },
-                    label = { Text("Tunggal") },
+                    label   = { Text("Tunggal") },
                     leadingIcon = { Icon(Icons.Default.Payments, null, modifier = Modifier.size(16.dp)) },
                     modifier = Modifier.weight(1f),
                     colors = if (!isSplit) AssistChipDefaults.assistChipColors(
@@ -268,7 +297,7 @@ private fun SplitSummaryColumn(
                 )
                 AssistChip(
                     onClick = { if (!isSplit) onToggleMode() },
-                    label = { Text("Terpisah") },
+                    label   = { Text("Terpisah") },
                     leadingIcon = { Icon(Icons.AutoMirrored.Filled.CallSplit, null, modifier = Modifier.size(16.dp)) },
                     modifier = Modifier.weight(1f),
                     colors = if (isSplit) AssistChipDefaults.assistChipColors(
@@ -280,248 +309,388 @@ private fun SplitSummaryColumn(
     }
 }
 
-// ── Right column ──────────────────────────────────────────────────────────────
+// ── Right column — payment input ──────────────────────────────────────────────
 
 @Composable
-private fun SplitBuilderColumn(
-    items: List<SplitableItem>,
-    confirmedQtyMap: Map<Int, Int>,
-    currentItemQtys: Map<Int, Int>,
-    currentSubtotal: Long,
+private fun SplitPaymentColumn(
+    groupNumber: Int,
+    currentItemSubtotal: Long,
+    groupActualTotal: Long,
+    hasFeeShare: Boolean,
     currentMethod: PaymentMethod,
     currentCashInput: String,
     change: Long,
-    groupNumber: Int,
     canConfirm: Boolean,
     allAssigned: Boolean,
     hasConfirmedGroups: Boolean,
     isProcessing: Boolean,
-    onSetItemQty: (Int, Int) -> Unit,
+    anyItemSelected: Boolean,
+    merchantQrisString: String,
     onSetMethod: (PaymentMethod) -> Unit,
     onSetCashInput: (String) -> Unit,
     onConfirmGroup: () -> Unit,
+    onConfirmAndPrint: () -> Unit,
     onProcess: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Header pelanggan N
+    var showQrisConfirmDialog by remember { mutableStateOf(false) }
+
+    // ── QRIS confirmation dialog — menampilkan QR statis merchant + nominal grup ─
+    if (showQrisConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showQrisConfirmDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.QrCode2,
+                        contentDescription = null,
+                        tint     = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("QRIS — Pelanggan $groupNumber")
+                }
+            },
+            text  = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Nominal yang harus dibayar (paling menonjol)
+                    Surface(
+                        color    = MaterialTheme.colorScheme.primaryContainer,
+                        shape    = MaterialTheme.shapes.medium,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier            = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "Nominal yang harus dibayar",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                formatRupiah(groupActualTotal),
+                                style      = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color      = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    // QR code merchant statis (kalau ada) atau placeholder info
+                    if (merchantQrisString.isNotBlank()) {
+                        QrisQrCode(
+                            qrString = merchantQrisString,
+                            size     = 220.dp,
+                            label    = "Scan, lalu masukkan nominal di atas"
+                        )
+                    } else {
+                        Surface(
+                            color    = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
+                            shape    = MaterialTheme.shapes.small,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "QRIS merchant belum diatur. Buka Pengaturan › Informasi Toko " +
+                                "untuk menambahkan QRIS statis Anda, atau minta customer transfer manual.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+
+                    Text(
+                        "Setelah customer selesai bayar, tekan \"Sudah Bayar & Cetak\" " +
+                        "untuk konfirmasi grup ini dan mencetak struk.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showQrisConfirmDialog = false
+                        onConfirmAndPrint()
+                    }
+                ) {
+                    Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Sudah Bayar & Cetak")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showQrisConfirmDialog = false }) {
+                    Text("Batal")
+                }
+            }
+        )
+    }
+
+    Column(modifier = modifier) {
+        // ── Header — Pelanggan N + subtotal ───────────────────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 "Pelanggan $groupNumber",
-                style = MaterialTheme.typography.titleMedium,
+                style      = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
-            if (currentItemQtys.values.any { it > 0 }) {
+            if (anyItemSelected) {
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Text(
+                        formatRupiah(groupActualTotal),
+                        style      = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color      = MaterialTheme.colorScheme.primary,
+                        modifier   = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            } else {
                 Text(
-                    formatRupiah(currentSubtotal),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    "Pilih item di sebelah kiri",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
             }
         }
 
-        // Item qty steppers
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (items.isEmpty()) {
-                Text(
-                    "Memuat item...",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                items.forEach { item ->
-                    val confirmedQty = confirmedQtyMap[item.index] ?: 0
-                    val remainingQty = item.qty - confirmedQty
-                    val selectedQty = currentItemQtys[item.index] ?: 0
-                    ItemQtyStepper(
-                        item         = item,
-                        selectedQty  = selectedQty,
-                        confirmedQty = confirmedQty,
-                        remainingQty = remainingQty,
-                        onSetQty     = { qty -> onSetItemQty(item.index, qty) }
-                    )
-                }
-            }
-
-            // Method chips
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Fee breakdown (only when there are order-level charges/discounts)
+        if (anyItemSelected && hasFeeShare) {
+            val feeShare = groupActualTotal - currentItemSubtotal
+            Surface(
+                shape    = MaterialTheme.shapes.small,
+                color    = if (feeShare >= 0)
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                else
+                    MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
             ) {
-                splitMethods.forEach { m ->
-                    PaymentMethodChip(
-                        method     = m.value,
-                        isSelected = currentMethod == m,
-                        onClick    = { onSetMethod(m) },
-                        modifier   = Modifier.weight(1f)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Item: ${formatRupiah(currentItemSubtotal)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    val feeLabel = if (feeShare >= 0) "+ ${formatRupiah(feeShare)} biaya"
+                                   else "− ${formatRupiah(-feeShare)} diskon"
+                    Text(
+                        feeLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (feeShare >= 0) MaterialTheme.colorScheme.secondary
+                                else MaterialTheme.colorScheme.primary
                     )
                 }
             }
+        }
 
-            // Cash / QRIS input
-            if (currentItemQtys.values.any { it > 0 }) {
-                when (currentMethod) {
-                    PaymentMethod.CASH -> {
-                        // Amount display
-                        Surface(
-                            shape    = MaterialTheme.shapes.medium,
-                            color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment     = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text(
-                                        "Uang Diterima",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(Modifier.height(2.dp))
-                                    Text(
-                                        if (currentCashInput.isEmpty()) "Rp 0"
-                                        else formatRupiah(currentCashInput.toLongOrNull() ?: 0L),
-                                        style      = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color      = if (currentCashInput.isEmpty())
-                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                                        else MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                                if (currentCashInput.isNotEmpty()) {
-                                    Column(horizontalAlignment = Alignment.End) {
-                                        Text(
-                                            "Kembalian",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(Modifier.height(2.dp))
-                                        Text(
-                                            formatRupiah(change),
-                                            style      = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (change >= 0) MaterialTheme.colorScheme.primary
-                                                    else MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                }
-                            }
+        // ── Method chips ──────────────────────────────────────────────────────
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            splitMethods.forEach { m ->
+                PaymentMethodChip(
+                    method     = m.value,
+                    isSelected = currentMethod == m,
+                    onClick    = { onSetMethod(m) },
+                    modifier   = Modifier.weight(1f)
+                )
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // ── Payment input per method ──────────────────────────────────────────
+        when (currentMethod) {
+            PaymentMethod.CASH -> {
+                // Amount display
+                Surface(
+                    shape    = MaterialTheme.shapes.medium,
+                    color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                "Uang Diterima",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                if (currentCashInput.isEmpty()) "Rp 0"
+                                else formatRupiah(currentCashInput.toLongOrNull() ?: 0L),
+                                style      = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color      = if (currentCashInput.isEmpty())
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                                else MaterialTheme.colorScheme.onSurface
+                            )
                         }
-
-                        // Quick fill — same as PaymentFormContent
-                        val quickAmounts = remember(currentSubtotal) {
-                            listOf(
-                                currentSubtotal,
-                                ((currentSubtotal / 10_000) + 1) * 10_000,
-                                ((currentSubtotal / 50_000) + 1) * 50_000
-                            ).distinct().sorted()
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            quickAmounts.forEach { amount ->
-                                OutlinedButton(
-                                    onClick   = { onSetCashInput(amount.toString()) },
-                                    modifier  = Modifier.weight(1f),
-                                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
-                                ) {
-                                    Text(
-                                        formatRupiah(amount),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-                        }
-
-                        PaymentNumpad(
-                            onKey = { key ->
-                                val current = currentCashInput
-                                val next = when (key) {
-                                    "\u232b" -> current.dropLast(1)
-                                    "000"   -> if (current.isEmpty()) current
-                                               else (current + "000").take(10)
-                                    else    -> if (current.isEmpty() && key == "0") current
-                                               else (current + key).take(10)
-                                }
-                                onSetCashInput(next)
-                            }
-                        )
-                    }
-
-                    PaymentMethod.QRIS -> {
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.QrCode2, contentDescription = null,
-                                    tint     = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(32.dp)
+                        if (anyItemSelected && currentCashInput.isNotEmpty()) {
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    "Kembalian",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                Column {
-                                    Text(
-                                        "Total QRIS",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        formatRupiah(currentSubtotal),
-                                        style      = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color      = MaterialTheme.colorScheme.primary
-                                    )
-                                    Text(
-                                        "Nominal otomatis dari item yang dipilih",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                    )
-                                }
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    formatRupiah(change),
+                                    style      = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (change >= 0) MaterialTheme.colorScheme.primary
+                                            else MaterialTheme.colorScheme.error
+                                )
                             }
                         }
                     }
-
-                    else -> {}
                 }
+
+                // Quick fill based on groupActualTotal (includes fees)
+                val quickAmounts = remember(groupActualTotal) {
+                    listOf(
+                        groupActualTotal,
+                        ((groupActualTotal / 10_000) + 1) * 10_000,
+                        ((groupActualTotal / 50_000) + 1) * 50_000
+                    ).distinct().sorted()
+                }
+                Spacer(Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    quickAmounts.forEach { amount ->
+                        OutlinedButton(
+                            onClick   = { onSetCashInput(amount.toString()) },
+                            modifier  = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                formatRupiah(amount),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+
+                // Numpad — weight(1f) fills remaining space
+                PaymentNumpad(
+                    modifier = Modifier.weight(1f),
+                    onKey = { key ->
+                        val current = currentCashInput
+                        val next = when (key) {
+                            "\u232b" -> current.dropLast(1)
+                            "000"   -> if (current.isEmpty()) current else (current + "000").take(10)
+                            else    -> if (current.isEmpty() && key == "0") current
+                                       else (current + key).take(10)
+                        }
+                        onSetCashInput(next)
+                    }
+                )
             }
 
-            // Confirm group button
-            RancakButton(
-                text     = "Tambah Pelanggan $groupNumber",
+            PaymentMethod.QRIS -> {
+                if (anyItemSelected) {
+                    Card(
+                        colors   = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.QrCode2, contentDescription = null,
+                                tint     = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Column {
+                                Text(
+                                    "Total QRIS",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    formatRupiah(groupActualTotal),
+                                    style      = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color      = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    "Nominal otomatis dari item yang dipilih",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+            }
+
+            else -> Spacer(Modifier.weight(1f))
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // ── Confirm buttons ───────────────────────────────────────────────────
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedButton(
                 onClick  = onConfirmGroup,
                 enabled  = canConfirm,
-                modifier = Modifier.fillMaxWidth()
-            )
+                modifier = Modifier.weight(1f)
+            ) { Text("Tambah Saja") }
+
+            Button(
+                onClick  = {
+                    if (currentMethod == PaymentMethod.QRIS) showQrisConfirmDialog = true
+                    else onConfirmAndPrint()
+                },
+                enabled  = canConfirm,
+                modifier = Modifier.weight(1f),
+                colors   = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Bayar & Cetak")
+            }
         }
 
-        // Process button — sticky at bottom
+        Spacer(Modifier.height(8.dp))
+
+        // ── Process button ────────────────────────────────────────────────────
         RancakButton(
             text      = "Proses Pembayaran",
             onClick   = onProcess,
@@ -673,9 +842,12 @@ private fun ConfirmedGroupRow(
     accentColor: Color,
     onRemove: () -> Unit
 ) {
-    val displayAmount = if (group.method == PaymentMethod.CASH && group.cashPaid > 0)
-        group.cashPaid else groupSubtotal
-    val changeAmount = if (group.method == PaymentMethod.CASH) group.cashPaid - groupSubtotal else 0L
+    // Prefer groupActualTotal (includes proportional fees) over raw item subtotal
+    val expectedAmount = group.groupActualTotal.takeIf { it > 0 } ?: groupSubtotal
+    val displayAmount  = if (group.method == PaymentMethod.CASH && group.cashPaid > 0)
+        group.cashPaid else expectedAmount
+    val changeAmount   = if (group.method == PaymentMethod.CASH && group.cashPaid > 0)
+        group.cashPaid - expectedAmount else 0L
 
     Card(
         colors   = CardDefaults.cardColors(containerColor = accentColor.copy(alpha = 0.07f)),

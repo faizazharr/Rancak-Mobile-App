@@ -44,10 +44,8 @@ data class CreateVoucherRequest(
 
 @Serializable
 data class UpdateVoucherRequest(
-    val code: String? = null,
     val name: String? = null,
     val description: String? = null,
-    @SerialName("discount_type") val discountType: String? = null,
     @SerialName("discount_value") val discountValue: String? = null,
     @SerialName("max_discount") val maxDiscount: String? = null,
     @SerialName("min_purchase") val minPurchase: String? = null,

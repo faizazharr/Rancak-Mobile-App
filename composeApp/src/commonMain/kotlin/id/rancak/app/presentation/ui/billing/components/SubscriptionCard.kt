@@ -16,7 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.SubscriptionState
-import id.rancak.app.presentation.designsystem.*
+import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.designsystem.Tertiary
 import id.rancak.app.presentation.ui.billing.Quadruple
 import id.rancak.app.presentation.ui.billing.linearGradientBrush
 

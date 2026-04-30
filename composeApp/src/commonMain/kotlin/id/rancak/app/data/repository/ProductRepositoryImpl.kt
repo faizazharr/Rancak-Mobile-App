@@ -7,10 +7,25 @@ import id.rancak.app.data.local.db.entity.toDomain
 import id.rancak.app.data.local.db.entity.toEntity
 import id.rancak.app.data.mapper.toDomain
 import id.rancak.app.data.remote.api.RancakApiService
-import id.rancak.app.data.remote.api.*
+import id.rancak.app.data.remote.api.get86Products
+import id.rancak.app.data.remote.api.getBundles
+import id.rancak.app.data.remote.api.getCategories
+import id.rancak.app.data.remote.api.getFavoriteProducts
+import id.rancak.app.data.remote.api.getProductByBarcode
+import id.rancak.app.data.remote.api.getProductByUuid
+import id.rancak.app.data.remote.api.getProductModifiers
+import id.rancak.app.data.remote.api.getProducts
+import id.rancak.app.data.remote.api.mark86
+import id.rancak.app.data.remote.api.unmark86
 import id.rancak.app.data.util.safe
 import id.rancak.app.data.util.safeUnit
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.Bundle
+import id.rancak.app.domain.model.Category
+import id.rancak.app.domain.model.FavoriteProduct
+import id.rancak.app.domain.model.Modifier
+import id.rancak.app.domain.model.Product
+import id.rancak.app.domain.model.Product86
+import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.ProductRepository
 
 class ProductRepositoryImpl(

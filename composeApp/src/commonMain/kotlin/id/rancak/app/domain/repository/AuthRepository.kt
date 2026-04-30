@@ -1,6 +1,13 @@
 package id.rancak.app.domain.repository
 
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.LoginResult
+import id.rancak.app.domain.model.ReceiptSettings
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.model.Session
+import id.rancak.app.domain.model.Tenant
+import id.rancak.app.domain.model.TenantApplication
+import id.rancak.app.domain.model.TenantSettings
+import id.rancak.app.domain.model.User
 
 /**
  * Kontrak auth: operasi async ke backend.

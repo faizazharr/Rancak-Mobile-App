@@ -65,7 +65,7 @@ class VoucherManagementViewModel(
             val result = if (existing == null) {
                 adminRepository.createVoucher(code, name, discountType, discountValue, validFrom, description, maxDiscount, minPurchase, usageLimit, validUntil, isActive)
             } else {
-                adminRepository.updateVoucher(existing.uuid, VoucherUpdate(code, name, description, discountType, discountValue, maxDiscount, minPurchase, usageLimit, validFrom, validUntil, isActive))
+                adminRepository.updateVoucher(existing.uuid, VoucherUpdate(name, description, discountValue, maxDiscount, minPurchase, usageLimit, validFrom, validUntil, isActive))
             }
             when (result) {
                 is Resource.Success -> {

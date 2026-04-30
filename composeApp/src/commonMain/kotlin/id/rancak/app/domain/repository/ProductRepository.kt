@@ -1,6 +1,12 @@
 package id.rancak.app.domain.repository
 
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.Bundle
+import id.rancak.app.domain.model.Category
+import id.rancak.app.domain.model.FavoriteProduct
+import id.rancak.app.domain.model.Modifier
+import id.rancak.app.domain.model.Product
+import id.rancak.app.domain.model.Product86
+import id.rancak.app.domain.model.Resource
 
 interface ProductRepository {
     suspend fun getProducts(query: String? = null, categoryId: String? = null): Resource<List<Product>>

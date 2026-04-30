@@ -51,7 +51,7 @@ fun ProductManagementScreen(
                 RancakTopBar(
                     title    = "Manajemen Produk",
                     icon     = Icons.Default.Inventory2,
-                    onBack   = onBack,
+                    onMenu   = onBack,
                     subtitle = "${uiState.filteredProducts.size} produk"
                 )
             },

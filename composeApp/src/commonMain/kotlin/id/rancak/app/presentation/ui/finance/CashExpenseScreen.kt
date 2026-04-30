@@ -15,7 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.CashIn
 import id.rancak.app.domain.model.Expense
-import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.EmptyScreen
+import id.rancak.app.presentation.components.ErrorScreen
+import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.finance.components.CashInList
 import id.rancak.app.presentation.ui.finance.components.CashInItemCard

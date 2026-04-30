@@ -1,6 +1,17 @@
 package id.rancak.app.domain.repository
 
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.CashIn
+import id.rancak.app.domain.model.CashierShiftSummary
+import id.rancak.app.domain.model.DailyCategoryReport
+import id.rancak.app.domain.model.Expense
+import id.rancak.app.domain.model.ExpenseCategory
+import id.rancak.app.domain.model.ExpiringBatch
+import id.rancak.app.domain.model.LowStock
+import id.rancak.app.domain.model.MySalesReport
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.model.ShiftSummary
+import id.rancak.app.domain.model.StockAlert
+import id.rancak.app.domain.model.StockReport
 
 interface FinanceRepository {
     suspend fun getCashIns(dateFrom: String? = null, dateTo: String? = null, shiftUuid: String? = null, page: Int = 1, limit: Int = 50): Resource<List<CashIn>>

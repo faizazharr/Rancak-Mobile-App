@@ -86,6 +86,17 @@ class SettingsStore {
         get() = settings.getString(KEY_RECEIPT_FOOTER, "Terima kasih!")
         set(value) { settings[KEY_RECEIPT_FOOTER] = value }
 
+    // ── Merchant Static QRIS ────────────────────────────────────────────
+
+    /**
+     * QRIS string statis milik merchant (EMVCo payload). Dipakai untuk
+     * pembayaran split-bill per pelanggan, di mana setiap pelanggan scan
+     * QR yang sama dan memasukkan nominal manual sesuai bagiannya.
+     */
+    var merchantQrisString: String
+        get() = settings.getString(KEY_MERCHANT_QRIS, "")
+        set(value) { settings[KEY_MERCHANT_QRIS] = value }
+
     // ── General ──────────────────────────────────────────────────────────────
 
     var autoPrintReceipt: Boolean
@@ -136,6 +147,7 @@ class SettingsStore {
         private const val KEY_RECEIPT_STORE_ADDRESS = "rancak_receipt_store_address"
         private const val KEY_RECEIPT_STORE_PHONE = "rancak_receipt_store_phone"
         private const val KEY_RECEIPT_FOOTER = "rancak_receipt_footer"
+        private const val KEY_MERCHANT_QRIS = "rancak_merchant_qris"
         private const val KEY_AUTO_PRINT = "rancak_auto_print"
         private const val KEY_PAPER_WIDTH = "rancak_paper_width"
     }

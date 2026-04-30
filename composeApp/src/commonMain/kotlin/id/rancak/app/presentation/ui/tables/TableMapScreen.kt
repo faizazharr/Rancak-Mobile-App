@@ -27,7 +27,10 @@ import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.domain.model.UserRole
 import id.rancak.app.domain.repository.UserSessionProvider
-import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.EmptyScreen
+import id.rancak.app.presentation.components.ErrorScreen
+import id.rancak.app.presentation.components.LoadingScreen
+import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.tables.components.AreaSummaryCard
 import id.rancak.app.presentation.ui.tables.components.TableCell

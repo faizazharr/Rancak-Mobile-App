@@ -16,7 +16,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Plan
-import id.rancak.app.presentation.designsystem.*
+import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.designsystem.Secondary
 import id.rancak.app.presentation.ui.billing.formatPlanPrice
 import id.rancak.app.presentation.ui.billing.linearGradientBrush
 

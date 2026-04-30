@@ -17,9 +17,11 @@ import id.rancak.app.data.printing.EscPosBuilder
 import id.rancak.app.data.printing.PrintMode
 import id.rancak.app.data.printing.PrintResult
 import id.rancak.app.data.printing.PrinterManager
+import id.rancak.app.data.printing.ReceiptData
 import id.rancak.app.data.printing.toKitchenTicketData
 import id.rancak.app.data.printing.toReceiptData
 import id.rancak.app.domain.model.Sale
+import id.rancak.app.presentation.util.formatRupiah
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -393,6 +395,185 @@ fun PrintDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss, enabled = !isPrinting) { Text("Tutup") }
+        }
+    )
+}
+
+/**
+ * Dialog cetak struk per-pelanggan pada sesi split payment.
+ * Menerima [ReceiptData] langsung tanpa perlu sale UUID dari server.
+ * Auto-cetak ke printer tersimpan jika ada.
+ *
+ * @param groupLabel     Label pelanggan, misalnya "Pelanggan 1"
+ * @param receiptData    Data struk yang akan dicetak
+ * @param printerManager Injeksi printer manager
+ * @param settingsStore  Injeksi settings store
+ * @param onDismiss      Dipanggil saat dialog ditutup
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PartialReceiptPrintDialog(
+    groupLabel: String,
+    receiptData: ReceiptData,
+    printerManager: PrinterManager,
+    settingsStore: SettingsStore,
+    onDismiss: () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+
+    val hasSavedPrinter  = settingsStore.printerAddress.isNotBlank()
+    val savedType        = settingsStore.printerType
+    val savedName        = settingsStore.printerName
+    val savedAddress     = settingsStore.printerAddress
+    val savedNetworkIp   = settingsStore.networkPrinterIp
+    val savedNetworkPort = settingsStore.networkPrinterPort
+
+    var isPrinting  by remember { mutableStateOf(false) }
+    var printResult by remember { mutableStateOf<PrintResult?>(null) }
+
+    suspend fun doPrint(): PrintResult {
+        val bytes = EscPosBuilder.buildReceipt(receiptData)
+        return sendToPrinter(printerManager, savedType, savedAddress, savedNetworkIp, savedNetworkPort, bytes)
+    }
+
+    // Auto-cetak saat dialog terbuka
+    var autoPrintDone by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (hasSavedPrinter && !autoPrintDone) {
+            autoPrintDone = true
+            isPrinting  = true
+            printResult = doPrint()
+            isPrinting  = false
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = { if (!isPrinting) onDismiss() },
+        icon  = { Icon(Icons.Default.Print, contentDescription = null) },
+        title = { Text("Struk $groupLabel") },
+        text  = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Ringkasan total
+                Surface(
+                    color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    shape    = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            "Total",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            formatRupiah(receiptData.total),
+                            style      = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                // Info printer tersimpan
+                if (hasSavedPrinter) {
+                    Surface(
+                        color    = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        shape    = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                if (savedType == SettingsStore.TYPE_BLUETOOTH) Icons.Default.Bluetooth
+                                else Icons.Default.Wifi,
+                                contentDescription = null,
+                                tint     = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                savedName.ifBlank { savedAddress },
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        "Belum ada printer tersimpan. Konfigurasikan printer di Pengaturan.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // Status cetak
+                if (isPrinting) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        Text("Mencetak...", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+
+                printResult?.let { result ->
+                    when (result) {
+                        is PrintResult.Success -> Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary)
+                            Text(
+                                "Struk berhasil dicetak!",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        is PrintResult.Error -> Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.Warning, contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.error)
+                            Text(
+                                result.message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (!isPrinting) {
+                if (printResult is PrintResult.Error && hasSavedPrinter) {
+                    Button(onClick = {
+                        scope.launch {
+                            isPrinting  = true
+                            printResult = null
+                            printResult = doPrint()
+                            isPrinting  = false
+                        }
+                    }) { Text("Cetak Ulang") }
+                } else {
+                    Button(onClick = onDismiss) { Text("Tutup") }
+                }
+            }
+        },
+        dismissButton = {
+            if (!isPrinting) {
+                TextButton(onClick = onDismiss) { Text("Lewati") }
+            }
         }
     )
 }

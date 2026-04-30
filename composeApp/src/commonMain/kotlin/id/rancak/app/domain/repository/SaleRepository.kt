@@ -1,6 +1,16 @@
 package id.rancak.app.domain.repository
 
-import id.rancak.app.domain.model.*
+import id.rancak.app.domain.model.CartItem
+import id.rancak.app.domain.model.OrderBoardOrder
+import id.rancak.app.domain.model.OrderType
+import id.rancak.app.domain.model.PaymentMethod
+import id.rancak.app.domain.model.QrPayment
+import id.rancak.app.domain.model.Receipt
+import id.rancak.app.domain.model.ReprintResult
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.model.Sale
+import id.rancak.app.domain.model.SplitBillResult
+import id.rancak.app.domain.model.SplitPaymentEntry
 
 interface SaleRepository {
     suspend fun createSale(

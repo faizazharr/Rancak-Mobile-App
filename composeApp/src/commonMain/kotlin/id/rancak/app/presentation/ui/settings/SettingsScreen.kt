@@ -83,6 +83,7 @@ fun SettingsScreen(
         onStoreAddress         = viewModel::setStoreAddress,
         onStorePhone           = viewModel::setStorePhone,
         onFooterText           = viewModel::setFooterText,
+        onMerchantQrisString   = viewModel::setMerchantQrisString,
         onAutoPrint            = viewModel::setAutoPrint,
         onPaperWidth           = viewModel::setPaperWidth,
         onClearMessage         = viewModel::clearMessage
@@ -116,6 +117,7 @@ fun SettingsScreenContent(
     onStoreAddress: (String) -> Unit = {},
     onStorePhone: (String) -> Unit = {},
     onFooterText: (String) -> Unit = {},
+    onMerchantQrisString: (String) -> Unit = {},
     onAutoPrint: (Boolean) -> Unit = {},
     onPaperWidth: (Int) -> Unit = {},
     onClearMessage: () -> Unit = {}
@@ -165,6 +167,7 @@ fun SettingsScreenContent(
                     onStoreAddress         = onStoreAddress,
                     onStorePhone           = onStorePhone,
                     onFooterText           = onFooterText,
+                    onMerchantQrisString   = onMerchantQrisString,
                     onAutoPrint            = onAutoPrint,
                     onPaperWidth           = onPaperWidth
                 )
@@ -190,6 +193,7 @@ fun SettingsScreenContent(
                     onStoreAddress         = onStoreAddress,
                     onStorePhone           = onStorePhone,
                     onFooterText           = onFooterText,
+                    onMerchantQrisString   = onMerchantQrisString,
                     onAutoPrint            = onAutoPrint,
                     onPaperWidth           = onPaperWidth
                 )
@@ -224,6 +228,7 @@ private fun TabletLayout(
     onStoreAddress: (String) -> Unit,
     onStorePhone: (String) -> Unit,
     onFooterText: (String) -> Unit,
+    onMerchantQrisString: (String) -> Unit,
     onAutoPrint: (Boolean) -> Unit,
     onPaperWidth: (Int) -> Unit
 ) {
@@ -344,14 +349,16 @@ private fun TabletLayout(
                     onTestPrint            = onTestPrint
                 )
                 SettingsNav.STORE -> StoreContent(
-                    storeName      = uiState.storeName,
-                    storeAddress   = uiState.storeAddress,
-                    storePhone     = uiState.storePhone,
-                    footerText     = uiState.footerText,
-                    onStoreName    = onStoreName,
-                    onStoreAddress = onStoreAddress,
-                    onStorePhone   = onStorePhone,
-                    onFooterText   = onFooterText
+                    storeName            = uiState.storeName,
+                    storeAddress         = uiState.storeAddress,
+                    storePhone           = uiState.storePhone,
+                    footerText           = uiState.footerText,
+                    merchantQrisString   = uiState.merchantQrisString,
+                    onStoreName          = onStoreName,
+                    onStoreAddress       = onStoreAddress,
+                    onStorePhone         = onStorePhone,
+                    onFooterText         = onFooterText,
+                    onMerchantQrisString = onMerchantQrisString
                 )
                 SettingsNav.GENERAL -> GeneralContent(
                     autoPrint    = uiState.autoPrint,
@@ -390,6 +397,7 @@ private fun PhoneLayout(
     onStoreAddress: (String) -> Unit,
     onStorePhone: (String) -> Unit,
     onFooterText: (String) -> Unit,
+    onMerchantQrisString: (String) -> Unit,
     onAutoPrint: (Boolean) -> Unit,
     onPaperWidth: (Int) -> Unit
 ) {
@@ -439,14 +447,16 @@ private fun PhoneLayout(
             ContentSectionTitle(Icons.Default.Store, "Informasi Toko", Color(0xFF1A6B3C))
             Spacer(Modifier.height(8.dp))
             StoreContent(
-                storeName      = uiState.storeName,
-                storeAddress   = uiState.storeAddress,
-                storePhone     = uiState.storePhone,
-                footerText     = uiState.footerText,
-                onStoreName    = onStoreName,
-                onStoreAddress = onStoreAddress,
-                onStorePhone   = onStorePhone,
-                onFooterText   = onFooterText
+                storeName            = uiState.storeName,
+                storeAddress         = uiState.storeAddress,
+                storePhone           = uiState.storePhone,
+                footerText           = uiState.footerText,
+                merchantQrisString   = uiState.merchantQrisString,
+                onStoreName          = onStoreName,
+                onStoreAddress       = onStoreAddress,
+                onStorePhone         = onStorePhone,
+                onFooterText         = onFooterText,
+                onMerchantQrisString = onMerchantQrisString
             )
         }
         item {

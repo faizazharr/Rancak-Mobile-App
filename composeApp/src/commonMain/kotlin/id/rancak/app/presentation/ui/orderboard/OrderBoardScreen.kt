@@ -28,7 +28,8 @@ import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.OrderBoardOrder
 import id.rancak.app.domain.model.OrderBoardItem
 import id.rancak.app.domain.model.SaleStatus
-import id.rancak.app.presentation.components.*
+import id.rancak.app.presentation.components.ErrorScreen
+import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.OrderBoardUiState

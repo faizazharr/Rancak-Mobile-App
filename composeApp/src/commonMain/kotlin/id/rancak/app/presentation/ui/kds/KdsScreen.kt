@@ -24,8 +24,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import id.rancak.app.domain.model.*
-import id.rancak.app.presentation.components.*
+import id.rancak.app.domain.model.KdsItem
+import id.rancak.app.domain.model.KdsItemStatus
+import id.rancak.app.domain.model.KdsOrder
+import id.rancak.app.domain.model.KdsStatus
+import id.rancak.app.domain.model.OrderType
+import id.rancak.app.presentation.components.ErrorScreen
+import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.KdsUiState

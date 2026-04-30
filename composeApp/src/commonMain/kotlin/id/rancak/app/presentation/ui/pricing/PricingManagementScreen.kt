@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.ui.pricing
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -7,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -14,7 +16,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
-import id.rancak.app.presentation.ui.pricing.components.*
+import id.rancak.app.presentation.ui.pricing.components.DiscountFormDialog
+import id.rancak.app.presentation.ui.pricing.components.DiscountTab
+import id.rancak.app.presentation.ui.pricing.components.PricingDeleteDialog
+import id.rancak.app.presentation.ui.pricing.components.SurchargeFormDialog
+import id.rancak.app.presentation.ui.pricing.components.SurchargeTab
+import id.rancak.app.presentation.ui.pricing.components.TaxFormDialog
+import id.rancak.app.presentation.ui.pricing.components.TaxTab
 import id.rancak.app.presentation.viewmodel.PricingManagementViewModel
 import id.rancak.app.presentation.viewmodel.PricingManagementUiState
 import kotlinx.coroutines.launch
@@ -100,79 +108,105 @@ fun PricingManagementContent(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Surcharge", "Pajak", "Diskon")
+    val sections = listOf(
+        PricingSection("Surcharge", Icons.Default.AddCircle,    uiState.surcharges.size,    uiState.surcharges.count { it.isActive }),
+        PricingSection("Pajak",     Icons.Default.Percent,      uiState.taxConfigs.size,    uiState.taxConfigs.count { it.isActive }),
+        PricingSection("Diskon",    Icons.Default.LocalOffer,   uiState.discountRules.size, uiState.discountRules.count { it.isActive })
+    )
+    val activeSection = sections[selectedTab]
+
+    val onAddCurrent: () -> Unit = {
+        when (selectedTab) {
+            0 -> onAddSurcharge()
+            1 -> onAddTax()
+            else -> onAddDiscount()
+        }
+    }
 
     Scaffold(
         topBar = {
-            RancakTopBar(title = "Harga & Diskon", icon = Icons.Default.LocalOffer, onBack = onBack)
+            RancakTopBar(title = "Harga & Diskon", icon = Icons.Default.LocalOffer, onMenu = onBack)
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                when (selectedTab) {
-                    0 -> onAddSurcharge()
-                    1 -> onAddTax()
-                    else -> onAddDiscount()
-                }
-            }) { Icon(Icons.Default.Add, contentDescription = "Tambah") }
+            ExtendedFloatingActionButton(
+                onClick = onAddCurrent,
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text("Tambah ${activeSection.label}") }
+            )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
             val isTablet = maxWidth >= 600.dp
-        if (isTablet) {
-            // Tablet: show all 3 sections side by side
-            if (uiState.isLoading) {
-                LoadingScreen()
-            } else {
-                Row(Modifier.fillMaxSize()) {
-                    Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Surcharge", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                            IconButton(onClick = onAddSurcharge, modifier = Modifier.size(28.dp)) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)) }
-                        }
-                        HorizontalDivider()
-                        SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge)
-                    }
-                    VerticalDivider(modifier = Modifier.fillMaxHeight())
-                    Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Pajak", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                            IconButton(onClick = onAddTax, modifier = Modifier.size(28.dp)) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)) }
-                        }
-                        HorizontalDivider()
-                        TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax)
-                    }
-                    VerticalDivider(modifier = Modifier.fillMaxHeight())
-                    Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Diskon", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                            IconButton(onClick = onAddDiscount, modifier = Modifier.size(28.dp)) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)) }
-                        }
-                        HorizontalDivider()
-                        DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount)
-                    }
-                }
-            }
-        } else {
-            Column(Modifier.fillMaxSize()) {
-            PrimaryTabRow(selectedTabIndex = selectedTab) {
-                tabs.forEachIndexed { i, title ->
-                    Tab(selected = selectedTab == i, onClick = { selectedTab = i }, text = { Text(title) })
-                }
-            }
+            val contentMaxWidth = if (isTablet) 720.dp else maxWidth
 
-            if (uiState.isLoading) {
-                LoadingScreen()
-            } else {
-                when (selectedTab) {
-                    0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge)
-                    1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax)
-                    else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount)
+            Column(
+                modifier = Modifier
+                    .widthIn(max = contentMaxWidth)
+                    .align(Alignment.TopCenter)
+                    .fillMaxHeight()
+            ) {
+                // ── Summary cards row (mirip kategori chip di POS) ─────────
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    sections.forEachIndexed { i, section ->
+                        SectionSummaryCard(
+                            section    = section,
+                            isSelected = selectedTab == i,
+                            onClick    = { selectedTab = i },
+                            modifier   = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                // ── Header section aktif ───────────────────────────────────
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        activeSection.icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        activeSection.label,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.weight(1f))
+                    AssistChip(
+                        onClick = {},
+                        enabled = false,
+                        label = { Text("${activeSection.activeCount}/${activeSection.totalCount} aktif") }
+                    )
+                }
+
+                // ── Konten ─────────────────────────────────────────────────
+                Box(Modifier.fillMaxSize()) {
+                    if (uiState.isLoading) {
+                        LoadingScreen()
+                    } else {
+                        when (selectedTab) {
+                            0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge)
+                            1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax)
+                            else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount)
+                        }
+                    }
                 }
             }
         }
-        } // end else
-        } // end BoxWithConstraints
 
         // ── Surcharge dialogs ────────────────────────────────────────────────
         if (uiState.showSurchargeForm) {
@@ -228,6 +262,73 @@ fun PricingManagementContent(
                 isSubmitting = uiState.isSubmitting,
                 onConfirm    = onConfirmDeleteDiscount,
                 onDismiss    = onCloseDiscountDelete
+            )
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Section model + summary card
+// ──────────────────────────────────────────────────────────────────────────────
+
+private data class PricingSection(
+    val label: String,
+    val icon: ImageVector,
+    val totalCount: Int,
+    val activeCount: Int
+)
+
+@Composable
+private fun SectionSummaryCard(
+    section: PricingSection,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val container = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surface
+    val onContainer = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                      else MaterialTheme.colorScheme.onSurface
+    val border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                 else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = container, contentColor = onContainer),
+        border = border,
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 2.dp else 0.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    section.icon,
+                    contentDescription = null,
+                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    section.label,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
+                )
+            }
+            Text(
+                "${section.totalCount}",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                if (section.totalCount == 0) "Belum ada"
+                else "${section.activeCount} aktif",
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isSelected) onContainer.copy(alpha = 0.75f)
+                        else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

@@ -2,10 +2,11 @@ package id.rancak.app.presentation.ui.payment.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.automirrored.filled.CallSplit
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Payments
@@ -31,6 +32,15 @@ import id.rancak.app.presentation.util.formatRupiah
 /** Metode yang ditampilkan — hanya Cash dan QRIS. */
 private val visiblePaymentMethods = listOf(PaymentMethod.CASH, PaymentMethod.QRIS)
 
+/** Item baris untuk ditampilkan di ringkasan pembayaran (tidak membawa logika bisnis). */
+data class OrderLineItem(
+    val name: String,
+    val variantName: String? = null,
+    val qty: Int,
+    val price: Long,
+    val subtotal: Long
+)
+
 /**
  * Form utama halaman pembayaran: ringkasan pesanan di kiri, pilihan metode,
  * input jumlah bayar, dan numpad di kanan. Layout 2-kolom yang sesuai untuk
@@ -50,7 +60,6 @@ internal fun PaymentFormContent(
     onQrisSelected: () -> Unit = {},
     isSplit: Boolean = false,
     onToggleMode: () -> Unit = {},
-    onHoldOrder: (() -> Unit)? = null,
     isQrisWaiting: Boolean = false,
     qrisQrString: String? = null,
     qrisAmount: Long = 0L,
@@ -61,6 +70,8 @@ internal fun PaymentFormContent(
     adminFee: Long = 0L,
     deliveryFee: Long = 0L,
     tip: Long = 0L,
+    /** Detail setiap baris item untuk ditampilkan di ringkasan — opsional. */
+    orderItems: List<OrderLineItem> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     val total = subtotal - discount + tax + adminFee + deliveryFee + tip
@@ -96,6 +107,7 @@ internal fun PaymentFormContent(
             changeAmount   = changeAmount,
             isSplit        = isSplit,
             onToggleMode   = onToggleMode,
+            orderItems     = orderItems,
             modifier       = Modifier.weight(0.42f).fillMaxHeight()
         )
         PaymentInputColumn(
@@ -107,7 +119,6 @@ internal fun PaymentFormContent(
             isProcessing       = isProcessing,
             onProcessPayment   = onProcessPayment,
             onQrisSelected     = onQrisSelected,
-            onHoldOrder        = onHoldOrder,
             quickAmounts       = quickAmounts,
             isQrisWaiting      = isQrisWaiting,
             qrisQrString       = qrisQrString,
@@ -135,6 +146,7 @@ private fun OrderSummaryColumn(
     changeAmount: Long,
     isSplit: Boolean,
     onToggleMode: () -> Unit,
+    orderItems: List<OrderLineItem> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -142,7 +154,7 @@ private fun OrderSummaryColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         HeroTotalCard(itemCount, total)
-        SummaryCard(itemCount, subtotal, discount, tax, adminFee, deliveryFee, tip, total)
+        SummaryCard(itemCount, subtotal, discount, tax, adminFee, deliveryFee, tip, total, orderItems)
         if (isCashSelected && changeAmount > 0) ChangeDueCard(changeAmount)
         Spacer(Modifier.weight(1f))
         PaymentModeToggleColumn(isSplit = isSplit, onToggle = onToggleMode)
@@ -233,7 +245,8 @@ private fun SummaryCard(
     adminFee: Long,
     deliveryFee: Long,
     tip: Long,
-    total: Long
+    total: Long,
+    orderItems: List<OrderLineItem> = emptyList()
 ) {
     Card(
         shape  = MaterialTheme.shapes.medium,
@@ -250,7 +263,40 @@ private fun SummaryCard(
                 color      = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(10.dp))
-            SummaryRow(label = "$itemCount item", value = formatRupiah(subtotal))
+
+            // Item detail rows — when available show per-item breakdown
+            if (orderItems.isNotEmpty()) {
+                orderItems.forEach { line ->
+                    val label = if (line.variantName != null)
+                        "${line.name} (${line.variantName})"
+                    else line.name
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            "${line.qty}× $label",
+                            style    = MaterialTheme.typography.bodySmall,
+                            color    = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            formatRupiah(line.subtotal),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 6.dp),
+                    color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                SummaryRow(label = "Subtotal ($itemCount item)", value = formatRupiah(subtotal))
+            } else {
+                SummaryRow(label = "$itemCount item", value = formatRupiah(subtotal))
+            }
+
             if (discount > 0) SummaryRow(
                 label      = "Diskon",
                 value      = "− ${formatRupiah(discount)}",
@@ -324,7 +370,6 @@ private fun PaymentInputColumn(
     isProcessing: Boolean,
     onProcessPayment: () -> Unit,
     onQrisSelected: () -> Unit = {},
-    onHoldOrder: (() -> Unit)? = null,
     quickAmounts: List<Long>,
     isQrisWaiting: Boolean = false,
     qrisQrString: String? = null,
@@ -412,21 +457,7 @@ private fun PaymentInputColumn(
                 )
             }
         }
-        if (onHoldOrder != null && !isQrisWaiting) {
-            OutlinedButton(
-                onClick = onHoldOrder,
-                enabled = !isProcessing,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    Icons.Default.Bookmark,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text("Tahan Pesanan (Open Bill)")
-            }
-        }
+
     }
 }
 

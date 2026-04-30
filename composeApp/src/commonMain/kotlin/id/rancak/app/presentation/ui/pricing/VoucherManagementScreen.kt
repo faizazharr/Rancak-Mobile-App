@@ -64,7 +64,7 @@ fun VoucherManagementScreen(
                 RancakTopBar(
                     title    = "Voucher",
                     icon     = Icons.Default.LocalOffer,
-                    onBack   = onBack,
+                    onMenu   = onBack,
                     subtitle = "${uiState.vouchers.size} voucher"
                 )
             },

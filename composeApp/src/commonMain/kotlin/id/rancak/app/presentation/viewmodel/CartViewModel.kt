@@ -45,7 +45,9 @@ data class CartUiState(
     /** ID open bill lokal yang sedang diubah — null jika ini adalah pesanan baru. */
     val activeOpenBillId: String? = null,
     /** Nama open bill yang sedang aktif, untuk ditampilkan di UI. */
-    val activeOpenBillName: String = ""
+    val activeOpenBillName: String = "",
+    /** UUID sale di backend (HELD) yang sedang aktif — non-null saat keranjang berasal dari open bill yang sudah tersinkron ke KDS. */
+    val activeOpenBillSaleUuid: String? = null
 ) {
     val subtotal: Long get() = items.sumOf { it.subtotal }
     val itemCount: Int get() = items.sumOf { it.qty }
@@ -88,7 +90,8 @@ class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
         val tip: Long = 0,
         val voucherCode: String = "",
         val activeOpenBillId: String? = null,
-        val activeOpenBillName: String = ""
+        val activeOpenBillName: String = "",
+        val activeOpenBillSaleUuid: String? = null
     )
 
     private val _extras = MutableStateFlow(CartExtras())
@@ -112,8 +115,9 @@ class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
                 deliveryFee = extras.deliveryFee,
                 tip = extras.tip,
                 voucherCode = extras.voucherCode,
-                activeOpenBillId   = extras.activeOpenBillId,
-                activeOpenBillName = extras.activeOpenBillName
+                activeOpenBillId       = extras.activeOpenBillId,
+                activeOpenBillName     = extras.activeOpenBillName,
+                activeOpenBillSaleUuid = extras.activeOpenBillSaleUuid
             )
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, CartUiState())
@@ -199,8 +203,9 @@ class CartViewModel(private val cartRepository: CartRepository) : ViewModel() {
                     deliveryFee        = bill.deliveryFee,
                     tip                = bill.tip,
                     voucherCode        = bill.voucherCode,
-                    activeOpenBillId   = bill.id,
-                    activeOpenBillName = bill.name
+                    activeOpenBillId       = bill.id,
+                    activeOpenBillName     = bill.name,
+                    activeOpenBillSaleUuid = bill.remoteSaleUuid
                 )
             }
         }

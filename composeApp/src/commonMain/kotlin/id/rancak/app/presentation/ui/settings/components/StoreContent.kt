@@ -5,8 +5,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -28,10 +30,12 @@ internal fun StoreContent(
     storeAddress: String,
     storePhone: String,
     footerText: String,
+    merchantQrisString: String,
     onStoreName: (String) -> Unit,
     onStoreAddress: (String) -> Unit,
     onStorePhone: (String) -> Unit,
-    onFooterText: (String) -> Unit
+    onFooterText: (String) -> Unit,
+    onMerchantQrisString: (String) -> Unit
 ) {
     SettingsCard {
         Text(
@@ -81,6 +85,36 @@ internal fun StoreContent(
                 textStyle = MaterialTheme.typography.bodySmall
             )
         }
+
+        Spacer(Modifier.height(14.dp))
+        HorizontalDivider()
+        Spacer(Modifier.height(10.dp))
+
+        Text(
+            "QRIS Statis Merchant",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Tempel string EMVCo QRIS merchant Anda. Dipakai untuk split bill " +
+            "QRIS \u2014 setiap pelanggan scan QR yang sama dan memasukkan " +
+            "nominal sesuai bagiannya.",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = merchantQrisString,
+            onValueChange = onMerchantQrisString,
+            label = { Text("QRIS String") },
+            placeholder = { Text("00020101...") },
+            leadingIcon = { Icon(Icons.Default.QrCode2, contentDescription = null, modifier = Modifier.size(18.dp)) },
+            minLines = 2,
+            maxLines = 4,
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = MaterialTheme.typography.bodySmall
+        )
     }
 }
 
@@ -90,14 +124,16 @@ private fun StoreContentPreview() {
     RancakTheme {
         Column(modifier = Modifier.padding(12.dp)) {
             StoreContent(
-                storeName      = "Rancak Coffee",
-                storeAddress   = "Jl. Sudirman No. 1",
-                storePhone     = "0812-3456-7890",
-                footerText     = "Terima kasih!",
-                onStoreName    = {},
-                onStoreAddress = {},
-                onStorePhone   = {},
-                onFooterText   = {}
+                storeName            = "Rancak Coffee",
+                storeAddress         = "Jl. Sudirman No. 1",
+                storePhone           = "0812-3456-7890",
+                footerText           = "Terima kasih!",
+                merchantQrisString   = "",
+                onStoreName          = {},
+                onStoreAddress       = {},
+                onStorePhone         = {},
+                onFooterText         = {},
+                onMerchantQrisString = {}
             )
         }
     }

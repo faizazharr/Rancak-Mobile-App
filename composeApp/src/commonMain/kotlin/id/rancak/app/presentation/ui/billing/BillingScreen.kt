@@ -8,7 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import id.rancak.app.presentation.components.RancakTopBar
-import id.rancak.app.presentation.ui.billing.components.*
+import id.rancak.app.presentation.ui.billing.components.BillingContent
+import id.rancak.app.presentation.ui.billing.components.CancelInvoiceDialog
+import id.rancak.app.presentation.ui.billing.components.SubscribeConfirmDialog
 import id.rancak.app.presentation.viewmodel.BillingViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -41,7 +43,7 @@ fun BillingScreen(onBack: () -> Unit) {
             RancakTopBar(
                 title = "Billing & Langganan",
                 icon = Icons.Default.CreditCard,
-                onBack = onBack
+                onMenu = onBack
             )
         }
     ) { innerPadding ->

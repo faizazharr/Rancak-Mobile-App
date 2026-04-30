@@ -21,7 +21,7 @@ fun VoucherCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val typeLabel = if (voucher.discountType == "pct") "${voucher.discountValue}%"
+    val typeLabel = if (voucher.discountType == "percentage") "${voucher.discountValue}%"
                    else formatRupiah(voucher.discountValue)
 
     Card(modifier = modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(1.dp)) {
@@ -81,7 +81,7 @@ fun VoucherCard(
 
 private val sampleVoucher = Voucher(
     uuid = "1", code = "HEMAT20", name = "Hemat 20%", description = null,
-    discountType = "pct", discountValue = 20L, maxDiscount = 50000L,
+    discountType = "percentage", discountValue = 20L, maxDiscount = 50000L,
     minPurchase = 100000L, usageLimit = 100, usageCount = 45,
     validFrom = "2024-01-01", validUntil = "2024-12-31", isActive = true
 )

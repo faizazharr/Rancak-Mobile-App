@@ -62,9 +62,9 @@ fun VoucherDto.toDomain() = Voucher(
     name = name,
     description = description,
     discountType = discountType,
-    discountValue = discountValue.toLongOrNull() ?: 0L,
-    maxDiscount = maxDiscount?.toLongOrNull(),
-    minPurchase = minPurchase.toLongOrNull() ?: 0L,
+    discountValue = discountValue.toDoubleOrNull()?.toLong() ?: 0L,
+    maxDiscount = maxDiscount?.toDoubleOrNull()?.toLong(),
+    minPurchase = minPurchase.toDoubleOrNull()?.toLong() ?: 0L,
     usageLimit = usageLimit,
     usageCount = usageCount,
     validFrom = validFrom,
@@ -79,16 +79,16 @@ fun VoucherValidationDto.toDomain() = VoucherValidation(
         name = voucher.name,
         description = voucher.description,
         discountType = voucher.discountType,
-        discountValue = voucher.discountValue.toLongOrNull() ?: 0L,
-        maxDiscount = voucher.maxDiscount?.toLongOrNull(),
-        minPurchase = voucher.minPurchase.toLongOrNull() ?: 0L,
+        discountValue = voucher.discountValue.toDoubleOrNull()?.toLong() ?: 0L,
+        maxDiscount = voucher.maxDiscount?.toDoubleOrNull()?.toLong(),
+        minPurchase = voucher.minPurchase.toDoubleOrNull()?.toLong() ?: 0L,
         usageLimit = voucher.usageLimit,
         usageCount = voucher.usageCount,
         validFrom = voucher.validFrom,
         validUntil = voucher.validUntil,
         isActive = voucher.isActive
     ),
-    discountApplied = discountApplied.toLongOrNull() ?: 0L
+    discountApplied = discountApplied.toDoubleOrNull()?.toLong() ?: 0L
 )
 
 fun DiscountPreviewDto.toDomain() = DiscountPreview(

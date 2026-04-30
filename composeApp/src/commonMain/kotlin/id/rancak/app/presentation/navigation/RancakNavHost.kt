@@ -72,7 +72,11 @@ private data class DrawerGroup(
 @Composable
 fun RancakNavHost() {
     val navController = rememberNavController()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    // Pakai `remember` (bukan rememberDrawerState yang saveable) supaya drawer
+    // SELALU mulai dalam state Closed setelah proses dibuat ulang. Tanpa ini,
+    // drawer bisa muncul terbuka sesaat setelah splash screen karena state
+    // dipulihkan dari sesi sebelumnya.
+    val drawerState = remember { DrawerState(DrawerValue.Closed) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val scope = rememberCoroutineScope()
     val authRepository: AuthRepository = koinInject()
@@ -133,17 +137,20 @@ fun RancakNavHost() {
         }
     }
 
-    val showDrawer = remember(navBackStackEntry) {
-        val route = navBackStackEntry?.destination?.route
-        route != null &&
-            !route.contains("Splash") &&
-            !route.contains("Login") &&
-            !route.contains("TenantPicker")
+    val currentRoute = navBackStackEntry?.destination?.route
+    val showDrawer = remember(currentRoute) {
+        currentRoute != null &&
+            !currentRoute.contains("Splash") &&
+            !currentRoute.contains("Login") &&
+            !currentRoute.contains("TenantPicker")
     }
 
-    // Pastikan drawer selalu tertutup saat baru masuk ke layar utama (misal setelah pilih outlet)
-    LaunchedEffect(showDrawer) {
-        if (showDrawer) drawerState.snapTo(DrawerValue.Closed)
+    // Pastikan drawer selalu tertutup setiap kali pindah destinasi.
+    // Ini menghindari kesan “drawer muncul duluan sebelum screen” ketika
+    // user navigasi dari satu layar ke layar lain (mis. setelah splash).
+    LaunchedEffect(currentRoute) {
+        if (drawerState.isOpen) drawerState.close()
+        else drawerState.snapTo(DrawerValue.Closed)
     }
 
     // ── Always keep NavigationContent in the same composition node ───────────
@@ -354,10 +361,18 @@ private fun NavigationContent(
     val cartViewModel: CartViewModel = koinViewModel()
     val authRepository: AuthRepository = koinInject()
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Splash
+    // Surface dengan warna background tema mencegah “white flash” saat
+    // Compose Navigation berpindah destinasi (frame kosong di antara dispose
+    // composable lama dan compose pertama composable baru).
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Splash,
+            modifier = Modifier.fillMaxSize()
+        ) {
         composable<Screen.Splash> {
             SplashScreen(
                 onNavigate = { destination ->
@@ -472,6 +487,12 @@ private fun NavigationContent(
                         launchSingleTop = true
                         popUpTo(Screen.Pos) { inclusive = false }
                     }
+                },
+                onPayHeldOrder = { saleUuid ->
+                    navController.navigate(Screen.PayHeldOrder(saleUuid))
+                },
+                onAddItems = { saleUuid ->
+                    navController.navigate(Screen.AddItemsToHeldOrder(saleUuid))
                 }
             )
         }
@@ -524,23 +545,24 @@ private fun NavigationContent(
         }
 
         composable<Screen.ProductManagement> {
-            ProductManagementScreen(onBack = { navController.popBackStack() })
+            ProductManagementScreen(onBack = onMenuClick)
         }
 
         composable<Screen.Billing> {
-            BillingScreen(onBack = { navController.popBackStack() })
+            BillingScreen(onBack = onMenuClick)
         }
 
         composable<Screen.StockOpname> {
-            StockOpnameScreen(onBack = { navController.popBackStack() })
+            StockOpnameScreen(onBack = onMenuClick)
         }
 
         composable<Screen.VoucherManagement> {
-            VoucherManagementScreen(onBack = { navController.popBackStack() })
+            VoucherManagementScreen(onBack = onMenuClick)
         }
 
         composable<Screen.PricingManagement> {
-            PricingManagementScreen(onBack = { navController.popBackStack() })
+            PricingManagementScreen(onBack = onMenuClick)
+        }
         }
     }
 }
