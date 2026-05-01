@@ -219,7 +219,7 @@ fun PurchaseOrderContent(
     }
 
     if (uiState.showAddItemDialog) {
-                           AddPOItemDialog(
+        AddPOItemDialog(
             uiState             = uiState,
             onDismiss           = onCloseAddItem,
             onConfirm           = onAddItem,

@@ -75,11 +75,14 @@ data class CartUiState(
     /**
      * Pajak otomatis dari [activeTaxConfigs]. Untuk apply_to:
      * - `subtotal`        → rate × subtotal
-     * - `after_discount`  → rate × (subtotal - discount)
+     * - `after_discount`  → rate × (subtotal - discount + surcharge)
+     *
+     * Sesuai backend (openapi.yaml): basis after_discount = subtotal - diskon + surcharge.
+     * Surcharge dihitung lebih dulu lalu dimasukkan ke basis pajak.
      */
     val autoTax: Long get() = activeTaxConfigs.sumOf { cfg ->
         val basis = if (cfg.applyTo == "subtotal") subtotal
-                    else (subtotal - discount).coerceAtLeast(0L)
+                    else (subtotal - discount + totalSurcharge).coerceAtLeast(0L)
         ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
     }
 

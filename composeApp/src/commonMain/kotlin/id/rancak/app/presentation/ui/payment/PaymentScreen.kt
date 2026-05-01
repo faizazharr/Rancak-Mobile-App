@@ -76,6 +76,16 @@ fun PaymentScreen(
         cartViewModel.loadPricingConfigs()
     }
 
+    // Saat total berubah (mis. setelah pricing config dimuat), reset paidAmount
+    // jika nilainya kini tidak mencukupi total baru — mencegah user submit dengan
+    // jumlah yang sudah ketinggalan dari total yang baru.
+    LaunchedEffect(cartState.total) {
+        val paid = paymentState.paidAmount.toLongOrNull() ?: 0L
+        if (paid > 0L && paid < cartState.total) {
+            paymentViewModel.setPaidAmount("")
+        }
+    }
+
     // Tampilkan error via Snackbar (tidak tertutup oleh top bar dan tidak hilang
     // saat user menekan numpad — lebih mudah terlihat daripada banner di atas).
     LaunchedEffect(paymentState.error) {
@@ -92,8 +102,11 @@ fun PaymentScreen(
         buildList {
             if (cartState.tax > 0) add(NamedAmount("Pajak", cartState.tax))
             cartState.activeTaxConfigs.forEach { cfg ->
+                // Basis pajak sesuai backend:
+                //  - "subtotal"       → subtotal mentah
+                //  - "after_discount" → (subtotal - diskon + surcharge)
                 val basis = if (cfg.applyTo == "subtotal") cartState.subtotal
-                            else (cartState.subtotal - cartState.discount).coerceAtLeast(0L)
+                            else (cartState.subtotal - cartState.discount + cartState.totalSurcharge).coerceAtLeast(0L)
                 val amt = ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
                 if (amt > 0) add(NamedAmount("${cfg.name} (${cfg.rate}%)", amt))
             }
