@@ -12,6 +12,40 @@ or by the "Context This Prompt Depends On" block in each prompt file.
 
 ---
 
+## Design System
+
+### `RancakDesign` — single token entry point
+- **Source:** `presentation/designsystem/RancakDesign.kt` + `design-system.instructions.md` (auto-loaded)
+- **Access:** `RancakDesign.colors / .type / .shapes / .spacing / .elevation / .sizes / .semantic`
+- **Rule:** never hardcode `Color(0xFF...)`, raw `dp`, or `fontSize` — always use a token
+
+### Color palette
+- **Source:** `presentation/designsystem/Color.kt` + `design-system.instructions.md`
+- **Primary:** `#0D9373` teal — CTAs, top bar, selected state, price text
+- **Secondary:** `#E8772E` orange — accent, secondary action
+- **Background:** `#F2F3F5` enterprise gray (NOT white) — screen background
+- **Surface:** white — card/dialog container
+- **Semantic colors:** `RancakColors.semantic.success/warning/info` + status + payment — full table in `design-system.instructions.md`
+
+### Typography scale
+- **Source:** `presentation/designsystem/Typography.kt` + `design-system.instructions.md`
+- **Key mappings:** monetary values → `titleMedium + Bold`, timestamps → `labelSmall + outline color`, status chip → `labelSmall + SemiBold`, buttons → `labelLarge`
+- **Rule:** always `style = MaterialTheme.typography.XxxYyy` — never set `fontSize` directly
+
+### Spacing, Elevation, Shapes
+- **Source:** `Spacing.kt` / `Elevation.kt` / `Theme.kt` + `design-system.instructions.md`
+- **Spacing:** `xs=4 sm=8 md=16 lg=24 xl=32 xxl=48` via `RancakDesign.spacing`
+- **Shapes:** `extraSmall=2dp small=4dp medium=6dp large=8dp extraLarge=10dp` — `medium` is the default for cards, buttons, fields
+- **Elevation:** `card=1dp cardSelected=2dp raised=4dp modal=8dp`
+
+### Component catalog
+- **Source:** `presentation/components/` + `design-system.instructions.md`
+- **Components:** `RancakTopBar(title, icon, onBack/onMenu, subtitle, actions)` · `RancakButton` · `RancakOutlinedButton` · `RancakTextField` · `StatusChip(text, color)` · `RoleGate(minRole)` · `RoleGatedScreen` · `LoadingScreen` · `EmptyScreen` · `ErrorScreen`
+- **Top bar rule:** `icon =` param is REQUIRED — never omit it
+- **Status chip rule:** always `StatusChip` — never a custom Surface+Text combination
+
+---
+
 ## Data Layer
 
 ### `Resource<T>` sealed class
@@ -202,3 +236,7 @@ or by the "Context This Prompt Depends On" block in each prompt file.
 | Wide/landscape detection | `presentation/ui/pos/PosScreen.kt` |
 | Repository with helpers | `data/repository/InventoryRepositoryImpl.kt` |
 | Koin registration | `di/AppModule.kt` |
+| Card anatomy (list item, left-edge strip) | `presentation/ui/sales/components/SaleCard.kt` |
+| KPI card (icon-in-box pattern) | `presentation/ui/reports/components/KpiCards.kt` |
+| Settings nav item (selected state) | `presentation/ui/settings/components/SettingsPrimitives.kt` |
+| Product list with FAB / tablet inline button | `presentation/ui/products/ProductManagementScreen.kt` |

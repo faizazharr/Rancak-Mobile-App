@@ -270,7 +270,7 @@ When you decide to leave something alone, say so explicitly and explain why.
 - [ ] No `android.*` or Apple imports in `commonMain`
 - [ ] All repository methods return `Resource<T>`
 - [ ] ViewModels expose `StateFlow`, not `MutableStateFlow`
-- [ ] All four `Resource` variants handled in every `when` block
+- [ ] All three `Resource` variants handled in every `when` block (`Success`, `Error`, `Loading`)
 - [ ] All screens split into `XxxScreen` (has VM) + `XxxContent` (pure UI)
 - [ ] Every new class registered in `AppModule.kt`
 - [ ] Every new route registered in `Screen.kt` and `RancakNavHost.kt`

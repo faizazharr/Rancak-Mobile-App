@@ -81,8 +81,10 @@ including files that pass — "No issues found" is a valid result per category.
 - [ ] No business logic lives here — the repository only translates between remote/local and domain
 
 ### DTO
-- [ ] All fields annotated with `@SerialName` where the JSON name differs from Kotlin naming
 - [ ] Class is `@Serializable`
+- [ ] All fields annotated with `@SerialName` where the JSON name differs from Kotlin naming
+- [ ] Every `Long` field representing money, price, fee, discount, tax, or balance has `@Serializable(with = FlexibleLongSerializer::class)` — backend may send `"60000.00"` as a string
+- [ ] Optional fields have default values (`= null` or `= 0`) so missing JSON keys don't crash deserialization
 - [ ] No domain model types imported — DTOs are self-contained
 - [ ] No `android.*` or Apple imports
 
@@ -93,9 +95,12 @@ including files that pass — "No issues found" is a valid result per category.
 
 ### API Extension
 - [ ] Extension function on `RancakApiService`, not a standalone function
-- [ ] URL constructed using `ApiConstants` or the documented base URL pattern
+- [ ] URL constructed with `ApiConstants.BASE_URL + ApiConstants.tenantPath(uuid) + ApiConstants.XXX` — no raw strings
+- [ ] Query params use `parameter("key", value)` inside the builder — never string-interpolated into the URL
+- [ ] No manually added `X-API-Key` or `Authorization` headers — both are auto-injected
 - [ ] `POST` endpoints that create transactions include `X-Idempotency-Key`
 - [ ] `contentType(ContentType.Application.Json)` set on write operations
+- [ ] Return type is always `ApiResponse<T>` — never a raw `T` or `List<T>`
 
 ---
 
@@ -135,7 +140,10 @@ including files that pass — "No issues found" is a valid result per category.
 - [ ] Preview composables use `XxxContent`, not `XxxScreen`
 - [ ] All four UI states handled: loading, error, empty, and data-present
 - [ ] Error is shown to user and cleared — not silently swallowed
-- [ ] No hardcoded colors, spacing, or typography — use design system tokens
+- [ ] No hardcoded `Color(0xFF...)` — use `MaterialTheme.colorScheme` or `RancakColors.semantic`
+- [ ] `Text` uses `style = MaterialTheme.typography.XxxYyy` — no raw `fontSize`
+- [ ] `RancakTopBar` used with required `icon = Icons.Default.Xxx` param — never omitted
+- [ ] `StatusChip(text, color)` used for status labels — not a custom Surface+Text combination
 - [ ] Role-gating applied for any Admin/Owner-only actions using `currentRole.atLeast(UserRole.XXX)`
 - [ ] No `android.*` or Apple imports
 
@@ -228,18 +236,4 @@ After completing all phases, write the report in this format:
 
 ## What Good Code Looks Like in This Codebase
 
-If you are unsure whether something is correct, compare against these reference files:
-
-| Pattern | Reference |
-|---|---|
-| Simple ViewModel | `presentation/viewmodel/ShiftViewModel.kt` |
-| Complex ViewModel | `presentation/viewmodel/SalesHistoryViewModel.kt` |
-| Derived fields | `presentation/viewmodel/PosViewModel.kt` |
-| Screen + Content split | `presentation/ui/shift/ShiftScreen.kt` |
-| Repository with helpers | `data/repository/InventoryRepositoryImpl.kt` |
-| Koin registration | `di/AppModule.kt` |
-| Constrained single-column (form on tablet) | `presentation/ui/shift/ShiftScreen.kt` |
-| Conditional branch phone/tablet | `presentation/ui/auth/LoginScreen.kt` |
-| Master-detail tablet layout | `presentation/ui/sales/SalesHistoryScreen.kt` |
-| Adaptive grid | `presentation/ui/kds/KdsScreen.kt` |
-| Wide/landscape detection | `presentation/ui/pos/PosScreen.kt` |
+If you are unsure whether something is correct, look up the canonical reference file in `.github/CONTEXT_INDEX.md` — the "Canonical Reference Files" table at the bottom maps every pattern to the authoritative source file.

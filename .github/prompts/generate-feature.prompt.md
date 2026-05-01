@@ -347,13 +347,13 @@ fun XxxContent(
     onSelectItem: (Xxx) -> Unit = {}
 ) {
     Scaffold(
-        topBar = { RancakTopBar(title = "Judul Fitur", onMenu = onNavigateBack) },
+        topBar = { RancakTopBar(title = "Judul Fitur", icon = Icons.Default.Xxx, onMenu = onNavigateBack) },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when {
                 uiState.isLoading        -> LoadingScreen()
-                uiState.error != null    -> ErrorScreen(uiState.error)
+                uiState.error != null    -> ErrorScreen(uiState.error!!)  // non-null asserted — branch only reached when error != null
                 uiState.items.isEmpty()  -> EmptyScreen("Belum ada data")  // ← Bahasa Indonesia
                 else                     -> ItemList(uiState.items, onSelectItem)
             }
@@ -502,5 +502,7 @@ After generating all files, verify:
 - [ ] Role gating applied where the feature description requires it
 - [ ] If role gating: `tokenManager` injected into ViewModel constructor and passed as plain param to `XxxContent`
 - [ ] `X-Idempotency-Key` added if the feature touches any financial transaction (sale, payment, refund)
-- [ ] No hardcoded colors, spacing, or typography — use design system tokens
+- [ ] No hardcoded `Color(0xFF...)` — use `MaterialTheme.colorScheme` or `RancakColors.semantic`
+- [ ] `RancakTopBar` has required `icon = Icons.Default.Xxx` param on every screen
+- [ ] `StatusChip(text, color)` used for status labels — not custom Surface+Text
 - [ ] Screen handles both phone and tablet using the correct adaptive layout pattern

@@ -179,24 +179,22 @@ Do **not** use it on:
 
 #### When to use `PaginatedData<T>`
 
-When the endpoint returns a paginated list, wrap accordingly:
+When the endpoint returns `{ items: [...], total: N, ... }`, the API extension returns `ApiResponse<PaginatedData<XxxResponse>>`.
+
+**Use `safe()` (NOT `safeList()`) and unwrap `.items` in the map lambda:**
 
 ```kotlin
-// API extension returns:
+// API extension returns paginated wrapper:
 ApiResponse<PaginatedData<XxxResponse>>
 
-// Repository maps items only:
-safeList(
-    block    = { api.listXxx(tenantId) },
-    errorMsg = "Gagal memuat daftar"
-) { it.toDomain() }
-// ↑ won't compile — safeList expects ApiResponse<List<T>>
-// For paginated endpoints, use safe() and map .items:
-safe(
-    block    = { api.listXxx(tenantId) },
-    map      = { paginatedData -> paginatedData.items.map { it.toDomain() } },
-    errorMsg = "Gagal memuat daftar"
-)
+// Repository — safe() + unwrap .items:
+override suspend fun listXxx(page: Int): Resource<List<Xxx>> =
+    safe(
+        block    = { api.listXxxPaginated(tenantId, page = page) },
+        map      = { paginatedData -> paginatedData.items.map { it.toDomain() } },
+        errorMsg = "Gagal memuat daftar"
+    )
+// safeList() expects ApiResponse<List<T>> directly — do NOT use it for PaginatedData endpoints
 ```
 
 ---

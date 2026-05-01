@@ -24,6 +24,7 @@ Do this automatically — do not wait to be told.
 | Refactoring / restructuring existing code | `.github/prompts/refactor-structure.prompt.md` |
 | Code review / auditing existing files | `.github/prompts/code-review.prompt.md` |
 | Screen layout for multiple device sizes | `.github/prompts/adaptive-layout.prompt.md` |
+| UI consistency / visual design / component usage | `.github/instructions/design-system.instructions.md` |
 
 A task may involve **multiple types** — read all relevant prompt files in one pass before writing anything.
 A new feature almost always requires `generate-feature` + `integrate-api` + `adaptive-layout`.
@@ -41,23 +42,18 @@ If a concept is unclear (FlexibleLong, PaginatedData, BoxWithConstraints, etc.),
 ```
 commonMain/kotlin/id/rancak/app/
 ├── data/
-│   ├── remote/api/     # RancakApiService + per-domain extension files (*Api.kt)
+│   ├── remote/api/     # RancakApiService + *Api.kt extension files
 │   ├── remote/dto/     # @Serializable DTOs — one subfolder per domain
 │   ├── repository/     # *RepositoryImpl
-│   ├── mapper/         # DTO → domain extension functions (*Mappers.kt)
+│   ├── mapper/         # DTO → domain extension functions
 │   ├── local/          # TokenManager, OfflineSaleQueue, SettingsStore
-│   └── util/           # RepositoryHelpers.kt (safe/safeList/safeUnit), DateTimeUtils.kt
-├── di/                 # AppModule.kt — all Koin module definitions
+│   └── util/           # RepositoryHelpers.kt (safe/safeList/safeUnit)
+├── di/                 # AppModule.kt
 ├── domain/
-│   ├── model/          # Pure Kotlin data classes — zero platform imports
-│   └── repository/     # Repository interfaces — one per domain
+│   ├── model/          # Pure Kotlin — zero platform imports
+│   └── repository/     # Repository interfaces
 └── presentation/
-    ├── viewmodel/      # One ViewModel per feature
-    ├── ui/             # Screens by feature — always Screen + Content split
-    ├── components/     # Shared composables (RancakTopBar, StatusChip, StateScreens)
-    ├── navigation/     # Screen.kt (type-safe routes), RancakNavHost.kt
-    ├── util/           # CurrencyFormatter.kt
-    └── designsystem/   # Color.kt, Theme.kt, Typography.kt
+    ├── viewmodel/  ui/  components/  navigation/  util/  designsystem/
 ```
 
 ---
@@ -86,14 +82,12 @@ commonMain/kotlin/id/rancak/app/
 | Simple ViewModel | `presentation/viewmodel/ShiftViewModel.kt` |
 | Complex ViewModel (combine + stateIn) | `presentation/viewmodel/SalesHistoryViewModel.kt` |
 | Derived fields (recompute) | `presentation/viewmodel/PosViewModel.kt` |
-| Screen + Content split | `presentation/ui/shift/ShiftScreen.kt` |
+| Screen + Content split / form on tablet | `presentation/ui/shift/ShiftScreen.kt` |
 | Repository with safe/safeList/safeUnit | `data/repository/InventoryRepositoryImpl.kt` |
 | Koin registration | `di/AppModule.kt` |
-| API extension (with idempotency, query params) | `data/remote/api/SaleApi.kt` |
+| API extension (idempotency, query params) | `data/remote/api/SaleApi.kt` |
 | DTO with FlexibleLongSerializer | `data/remote/dto/sale/SaleDtos.kt` |
-| Constrained column (form on tablet) | `presentation/ui/shift/ShiftScreen.kt` |
-| Master-detail tablet layout | `presentation/ui/sales/SalesHistoryScreen.kt` |
-| Adaptive grid | `presentation/ui/kds/KdsScreen.kt` |
+| Master-detail tablet / adaptive grid | `presentation/ui/sales/SalesHistoryScreen.kt` / `KdsScreen.kt` |
 | Wide/landscape detection | `presentation/ui/pos/PosScreen.kt` |
 
 ---
@@ -134,15 +128,14 @@ singleOf(::XxxRepositoryImpl)
 
 ## Design System
 
-Never hardcode colors, spacing, or typography. Use tokens from `designsystem/`:
+Design rules live in `.github/instructions/design-system.instructions.md` (auto-loaded). Key invariants:
 
-```kotlin
-MaterialTheme.colorScheme.primary    // Teal #0D9373
-MaterialTheme.colorScheme.secondary  // Orange #E8772E
-
-// Spacing scale: 4 / 8 / 16 / 24 / 32 dp  (xs / sm / md / lg / xl)
-// Touch targets: minimum 48.dp height for any tappable element
-```
+- **Single entry point:** `RancakDesign.colors / .type / .shapes / .spacing / .elevation / .semantic`
+- **Semantic colors:** `RancakColors.semantic.success / .warning / .info / .paymentCash / ...`
+- **Spacing scale:** `RancakDesign.spacing` — `xs=4 sm=8 md=16 lg=24 xl=32 xxl=48`
+- **Shapes:** `shapes.medium` (6dp) for most cards, buttons, fields; `shapes.large` (8dp) for summary cards
+- **Components:** `RancakTopBar` (always with `icon =`), `RancakButton`, `RancakTextField`, `StatusChip`, `RoleGate`
+- **Hardcoded colors, font sizes, or dp values not from the scale are always wrong**
 
 ---
 
@@ -164,3 +157,8 @@ MaterialTheme.colorScheme.secondary  // Orange #E8772E
 - [ ] Screen handles phone and tablet using the correct adaptive pattern
 - [ ] Forms use `widthIn(max = 560.dp)` on tablet — not `fillMaxWidth`
 - [ ] Grids use `GridCells.Adaptive` — not `GridCells.Fixed`
+- [ ] No hardcoded `Color(0xFF...)` — use `MaterialTheme.colorScheme` or `RancakColors.semantic`
+- [ ] `Text` uses `style = MaterialTheme.typography.XxxYyy` — no raw `fontSize`
+- [ ] `RancakTopBar` on every screen with required `icon =` param
+- [ ] FAB on phone only; tablet uses inline button
+- [ ] `StatusChip` for all status labels — not custom Surface/Text

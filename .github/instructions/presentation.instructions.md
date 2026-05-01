@@ -150,7 +150,7 @@ fun XxxContent(
     onSelectItem: (Xxx) -> Unit = {}
 ) {
     Scaffold(
-        topBar       = { RancakTopBar(title = "Judul Fitur", onMenu = onNavigateBack) },
+        topBar       = { RancakTopBar(title = "Judul Fitur", icon = Icons.Default.Xxx, onMenu = onNavigateBack) },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
