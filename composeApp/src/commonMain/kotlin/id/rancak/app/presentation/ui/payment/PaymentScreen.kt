@@ -15,6 +15,8 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,10 +24,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.printing.PrinterManager
 import id.rancak.app.data.printing.ReceiptData
@@ -33,7 +33,6 @@ import id.rancak.app.data.printing.ReceiptItem
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.presentation.ui.payment.components.NamedAmount
-import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.components.PartialReceiptPrintDialog
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.payment.components.OrderLineItem
@@ -68,6 +67,17 @@ fun PaymentScreen(
     val paymentState by paymentViewModel.uiState.collectAsStateWithLifecycle()
     val printerManager: PrinterManager = koinInject()
     val settingsStore: SettingsStore   = koinInject()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Tampilkan error via Snackbar (tidak tertutup oleh top bar dan tidak hilang
+    // saat user menekan numpad — lebih mudah terlihat daripada banner di atas).
+    LaunchedEffect(paymentState.error) {
+        val msg = paymentState.error
+        if (!msg.isNullOrBlank()) {
+            snackbarHostState.showSnackbar(msg)
+            paymentViewModel.clearError()
+        }
+    }
 
     // ── Breakdown pajak & surcharge per-line agar ringkasan pembayaran
     //    persis match dengan tampilan kasir (per-konfigurasi, bukan agregat). ──
@@ -161,17 +171,10 @@ fun PaymentScreen(
                            else "Pilih metode & masukkan jumlah bayar",
                 onBack   = onBack
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            ErrorBanner(
-                error     = paymentState.error,
-                onDismiss = paymentViewModel::clearError,
-                modifier  = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter)
-                    .zIndex(10f)
-            )
 
             when {
                 paymentState.completedSale != null -> PaymentSuccessContent(

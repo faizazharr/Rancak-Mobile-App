@@ -145,7 +145,7 @@ class PaymentViewModel(
     private var qrisPollingJob: Job? = null
 
     fun selectMethod(method: PaymentMethod) {
-        _uiState.update { it.copy(selectedMethod = method, error = null) }
+        _uiState.update { it.copy(selectedMethod = method) }
     }
 
     fun setPaidAmount(amount: String) {
@@ -154,7 +154,7 @@ class PaymentViewModel(
         val clamped = digitsOnly.toLongOrNull()?.let {
             if (it > MAX_AMOUNT) MAX_AMOUNT.toString() else digitsOnly
         } ?: digitsOnly
-        _uiState.update { it.copy(paidAmount = clamped, error = null) }
+        _uiState.update { it.copy(paidAmount = clamped) }
     }
 
     fun processPayment(
@@ -183,28 +183,32 @@ class PaymentViewModel(
             }
             viewModelScope.launch {
                 _uiState.update { it.copy(isProcessing = true, error = null) }
-                when (val result = saleRepository.createSale(
-                    items        = items,
-                    paymentMethod = PaymentMethod.CASH, // placeholder; backend ignores for held
-                    paidAmount   = 0L,
-                    orderType    = orderType,
-                    tableUuid    = tableUuid,
-                    customerName = customerName?.takeIf { it.isNotBlank() },
-                    note         = note?.takeIf { it.isNotBlank() },
-                    hold         = true,
-                    pax          = pax,
-                    discount     = discount,
-                    tax          = tax,
-                    adminFee     = adminFee,
-                    deliveryFee  = deliveryFee,
-                    tip          = tip,
-                    voucherCode  = voucherCode?.takeIf { it.isNotBlank() }
-                )) {
-                    is Resource.Success ->
-                        initiateQrisPayment(result.data.uuid, result.data.total)
-                    is Resource.Error ->
-                        _uiState.update { it.copy(isProcessing = false, error = result.message) }
-                    is Resource.Loading -> {}
+                try {
+                    when (val result = saleRepository.createSale(
+                        items        = items,
+                        paymentMethod = PaymentMethod.CASH, // placeholder; backend ignores for held
+                        paidAmount   = 0L,
+                        orderType    = orderType,
+                        tableUuid    = tableUuid,
+                        customerName = customerName?.takeIf { it.isNotBlank() },
+                        note         = note?.takeIf { it.isNotBlank() },
+                        hold         = true,
+                        pax          = pax,
+                        discount     = discount,
+                        tax          = tax,
+                        adminFee     = adminFee,
+                        deliveryFee  = deliveryFee,
+                        tip          = tip,
+                        voucherCode  = voucherCode?.takeIf { it.isNotBlank() }
+                    )) {
+                        is Resource.Success ->
+                            initiateQrisPayment(result.data.uuid, result.data.total)
+                        is Resource.Error ->
+                            _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                        is Resource.Loading -> {}
+                    }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(isProcessing = false, error = e.message ?: "Terjadi kesalahan, silakan coba lagi") }
                 }
             }
             return
@@ -226,28 +230,32 @@ class PaymentViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
-            when (val result = saleRepository.createSale(
-                items         = items,
-                paymentMethod = state.selectedMethod,
-                paidAmount    = state.paidAmountLong,
-                orderType     = orderType,
-                tableUuid     = tableUuid,
-                customerName  = customerName?.takeIf { it.isNotBlank() },
-                note          = note?.takeIf { it.isNotBlank() },
-                hold          = false,
-                pax           = pax,
-                discount      = discount,
-                tax           = tax,
-                adminFee      = adminFee,
-                deliveryFee   = deliveryFee,
-                tip           = tip,
-                voucherCode   = voucherCode?.takeIf { it.isNotBlank() }
-            )) {
-                is Resource.Success ->
-                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
-                is Resource.Error ->
-                    _uiState.update { it.copy(isProcessing = false, error = result.message) }
-                is Resource.Loading -> {}
+            try {
+                when (val result = saleRepository.createSale(
+                    items         = items,
+                    paymentMethod = state.selectedMethod,
+                    paidAmount    = state.paidAmountLong,
+                    orderType     = orderType,
+                    tableUuid     = tableUuid,
+                    customerName  = customerName?.takeIf { it.isNotBlank() },
+                    note          = note?.takeIf { it.isNotBlank() },
+                    hold          = false,
+                    pax           = pax,
+                    discount      = discount,
+                    tax           = tax,
+                    adminFee      = adminFee,
+                    deliveryFee   = deliveryFee,
+                    tip           = tip,
+                    voucherCode   = voucherCode?.takeIf { it.isNotBlank() }
+                )) {
+                    is Resource.Success ->
+                        _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                    is Resource.Error ->
+                        _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                    is Resource.Loading -> {}
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isProcessing = false, error = e.message ?: "Terjadi kesalahan, silakan coba lagi") }
             }
         }
     }
@@ -574,27 +582,31 @@ class PaymentViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
-            when (val result = saleRepository.createSaleWithSplitPayment(
-                items        = items,
-                payments     = payments,
-                orderType    = orderType,
-                tableUuid    = tableUuid,
-                customerName = customerName?.takeIf { it.isNotBlank() },
-                note         = note?.takeIf { it.isNotBlank() },
-                pax          = pax,
-                discount     = discount,
-                tax          = tax,
-                adminFee     = adminFee,
-                deliveryFee  = deliveryFee,
-                tip          = tip,
-                voucherCode  = voucherCode?.takeIf { it.isNotBlank() }
-            )) {
-                is Resource.Success -> {
-                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+            try {
+                when (val result = saleRepository.createSaleWithSplitPayment(
+                    items        = items,
+                    payments     = payments,
+                    orderType    = orderType,
+                    tableUuid    = tableUuid,
+                    customerName = customerName?.takeIf { it.isNotBlank() },
+                    note         = note?.takeIf { it.isNotBlank() },
+                    pax          = pax,
+                    discount     = discount,
+                    tax          = tax,
+                    adminFee     = adminFee,
+                    deliveryFee  = deliveryFee,
+                    tip          = tip,
+                    voucherCode  = voucherCode?.takeIf { it.isNotBlank() }
+                )) {
+                    is Resource.Success -> {
+                        _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                    }
+                    is Resource.Error ->
+                        _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                    is Resource.Loading -> {}
                 }
-                is Resource.Error ->
-                    _uiState.update { it.copy(isProcessing = false, error = result.message) }
-                is Resource.Loading -> {}
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isProcessing = false, error = e.message ?: "Terjadi kesalahan, silakan coba lagi") }
             }
         }
     }
@@ -622,17 +634,21 @@ class PaymentViewModel(
         }
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
-            when (val result = saleRepository.paySale(
-                saleUuid      = saleUuid,
-                paymentMethod = state.selectedMethod,
-                paidAmount    = state.paidAmountLong
-            )) {
-                is Resource.Success -> {
-                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+            try {
+                when (val result = saleRepository.paySale(
+                    saleUuid      = saleUuid,
+                    paymentMethod = state.selectedMethod,
+                    paidAmount    = state.paidAmountLong
+                )) {
+                    is Resource.Success -> {
+                        _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                    }
+                    is Resource.Error ->
+                        _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                    is Resource.Loading -> {}
                 }
-                is Resource.Error ->
-                    _uiState.update { it.copy(isProcessing = false, error = result.message) }
-                is Resource.Loading -> {}
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isProcessing = false, error = e.message ?: "Terjadi kesalahan, silakan coba lagi") }
             }
         }
     }
@@ -662,13 +678,17 @@ class PaymentViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
-            when (val result = saleRepository.paySaleWithSplitPayment(saleUuid, payments)) {
-                is Resource.Success -> {
-                    _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+            try {
+                when (val result = saleRepository.paySaleWithSplitPayment(saleUuid, payments)) {
+                    is Resource.Success -> {
+                        _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
+                    }
+                    is Resource.Error ->
+                        _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                    is Resource.Loading -> {}
                 }
-                is Resource.Error ->
-                    _uiState.update { it.copy(isProcessing = false, error = result.message) }
-                is Resource.Loading -> {}
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isProcessing = false, error = e.message ?: "Terjadi kesalahan, silakan coba lagi") }
             }
         }
     }
