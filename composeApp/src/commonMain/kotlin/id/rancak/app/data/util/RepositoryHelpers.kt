@@ -38,8 +38,9 @@ internal suspend fun <T, R> safeList(
     map: (T) -> R
 ): Resource<List<R>> = try {
     val response = block()
-    if (response.isSuccess && response.data != null) {
-        Resource.Success(response.data.map(map))
+    if (response.isSuccess) {
+        // Backend kadang mengembalikan null (bukan []) untuk list kosong — perlakukan sebagai empty list
+        Resource.Success(response.data?.map(map) ?: emptyList())
     } else {
         Resource.Error(response.message ?: errorMsg)
     }

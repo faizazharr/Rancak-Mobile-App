@@ -209,6 +209,7 @@ fun ModifierManagementContent(
                     uiState          = uiState,
                     activeList       = activeList,
                     isLoadingActive  = isLoadingActive,
+                    activeError      = if (uiState.activeTab == ModifierTab.GLOBAL) uiState.error else null,
                     canAdd           = canAdd,
                     onSelectTab      = onSelectTab,
                     onSelectProduct  = onSelectProduct,
@@ -222,6 +223,7 @@ fun ModifierManagementContent(
                     uiState          = uiState,
                     activeList       = activeList,
                     isLoadingActive  = isLoadingActive,
+                    activeError      = if (uiState.activeTab == ModifierTab.GLOBAL) uiState.error else null,
                     onSelectTab      = onSelectTab,
                     onSelectProduct  = onSelectProduct,
                     onEditModifier   = onEditModifier,
@@ -240,6 +242,7 @@ private fun TabletLayout(
     uiState: ModifierManagementUiState,
     activeList: List<DomainModifier>,
     isLoadingActive: Boolean,
+    activeError: String?,
     canAdd: Boolean,
     onSelectTab: (ModifierTab) -> Unit,
     onSelectProduct: (Product?) -> Unit,
@@ -265,17 +268,18 @@ private fun TabletLayout(
                 )
             }
             ModifierListBody(
-                modifiers       = activeList,
-                isLoading       = isLoadingActive,
-                onEdit          = onEditModifier,
-                onDelete        = onDeleteModifier,
-                emptyText       = if (uiState.activeTab == ModifierTab.PER_PRODUCT && uiState.selectedProduct == null)
-                                      "Pilih produk terlebih dahulu"
-                                  else "Belum ada modifier",
-                modifier        = Modifier.weight(1f)
-            )
-        }
-        HorizontalDivider(modifier = Modifier
+                    modifiers       = activeList,
+                    isLoading       = isLoadingActive,
+                    error           = activeError,
+                    onEdit          = onEditModifier,
+                    onDelete        = onDeleteModifier,
+                    emptyText       = if (uiState.activeTab == ModifierTab.PER_PRODUCT && uiState.selectedProduct == null)
+                                          "Pilih produk terlebih dahulu"
+                                      else "Belum ada modifier",
+                    modifier        = Modifier.weight(1f)
+                )
+            }
+            HorizontalDivider(modifier = Modifier
             .fillMaxHeight()
             .padding(0.dp)
             .run { this })
@@ -303,6 +307,7 @@ private fun PhoneLayout(
     uiState: ModifierManagementUiState,
     activeList: List<DomainModifier>,
     isLoadingActive: Boolean,
+    activeError: String?,
     onSelectTab: (ModifierTab) -> Unit,
     onSelectProduct: (Product?) -> Unit,
     onEditModifier: (DomainModifier) -> Unit,
@@ -322,6 +327,7 @@ private fun PhoneLayout(
         ModifierListBody(
             modifiers  = activeList,
             isLoading  = isLoadingActive,
+            error      = activeError,
             onEdit     = onEditModifier,
             onDelete   = onDeleteModifier,
             emptyText  = if (uiState.activeTab == ModifierTab.PER_PRODUCT && uiState.selectedProduct == null)
@@ -399,14 +405,16 @@ private fun ProductPickerDropdown(
 private fun ModifierListBody(
     modifiers: List<DomainModifier>,
     isLoading: Boolean,
+    error: String? = null,
     onEdit: (DomainModifier) -> Unit,
     onDelete: (DomainModifier) -> Unit,
     emptyText: String = "Belum ada modifier",
     modifier: Modifier = Modifier
 ) {
     when {
-        isLoading       -> LoadingScreen(modifier)
-        modifiers.isEmpty() -> EmptyScreen(emptyText, modifier = modifier)
+        isLoading            -> LoadingScreen(modifier)
+        error != null && modifiers.isEmpty() -> ErrorScreen(error, modifier = modifier)
+        modifiers.isEmpty()  -> EmptyScreen(emptyText, modifier = modifier)
         else -> LazyColumn(
             modifier            = modifier,
             contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
