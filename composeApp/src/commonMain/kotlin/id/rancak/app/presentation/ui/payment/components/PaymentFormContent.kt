@@ -42,6 +42,16 @@ data class OrderLineItem(
 )
 
 /**
+ * Baris bernama untuk breakdown pajak / surcharge di ringkasan pembayaran,
+ * agar persis match dengan tampilan kasir (mis. "PPN (11%)" → 5.500,
+ * "Service Charge (5%)" → 2.500).
+ */
+data class NamedAmount(
+    val label: String,
+    val amount: Long
+)
+
+/**
  * Form utama halaman pembayaran: ringkasan pesanan di kiri, pilihan metode,
  * input jumlah bayar, dan numpad di kanan. Layout 2-kolom yang sesuai untuk
  * tablet; pada phone juga tetap layak karena menggunakan scroll di kolom kanan.
@@ -72,6 +82,22 @@ internal fun PaymentFormContent(
     tip: Long = 0L,
     /** Detail setiap baris item untuk ditampilkan di ringkasan — opsional. */
     orderItems: List<OrderLineItem> = emptyList(),
+    /**
+     * Breakdown pajak per-konfigurasi (manual + auto dari Pricing Settings).
+     * Bila kosong, fallback ke single-line dengan label "Pajak".
+     */
+    taxLines: List<NamedAmount> = emptyList(),
+    /**
+     * Breakdown surcharge per-konfigurasi (manual + auto dari Pricing Settings).
+     * Bila kosong, fallback ke single-line dengan label "Biaya Admin".
+     */
+    surchargeLines: List<NamedAmount> = emptyList(),
+    /** Konteks pesanan agar match dengan kasir. */
+    orderTypeLabel: String? = null,
+    customerName: String? = null,
+    tableLabel: String? = null,
+    pax: Int = 0,
+    voucherCode: String? = null,
     modifier: Modifier = Modifier
 ) {
     val total = subtotal - discount + tax + adminFee + deliveryFee + tip
@@ -108,6 +134,13 @@ internal fun PaymentFormContent(
             isSplit        = isSplit,
             onToggleMode   = onToggleMode,
             orderItems     = orderItems,
+            taxLines       = taxLines,
+            surchargeLines = surchargeLines,
+            orderTypeLabel = orderTypeLabel,
+            customerName   = customerName,
+            tableLabel     = tableLabel,
+            pax            = pax,
+            voucherCode    = voucherCode,
             modifier       = Modifier.weight(0.42f).fillMaxHeight()
         )
         PaymentInputColumn(
@@ -147,6 +180,13 @@ private fun OrderSummaryColumn(
     isSplit: Boolean,
     onToggleMode: () -> Unit,
     orderItems: List<OrderLineItem> = emptyList(),
+    taxLines: List<NamedAmount> = emptyList(),
+    surchargeLines: List<NamedAmount> = emptyList(),
+    orderTypeLabel: String? = null,
+    customerName: String? = null,
+    tableLabel: String? = null,
+    pax: Int = 0,
+    voucherCode: String? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -154,7 +194,26 @@ private fun OrderSummaryColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         HeroTotalCard(itemCount, total)
-        SummaryCard(itemCount, subtotal, discount, tax, adminFee, deliveryFee, tip, total, orderItems)
+        OrderContextCard(
+            orderTypeLabel = orderTypeLabel,
+            customerName   = customerName,
+            tableLabel     = tableLabel,
+            pax            = pax,
+            voucherCode    = voucherCode
+        )
+        SummaryCard(
+            itemCount      = itemCount,
+            subtotal       = subtotal,
+            discount       = discount,
+            tax            = tax,
+            adminFee       = adminFee,
+            deliveryFee    = deliveryFee,
+            tip            = tip,
+            total          = total,
+            orderItems     = orderItems,
+            taxLines       = taxLines,
+            surchargeLines = surchargeLines
+        )
         if (isCashSelected && changeAmount > 0) ChangeDueCard(changeAmount)
         Spacer(Modifier.weight(1f))
         PaymentModeToggleColumn(isSplit = isSplit, onToggle = onToggleMode)
@@ -246,7 +305,9 @@ private fun SummaryCard(
     deliveryFee: Long,
     tip: Long,
     total: Long,
-    orderItems: List<OrderLineItem> = emptyList()
+    orderItems: List<OrderLineItem> = emptyList(),
+    taxLines: List<NamedAmount> = emptyList(),
+    surchargeLines: List<NamedAmount> = emptyList()
 ) {
     Card(
         shape  = MaterialTheme.shapes.medium,
@@ -302,8 +363,23 @@ private fun SummaryCard(
                 value      = "− ${formatRupiah(discount)}",
                 valueColor = MaterialTheme.colorScheme.error
             )
-            if (tax > 0) SummaryRow(label = "Pajak", value = formatRupiah(tax))
-            if (adminFee > 0) SummaryRow(label = "Biaya Admin", value = formatRupiah(adminFee))
+            // Pajak: per-line breakdown jika tersedia (match dengan tampilan kasir),
+            // selain itu fallback ke single-line aggregate.
+            if (taxLines.isNotEmpty()) {
+                taxLines.filter { it.amount > 0 }.forEach {
+                    SummaryRow(label = it.label, value = formatRupiah(it.amount))
+                }
+            } else if (tax > 0) {
+                SummaryRow(label = "Pajak", value = formatRupiah(tax))
+            }
+            // Surcharge / biaya admin: per-line breakdown jika tersedia.
+            if (surchargeLines.isNotEmpty()) {
+                surchargeLines.filter { it.amount > 0 }.forEach {
+                    SummaryRow(label = it.label, value = formatRupiah(it.amount))
+                }
+            } else if (adminFee > 0) {
+                SummaryRow(label = "Biaya Admin", value = formatRupiah(adminFee))
+            }
             if (deliveryFee > 0) SummaryRow(label = "Ongkir", value = formatRupiah(deliveryFee))
             if (tip > 0) SummaryRow(label = "Tip", value = formatRupiah(tip))
             HorizontalDivider(
@@ -316,6 +392,65 @@ private fun SummaryCard(
                 isBold     = true,
                 valueColor = MaterialTheme.colorScheme.primary
             )
+        }
+    }
+}
+
+/**
+ * Kartu konteks pesanan: Order Type, Pelanggan, Meja, Pax, Voucher.
+ * Hanya tampil bila ada minimal satu nilai non-default. Membuat halaman
+ * pembayaran match dengan informasi yang sudah diinput di kasir.
+ */
+@Composable
+private fun OrderContextCard(
+    orderTypeLabel: String?,
+    customerName: String?,
+    tableLabel: String?,
+    pax: Int,
+    voucherCode: String?
+) {
+    val rows = buildList {
+        orderTypeLabel?.takeIf { it.isNotBlank() }?.let { add("Tipe Pesanan" to it) }
+        customerName?.takeIf  { it.isNotBlank() }?.let { add("Pelanggan" to it) }
+        tableLabel?.takeIf    { it.isNotBlank() }?.let { add("Meja" to it) }
+        if (pax > 0) add("Jumlah Tamu" to "$pax orang")
+        voucherCode?.takeIf   { it.isNotBlank() }?.let { add("Voucher" to it) }
+    }
+    if (rows.isEmpty()) return
+
+    Card(
+        shape  = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.30f)
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Text(
+                "Detail Pesanan",
+                style      = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(6.dp))
+            rows.forEach { (k, v) ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        k,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        v,
+                        style      = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         }
     }
 }

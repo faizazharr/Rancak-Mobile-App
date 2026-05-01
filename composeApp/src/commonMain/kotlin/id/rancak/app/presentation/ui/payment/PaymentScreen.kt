@@ -31,6 +31,8 @@ import id.rancak.app.data.printing.PrinterManager
 import id.rancak.app.data.printing.ReceiptData
 import id.rancak.app.data.printing.ReceiptItem
 import id.rancak.app.domain.model.PaymentMethod
+import id.rancak.app.domain.model.OrderType
+import id.rancak.app.presentation.ui.payment.components.NamedAmount
 import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.components.PartialReceiptPrintDialog
 import id.rancak.app.presentation.components.RancakTopBar
@@ -66,6 +68,39 @@ fun PaymentScreen(
     val paymentState by paymentViewModel.uiState.collectAsStateWithLifecycle()
     val printerManager: PrinterManager = koinInject()
     val settingsStore: SettingsStore   = koinInject()
+
+    // ── Breakdown pajak & surcharge per-line agar ringkasan pembayaran
+    //    persis match dengan tampilan kasir (per-konfigurasi, bukan agregat). ──
+    val taxLines: List<NamedAmount> = remember(cartState) {
+        buildList {
+            if (cartState.tax > 0) add(NamedAmount("Pajak", cartState.tax))
+            cartState.activeTaxConfigs.forEach { cfg ->
+                val basis = if (cfg.applyTo == "subtotal") cartState.subtotal
+                            else (cartState.subtotal - cartState.discount).coerceAtLeast(0L)
+                val amt = ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
+                if (amt > 0) add(NamedAmount("${cfg.name} (${cfg.rate}%)", amt))
+            }
+        }
+    }
+    val surchargeLines: List<NamedAmount> = remember(cartState) {
+        buildList {
+            if (cartState.adminFee > 0) add(NamedAmount("Biaya Admin", cartState.adminFee))
+            cartState.activeSurcharges.forEach { sc ->
+                val raw = if (sc.isPercentage) {
+                    val basis = (cartState.subtotal - cartState.discount).coerceAtLeast(0L)
+                    (basis * sc.amount / 100L).coerceAtLeast(0L)
+                } else sc.amount
+                val amt = sc.maxAmount?.let { cap -> raw.coerceAtMost(cap) } ?: raw
+                val label = sc.name + if (sc.isPercentage) " (${sc.amount}%)" else ""
+                if (amt > 0) add(NamedAmount(label, amt))
+            }
+        }
+    }
+    val orderTypeLabel = when (cartState.orderType) {
+        OrderType.DINE_IN  -> "Dine In"
+        OrderType.TAKEAWAY -> "Take Away"
+        OrderType.DELIVERY -> "Delivery"
+    }
 
     // Per-customer receipt printing (split payment)
     var pendingGroupReceiptData by remember { mutableStateOf<ReceiptData?>(null) }
@@ -278,6 +313,12 @@ fun PaymentScreen(
                                     subtotal    = item.subtotal
                                 )
                             },
+                            taxLines       = taxLines,
+                            surchargeLines = surchargeLines,
+                            orderTypeLabel = orderTypeLabel,
+                            customerName   = cartState.customerName,
+                            pax            = cartState.pax,
+                            voucherCode    = cartState.voucherCode,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

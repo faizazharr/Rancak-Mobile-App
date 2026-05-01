@@ -49,9 +49,21 @@ internal fun rememberElapsed(createdAt: String?): Pair<String, Long> {
             val totalDays     = daysFromYear + daysFromMonth + (d - 1)
             val createdMs     = (totalDays * 86400L + h * 3600L + min * 60L + s) * 1000L
             val diffSec       = ((nowMillis - createdMs) / 1000L).coerceAtLeast(0)
-            val mins = diffSec / 60
-            val secs = diffSec % 60
-            "${mins}:${secs.toString().padStart(2, '0')}" to mins
+            val totalMins = diffSec / 60
+            val days  = diffSec / 86_400
+            val hours = (diffSec % 86_400) / 3600
+            val mins  = (diffSec % 3600) / 60
+            val secs  = diffSec % 60
+            // Format yang mudah dibaca:
+            //   < 1 jam   → "MM:SS"      (mis. "05:23")
+            //   < 1 hari  → "Hj MMm"     (mis. "2j 15m")
+            //   ≥ 1 hari  → "Dh Hj"      (mis. "1h 18j")
+            val label = when {
+                days >= 1L  -> "${days}h ${hours}j"
+                hours >= 1L -> "${hours}j ${mins}m"
+                else        -> "${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}"
+            }
+            label to totalMins
         } catch (_: Exception) { "" to 0L }
     }
 }
@@ -94,7 +106,24 @@ fun OrderBoardCard(
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (elapsed.isNotBlank()) {
-                        Text(elapsed, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        // Pill background agar timer kontras & mudah dibaca,
+                        // walau header berwarna terang.
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = Color.Black.copy(alpha = 0.22f),
+                                    shape = MaterialTheme.shapes.small
+                                )
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                elapsed,
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                maxLines = 1
+                            )
+                        }
                     }
                 }
             }
