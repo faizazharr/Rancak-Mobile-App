@@ -25,18 +25,14 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -57,7 +53,11 @@ import id.rancak.app.domain.model.Supplier
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
+import id.rancak.app.presentation.components.RancakButton
+import id.rancak.app.presentation.components.RancakOutlinedButton
+import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.components.StatusChip
 import id.rancak.app.presentation.viewmodel.SupplierFormField
 import id.rancak.app.presentation.viewmodel.SupplierUiState
 import id.rancak.app.presentation.viewmodel.SupplierViewModel
@@ -261,19 +261,20 @@ private fun SupplierListItem(
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape     = MaterialTheme.shapes.medium,
         modifier  = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier              = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
+                .padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment     = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(
                     supplier.name,
-                    style      = MaterialTheme.typography.bodyMedium,
+                    style      = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold
                 )
                 // Kontak & telepon dalam satu baris jika keduanya ada
@@ -294,9 +295,8 @@ private fun SupplierListItem(
                     )
                 }
                 if (!supplier.isActive) {
-                    Text(
-                        "Nonaktif",
-                        style = MaterialTheme.typography.labelSmall,
+                    StatusChip(
+                        text  = "Nonaktif",
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -374,47 +374,44 @@ private fun SupplierFormContent(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
+            RancakTextField(
                 value         = uiState.formName,
                 onValueChange = { onFormChange(SupplierFormField.NAME, it) },
-                label         = { Text("Nama Supplier *") },
-                singleLine    = true,
-                modifier      = Modifier.fillMaxWidth()
+                label         = "Nama Supplier *",
+                singleLine    = true
             )
             Spacer(Modifier.height(10.dp))
             // Untuk tablet: Phone + Email berdampingan
             if (!fullScreen) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
+                    RancakTextField(
                         value         = uiState.formPhone,
                         onValueChange = { onFormChange(SupplierFormField.PHONE, it) },
-                        label         = { Text("Nomor Telepon") },
+                        label         = "Nomor Telepon",
                         singleLine    = true,
                         modifier      = Modifier.weight(1f)
                     )
-                    OutlinedTextField(
+                    RancakTextField(
                         value         = uiState.formEmail,
                         onValueChange = { onFormChange(SupplierFormField.EMAIL, it) },
-                        label         = { Text("Email") },
+                        label         = "Email",
                         singleLine    = true,
                         modifier      = Modifier.weight(1f)
                     )
                 }
             } else {
-                OutlinedTextField(
+                RancakTextField(
                     value         = uiState.formPhone,
                     onValueChange = { onFormChange(SupplierFormField.PHONE, it) },
-                    label         = { Text("Nomor Telepon") },
-                    singleLine    = true,
-                    modifier      = Modifier.fillMaxWidth()
+                    label         = "Nomor Telepon",
+                    singleLine    = true
                 )
                 Spacer(Modifier.height(10.dp))
-                OutlinedTextField(
+                RancakTextField(
                     value         = uiState.formEmail,
                     onValueChange = { onFormChange(SupplierFormField.EMAIL, it) },
-                    label         = { Text("Email") },
-                    singleLine    = true,
-                    modifier      = Modifier.fillMaxWidth()
+                    label         = "Email",
+                    singleLine    = true
                 )
             }
 
@@ -428,21 +425,20 @@ private fun SupplierFormContent(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
+            RancakTextField(
                 value         = uiState.formContactName,
                 onValueChange = { onFormChange(SupplierFormField.CONTACT_NAME, it) },
-                label         = { Text("Nama Kontak") },
-                singleLine    = true,
-                modifier      = Modifier.fillMaxWidth()
+                label         = "Nama Kontak",
+                singleLine    = true
             )
             Spacer(Modifier.height(10.dp))
-            OutlinedTextField(
+            RancakTextField(
                 value         = uiState.formAddress,
                 onValueChange = { onFormChange(SupplierFormField.ADDRESS, it) },
-                label         = { Text("Alamat") },
+                label         = "Alamat",
+                singleLine    = false,
                 minLines      = 2,
-                maxLines      = 4,
-                modifier      = Modifier.fillMaxWidth()
+                maxLines      = 4
             )
 
             // ── Lainnya ───────────────────────────────────────────────────────
@@ -455,21 +451,20 @@ private fun SupplierFormContent(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
+            RancakTextField(
                 value         = uiState.formNpwp,
                 onValueChange = { onFormChange(SupplierFormField.NPWP, it) },
-                label         = { Text("NPWP") },
-                singleLine    = true,
-                modifier      = Modifier.fillMaxWidth()
+                label         = "NPWP",
+                singleLine    = true
             )
             Spacer(Modifier.height(10.dp))
-            OutlinedTextField(
+            RancakTextField(
                 value         = uiState.formNotes,
                 onValueChange = { onFormChange(SupplierFormField.NOTES, it) },
-                label         = { Text("Catatan") },
+                label         = "Catatan",
+                singleLine    = false,
                 minLines      = 2,
-                maxLines      = 4,
-                modifier      = Modifier.fillMaxWidth()
+                maxLines      = 4
             )
         }
 
@@ -481,21 +476,18 @@ private fun SupplierFormContent(
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedButton(
+            RancakOutlinedButton(
+                text     = "Batal",
                 onClick  = onDismiss,
                 modifier = Modifier.weight(1f)
-            ) { Text("Batal") }
-            Button(
-                onClick  = onSave,
-                enabled  = uiState.formName.isNotBlank() && !uiState.isSaving,
-                modifier = Modifier.weight(1f)
-            ) {
-                if (uiState.isSaving) {
-                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                } else {
-                    Text("Simpan")
-                }
-            }
+            )
+            RancakButton(
+                text      = "Simpan",
+                onClick   = onSave,
+                enabled   = uiState.formName.isNotBlank(),
+                isLoading = uiState.isSaving,
+                modifier  = Modifier.weight(1f)
+            )
         }
     }
 }

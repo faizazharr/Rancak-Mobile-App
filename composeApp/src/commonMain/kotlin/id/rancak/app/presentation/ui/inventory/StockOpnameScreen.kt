@@ -111,24 +111,11 @@ fun StockOpnameScreen(
 
                             Box(Modifier.weight(1f)) {
                                 when {
-                                    uiState.isLoading -> LoadingScreen()
-                                    uiState.opnames.isEmpty() -> Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Icon(
-                                                Icons.Default.Inventory, null, Modifier.size(48.dp),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                                            )
-                                            Spacer(Modifier.height(8.dp))
-                                            Text(
-                                                "Belum ada sesi opname",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
+                    uiState.isLoading -> LoadingScreen()
+                                    uiState.opnames.isEmpty() -> EmptyScreen(
+                                        message  = "Belum ada sesi opname",
+                                        modifier = Modifier.fillMaxSize()
+                                    )
                                     else -> LazyColumn(
                                         contentPadding      = PaddingValues(12.dp),
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -179,25 +166,10 @@ fun StockOpnameScreen(
                                 modifier            = Modifier.fillMaxSize()
                             )
                         } else {
-                            Column(
-                                modifier              = Modifier.fillMaxSize(),
-                                horizontalAlignment   = Alignment.CenterHorizontally,
-                                verticalArrangement   = Arrangement.Center
-                            ) {
-                                Icon(
-                                    Icons.Default.Inventory, null, Modifier.size(72.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
-                                )
-                                Spacer(Modifier.height(12.dp))
-                                Text(
-                                    "Pilih sesi opname untuk melihat detail",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    "atau buat sesi baru dengan tombol +",
-                                    style = MaterialTheme.typography.bodySmall,
+                            EmptyScreen(
+                            message  = "Pilih sesi opname untuk melihat detail",
+                            modifier = Modifier.fillMaxSize()
+                        )
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             }

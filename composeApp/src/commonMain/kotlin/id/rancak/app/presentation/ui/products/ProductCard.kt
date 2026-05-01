@@ -1,19 +1,19 @@
 package id.rancak.app.presentation.ui.products
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
+import id.rancak.app.presentation.components.StatusChip
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 
@@ -28,11 +28,12 @@ fun ProductManagementCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val sem = RancakColors.semantic
     val stockColor = when {
         is86               -> MaterialTheme.colorScheme.error
         product.stock <= 0 -> MaterialTheme.colorScheme.error
-        product.stock <= 5 -> Color(0xFFD97706)
-        else               -> Color(0xFF059669)
+        product.stock <= 5 -> sem.warning
+        else               -> sem.success
     }
     val stockLabel = when {
         is86               -> "86"
@@ -45,7 +46,7 @@ fun ProductManagementCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape     = MaterialTheme.shapes.medium
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
 
             // ── Header: nama + harga + badge stok + edit/hapus ────────────────
             Row(
@@ -108,18 +109,7 @@ fun ProductManagementCard(
                         }
                     }
                     Spacer(Modifier.height(4.dp))
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = stockColor.copy(alpha = 0.12f)
-                    ) {
-                        Text(
-                            text       = stockLabel,
-                            modifier   = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
-                            style      = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color      = stockColor
-                        )
-                    }
+                    StatusChip(text = stockLabel, color = stockColor)
                 }
             }
 

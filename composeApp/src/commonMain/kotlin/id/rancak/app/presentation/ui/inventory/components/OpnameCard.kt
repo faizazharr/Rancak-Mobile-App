@@ -11,6 +11,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.StockOpname
+import id.rancak.app.presentation.components.StatusChip
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
@@ -21,10 +23,11 @@ fun OpnameCard(
     isSelected: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val sem = RancakColors.semantic
     val statusColor = when (opname.status) {
-        "finalized" -> MaterialTheme.colorScheme.primary
+        "finalized" -> sem.success
         "cancelled" -> MaterialTheme.colorScheme.error
-        else        -> MaterialTheme.colorScheme.secondary
+        else        -> sem.warning
     }
     val statusLabel = when (opname.status) {
         "finalized" -> "Final"
@@ -34,14 +37,14 @@ fun OpnameCard(
 
     Card(
         modifier  = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(if (isSelected) 3.dp else 1.dp),
+        elevation = CardDefaults.cardElevation(if (isSelected) 2.dp else 1.dp),
         colors    = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
                              else MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
-            modifier = Modifier.padding(14.dp).fillMaxWidth(),
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -57,12 +60,7 @@ fun OpnameCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Spacer(Modifier.height(4.dp))
-                Surface(shape = MaterialTheme.shapes.small, color = statusColor.copy(alpha = 0.12f)) {
-                    Text(statusLabel,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = statusColor, fontWeight = FontWeight.SemiBold)
-                }
+                StatusChip(text = statusLabel, color = statusColor)
             }
             Column(horizontalAlignment = Alignment.End) {
                 if (opname.status == "draft") {

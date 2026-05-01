@@ -69,8 +69,10 @@ fun VoucherManagementScreen(
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = { viewModel.openForm() }) {
-                    Icon(Icons.Default.Add, contentDescription = "Tambah voucher")
+                if (!isTablet) {
+                    FloatingActionButton(onClick = { viewModel.openForm() }) {
+                        Icon(Icons.Default.Add, contentDescription = "Tambah voucher")
+                    }
                 }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }

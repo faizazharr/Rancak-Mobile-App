@@ -27,9 +27,6 @@ import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -43,7 +40,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -68,7 +64,12 @@ import id.rancak.app.domain.model.Supplier
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
+import id.rancak.app.presentation.components.RancakButton
+import id.rancak.app.presentation.components.RancakOutlinedButton
+import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.components.StatusChip
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.PurchaseOrderUiState
 import id.rancak.app.presentation.viewmodel.PurchaseOrderViewModel
@@ -169,65 +170,65 @@ fun PurchaseOrderContent(
         )
     }
 
-    Scaffold(
-        topBar = {
-            RancakTopBar(
-                title    = "Purchase Order",
-                icon     = Icons.Default.ShoppingCart,
-                subtitle = "${uiState.orders.size} PO",
-                onMenu   = onBack
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Default.Add, contentDescription = "Buat PO baru")
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
-            val isTablet = maxWidth >= 600.dp
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val isTablet = maxWidth >= 600.dp
 
-            // HP: form buat PO menggantikan seluruh screen
-            if (!isTablet && uiState.showCreateDialog) {
-                CreatePOFormContent(
-                    uiState              = uiState,
-                    onCreate             = onCreateOrder,
-                    onDismiss            = onCloseCreate,
-                    onSupplierChange     = onSupplierChange,
-                    onOrderDateChange    = onOrderDateChange,
-                    onExpectedDateChange = onExpectedDateChange,
-                    onNotesChange        = onNotesChange,
-                    fullScreen           = true
+        Scaffold(
+            topBar = {
+                RancakTopBar(
+                    title    = "Purchase Order",
+                    icon     = Icons.Default.ShoppingCart,
+                    subtitle = "${uiState.orders.size} PO",
+                    onMenu   = onBack
                 )
-                return@BoxWithConstraints
-            }
-
-            if (isTablet) {
-                TabletPOLayout(
-                    uiState              = uiState,
-                    onSelectOrder        = onSelectOrder,
-                    onCloseDetail        = onCloseDetail,
-                    onSend               = onSend,
-                    onCancelClick        = onCancelClick,
-                    onFilter             = onStatusFilter,
-                    onCreateOrder        = onCreateOrder,
-                    onCloseCreate        = onCloseCreate,
-                    onSupplierChange     = onSupplierChange,
-                    onOrderDateChange    = onOrderDateChange,
-                    onExpectedDateChange = onExpectedDateChange,
-                    onNotesChange        = onNotesChange
-                )
-            } else {
-                PhonePOLayout(
-                    uiState       = uiState,
-                    onSelectOrder = onSelectOrder,
-                    onCloseDetail = onCloseDetail,
-                    onSend        = onSend,
-                    onCancelClick = onCancelClick,
-                    onFilter      = onStatusFilter
-                )
+            },
+            floatingActionButton = {
+                if (!isTablet) {
+                    FloatingActionButton(onClick = onAdd) {
+                        Icon(Icons.Default.Add, contentDescription = "Buat PO baru")
+                    }
+                }
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { padding ->
+            Box(Modifier.padding(padding).fillMaxSize()) {
+                if (!isTablet && uiState.showCreateDialog) {
+                    CreatePOFormContent(
+                        uiState              = uiState,
+                        onCreate             = onCreateOrder,
+                        onDismiss            = onCloseCreate,
+                        onSupplierChange     = onSupplierChange,
+                        onOrderDateChange    = onOrderDateChange,
+                        onExpectedDateChange = onExpectedDateChange,
+                        onNotesChange        = onNotesChange,
+                        fullScreen           = true
+                    )
+                } else if (isTablet) {
+                    TabletPOLayout(
+                        uiState              = uiState,
+                        onSelectOrder        = onSelectOrder,
+                        onCloseDetail        = onCloseDetail,
+                        onSend               = onSend,
+                        onCancelClick        = onCancelClick,
+                        onFilter             = onStatusFilter,
+                        onCreateOrder        = onCreateOrder,
+                        onCloseCreate        = onCloseCreate,
+                        onSupplierChange     = onSupplierChange,
+                        onOrderDateChange    = onOrderDateChange,
+                        onExpectedDateChange = onExpectedDateChange,
+                        onNotesChange        = onNotesChange
+                    )
+                } else {
+                    PhonePOLayout(
+                        uiState       = uiState,
+                        onSelectOrder = onSelectOrder,
+                        onCloseDetail = onCloseDetail,
+                        onSend        = onSend,
+                        onCancelClick = onCancelClick,
+                        onFilter      = onStatusFilter
+                    )
+                }
             }
         }
     }
@@ -374,13 +375,14 @@ private fun StatusFilterRow(selected: String?, onFilter: (String?) -> Unit) {
 private fun POListItem(po: PurchaseOrder, isSelected: Boolean, onClick: () -> Unit) {
     Card(
         onClick    = onClick,
-        elevation  = CardDefaults.cardElevation(if (isSelected) 4.dp else 1.dp),
+        elevation  = CardDefaults.cardElevation(if (isSelected) 2.dp else 1.dp),
         colors     = CardDefaults.cardColors(
             containerColor = if (isSelected)
-                MaterialTheme.colorScheme.primaryContainer
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
             else
                 MaterialTheme.colorScheme.surface
         ),
+        shape      = MaterialTheme.shapes.medium,
         modifier   = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -388,7 +390,7 @@ private fun POListItem(po: PurchaseOrder, isSelected: Boolean, onClick: () -> Un
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(po.poNumber, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                Text(po.poNumber, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 POStatusChip(po.status)
             }
             po.supplierName?.let {
@@ -499,19 +501,16 @@ private fun PODetailContent(
 @Composable
 private fun POStatusChip(status: String) {
     val label = statusLabels[status] ?: status
+    val sem   = RancakColors.semantic
     val color = when (status) {
-        "draft"     -> MaterialTheme.colorScheme.secondary
+        "draft"     -> sem.warning
         "ordered"   -> MaterialTheme.colorScheme.primary
-        "partial"   -> MaterialTheme.colorScheme.tertiary
-        "received"  -> MaterialTheme.colorScheme.primary
+        "partial"   -> sem.info
+        "received"  -> sem.success
         "cancelled" -> MaterialTheme.colorScheme.error
         else        -> MaterialTheme.colorScheme.onSurfaceVariant
     }
-    AssistChip(
-        onClick = {},
-        label   = { Text(label, style = MaterialTheme.typography.labelSmall) },
-        colors  = AssistChipDefaults.assistChipColors(containerColor = color.copy(alpha = 0.12f), labelColor = color)
-    )
+    StatusChip(text = label, color = color)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -579,14 +578,15 @@ private fun CreatePOFormContent(
                 expanded         = supplierExpanded,
                 onExpandedChange = { supplierExpanded = it }
             ) {
-                OutlinedTextField(
-                    value         = selectedSupplierName,
-                    onValueChange = {},
-                    readOnly      = true,
-                    label         = { Text("Supplier") },
-                    trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(supplierExpanded) },
-                    modifier      = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                )
+            OutlinedTextField(
+                value         = selectedSupplierName ?: "",
+                onValueChange = {},
+                readOnly      = true,
+                label         = { Text("Supplier") },
+                trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(supplierExpanded) },
+                shape         = MaterialTheme.shapes.medium,
+                modifier      = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
+            )
                 ExposedDropdownMenu(
                     expanded         = supplierExpanded,
                     onDismissRequest = { supplierExpanded = false }
@@ -604,26 +604,24 @@ private fun CreatePOFormContent(
                 }
             }
 
-            OutlinedTextField(
+            RancakTextField(
                 value         = uiState.formOrderDate,
                 onValueChange = onOrderDateChange,
-                label         = { Text("Tanggal Order (YYYY-MM-DD)") },
-                singleLine    = true,
-                modifier      = Modifier.fillMaxWidth()
+                label         = "Tanggal Order (YYYY-MM-DD)",
+                singleLine    = true
             )
-            OutlinedTextField(
+            RancakTextField(
                 value         = uiState.formExpectedDate,
                 onValueChange = onExpectedDateChange,
-                label         = { Text("Estimasi Terima (YYYY-MM-DD)") },
-                singleLine    = true,
-                modifier      = Modifier.fillMaxWidth()
+                label         = "Estimasi Terima (YYYY-MM-DD)",
+                singleLine    = true
             )
-            OutlinedTextField(
+            RancakTextField(
                 value         = uiState.formNotes,
                 onValueChange = onNotesChange,
-                label         = { Text("Catatan") },
-                minLines      = 2,
-                modifier      = Modifier.fillMaxWidth()
+                label         = "Catatan",
+                singleLine    = false,
+                minLines      = 2
             )
         }
 
@@ -635,15 +633,18 @@ private fun CreatePOFormContent(
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedButton(
+            RancakOutlinedButton(
+                text     = "Batal",
                 onClick  = onDismiss,
                 modifier = Modifier.weight(1f)
-            ) { Text("Batal") }
-            Button(
-                onClick  = onCreate,
-                enabled  = !uiState.isSaving,
-                modifier = Modifier.weight(1f)
-            ) { Text("Buat PO") }
+            )
+            RancakButton(
+                text      = "Buat PO",
+                onClick   = onCreate,
+                enabled   = !uiState.isSaving,
+                isLoading = uiState.isSaving,
+                modifier  = Modifier.weight(1f)
+            )
         }
     }
 }

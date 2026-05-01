@@ -11,6 +11,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Voucher
+import id.rancak.app.presentation.components.StatusChip
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 
@@ -26,7 +28,7 @@ fun VoucherCard(
 
     Card(modifier = modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(1.dp)) {
         Row(
-            modifier = Modifier.padding(14.dp).fillMaxWidth(),
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -34,19 +36,11 @@ fun VoucherCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(voucher.code, style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold)
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = if (voucher.isActive) MaterialTheme.colorScheme.primaryContainer
-                                else MaterialTheme.colorScheme.errorContainer
-                    ) {
-                        Text(
-                            if (voucher.isActive) "Aktif" else "Nonaktif",
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (voucher.isActive) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    }
+                    StatusChip(
+                        text  = if (voucher.isActive) "Aktif" else "Nonaktif",
+                        color = if (voucher.isActive) RancakColors.semantic.success
+                                else MaterialTheme.colorScheme.error
+                    )
                 }
                 Text(voucher.name, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
