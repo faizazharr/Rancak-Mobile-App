@@ -19,8 +19,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -38,6 +40,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
@@ -166,18 +169,6 @@ fun PurchaseOrderContent(
         )
     }
 
-    if (uiState.showCreateDialog) {
-        CreatePODialog(
-            uiState              = uiState,
-            onCreate             = onCreateOrder,
-            onDismiss            = onCloseCreate,
-            onSupplierChange     = onSupplierChange,
-            onOrderDateChange    = onOrderDateChange,
-            onExpectedDateChange = onExpectedDateChange,
-            onNotesChange        = onNotesChange
-        )
-    }
-
     Scaffold(
         topBar = {
             RancakTopBar(
@@ -196,14 +187,37 @@ fun PurchaseOrderContent(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
-            if (maxWidth >= 600.dp) {
+            val isTablet = maxWidth >= 600.dp
+
+            // HP: form buat PO menggantikan seluruh screen
+            if (!isTablet && uiState.showCreateDialog) {
+                CreatePOFormContent(
+                    uiState              = uiState,
+                    onCreate             = onCreateOrder,
+                    onDismiss            = onCloseCreate,
+                    onSupplierChange     = onSupplierChange,
+                    onOrderDateChange    = onOrderDateChange,
+                    onExpectedDateChange = onExpectedDateChange,
+                    onNotesChange        = onNotesChange,
+                    fullScreen           = true
+                )
+                return@BoxWithConstraints
+            }
+
+            if (isTablet) {
                 TabletPOLayout(
-                    uiState       = uiState,
-                    onSelectOrder = onSelectOrder,
-                    onCloseDetail = onCloseDetail,
-                    onSend        = onSend,
-                    onCancelClick = onCancelClick,
-                    onFilter      = onStatusFilter
+                    uiState              = uiState,
+                    onSelectOrder        = onSelectOrder,
+                    onCloseDetail        = onCloseDetail,
+                    onSend               = onSend,
+                    onCancelClick        = onCancelClick,
+                    onFilter             = onStatusFilter,
+                    onCreateOrder        = onCreateOrder,
+                    onCloseCreate        = onCloseCreate,
+                    onSupplierChange     = onSupplierChange,
+                    onOrderDateChange    = onOrderDateChange,
+                    onExpectedDateChange = onExpectedDateChange,
+                    onNotesChange        = onNotesChange
                 )
             } else {
                 PhonePOLayout(
@@ -226,7 +240,13 @@ private fun TabletPOLayout(
     onCloseDetail: () -> Unit,
     onSend: (String) -> Unit,
     onCancelClick: () -> Unit,
-    onFilter: (String?) -> Unit
+    onFilter: (String?) -> Unit,
+    onCreateOrder: () -> Unit,
+    onCloseCreate: () -> Unit,
+    onSupplierChange: (String?) -> Unit,
+    onOrderDateChange: (String) -> Unit,
+    onExpectedDateChange: (String) -> Unit,
+    onNotesChange: (String) -> Unit
 ) {
     Row(Modifier.fillMaxSize()) {
         // List panel
@@ -253,18 +273,31 @@ private fun TabletPOLayout(
 
         VerticalDivider()
 
-        // Detail panel
+        // Right panel: form buat PO atau detail PO
         Box(Modifier.weight(0.6f).fillMaxHeight()) {
-            val detail = uiState.selectedOrder
-            if (detail == null) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Pilih PO untuk melihat detail", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            when {
+                uiState.showCreateDialog -> CreatePOFormContent(
+                    uiState              = uiState,
+                    onCreate             = onCreateOrder,
+                    onDismiss            = onCloseCreate,
+                    onSupplierChange     = onSupplierChange,
+                    onOrderDateChange    = onOrderDateChange,
+                    onExpectedDateChange = onExpectedDateChange,
+                    onNotesChange        = onNotesChange,
+                    fullScreen           = false
+                )
+                uiState.selectedOrder == null -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Pilih PO untuk melihat detail",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            } else if (uiState.isLoadingDetail) {
-                LoadingScreen()
-            } else {
-                PODetailContent(
-                    po            = detail,
+                uiState.isLoadingDetail -> LoadingScreen()
+                else -> PODetailContent(
+                    po            = uiState.selectedOrder,
                     onSend        = onSend,
                     onCancelClick = onCancelClick
                 )
@@ -483,81 +516,134 @@ private fun POStatusChip(status: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CreatePODialog(
+private fun CreatePOFormContent(
     uiState: PurchaseOrderUiState,
     onCreate: () -> Unit,
     onDismiss: () -> Unit,
     onSupplierChange: (String?) -> Unit,
     onOrderDateChange: (String) -> Unit,
     onExpectedDateChange: (String) -> Unit,
-    onNotesChange: (String) -> Unit
+    onNotesChange: (String) -> Unit,
+    fullScreen: Boolean
 ) {
     var supplierExpanded by remember { mutableStateOf(false) }
-    val selectedSupplierName = uiState.suppliers.find { it.uuid == uiState.formSupplierUuid }?.name ?: "Pilih Supplier (opsional)"
+    val selectedSupplierName = uiState.suppliers.find { it.uuid == uiState.formSupplierUuid }?.name
+        ?: "Pilih Supplier (opsional)"
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Buat Purchase Order") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Supplier dropdown
-                ExposedDropdownMenuBox(
-                    expanded         = supplierExpanded,
-                    onExpandedChange = { supplierExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value             = selectedSupplierName,
-                        onValueChange     = {},
-                        readOnly          = true,
-                        label             = { Text("Supplier") },
-                        trailingIcon      = { ExposedDropdownMenuDefaults.TrailingIcon(supplierExpanded) },
-                        modifier          = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                    )
-                    ExposedDropdownMenu(
-                        expanded         = supplierExpanded,
-                        onDismissRequest = { supplierExpanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text    = { Text("Tanpa Supplier") },
-                            onClick = { onSupplierChange(null); supplierExpanded = false }
-                        )
-                        uiState.suppliers.forEach { s ->
-                            DropdownMenuItem(
-                                text    = { Text(s.name) },
-                                onClick = { onSupplierChange(s.uuid); supplierExpanded = false }
-                            )
-                        }
-                    }
+    Column(Modifier.fillMaxSize()) {
+        // ── Header ────────────────────────────────────────────────────────────
+        if (fullScreen) {
+            Row(
+                modifier          = Modifier.fillMaxWidth()
+                    .padding(start = 4.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
                 }
-
-                OutlinedTextField(
-                    value         = uiState.formOrderDate,
-                    onValueChange = onOrderDateChange,
-                    label         = { Text("Tanggal Order (YYYY-MM-DD)") },
-                    singleLine    = true,
-                    modifier      = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value         = uiState.formExpectedDate,
-                    onValueChange = onExpectedDateChange,
-                    label         = { Text("Estimasi Terima (YYYY-MM-DD)") },
-                    singleLine    = true,
-                    modifier      = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value         = uiState.formNotes,
-                    onValueChange = onNotesChange,
-                    label         = { Text("Catatan") },
-                    minLines      = 2,
-                    modifier      = Modifier.fillMaxWidth()
+                Text(
+                    "Buat Purchase Order",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onCreate, enabled = !uiState.isSaving) { Text("Buat PO") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Batal") }
+        } else {
+            Row(
+                modifier              = Modifier.fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Buat Purchase Order",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = "Tutup")
+                }
+            }
         }
-    )
+        HorizontalDivider()
+
+        // ── Form fields ───────────────────────────────────────────────────────
+        Column(
+            modifier            = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Supplier dropdown
+            ExposedDropdownMenuBox(
+                expanded         = supplierExpanded,
+                onExpandedChange = { supplierExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value         = selectedSupplierName,
+                    onValueChange = {},
+                    readOnly      = true,
+                    label         = { Text("Supplier") },
+                    trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(supplierExpanded) },
+                    modifier      = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                )
+                ExposedDropdownMenu(
+                    expanded         = supplierExpanded,
+                    onDismissRequest = { supplierExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text    = { Text("Tanpa Supplier") },
+                        onClick = { onSupplierChange(null); supplierExpanded = false }
+                    )
+                    uiState.suppliers.forEach { s ->
+                        DropdownMenuItem(
+                            text    = { Text(s.name) },
+                            onClick = { onSupplierChange(s.uuid); supplierExpanded = false }
+                        )
+                    }
+                }
+            }
+
+            OutlinedTextField(
+                value         = uiState.formOrderDate,
+                onValueChange = onOrderDateChange,
+                label         = { Text("Tanggal Order (YYYY-MM-DD)") },
+                singleLine    = true,
+                modifier      = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value         = uiState.formExpectedDate,
+                onValueChange = onExpectedDateChange,
+                label         = { Text("Estimasi Terima (YYYY-MM-DD)") },
+                singleLine    = true,
+                modifier      = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value         = uiState.formNotes,
+                onValueChange = onNotesChange,
+                label         = { Text("Catatan") },
+                minLines      = 2,
+                modifier      = Modifier.fillMaxWidth()
+            )
+        }
+
+        // ── Bottom actions ────────────────────────────────────────────────────
+        HorizontalDivider()
+        Row(
+            modifier              = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick  = onDismiss,
+                modifier = Modifier.weight(1f)
+            ) { Text("Batal") }
+            Button(
+                onClick  = onCreate,
+                enabled  = !uiState.isSaving,
+                modifier = Modifier.weight(1f)
+            ) { Text("Buat PO") }
+        }
+    }
 }

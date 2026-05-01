@@ -71,14 +71,20 @@ class InventoryRepositoryImpl(…) : InventoryRepository { … }
 - `409` responses must be treated as `Resource.Success(Unit)` per contract — not `Resource.Error`
 
 ```kotlin
-// ✅ GOOD — impl is a valid substitute; 409 treated as success
+// ✅ GOOD — impl is a valid substitute; always uses safe() from RepositoryHelpers.kt
+// The safe() helper already handles 409 as success and catches network exceptions.
+override suspend fun createSale(input: SaleInput): Resource<Sale> =
+    safe(
+        block    = { api.createSale(tenantId, input.toRequest(), uuid4().toString()) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal membuat transaksi"
+    )
+
+// ❌ BAD — do NOT write inline try/catch; it duplicates logic already in RepositoryHelpers
 override suspend fun createSale(…): Resource<Sale> = try {
     val response = api.createSale(…)
-    when {
-        response.isSuccess -> Resource.Success(response.data!!.toDomain())
-        response.code == 409 -> Resource.Success(cachedSale)  // idempotent duplicate = success
-        else -> Resource.Error(response.message ?: errorMsg)
-    }
+    if (response.isSuccess) Resource.Success(response.data!!.toDomain())
+    else Resource.Error(response.message ?: "Error")
 } catch (e: Exception) { Resource.Error(e.message ?: "Kesalahan jaringan") }
 ```
 
@@ -124,8 +130,8 @@ class PosViewModel(
     private val saleRepository: SaleRepository          // interface, not impl
 ) : ViewModel()
 
-// In AppModule.kt — wire concretions once
-single<ProductRepository> { ProductRepositoryImpl(get(), get()) }
+// In AppModule.kt — use shorthand DSL (singleOf + bind)
+singleOf(::ProductRepositoryImpl) bind ProductRepository::class
 
 // ❌ BAD — coupled to concrete class
 class PosViewModel : ViewModel() {
@@ -190,10 +196,12 @@ if (currentRole.atLeast(UserRole.ADMIN)) { AdminOnlyButton() }   // ✅
 if (currentRole == UserRole.OWNER || currentRole == UserRole.ADMIN) { … } // ❌ fragile
 ```
 
-### New class checklist
+### Before submitting
 
-- [ ] Registered in `AppModule.kt` or platform `PlatformModule`?
-- [ ] Depends only on interfaces, not concrete implementations?
-- [ ] Does exactly one thing?
-- [ ] No `android.*` imports in `commonMain`?
-- [ ] All `Resource<T>` branches handled at every call site?
+Run the full Pre-Submission Checklist from `.github/copilot-instructions.md`.
+The key SOLID-specific checks are:
+- Every class does exactly one thing (SRP)
+- New behaviour added via new classes, not patched into existing ones (OCP)
+- Every RepositoryImpl method fully implements its interface contract — no `TODO()` (LSP)
+- ViewModels depend on repository **interfaces**, never on `*RepositoryImpl` (DIP)
+- No `android.*` imports in `commonMain` (platform independence)

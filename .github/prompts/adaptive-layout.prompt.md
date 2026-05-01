@@ -5,6 +5,30 @@ device sizes: small phones, large phones, and tablets — in both portrait and l
 
 ---
 
+## Context This Prompt Depends On
+
+`copilot-instructions.md` is **always pre-loaded** by Copilot — you already have access to:
+- Design system spacing tokens (`xs`=4dp, `sm`=8dp, `md`=16dp, `lg`=24dp, `xl`=32dp)
+- Screen/Content composable split pattern (`XxxScreen` owns ViewModel, `XxxContent` is pure UI)
+- Canonical reference files for layout (PosScreen, LoginScreen, SalesHistoryScreen, KdsScreen, ShiftScreen)
+- Role-gating pattern (`currentRole.atLeast(UserRole.XXX)`)
+
+**Do not re-read `copilot-instructions.md`.**
+
+This prompt is self-contained for layout work. Read additional files only in these cases:
+
+| Situation | Also read |
+|---|---|
+| Implementing a brand-new screen (ViewModel + data layer needed too) | `.github/prompts/generate-feature.prompt.md` |
+| The screen has data issues or you're reviewing before merging | `.github/prompts/code-review.prompt.md` — use its Adaptive Layout checklist |
+| Unclear which canonical file to reference for a layout pattern | `.github/CONTEXT_INDEX.md` |
+
+> **Key rule:** Always read the **existing screen file** before implementing layout changes.
+> The screen may already have `BoxWithConstraints` — adding a second one is wrong.
+> Phase 1 of this prompt mandates reading the file first; do not skip it.
+
+---
+
 ## How to Use
 
 Describe what you need, for example:

@@ -9,6 +9,29 @@ ViewModel and Screen on top.
 
 ---
 
+## Context This Prompt Depends On
+
+`copilot-instructions.md` is **always pre-loaded** by Copilot — you already have access to:
+- `ApiConstants` structure and `tenantPath()` helper
+- `ApiResponse<T>` format (`statusCode: Int`, `isSuccess = statusCode in 200..299`)
+- `HttpClientFactory` behaviour (auto-adds `X-API-Key`, auto-refreshes Bearer token — never add these manually)
+- `safe()` / `safeList()` / `safeUnit()` helpers in `RepositoryHelpers.kt`
+- `FlexibleLongSerializer` — when and why to use it
+- Koin DSL (`singleOf(::Impl) bind Interface::class`)
+- Non-negotiable rules (no `android.*` in commonMain, `tenantId` as computed property, Bahasa Indonesia `errorMsg`)
+
+**Do not re-read `copilot-instructions.md`.**
+
+Read these additional files **only if your task also involves these domains**:
+
+| Task also involves… | Also read |
+|---|---|
+| Generating a full feature (ViewModel + Screen) on top of this | `.github/prompts/generate-feature.prompt.md` |
+| Understanding an existing repository's structure before adding to it | Read the existing `*RepositoryImpl.kt` file directly |
+| Cross-domain lookup (e.g., "where exactly is PaginatedData defined?") | `.github/CONTEXT_INDEX.md` |
+
+---
+
 ## How to Use
 
 Describe the endpoint(s) you want to integrate:

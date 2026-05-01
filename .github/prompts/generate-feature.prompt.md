@@ -4,6 +4,32 @@ Use this prompt in GitHub Copilot Chat by attaching this file and describing the
 
 ---
 
+## Context This Prompt Depends On
+
+`copilot-instructions.md` is **always pre-loaded** by Copilot — you already have access to:
+- Full architecture overview (layers, package structure)
+- All three ViewModel patterns (simple `.update`, `combine + stateIn`, `recompute()`)
+- Koin DSL shorthand (`singleOf`, `viewModelOf`)
+- Non-negotiable rules (no `android.*` in commonMain, all prices as `Long`, Bahasa Indonesia errors)
+- Design system tokens, `Resource<T>` sealed class, `UiState` pattern
+- `ApiResponse<T>` format, `ApiConstants`, `HttpClientFactory` behaviour
+
+**Do not re-read `copilot-instructions.md`.**
+
+Read these additional files **only if your feature involves these domains**:
+
+| Feature involves… | Also read |
+|---|---|
+| A new API endpoint (DTO, mapper, repository) | `.github/prompts/integrate-api.prompt.md` |
+| A screen that must work on tablet + phone | `.github/prompts/adaptive-layout.prompt.md` |
+| Restructuring existing code | `.github/prompts/refactor-structure.prompt.md` |
+| Unsure what a topic like FlexibleLong or BoxWithConstraints is for | `.github/CONTEXT_INDEX.md` |
+
+A full feature almost always touches both API integration and adaptive layout.
+**Reading all three prompt files for a full feature is normal — do it in a single pass before writing any code.**
+
+---
+
 ## How to Use
 
 Describe the feature clearly, including:
@@ -198,14 +224,26 @@ Important rules:
 - Use `parameter()` for query params — never string-interpolate them into the URL
 
 ### Step 6 — Repository Implementation (`data/repository/XxxRepositoryImpl.kt`)
+
+Implement **every method declared in the interface** from Step 2.
+
 ```kotlin
 class XxxRepositoryImpl(
     private val api: RancakApiService,
     private val tokenManager: TokenManager
 ) : XxxRepository {
 
+    // Always a computed property — reads tenantId fresh on every call, never at injection time
     private val tenantId get() = tokenManager.tenantUuid
 
+    // GET list — use safeList when the endpoint returns ApiResponse<List<T>>
+    override suspend fun listXxx(query: String?): Resource<List<Xxx>> =
+        safeList(
+            block    = { api.listXxx(tenantId, query = query) },
+            errorMsg = "Gagal memuat daftar"
+        ) { it.toDomain() }
+
+    // GET single — use safe() with a map lambda
     override suspend fun getXxx(id: String): Resource<Xxx> =
         safe(
             block    = { api.getXxx(tenantId, id) },
@@ -213,6 +251,7 @@ class XxxRepositoryImpl(
             errorMsg = "Gagal memuat data"
         )
 
+    // POST — use safe() with a map lambda
     override suspend fun createXxx(input: XxxInput): Resource<Xxx> =
         safe(
             block    = { api.createXxx(tenantId, input.toRequest()) },
@@ -220,6 +259,7 @@ class XxxRepositoryImpl(
             errorMsg = "Gagal membuat data"
         )
 
+    // DELETE — use safeUnit() when there is no meaningful response body
     override suspend fun deleteXxx(id: String): Resource<Unit> =
         safeUnit(
             block    = { api.deleteXxx(tenantId, id) },
@@ -229,17 +269,24 @@ class XxxRepositoryImpl(
 ```
 
 ### Step 7 — ViewModel (`presentation/viewmodel/XxxViewModel.kt`)
+
+> **UiState rule:** start `isLoading = true` so the Screen shows `LoadingScreen()` immediately
+> on first render — before `LaunchedEffect` has fired. Starting with `false` causes a
+> brief empty-state flash on every navigation to this screen.
+
 ```kotlin
 data class XxxUiState(
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,   // ← true: shows LoadingScreen immediately on first render
     val error: String? = null,
     val items: List<Xxx> = emptyList(),
     val selectedItem: Xxx? = null,
-    // input fields if a form is needed
+    // add input fields here if the feature has a form
 )
 
 class XxxViewModel(
     private val xxxRepository: XxxRepository
+    // Add tokenManager: TokenManager if this feature needs role gating
+    // (see Role Gating Pattern section below)
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(XxxUiState())
@@ -256,6 +303,10 @@ class XxxViewModel(
         }
     }
 
+    // Name your action functions after what they do, not generic names
+    fun selectItem(item: Xxx) = _uiState.update { it.copy(selectedItem = item) }
+
+    // clearError() is mandatory — Screen calls it after showing the error
     fun clearError() = _uiState.update { it.copy(error = null) }
 }
 ```
@@ -268,38 +319,43 @@ fun XxxScreen(
     viewModel: XxxViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) { viewModel.loadItems() }
 
+    // Show error in snackbar, then clear it so it doesn't reappear
     uiState.error?.let { error ->
         LaunchedEffect(error) {
-            // show snackbar or handle error navigation
+            snackbarHostState.showSnackbar(error)
             viewModel.clearError()
         }
     }
 
     XxxContent(
-        uiState        = uiState,
-        onNavigateBack = onNavigateBack,
-        onAction       = viewModel::doAction
+        uiState           = uiState,
+        snackbarHostState = snackbarHostState,
+        onNavigateBack    = onNavigateBack,
+        onSelectItem      = viewModel::selectItem   // ← matches function in ViewModel template
     )
 }
 
 @Composable
 fun XxxContent(
     uiState: XxxUiState,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onNavigateBack: () -> Unit = {},
-    onAction: (Xxx) -> Unit = {}
+    onSelectItem: (Xxx) -> Unit = {}
 ) {
     Scaffold(
-        topBar = { RancakTopBar(title = "Feature Title", onMenu = onNavigateBack) }
+        topBar = { RancakTopBar(title = "Judul Fitur", onMenu = onNavigateBack) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when {
                 uiState.isLoading        -> LoadingScreen()
                 uiState.error != null    -> ErrorScreen(uiState.error)
-                uiState.items.isEmpty()  -> EmptyScreen("No items yet")
-                else                     -> ItemList(uiState.items, onAction)
+                uiState.items.isEmpty()  -> EmptyScreen("Belum ada data")  // ← Bahasa Indonesia
+                else                     -> ItemList(uiState.items, onSelectItem)
             }
         }
     }
@@ -307,7 +363,7 @@ fun XxxContent(
 
 // Private composable helpers stay in the same file
 @Composable
-private fun ItemList(items: List<Xxx>, onAction: (Xxx) -> Unit) { /* ... */ }
+private fun ItemList(items: List<Xxx>, onSelect: (Xxx) -> Unit) { /* ... */ }
 ```
 
 ### Step 9 — Koin Registration (`di/AppModule.kt`)
@@ -343,15 +399,48 @@ composable<XxxRoute> {
 
 ## Role Gating Pattern
 
-If the feature is restricted to certain roles, gate the UI — not just the repository:
+If the feature is restricted to certain roles, gate the UI — not just the repository.
+`tokenManager` must be **injected into the ViewModel constructor** — it is not a global.
 
 ```kotlin
-// In the ViewModel, expose the current role
-val currentRole: UserRole = tokenManager.userRole
+// Step 1 — add tokenManager to the ViewModel constructor
+class XxxViewModel(
+    private val xxxRepository: XxxRepository,
+    private val tokenManager: TokenManager   // ← inject when role gating is needed
+) : ViewModel() {
 
-// In XxxContent, check before rendering admin actions
-if (currentRole.atLeast(UserRole.ADMIN)) {
-    AdminActionButton(onClick = onAdminAction)
+    // Expose the current role as a plain val — not a StateFlow, roles don't change mid-session
+    val currentRole: UserRole = tokenManager.userRole
+
+    // ...
+}
+
+// Step 2 — Koin registration must include tokenManager (get() resolves it automatically)
+// In AppModule.kt — viewModelOf handles this automatically IF the constructor lists it:
+viewModelOf(::XxxViewModel)   // Koin injects all constructor params via get()
+
+// Step 3 — Pass currentRole to XxxContent as a plain parameter
+@Composable
+fun XxxScreen(..., viewModel: XxxViewModel = koinViewModel()) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    XxxContent(
+        uiState      = uiState,
+        currentRole  = viewModel.currentRole,
+        onAdminAction = viewModel::doAdminAction
+    )
+}
+
+// Step 4 — Gate UI inside XxxContent using the passed role
+@Composable
+fun XxxContent(
+    uiState: XxxUiState,
+    currentRole: UserRole = UserRole.STAFF,
+    onAdminAction: () -> Unit = {}
+) {
+    // Gate based on role — Staff cannot see Admin/Owner-only actions
+    if (currentRole.atLeast(UserRole.ADMIN)) {
+        AdminActionButton(onClick = onAdminAction)
+    }
 }
 ```
 
@@ -359,14 +448,35 @@ if (currentRole.atLeast(UserRole.ADMIN)) {
 
 ## Idempotency for Transactions
 
-If the feature creates a sale, payment, or any financial transaction:
+Any POST that creates a financial transaction (sale, payment, refund, redemption) **must**
+include `X-Idempotency-Key`. This prevents duplicate charges if the request is retried.
+
+The key must be generated by the caller using `uuid4().toString()` and passed to the API
+extension function as a parameter — never generated inside the API extension itself
+(the VM or repository that initiates the request must own the key).
 
 ```kotlin
-client.post("$baseUrl/tenants/$tenantId/sales") {
-    header("X-Idempotency-Key", uuid4().toString())
-    contentType(ContentType.Application.Json)
-    setBody(request)
-}
+// In the API extension (data/remote/api/SaleApi.kt)
+suspend fun RancakApiService.createSale(
+    tenantUuid: String,
+    request: CreateSaleRequest,
+    idempotencyKey: String   // ← caller generates and owns this
+): ApiResponse<SaleResponse> =
+    client.post(
+        ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.SALES
+    ) {
+        contentType(ContentType.Application.Json)
+        header("X-Idempotency-Key", idempotencyKey)
+        setBody(request)
+    }.body()
+
+// In the RepositoryImpl — generate the key here, pass it down
+override suspend fun createSale(input: SaleInput): Resource<Sale> =
+    safe(
+        block    = { api.createSale(tenantId, input.toRequest(), uuid4().toString()) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal membuat transaksi"
+    )
 ```
 
 ---
@@ -378,12 +488,19 @@ After generating all files, verify:
 - [ ] No `android.*` or Apple imports in `commonMain`
 - [ ] All repository methods return `Resource<T>`
 - [ ] ViewModel exposes `StateFlow`, not `MutableStateFlow`
-- [ ] All four `Resource` variants handled (`Success`, `Error`, `Loading`, empty/idle)
+- [ ] All three `Resource` variants handled in every `when` block (`Success`, `Error`, `Loading -> {}`)
+- [ ] `UiState` initialises with `isLoading = true` (prevents empty-state flash on first render)
+- [ ] `clearError()` function exists in ViewModel; Screen calls it after displaying the error
+- [ ] Errors are shown via `SnackbarHost` in `XxxContent` — not silently swallowed
 - [ ] Screen is split: `XxxScreen` (has VM) + `XxxContent` (pure UI, no VM reference)
+- [ ] `XxxContent` parameters are plain data + lambdas only — no ViewModel, no Flow
+- [ ] `XxxContent` has default no-op values for all parameters (enables Preview without crashes)
 - [ ] New repository and ViewModel registered in `AppModule.kt`
 - [ ] New route registered in `Screen.kt` and `RancakNavHost.kt`
 - [ ] All prices use `Long` and are displayed via `formatRupiah()`
-- [ ] All user-facing error messages are in Bahasa Indonesia
+- [ ] All user-facing strings are in Bahasa Indonesia (labels, empty states, `errorMsg`, snackbar text)
 - [ ] Role gating applied where the feature description requires it
-- [ ] `X-Idempotency-Key` added if the feature touches financial transactions
+- [ ] If role gating: `tokenManager` injected into ViewModel constructor and passed as plain param to `XxxContent`
+- [ ] `X-Idempotency-Key` added if the feature touches any financial transaction (sale, payment, refund)
 - [ ] No hardcoded colors, spacing, or typography — use design system tokens
+- [ ] Screen handles both phone and tablet using the correct adaptive layout pattern

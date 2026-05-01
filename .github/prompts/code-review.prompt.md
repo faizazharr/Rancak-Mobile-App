@@ -5,6 +5,33 @@ not generate new code, but assess what's already there against the project's sta
 
 ---
 
+## Context This Prompt Depends On
+
+`copilot-instructions.md` is **always pre-loaded** by Copilot — you already have access to:
+- All architectural rules (layer ownership, `Resource<T>`, UiState pattern)
+- Koin shorthand DSL and registration rules
+- `ApiResponse<T>` format and `ApiConstants` patterns
+- Non-negotiable rules table (the hard constraints this review enforces)
+- Design system tokens (used to catch hardcoded values)
+
+**Do not re-read `copilot-instructions.md`.**
+
+The checklists in this prompt are exhaustive on their own.
+You only need to read additional files in these specific situations:
+
+| Situation | Also read |
+|---|---|
+| Reviewing a Screen for adaptive layout correctness | `.github/prompts/adaptive-layout.prompt.md` — use the full layout checklist there |
+| Reviewing an API extension or DTO | `.github/prompts/integrate-api.prompt.md` — especially the "Common Mistakes" section |
+| The review reveals structural problems that need fixing (not just flagging) | `.github/prompts/refactor-structure.prompt.md` |
+| You encounter an unfamiliar pattern and need to locate the canonical example | `.github/CONTEXT_INDEX.md` |
+
+> **For a full-feature review** (data + ViewModel + Screen), read
+> `integrate-api.prompt.md` and `adaptive-layout.prompt.md` before Phase 2.
+> Running only the checklists in this file will miss data-layer and layout-specific checks.
+
+---
+
 ## How to Use
 
 Attach the file(s) you want reviewed and describe the scope:

@@ -6,6 +6,33 @@ at any scale — from a single class to an entire layer.
 
 ---
 
+## Context This Prompt Depends On
+
+`copilot-instructions.md` is **always pre-loaded** by Copilot — you already have access to:
+- Clean Architecture layer rules (what belongs in domain, data, presentation)
+- All three ViewModel patterns and when each is correct
+- Non-negotiable rules (no platform imports in `commonMain`, `Resource<T>` return types, etc.)
+- Koin registration patterns and the Canonical Reference Files table
+
+**Do not re-read `copilot-instructions.md`.**
+
+Structural refactors frequently span multiple layers. Before starting Phase 1, identify
+which layers are in scope, then read the prompt files that cover those layers:
+
+| Scope of refactor | Also read |
+|---|---|
+| Data layer (repository, DTO, mapper, API extension) | `.github/prompts/integrate-api.prompt.md` — full data-layer contract |
+| Presentation layer (ViewModel, Screen, adaptive layout) | `.github/prompts/adaptive-layout.prompt.md` — layout rules that constrain structure |
+| Full-stack refactor (all layers) | Read both files above before Phase 1 |
+| Evaluating result quality | `.github/prompts/code-review.prompt.md` — run the checklist after refactoring |
+| Topic-specific lookup (e.g., "what files reference safe()") | `.github/CONTEXT_INDEX.md` |
+
+> **Rule:** When a refactor touches the data layer AND the presentation layer,
+> read `integrate-api.prompt.md` AND `adaptive-layout.prompt.md` before writing a single line.
+> You will miss constraints if you only read one of them.
+
+---
+
 ## How to Use
 
 Describe the scope you want examined, for example:

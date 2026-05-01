@@ -6,35 +6,43 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -116,104 +124,133 @@ fun SupplierContent(
     onFormChange: (SupplierFormField, String) -> Unit = { _, _ -> },
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val isTablet = maxWidth >= 600.dp
 
-    if (uiState.showFormDialog) {
-        ModalBottomSheet(
-            onDismissRequest = onCloseForm,
-            sheetState       = bottomSheetState
-        ) {
+        // HP: form menggantikan seluruh screen (tanpa overlay/dialog)
+        if (!isTablet && uiState.showFormDialog) {
             SupplierFormContent(
-                uiState        = uiState,
-                onSave         = onSave,
-                onDismiss      = onCloseForm,
-                onFormChange   = onFormChange
+                uiState      = uiState,
+                onSave       = onSave,
+                onDismiss    = onCloseForm,
+                onFormChange = onFormChange,
+                fullScreen   = true
+            )
+            return@BoxWithConstraints
+        }
+
+        if (uiState.showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = onCloseDelete,
+                title  = { Text("Hapus Supplier") },
+                text   = { Text("Yakin ingin menghapus supplier \"${uiState.selectedSupplier?.name}\"?") },
+                confirmButton = {
+                    TextButton(onClick = onConfirmDelete) {
+                        Text("Hapus", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = { TextButton(onClick = onCloseDelete) { Text("Batal") } }
             )
         }
-    }
 
-    if (uiState.showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = onCloseDelete,
-            title  = { Text("Hapus Supplier") },
-            text   = { Text("Yakin ingin menghapus supplier \"${uiState.selectedSupplier?.name}\"?") },
-            confirmButton = {
-                TextButton(onClick = onConfirmDelete) {
-                    Text("Hapus", color = MaterialTheme.colorScheme.error)
+        Scaffold(
+            topBar = {
+                RancakTopBar(
+                    title    = "Supplier",
+                    icon     = Icons.Default.LocalShipping,
+                    subtitle = "${uiState.suppliers.size} supplier",
+                    onMenu   = onBack
+                )
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = onAdd) {
+                    Icon(Icons.Default.Add, contentDescription = "Tambah supplier")
                 }
             },
-            dismissButton = { TextButton(onClick = onCloseDelete) { Text("Batal") } }
-        )
-    }
-
-    Scaffold(
-        topBar = {
-            RancakTopBar(
-                title    = "Supplier",
-                icon     = Icons.Default.LocalShipping,
-                subtitle = "${uiState.suppliers.size} supplier",
-                onMenu   = onBack
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah supplier")
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        when {
-            uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
-            uiState.error != null && uiState.suppliers.isEmpty() ->
-                ErrorScreen(uiState.error, modifier = Modifier.padding(padding))
-            uiState.suppliers.isEmpty() ->
-                EmptyScreen("Belum ada supplier", modifier = Modifier.padding(padding))
-            else -> BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
-                if (maxWidth >= 600.dp) {
-                    TabletSupplierList(uiState.suppliers, onEdit, onDelete)
-                } else {
-                    PhoneSupplierList(uiState.suppliers, onEdit, onDelete)
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { padding ->
+            when {
+                uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
+                uiState.error != null && uiState.suppliers.isEmpty() && !uiState.showFormDialog ->
+                    ErrorScreen(uiState.error, modifier = Modifier.padding(padding))
+                isTablet -> {
+                    // Tablet: split layout — list kiri, form kanan
+                    // (selalu ditampilkan, termasuk saat list masih kosong agar panel form bisa terbuka)
+                    Row(Modifier.padding(padding).fillMaxSize()) {
+                        Column(Modifier.weight(0.42f).fillMaxHeight()) {
+                            if (uiState.suppliers.isEmpty()) {
+                                EmptyScreen("Belum ada supplier", modifier = Modifier.fillMaxSize())
+                            } else {
+                                LazyColumn(
+                                    modifier            = Modifier.fillMaxSize(),
+                                    contentPadding      = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(uiState.suppliers) { supplier ->
+                                        SupplierListItem(supplier, onEdit, onDelete)
+                                    }
+                                }
+                            }
+                        }
+                        VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        Box(Modifier.weight(0.58f).fillMaxHeight()) {
+                            if (uiState.showFormDialog) {
+                                SupplierFormContent(
+                                    uiState      = uiState,
+                                    onSave       = onSave,
+                                    onDismiss    = onCloseForm,
+                                    onFormChange = onFormChange,
+                                    fullScreen   = false
+                                )
+                            } else {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(
+                                            Icons.Default.LocalShipping, null,
+                                            Modifier.size(72.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
+                                        )
+                                        Text(
+                                            "Pilih supplier untuk diedit",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            "atau tekan + untuk menambah baru",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else -> {
+                    // HP: list saja (form ditangani via early return di atas)
+                    if (uiState.suppliers.isEmpty()) {
+                        EmptyScreen("Belum ada supplier", modifier = Modifier.padding(padding).fillMaxSize())
+                    } else {
+                        LazyColumn(
+                            modifier            = Modifier.padding(padding).fillMaxSize(),
+                            contentPadding      = PaddingValues(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.suppliers) { supplier ->
+                                SupplierListItem(supplier, onEdit, onDelete)
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-private fun TabletSupplierList(
-    suppliers: List<Supplier>,
-    onEdit: (Supplier) -> Unit,
-    onDelete: (Supplier) -> Unit
-) {
-    LazyColumn(
-        modifier            = Modifier.fillMaxSize(),
-        contentPadding      = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(suppliers) { supplier ->
-            SupplierListItem(supplier, onEdit, onDelete)
-        }
-    }
-}
-
-@Composable
-private fun PhoneSupplierList(
-    suppliers: List<Supplier>,
-    onEdit: (Supplier) -> Unit,
-    onDelete: (Supplier) -> Unit
-) {
-    LazyColumn(
-        modifier            = Modifier.fillMaxSize(),
-        contentPadding      = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(suppliers) { supplier ->
-            SupplierListItem(supplier, onEdit, onDelete)
-        }
-    }
-}
+// ──────────────────────────────────────────────────────────────────────────────
+// List item
+// ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SupplierListItem(
@@ -222,63 +259,121 @@ private fun SupplierListItem(
     onDelete: (Supplier) -> Unit
 ) {
     Card(
-        elevation = CardDefaults.cardElevation(1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier  = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier              = Modifier.padding(horizontal = 16.dp, vertical = 12.dp).fillMaxWidth(),
+            modifier              = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment     = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(supplier.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-                supplier.contactName?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(
+                    supplier.name,
+                    style      = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                // Kontak & telepon dalam satu baris jika keduanya ada
+                val contactLine = listOfNotNull(supplier.contactName, supplier.phone)
+                    .joinToString(" · ")
+                if (contactLine.isNotEmpty()) {
+                    Text(
+                        contactLine,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                supplier.phone?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                supplier.email?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 if (!supplier.isActive) {
-                    Text("Nonaktif", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                    Text(
+                        "Nonaktif",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
             Row {
                 IconButton(onClick = { onEdit(supplier) }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit")
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(18.dp))
                 }
                 IconButton(onClick = { onDelete(supplier) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = MaterialTheme.colorScheme.error)
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Hapus",
+                        tint     = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
         }
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Form content — dipakai di HP (full-screen) maupun tablet (panel kanan)
+// ──────────────────────────────────────────────────────────────────────────────
+
 @Composable
 private fun SupplierFormContent(
     uiState: SupplierUiState,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
-    onFormChange: (SupplierFormField, String) -> Unit
+    onFormChange: (SupplierFormField, String) -> Unit,
+    fullScreen: Boolean
 ) {
     val title = if (uiState.selectedSupplier == null) "Tambah Supplier" else "Edit Supplier"
 
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val formModifier = if (maxWidth >= 600.dp)
-            Modifier.widthIn(max = 560.dp).align(Alignment.Center)
-        else
-            Modifier.fillMaxWidth()
+    Column(Modifier.fillMaxSize()) {
+        // ── Header ────────────────────────────────────────────────────────────
+        if (fullScreen) {
+            Row(
+                modifier          = Modifier.fillMaxWidth()
+                    .padding(start = 4.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
+                }
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            }
+        } else {
+            Row(
+                modifier              = Modifier.fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = "Tutup")
+                }
+            }
+        }
+        HorizontalDivider()
 
+        // ── Form fields ───────────────────────────────────────────────────────
         Column(
-            modifier            = formModifier
-                .padding(horizontal = 16.dp)
+            modifier = Modifier
+                .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-
+            // ── Identitas ─────────────────────────────────────────────────────
+            Text(
+                "Identitas",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value         = uiState.formName,
                 onValueChange = { onFormChange(SupplierFormField.NAME, it) },
@@ -286,6 +381,53 @@ private fun SupplierFormContent(
                 singleLine    = true,
                 modifier      = Modifier.fillMaxWidth()
             )
+            Spacer(Modifier.height(10.dp))
+            // Untuk tablet: Phone + Email berdampingan
+            if (!fullScreen) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value         = uiState.formPhone,
+                        onValueChange = { onFormChange(SupplierFormField.PHONE, it) },
+                        label         = { Text("Nomor Telepon") },
+                        singleLine    = true,
+                        modifier      = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value         = uiState.formEmail,
+                        onValueChange = { onFormChange(SupplierFormField.EMAIL, it) },
+                        label         = { Text("Email") },
+                        singleLine    = true,
+                        modifier      = Modifier.weight(1f)
+                    )
+                }
+            } else {
+                OutlinedTextField(
+                    value         = uiState.formPhone,
+                    onValueChange = { onFormChange(SupplierFormField.PHONE, it) },
+                    label         = { Text("Nomor Telepon") },
+                    singleLine    = true,
+                    modifier      = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    value         = uiState.formEmail,
+                    onValueChange = { onFormChange(SupplierFormField.EMAIL, it) },
+                    label         = { Text("Email") },
+                    singleLine    = true,
+                    modifier      = Modifier.fillMaxWidth()
+                )
+            }
+
+            // ── Kontak ────────────────────────────────────────────────────────
+            Spacer(Modifier.height(20.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Kontak",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value         = uiState.formContactName,
                 onValueChange = { onFormChange(SupplierFormField.CONTACT_NAME, it) },
@@ -293,20 +435,7 @@ private fun SupplierFormContent(
                 singleLine    = true,
                 modifier      = Modifier.fillMaxWidth()
             )
-            OutlinedTextField(
-                value         = uiState.formPhone,
-                onValueChange = { onFormChange(SupplierFormField.PHONE, it) },
-                label         = { Text("Nomor Telepon") },
-                singleLine    = true,
-                modifier      = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value         = uiState.formEmail,
-                onValueChange = { onFormChange(SupplierFormField.EMAIL, it) },
-                label         = { Text("Email") },
-                singleLine    = true,
-                modifier      = Modifier.fillMaxWidth()
-            )
+            Spacer(Modifier.height(10.dp))
             OutlinedTextField(
                 value         = uiState.formAddress,
                 onValueChange = { onFormChange(SupplierFormField.ADDRESS, it) },
@@ -315,6 +444,17 @@ private fun SupplierFormContent(
                 maxLines      = 4,
                 modifier      = Modifier.fillMaxWidth()
             )
+
+            // ── Lainnya ───────────────────────────────────────────────────────
+            Spacer(Modifier.height(20.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Lainnya",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value         = uiState.formNpwp,
                 onValueChange = { onFormChange(SupplierFormField.NPWP, it) },
@@ -322,6 +462,7 @@ private fun SupplierFormContent(
                 singleLine    = true,
                 modifier      = Modifier.fillMaxWidth()
             )
+            Spacer(Modifier.height(10.dp))
             OutlinedTextField(
                 value         = uiState.formNotes,
                 onValueChange = { onFormChange(SupplierFormField.NOTES, it) },
@@ -330,17 +471,30 @@ private fun SupplierFormContent(
                 maxLines      = 4,
                 modifier      = Modifier.fillMaxWidth()
             )
+        }
 
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment     = Alignment.CenterVertically
+        // ── Bottom actions ────────────────────────────────────────────────────
+        HorizontalDivider()
+        Row(
+            modifier              = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick  = onDismiss,
+                modifier = Modifier.weight(1f)
+            ) { Text("Batal") }
+            Button(
+                onClick  = onSave,
+                enabled  = uiState.formName.isNotBlank() && !uiState.isSaving,
+                modifier = Modifier.weight(1f)
             ) {
-                TextButton(onClick = onDismiss) { Text("Batal") }
-                TextButton(
-                    onClick = onSave,
-                    enabled = uiState.formName.isNotBlank() && !uiState.isSaving
-                ) { Text("Simpan") }
+                if (uiState.isSaving) {
+                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                } else {
+                    Text("Simpan")
+                }
             }
         }
     }
