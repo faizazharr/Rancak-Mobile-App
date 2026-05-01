@@ -3,10 +3,14 @@ package id.rancak.app.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.POItemEntry
+import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.PurchaseOrder
+import id.rancak.app.domain.model.PurchaseOrderItem
+import id.rancak.app.domain.model.ReceiveItemEntry
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Supplier
 import id.rancak.app.domain.repository.InventoryRepository
+import id.rancak.app.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +20,7 @@ import kotlinx.coroutines.launch
 data class PurchaseOrderUiState(
     val orders: List<PurchaseOrder> = emptyList(),
     val suppliers: List<Supplier> = emptyList(),
+    val products: List<Product> = emptyList(),
     val selectedOrder: PurchaseOrder? = null,
     val isLoading: Boolean = false,
     val isLoadingDetail: Boolean = false,
@@ -26,15 +31,30 @@ data class PurchaseOrderUiState(
     val showCancelDialog: Boolean = false,
     /** Filter status: null = semua. */
     val statusFilter: String? = null,
-    // Create PO form fields
+    // Create / Edit PO header form fields
     val formSupplierUuid: String? = null,
     val formOrderDate: String = "",
     val formExpectedDate: String = "",
-    val formNotes: String = ""
+    val formNotes: String = "",
+    // Edit header
+    val showEditHeaderDialog: Boolean = false,
+    // Add / Edit item form
+    val showAddItemDialog: Boolean = false,
+    val showEditItemDialog: Boolean = false,
+    val editingItem: PurchaseOrderItem? = null,
+    val formItemProductUuid: String = "",
+    val formItemQty: String = "",
+    val formItemUnitCost: String = "",
+    val formItemNotes: String = "",
+    // Receive form
+    val showReceiveDialog: Boolean = false,
+    val receiveEntries: Map<String, String> = emptyMap(),
+    val formReceiveNotes: String = ""
 )
 
 class PurchaseOrderViewModel(
-    private val inventoryRepository: InventoryRepository
+    private val inventoryRepository: InventoryRepository,
+    private val productRepository: ProductRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PurchaseOrderUiState())
@@ -43,6 +63,7 @@ class PurchaseOrderViewModel(
     init {
         loadOrders()
         loadSuppliers()
+        loadProducts()
     }
 
     fun loadOrders(status: String? = _uiState.value.statusFilter) {
@@ -60,6 +81,16 @@ class PurchaseOrderViewModel(
         viewModelScope.launch {
             when (val result = inventoryRepository.getSuppliers()) {
                 is Resource.Success -> _uiState.update { it.copy(suppliers = result.data) }
+                is Resource.Error   -> {}
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    private fun loadProducts() {
+        viewModelScope.launch {
+            when (val result = productRepository.getProducts()) {
+                is Resource.Success -> _uiState.update { it.copy(products = result.data) }
                 is Resource.Error   -> {}
                 is Resource.Loading -> {}
             }
@@ -193,5 +224,229 @@ class PurchaseOrderViewModel(
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    // ── Edit PO Header ───────────────────────────────────────────────────────
+
+    fun openEditHeaderDialog() {
+        val po = _uiState.value.selectedOrder ?: return
+        _uiState.update { it.copy(
+            showEditHeaderDialog = true,
+            formSupplierUuid     = po.supplierUuid,
+            formOrderDate        = po.orderDate,
+            formExpectedDate     = po.expectedDate ?: "",
+            formNotes            = po.notes ?: ""
+        ) }
+    }
+
+    fun closeEditHeaderDialog() {
+        _uiState.update { it.copy(showEditHeaderDialog = false) }
+    }
+
+    fun updatePOHeader() {
+        val state = _uiState.value
+        val poId  = state.selectedOrder?.uuid ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) }
+            when (val result = inventoryRepository.updatePurchaseOrder(
+                poId         = poId,
+                supplierUuid = state.formSupplierUuid,
+                orderDate    = state.formOrderDate.ifBlank { null },
+                expectedDate = state.formExpectedDate.ifBlank { null },
+                notes        = state.formNotes.ifBlank { null }
+            )) {
+                is Resource.Success -> {
+                    loadOrders()
+                    _uiState.update { it.copy(
+                        isSaving             = false,
+                        showEditHeaderDialog  = false,
+                        selectedOrder        = result.data,
+                        successMessage       = "PO berhasil diperbarui"
+                    ) }
+                }
+                is Resource.Error   -> _uiState.update { it.copy(isSaving = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    // ── Add Item ─────────────────────────────────────────────────────────────
+
+    fun openAddItemDialog() {
+        _uiState.update { it.copy(
+            showAddItemDialog   = true,
+            formItemProductUuid = "",
+            formItemQty         = "",
+            formItemUnitCost    = "",
+            formItemNotes       = ""
+        ) }
+    }
+
+    fun closeAddItemDialog() {
+        _uiState.update { it.copy(showAddItemDialog = false) }
+    }
+
+    fun onItemProductChange(uuid: String) { _uiState.update { it.copy(formItemProductUuid = uuid) } }
+    fun onItemQtyChange(qty: String)      { _uiState.update { it.copy(formItemQty = qty) } }
+    fun onItemUnitCostChange(cost: String){ _uiState.update { it.copy(formItemUnitCost = cost) } }
+    fun onItemNotesChange(notes: String)  { _uiState.update { it.copy(formItemNotes = notes) } }
+
+    fun addItem() {
+        val state = _uiState.value
+        val poId  = state.selectedOrder?.uuid ?: return
+        val productUuid = state.formItemProductUuid.ifBlank { return }
+        val qty = state.formItemQty.toDoubleOrNull() ?: return
+        val unitCost = state.formItemUnitCost.toDoubleOrNull() ?: 0.0
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) }
+            when (val result = inventoryRepository.addPurchaseOrderItem(
+                poId = poId,
+                item = POItemEntry(
+                    productUuid = productUuid,
+                    qtyOrdered  = qty,
+                    unitCost    = unitCost,
+                    notes       = state.formItemNotes.ifBlank { null }
+                )
+            )) {
+                is Resource.Success -> {
+                    refreshDetail()
+                    _uiState.update { it.copy(
+                        isSaving          = false,
+                        showAddItemDialog  = false,
+                        successMessage    = "Item berhasil ditambahkan"
+                    ) }
+                }
+                is Resource.Error   -> _uiState.update { it.copy(isSaving = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    // ── Edit Item ────────────────────────────────────────────────────────────
+
+    fun openEditItemDialog(item: PurchaseOrderItem) {
+        _uiState.update { it.copy(
+            showEditItemDialog  = true,
+            editingItem         = item,
+            formItemQty         = item.qtyOrdered.toString(),
+            formItemUnitCost    = item.unitCost.toLong().toString(),
+            formItemNotes       = item.notes ?: ""
+        ) }
+    }
+
+    fun closeEditItemDialog() {
+        _uiState.update { it.copy(showEditItemDialog = false, editingItem = null) }
+    }
+
+    fun updateItem() {
+        val state  = _uiState.value
+        val poId   = state.selectedOrder?.uuid ?: return
+        val itemId = state.editingItem?.uuid ?: return
+        val qty    = state.formItemQty.toDoubleOrNull() ?: return
+        val cost   = state.formItemUnitCost.toDoubleOrNull() ?: 0.0
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) }
+            when (val result = inventoryRepository.updatePurchaseOrderItem(
+                poId       = poId,
+                itemId     = itemId,
+                qtyOrdered = qty,
+                unitCost   = cost,
+                notes      = state.formItemNotes.ifBlank { null }
+            )) {
+                is Resource.Success -> {
+                    refreshDetail()
+                    _uiState.update { it.copy(
+                        isSaving           = false,
+                        showEditItemDialog  = false,
+                        editingItem        = null,
+                        successMessage     = "Item berhasil diperbarui"
+                    ) }
+                }
+                is Resource.Error   -> _uiState.update { it.copy(isSaving = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun deleteItem(item: PurchaseOrderItem) {
+        val poId = _uiState.value.selectedOrder?.uuid ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) }
+            when (val result = inventoryRepository.deletePurchaseOrderItem(poId, item.uuid)) {
+                is Resource.Success -> {
+                    refreshDetail()
+                    _uiState.update { it.copy(isSaving = false, successMessage = "Item berhasil dihapus") }
+                }
+                is Resource.Error   -> _uiState.update { it.copy(isSaving = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    // ── Receive PO ───────────────────────────────────────────────────────────
+
+    fun openReceiveDialog() {
+        val items = _uiState.value.selectedOrder?.items ?: return
+        _uiState.update { it.copy(
+            showReceiveDialog  = true,
+            receiveEntries     = items.associate { item -> item.uuid to "" },
+            formReceiveNotes   = ""
+        ) }
+    }
+
+    fun closeReceiveDialog() {
+        _uiState.update { it.copy(showReceiveDialog = false) }
+    }
+
+    fun onReceiveQtyChange(itemUuid: String, qty: String) {
+        _uiState.update { it.copy(receiveEntries = it.receiveEntries + (itemUuid to qty)) }
+    }
+
+    fun onReceiveNotesChange(notes: String) {
+        _uiState.update { it.copy(formReceiveNotes = notes) }
+    }
+
+    fun receiveOrder() {
+        val state   = _uiState.value
+        val poId    = state.selectedOrder?.uuid ?: return
+        val entries = state.receiveEntries.mapNotNull { (itemUuid, qtyStr) ->
+            val qty = qtyStr.toDoubleOrNull() ?: return@mapNotNull null
+            if (qty <= 0) return@mapNotNull null
+            ReceiveItemEntry(itemUuid = itemUuid, qtyReceived = qty)
+        }
+        if (entries.isEmpty()) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) }
+            when (val result = inventoryRepository.receivePurchaseOrder(
+                poId  = poId,
+                items = entries,
+                notes = state.formReceiveNotes.ifBlank { null }
+            )) {
+                is Resource.Success -> {
+                    loadOrders()
+                    _uiState.update { it.copy(
+                        isSaving           = false,
+                        showReceiveDialog  = false,
+                        selectedOrder      = result.data,
+                        successMessage     = "Penerimaan barang berhasil dicatat"
+                    ) }
+                }
+                is Resource.Error   -> _uiState.update { it.copy(isSaving = false, error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private fun refreshDetail() {
+        val order = _uiState.value.selectedOrder ?: return
+        viewModelScope.launch {
+            when (val result = inventoryRepository.getPurchaseOrderDetail(order.uuid)) {
+                is Resource.Success -> _uiState.update { it.copy(selectedOrder = result.data) }
+                is Resource.Error   -> _uiState.update { it.copy(error = result.message) }
+                is Resource.Loading -> {}
+            }
+        }
     }
 }
