@@ -10,18 +10,22 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,6 +40,7 @@ import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.ui.reports.components.CashierShiftCard
 import id.rancak.app.presentation.ui.reports.components.DailyCategoryCard
 import id.rancak.app.presentation.ui.reports.components.EmptySummaryPlaceholder
 import id.rancak.app.presentation.ui.reports.components.FinancialBreakdownCard
@@ -66,6 +71,7 @@ fun ReportScreen(
                 viewModel.setDateRange(from, to)
             }
         }
+        viewModel.loadCashierShifts()
     }
 
     ReportScreenContent(
@@ -80,13 +86,16 @@ fun ReportScreen(
                 }
             }
         },
-        onRetry        = viewModel::loadReport
+        onRetry              = viewModel::loadReport,
+        onLoadCashierShifts  = viewModel::loadCashierShifts
     )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pure UI body — responsive layout tablet/phone untuk kartu-kartu laporan.
 // ─────────────────────────────────────────────────────────────────────────────
+
+private val reportTabs = listOf("Ringkasan", "Per Kasir")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,8 +104,11 @@ internal fun ReportScreenContent(
     selectedPeriod: ReportPeriod = ReportPeriod.THIS_MONTH,
     onBack: () -> Unit = {},
     onPeriodSelect: (ReportPeriod) -> Unit = {},
-    onRetry: () -> Unit = {}
+    onRetry: () -> Unit = {},
+    onLoadCashierShifts: (String?) -> Unit = {}
 ) {
+    var selectedTab by remember { mutableIntStateOf(0) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -121,11 +133,27 @@ internal fun ReportScreenContent(
             )
             HorizontalDivider()
 
+            TabRow(selectedTabIndex = selectedTab) {
+                reportTabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick  = {
+                            selectedTab = index
+                            if (index == 1) onLoadCashierShifts(null)
+                        },
+                        text = { Text(title) }
+                    )
+                }
+            }
+            HorizontalDivider()
+
             val error = uiState.error
             when {
-                uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
-                error != null     -> ErrorScreen(error, onRetry = onRetry, modifier = Modifier.weight(1f))
-                else              -> ReportBody(uiState = uiState, modifier = Modifier.weight(1f))
+                selectedTab == 0 && uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
+                selectedTab == 0 && error != null     -> ErrorScreen(error, onRetry = onRetry, modifier = Modifier.weight(1f))
+                selectedTab == 0                      -> ReportBody(uiState = uiState, modifier = Modifier.weight(1f))
+                selectedTab == 1 && uiState.isCashierShiftsLoading -> LoadingScreen(Modifier.weight(1f))
+                else                                  -> CashierShiftsBody(uiState = uiState, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -239,6 +267,33 @@ private fun PhoneLayout(uiState: ReportUiState) {
             }
             if (uiState.dailyByCategory.isNotEmpty()) {
                 item { DailyCategoryCard(uiState.dailyByCategory) }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tab: Per Kasir — daftar ringkasan shift per kasir
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun CashierShiftsBody(uiState: ReportUiState, modifier: Modifier = Modifier) {
+    if (uiState.cashierShifts.isEmpty()) {
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                "Tidak ada data shift kasir",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    } else {
+        LazyColumn(
+            modifier            = modifier.fillMaxSize(),
+            contentPadding      = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(uiState.cashierShifts) { shift ->
+                CashierShiftCard(shift)
             }
         }
     }

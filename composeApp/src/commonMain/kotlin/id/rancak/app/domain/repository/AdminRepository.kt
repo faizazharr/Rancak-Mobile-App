@@ -116,6 +116,7 @@ interface AdminRepository {
     suspend fun deleteBundle(bundleId: String): Resource<Unit>
 
     // ── Modifiers ──────────────────────────────────────────────────────────────
+    suspend fun getModifiers(): Resource<List<Modifier>>
     suspend fun getModifier(modifierId: String): Resource<Modifier>
     suspend fun createModifier(name: String, sortOrder: Int = 0, isActive: Boolean = true): Resource<Modifier>
     suspend fun createProductModifier(

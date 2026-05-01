@@ -61,6 +61,9 @@ import id.rancak.app.presentation.viewmodel.StockOpnameViewModel
 import id.rancak.app.presentation.viewmodel.TableViewModel
 import id.rancak.app.presentation.viewmodel.TenantPickerViewModel
 import id.rancak.app.presentation.viewmodel.VoucherManagementViewModel
+import id.rancak.app.presentation.viewmodel.ModifierManagementViewModel
+import id.rancak.app.presentation.viewmodel.SupplierViewModel
+import id.rancak.app.presentation.viewmodel.PurchaseOrderViewModel
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
@@ -144,6 +147,9 @@ val viewModelModule = module {
     viewModelOf(::StockOpnameViewModel)
     viewModelOf(::VoucherManagementViewModel)
     viewModelOf(::PricingManagementViewModel)
+    viewModelOf(::ModifierManagementViewModel)
+    viewModelOf(::SupplierViewModel)
+    viewModelOf(::PurchaseOrderViewModel)
 }
 
 val appModules = listOf(

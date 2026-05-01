@@ -45,7 +45,8 @@ data class Modifier(
     val uuid: String,
     val name: String,
     val sortOrder: Int,
-    val productUuid: String?
+    val productUuid: String?,
+    val isActive: Boolean = true
 )
 
 data class PaymentMethodReport(

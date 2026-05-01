@@ -62,7 +62,8 @@ data class ModifierDto(
     val uuid: String,
     val name: String,
     @SerialName("sort_order") val sortOrder: Int = 0,
-    @SerialName("product_uuid") val productUuid: String? = null
+    @SerialName("product_uuid") val productUuid: String? = null,
+    @SerialName("is_active") val isActive: Boolean = true
 )
 
 // ── Voucher ──

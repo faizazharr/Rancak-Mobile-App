@@ -32,6 +32,7 @@ import id.rancak.app.data.remote.api.getBundle
 import id.rancak.app.data.remote.api.getDiscountRule
 import id.rancak.app.data.remote.api.getDiscountRules
 import id.rancak.app.data.remote.api.getModifier
+import id.rancak.app.data.remote.api.getModifiers
 import id.rancak.app.data.remote.api.getProductBatches
 import id.rancak.app.data.remote.api.getSurcharge
 import id.rancak.app.data.remote.api.getSurcharges
@@ -102,6 +103,7 @@ import id.rancak.app.domain.repository.ReceiptSettingsUpdate
 import id.rancak.app.domain.repository.StockAdjustmentResult
 import id.rancak.app.domain.repository.VoucherUpdate
 import id.rancak.app.data.util.safe
+import id.rancak.app.data.util.safeList
 import id.rancak.app.data.util.safeUnit
 import id.rancak.app.data.util.toDateTimeString
 
@@ -289,6 +291,11 @@ class AdminRepositoryImpl(
     )
 
     // ── Modifiers ──────────────────────────────────────────────────────────────
+
+    override suspend fun getModifiers(): Resource<List<Modifier>> = safeList(
+        block = { api.getModifiers(tenantUuid) },
+        errorMsg = "Gagal memuat daftar modifier"
+    ) { it.toDomain() }
 
     override suspend fun getModifier(modifierId: String): Resource<Modifier> = safe(
         block = { api.getModifier(tenantUuid, modifierId) },

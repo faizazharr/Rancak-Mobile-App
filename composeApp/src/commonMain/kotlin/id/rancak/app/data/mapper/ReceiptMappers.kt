@@ -56,8 +56,9 @@ fun BundleDto.toDomain() = Bundle(
 )
 
 fun ModifierDto.toDomain() = Modifier(
-    uuid = uuid,
-    name = name,
-    sortOrder = sortOrder,
-    productUuid = productUuid
+    uuid        = uuid,
+    name        = name,
+    sortOrder   = sortOrder,
+    productUuid = productUuid,
+    isActive    = isActive
 )

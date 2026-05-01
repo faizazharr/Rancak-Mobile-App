@@ -44,6 +44,9 @@ import id.rancak.app.presentation.ui.sales.AddItemsToHeldOrderScreen
 import id.rancak.app.presentation.ui.billing.BillingScreen
 import id.rancak.app.presentation.ui.inventory.StockOpnameScreen
 import id.rancak.app.presentation.ui.pricing.PricingManagementScreen
+import id.rancak.app.presentation.ui.modifiers.ModifierManagementScreen
+import id.rancak.app.presentation.ui.inventory.SupplierScreen
+import id.rancak.app.presentation.ui.inventory.PurchaseOrderScreen
 import id.rancak.app.presentation.ui.pricing.VoucherManagementScreen
 import id.rancak.app.presentation.ui.products.ProductManagementScreen
 import id.rancak.app.presentation.ui.reservations.ReservationScreen
@@ -125,6 +128,9 @@ fun RancakNavHost() {
                     DrawerItem("Stok Opname",   Icons.Default.Inventory,     Screen.StockOpname),
                     DrawerItem("Voucher",        Icons.Default.LocalOffer,    Screen.VoucherManagement),
                     DrawerItem("Harga & Diskon", Icons.Default.Percent,       Screen.PricingManagement),
+                    DrawerItem("Modifier",        Icons.Default.Tune,          Screen.ModifierManagement),
+                    DrawerItem("Supplier",        Icons.Default.LocalShipping, Screen.SupplierManagement),
+                    DrawerItem("Purchase Order",  Icons.Default.ShoppingCart,  Screen.PurchaseOrders),
                     DrawerItem("Billing",        Icons.Default.CreditCard,    Screen.Billing),
                     DrawerItem("Pengaturan",     Icons.Default.Settings,      Screen.Settings),
                 )
@@ -562,6 +568,18 @@ private fun NavigationContent(
 
         composable<Screen.PricingManagement> {
             PricingManagementScreen(onBack = onMenuClick)
+        }
+
+        composable<Screen.ModifierManagement> {
+            ModifierManagementScreen(onBack = onMenuClick)
+        }
+
+        composable<Screen.SupplierManagement> {
+            SupplierScreen(onBack = onMenuClick)
+        }
+
+        composable<Screen.PurchaseOrders> {
+            PurchaseOrderScreen(onBack = onMenuClick)
         }
         }
     }
