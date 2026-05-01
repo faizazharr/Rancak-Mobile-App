@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.inventory.components.CreateOpnameDialog
@@ -167,12 +168,9 @@ fun StockOpnameScreen(
                             )
                         } else {
                             EmptyScreen(
-                            message  = "Pilih sesi opname untuk melihat detail",
-                            modifier = Modifier.fillMaxSize()
-                        )
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                )
-                            }
+                                message  = "Pilih sesi opname untuk melihat detail",
+                                modifier = Modifier.fillMaxSize()
+                            )
                         }
                     }
                 } else {
@@ -199,23 +197,10 @@ fun StockOpnameScreen(
 
                         when {
                             uiState.isLoading -> LoadingScreen()
-                            uiState.opnames.isEmpty() -> Box(
-                                Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(
-                                        Icons.Default.Inventory, null, Modifier.size(64.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                                    )
-                                    Spacer(Modifier.height(12.dp))
-                                    Text(
-                                        "Belum ada sesi opname",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
+                            uiState.opnames.isEmpty() -> EmptyScreen(
+                                message  = "Belum ada sesi opname",
+                                modifier = Modifier.fillMaxSize()
+                            )
                             else -> LazyColumn(
                                 contentPadding      = PaddingValues(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)

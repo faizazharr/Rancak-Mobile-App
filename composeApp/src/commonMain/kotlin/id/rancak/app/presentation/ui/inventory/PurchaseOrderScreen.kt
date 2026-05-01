@@ -476,23 +476,19 @@ private fun PODetailContent(
             // Action buttons based on status
             if (po.status == "draft") {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
+                    RancakButton(
+                        text     = "Kirim ke Supplier",
                         onClick  = { onSend(po.uuid) },
                         modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(Icons.Default.Send, contentDescription = null)
-                        Text("Kirim ke Supplier", modifier = Modifier.padding(start = 8.dp))
-                    }
+                    )
                 }
             }
             if (po.status in listOf("draft", "ordered")) {
-                OutlinedButton(
+                RancakOutlinedButton(
+                    text     = "Batalkan PO",
                     onClick  = onCancelClick,
                     modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.Cancel, contentDescription = null)
-                    Text("Batalkan PO", modifier = Modifier.padding(start = 8.dp), color = MaterialTheme.colorScheme.error)
-                }
+                )
             }
         }
     }
