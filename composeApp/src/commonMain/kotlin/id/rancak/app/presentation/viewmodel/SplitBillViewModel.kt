@@ -103,7 +103,5 @@ class SplitBillViewModel(
         _uiState.update { it.copy(result = null) }
     }
 
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
+    fun clearError() = _uiState.update { it.copy(error = null) }
 }

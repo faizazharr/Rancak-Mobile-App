@@ -123,9 +123,7 @@ class RefundViewModel(
         }
     }
 
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
+    fun clearError() = _uiState.update { it.copy(error = null) }
 
     fun reset() {
         _uiState.value = RefundUiState()

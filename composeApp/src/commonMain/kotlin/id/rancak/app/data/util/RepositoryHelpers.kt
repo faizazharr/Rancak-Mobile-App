@@ -3,6 +3,20 @@ package id.rancak.app.data.util
 import id.rancak.app.data.remote.dto.ApiResponse
 import id.rancak.app.domain.model.Resource
 
+/**
+ * Mendeteksi apakah exception berasal dari koneksi jaringan yang tidak tersedia.
+ * Digunakan sebelum memutuskan apakah transaksi perlu di-queue offline.
+ */
+internal fun isNetworkError(e: Exception): Boolean {
+    val msg = e.message ?: return false
+    return msg.contains("UnknownHostException", ignoreCase = true) ||
+           msg.contains("ConnectException", ignoreCase = true) ||
+           msg.contains("SocketTimeoutException", ignoreCase = true) ||
+           msg.contains("Network is unreachable", ignoreCase = true) ||
+           msg.contains("Unable to resolve host", ignoreCase = true) ||
+           msg.contains("failed to connect", ignoreCase = true)
+}
+
 internal suspend fun <T, R> safe(
     block: suspend () -> ApiResponse<T>,
     map: (T) -> R,

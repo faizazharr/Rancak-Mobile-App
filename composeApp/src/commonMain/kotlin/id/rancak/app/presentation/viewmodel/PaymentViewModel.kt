@@ -719,9 +719,7 @@ class PaymentViewModel(
         _uiState.value = PaymentUiState()
     }
 
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
+    fun clearError() = _uiState.update { it.copy(error = null) }
 
     override fun onCleared() {
         super.onCleared()

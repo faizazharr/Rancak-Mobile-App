@@ -20,9 +20,12 @@ import id.rancak.app.domain.model.SaleItem
 import id.rancak.app.domain.model.SaleItemAddon
 import id.rancak.app.domain.model.SalePayment
 import id.rancak.app.domain.model.SaleStatus
+import id.rancak.app.domain.model.CartItem
+import id.rancak.app.data.remote.dto.sale.SaleItemRequest
 
 /**
  * DTO → domain mappers for Sale, SaleItem, Payment, QR, Refund, Delivery.
+ * Domain → DTO mapper for CartItem → SaleItemRequest.
  */
 
 fun SaleDto.toDomain() = Sale(
@@ -115,4 +118,12 @@ fun RefundItemResponseDto.toDomain() = RefundItem(
     productName  = productName,
     qty          = qty,
     refundAmount = refundAmount
+)
+
+/** Domain → DTO: mengonversi item keranjang ke format request API. */
+fun CartItem.toSaleItemRequest() = SaleItemRequest(
+    productUuid = productUuid,
+    qty         = qty,
+    variantUuid = variantUuid,
+    note        = note
 )

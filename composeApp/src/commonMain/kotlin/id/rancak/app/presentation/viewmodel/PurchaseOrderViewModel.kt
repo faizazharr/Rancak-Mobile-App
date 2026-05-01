@@ -218,13 +218,8 @@ class PurchaseOrderViewModel(
         }
     }
 
-    fun clearSuccessMessage() {
-        _uiState.update { it.copy(successMessage = null) }
-    }
-
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
+    fun clearSuccessMessage() = _uiState.update { it.copy(successMessage = null) }
+    fun clearError()          = _uiState.update { it.copy(error = null) }
 
     // ── Edit PO Header ───────────────────────────────────────────────────────
 

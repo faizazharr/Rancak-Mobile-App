@@ -88,7 +88,5 @@ class LoginViewModel(
         _uiState.update { it.copy(error = message) }
     }
 
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
+    fun clearError() = _uiState.update { it.copy(error = null) }
 }

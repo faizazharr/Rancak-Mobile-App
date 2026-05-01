@@ -34,8 +34,9 @@ import id.rancak.app.data.remote.api.serveSale
 import id.rancak.app.data.remote.api.splitBill
 import id.rancak.app.data.remote.api.voidSale
 import id.rancak.app.data.remote.dto.sale.CreateSaleRequest
-import id.rancak.app.data.remote.dto.sale.SaleItemRequest
 import id.rancak.app.data.sync.SyncScheduler
+import id.rancak.app.data.mapper.toSaleItemRequest
+import id.rancak.app.data.util.isNetworkError
 import id.rancak.app.data.util.safe
 import id.rancak.app.data.util.safeUnit
 import id.rancak.app.domain.model.CartItem
@@ -91,14 +92,7 @@ class SaleRepositoryImpl(
 
         return try {
             val request = CreateSaleRequest(
-                items = items.map { cartItem ->
-                    SaleItemRequest(
-                        productUuid = cartItem.productUuid,
-                        qty         = cartItem.qty,
-                        variantUuid = cartItem.variantUuid,
-                        note        = cartItem.note
-                    )
-                },
+                items           = items.map { it.toSaleItemRequest() },
                 paymentMethod   = paymentMethod.value,
                 // QRIS: backend creates sale without requiring paid_amount;
                 // payment is confirmed later via Xendit webhook.
@@ -129,16 +123,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal membuat penjualan")
             }
         } catch (e: Exception) {
-            val networkError = e.message?.let {
-                it.contains("UnknownHostException", ignoreCase = true) ||
-                it.contains("ConnectException", ignoreCase = true) ||
-                it.contains("SocketTimeoutException", ignoreCase = true) ||
-                it.contains("Network is unreachable", ignoreCase = true) ||
-                it.contains("Unable to resolve host", ignoreCase = true) ||
-                it.contains("failed to connect", ignoreCase = true)
-            } ?: false
-
-            if (networkError) {
+            if (isNetworkError(e)) {
                 // QRIS membutuhkan koneksi internet — tidak bisa di-queue offline
                 if (paymentMethod == PaymentMethod.QRIS) {
                     return Resource.Error("QRIS membutuhkan koneksi internet. Periksa jaringan Anda.")
@@ -197,14 +182,7 @@ class SaleRepositoryImpl(
 
         return try {
             val request = CreateSaleRequest(
-                items = items.map { cartItem ->
-                    SaleItemRequest(
-                        productUuid = cartItem.productUuid,
-                        qty         = cartItem.qty,
-                        variantUuid = cartItem.variantUuid,
-                        note        = cartItem.note
-                    )
-                },
+                items    = items.map { it.toSaleItemRequest() },
                 payments = payments.map {
                     id.rancak.app.data.remote.dto.sale.SplitPaymentRequest(
                         method = it.method.value,
@@ -362,28 +340,14 @@ class SaleRepositoryImpl(
     override suspend fun addItemsToHeldOrder(
         saleUuid: String,
         items: List<CartItem>
-    ): Resource<Sale> {
-        return try {
-            val request = id.rancak.app.data.remote.dto.sale.AddHeldOrderItemsRequest(
-                items = items.map { cartItem ->
-                    SaleItemRequest(
-                        productUuid = cartItem.productUuid,
-                        qty         = cartItem.qty,
-                        variantUuid = cartItem.variantUuid,
-                        note        = cartItem.note
-                    )
-                }
-            )
-            val response = api.addHeldOrderItems(tenantUuid, saleUuid, request)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal menambah item ke pesanan")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
-        }
-    }
+    ): Resource<Sale> = safe(
+        block    = { api.addHeldOrderItems(
+            tenantUuid, saleUuid,
+            id.rancak.app.data.remote.dto.sale.AddHeldOrderItemsRequest(items.map { it.toSaleItemRequest() })
+        ) },
+        map      = { it.toDomain() },
+        errorMsg = "Gagal menambah item ke pesanan"
+    )
 
     override suspend fun removeHeldOrderItem(saleUuid: String, itemUuid: String): Resource<Sale> = safe(
         block    = { api.deleteHeldOrderItem(tenantUuid, saleUuid, itemUuid) },
