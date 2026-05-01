@@ -219,6 +219,11 @@ class PaymentViewModel(
             _uiState.update { it.copy(error = "Masukkan jumlah pembayaran") }
             return
         }
+        val total = subtotal - discount + tax + adminFee + deliveryFee + tip
+        if (state.selectedMethod == PaymentMethod.CASH && state.paidAmountLong < total) {
+            _uiState.update { it.copy(error = "Jumlah bayar kurang dari total transaksi") }
+            return
+        }
         if (discount < 0 || discount > subtotal) {
             _uiState.update { it.copy(error = "Diskon tidak valid") }
             return
@@ -630,6 +635,10 @@ class PaymentViewModel(
 
         if (state.paidAmountLong <= 0 && state.selectedMethod == PaymentMethod.CASH) {
             _uiState.update { it.copy(error = "Masukkan jumlah pembayaran") }
+            return
+        }
+        if (state.selectedMethod == PaymentMethod.CASH && saleTotal > 0 && state.paidAmountLong < saleTotal) {
+            _uiState.update { it.copy(error = "Jumlah bayar kurang dari total transaksi") }
             return
         }
         viewModelScope.launch {

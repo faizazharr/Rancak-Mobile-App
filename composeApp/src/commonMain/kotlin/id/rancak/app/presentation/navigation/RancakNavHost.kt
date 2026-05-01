@@ -236,7 +236,13 @@ fun RancakNavHost() {
                                         !(expandedGroups[group.label] ?: group.expandedByDefault)
                                 },
                                 onItemClick = { item ->
-                                    navController.navigate(item.screen) { launchSingleTop = true }
+                                    navController.navigate(item.screen) {
+                                        // Setiap item drawer adalah destinasi top-level yang sejajar.
+                                        // Hapus seluruh back stack agar tombol Back tidak kembali ke
+                                        // destinasi drawer sebelumnya (termasuk Kasir/POS).
+                                        popUpTo(0) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                     scope.launch { drawerState.close() }
                                 }
                             )

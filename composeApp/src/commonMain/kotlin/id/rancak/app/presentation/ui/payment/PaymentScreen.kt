@@ -69,6 +69,13 @@ fun PaymentScreen(
     val settingsStore: SettingsStore   = koinInject()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Muat ulang konfigurasi harga (surcharge, pajak) dari server saat layar
+    // pembayaran dibuka, agar total yang ditampilkan selalu sinkron dengan
+    // total yang dihitung backend — mencegah error paid_amount kurang dari total.
+    LaunchedEffect(Unit) {
+        cartViewModel.loadPricingConfigs()
+    }
+
     // Tampilkan error via Snackbar (tidak tertutup oleh top bar dan tidak hilang
     // saat user menekan numpad — lebih mudah terlihat daripada banner di atas).
     LaunchedEffect(paymentState.error) {
