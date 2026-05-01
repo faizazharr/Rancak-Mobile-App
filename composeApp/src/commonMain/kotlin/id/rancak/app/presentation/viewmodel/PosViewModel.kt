@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.FavoriteProduct
+import id.rancak.app.domain.model.Modifier
 import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.Product86
 import id.rancak.app.domain.model.Resource
@@ -27,7 +28,14 @@ data class PosUiState(
     val error: String? = null,
     // Precomputed di ViewModel agar tidak mengulang filter di setiap rekomposisi.
     val products86Uuids: Set<String> = emptySet(),
-    val filteredProducts: List<Product> = emptyList()
+    val filteredProducts: List<Product> = emptyList(),
+    /**
+     * Cache modifier per produk: productUuid → list modifier (global + per-produk).
+     * Di-load lazy saat pertama kali item di-tap di OrderPanel.
+     */
+    val modifierCache: Map<String, List<Modifier>> = emptyMap(),
+    /** Set productUuid yang sedang dalam proses load modifier — cegah double request. */
+    val loadingModifierUuids: Set<String> = emptySet()
 )
 
 class PosViewModel(
@@ -117,6 +125,33 @@ class PosViewModel(
             when (val result = productRepository.get86Products()) {
                 is Resource.Success -> _uiState.update { it.copy(products86 = result.data).recompute() }
                 is Resource.Error -> { /* silent fail for 86 */ }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /**
+     * Load modifier untuk satu produk secara lazy — dipanggil saat note dialog
+     * pertama kali dibuka untuk produk tersebut. Jika sudah ada di cache, skip.
+     * Menyimpan gabungan modifier global (productUuid = null) + per-produk.
+     */
+    fun loadModifiersForProduct(productUuid: String) {
+        val state = _uiState.value
+        // Sudah di-cache atau sedang loading — tidak perlu request ulang
+        if (productUuid in state.modifierCache || productUuid in state.loadingModifierUuids) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(loadingModifierUuids = it.loadingModifierUuids + productUuid) }
+            when (val result = productRepository.getModifiers(productUuid)) {
+                is Resource.Success -> _uiState.update { s ->
+                    s.copy(
+                        modifierCache       = s.modifierCache + (productUuid to result.data),
+                        loadingModifierUuids = s.loadingModifierUuids - productUuid
+                    )
+                }
+                is Resource.Error -> _uiState.update { s ->
+                    s.copy(loadingModifierUuids = s.loadingModifierUuids - productUuid)
+                }
                 is Resource.Loading -> {}
             }
         }

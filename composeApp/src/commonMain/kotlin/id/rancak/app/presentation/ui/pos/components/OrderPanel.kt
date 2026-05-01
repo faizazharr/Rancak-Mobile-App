@@ -56,8 +56,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import id.rancak.app.domain.model.Modifier as DomainModifier
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.CartItem
+import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.pos.FeeInputDialog
 import id.rancak.app.presentation.ui.pos.feeFormatNumber
@@ -75,6 +77,10 @@ internal fun OrderPanel(
     hasOpenShift: Boolean = true,
     onUpdateQty: (CartItem, Int) -> Unit,
     onUpdateNote: (CartItem, String) -> Unit,
+    /** Cache modifier per-produk dari PosViewModel — key = productUuid. */
+    modifierCache: Map<String, List<DomainModifier>> = emptyMap(),
+    /** Dipanggil saat note dialog dibuka agar ViewModel load modifier secara lazy. */
+    onLoadModifiers: (productUuid: String) -> Unit = {},
     onClearCart: () -> Unit,
     onOrderType: (OrderType) -> Unit,
     onCustomerName: (String) -> Unit,
@@ -142,7 +148,9 @@ internal fun OrderPanel(
             primary          = primary,
             onSurfaceVariant = onSurfaceVariant,
             onUpdateQty      = onUpdateQty,
-            onUpdateNote     = onUpdateNote
+            onUpdateNote     = onUpdateNote,
+            modifierCache    = modifierCache,
+            onLoadModifiers  = onLoadModifiers
         )
 
         SummaryAndActions(
@@ -424,7 +432,9 @@ private fun CartItemList(
     primary: Color,
     onSurfaceVariant: Color,
     onUpdateQty: (CartItem, Int) -> Unit,
-    onUpdateNote: (CartItem, String) -> Unit
+    onUpdateNote: (CartItem, String) -> Unit,
+    modifierCache: Map<String, List<DomainModifier>> = emptyMap(),
+    onLoadModifiers: (productUuid: String) -> Unit = {}
 ) {
     if (cartState.items.isEmpty()) {
         Box(
@@ -462,12 +472,14 @@ private fun CartItemList(
                 key = { "${it.productUuid}_${it.variantUuid}" }
             ) { item ->
                 OrderItemRow(
-                    item       = item,
-                    primary    = primary,
-                    onIncrease = { onUpdateQty(item, item.qty + 1) },
-                    onDecrease = { onUpdateQty(item, item.qty - 1) },
-                    onSetQty   = { onUpdateQty(item, it) },
-                    onSetNote  = { onUpdateNote(item, it) }
+                    item            = item,
+                    primary         = primary,
+                    modifiers       = modifierCache[item.productUuid] ?: emptyList(),
+                    onLoadModifiers = { onLoadModifiers(item.productUuid) },
+                    onIncrease      = { onUpdateQty(item, item.qty + 1) },
+                    onDecrease      = { onUpdateQty(item, item.qty - 1) },
+                    onSetQty        = { onUpdateQty(item, it) },
+                    onSetNote       = { onUpdateNote(item, it) }
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 12.dp),
@@ -1024,6 +1036,8 @@ private fun FeeInputRow(
 private fun OrderItemRow(
     item: CartItem,
     primary: Color,
+    modifiers: List<DomainModifier> = emptyList(),
+    onLoadModifiers: () -> Unit = {},
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
     onSetQty: (Int) -> Unit,
@@ -1036,6 +1050,11 @@ private fun OrderItemRow(
     var showQtyDialog  by remember { mutableStateOf(false) }
     var showNoteDialog by remember { mutableStateOf(false) }
     var noteText       by remember(item.note) { mutableStateOf(item.note ?: "") }
+
+    // Load modifier saat dialog note akan dibuka — lazy, sekali per produk
+    LaunchedEffect(showNoteDialog) {
+        if (showNoteDialog) onLoadModifiers()
+    }
 
     if (showQtyDialog) {
         FeeInputDialog(
@@ -1062,14 +1081,68 @@ private fun OrderItemRow(
                 )
             },
             text = {
-                OutlinedTextField(
-                    value         = noteText,
-                    onValueChange = { noteText = it },
-                    label         = { Text("Contoh: gula sedikit, tambah es") },
-                    shape         = RoundedCornerShape(12.dp),
-                    modifier      = Modifier.fillMaxWidth(),
-                    maxLines      = 3
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    // Modifier chips — hanya tampil jika ada modifier aktif
+                    val activeModifiers = modifiers.filter { it.isActive }
+                    if (activeModifiers.isNotEmpty()) {
+                        Text(
+                            "Preset cepat",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = onSurfaceVariant
+                        )
+                        // Bungkus chips dalam flow-row manual menggunakan FlowRow-style wrap
+                        // via wrapping Row di dalam Column
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            activeModifiers.chunked(3).forEach { rowModifiers ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    rowModifiers.forEach { mod ->
+                                        // Toggle: jika modifier sudah ada di note, hapus; jika belum, append
+                                        val isSelected = noteText.split(", ")
+                                            .map { it.trim() }
+                                            .contains(mod.name)
+                                        Surface(
+                                            onClick = {
+                                                noteText = if (isSelected) {
+                                                    noteText.split(", ")
+                                                        .map { it.trim() }
+                                                        .filter { it.isNotBlank() && it != mod.name }
+                                                        .joinToString(", ")
+                                                } else {
+                                                    val parts = noteText.split(", ")
+                                                        .map { it.trim() }
+                                                        .filter { it.isNotBlank() }
+                                                    (parts + mod.name).joinToString(", ")
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(20.dp),
+                                            color = if (isSelected) primary
+                                                    else MaterialTheme.colorScheme.surfaceVariant,
+                                            tonalElevation = if (isSelected) 0.dp else 1.dp
+                                        ) {
+                                            Text(
+                                                text = mod.name,
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                                        else onSurfaceVariant,
+                                                fontWeight = if (isSelected) FontWeight.SemiBold
+                                                             else FontWeight.Normal
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    OutlinedTextField(
+                        value         = noteText,
+                        onValueChange = { noteText = it },
+                        label         = { Text("Contoh: gula sedikit, tambah es") },
+                        shape         = RoundedCornerShape(12.dp),
+                        modifier      = Modifier.fillMaxWidth(),
+                        maxLines      = 3
+                    )
+                }
             },
             confirmButton = {
                 TextButton(onClick = {

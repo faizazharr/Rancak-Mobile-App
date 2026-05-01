@@ -170,7 +170,9 @@ fun PosScreen(
                 onDeliveryFee    = { cartViewModel.setDeliveryFee(it) },
                 onTip            = { cartViewModel.setTip(it) },
                 onVoucherCode    = { cartViewModel.setVoucherCode(it) },
-                onScanClick      = { showScanner = true }
+                onScanClick      = { showScanner = true },
+                modifierCache    = uiState.modifierCache,
+                onLoadModifiers  = posViewModel::loadModifiersForProduct
             )
         } else {
             PhoneLayout(
@@ -299,7 +301,9 @@ private fun SplitLayout(
     onDeliveryFee: (Long) -> Unit,
     onTip: (Long) -> Unit,
     onVoucherCode: (String) -> Unit,
-    onScanClick: () -> Unit
+    onScanClick: () -> Unit,
+    modifierCache: Map<String, List<id.rancak.app.domain.model.Modifier>> = emptyMap(),
+    onLoadModifiers: (String) -> Unit = {}
 ) {
     Row(Modifier.fillMaxSize()) {
         Column(
@@ -344,6 +348,8 @@ private fun SplitLayout(
             hasOpenShift      = hasOpenShift,
             onUpdateQty       = onUpdateQty,
             onUpdateNote      = onUpdateNote,
+            modifierCache     = modifierCache,
+            onLoadModifiers   = onLoadModifiers,
             onClearCart       = onClearCart,
             onOrderType       = onOrderType,
             onCustomerName    = onCustomerName,
