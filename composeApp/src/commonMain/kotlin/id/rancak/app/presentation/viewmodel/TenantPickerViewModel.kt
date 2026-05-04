@@ -57,6 +57,8 @@ data class TenantPickerUiState(
     val tenants: List<Tenant> = emptyList(),
     val selectedTenant: Tenant? = null,
     val isLoading: Boolean = false,
+    /** True saat data sudah ada dan di-refresh di belakang layar (no full-screen spinner). */
+    val isRefreshing: Boolean = false,
     val isConfirmed: Boolean = false,
     val error: String? = null,
     val submission: OutletSubmissionFormState = OutletSubmissionFormState(),
@@ -74,19 +76,27 @@ class TenantPickerViewModel(
     val uiState: StateFlow<TenantPickerUiState> = _uiState.asStateFlow()
 
     fun loadTenants(autoConfirmSingle: Boolean = true) {
+        val isFirstLoad = _uiState.value.tenants.isEmpty()
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, isConfirmed = false, billingIssue = null) }
+            if (isFirstLoad) {
+                // Muat pertama kali — tampilkan loading penuh dan reset semua state
+                _uiState.update { it.copy(isLoading = true, isConfirmed = false, billingIssue = null) }
+            } else {
+                // Refresh di belakang layar — jangan tampilkan loading penuh agar konten
+                // yang sedang tampil (termasuk BillingIssueContent) tidak berkedip
+                _uiState.update { it.copy(isRefreshing = true, isConfirmed = false) }
+            }
             when (val result = authRepository.getMyTenants()) {
                 is Resource.Success -> {
                     val tenants = result.data
-                    _uiState.update { it.copy(tenants = tenants, isLoading = false) }
+                    _uiState.update { it.copy(tenants = tenants, isLoading = false, isRefreshing = false) }
                     if (autoConfirmSingle && tenants.size == 1) {
                         selectTenant(tenants.first())
                         confirm()
                     }
                 }
                 is Resource.Error -> {
-                    _uiState.update { it.copy(error = result.message, isLoading = false) }
+                    _uiState.update { it.copy(error = result.message, isLoading = false, isRefreshing = false) }
                 }
                 is Resource.Loading -> {}
             }

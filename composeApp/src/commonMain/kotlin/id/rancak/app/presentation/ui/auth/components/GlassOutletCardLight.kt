@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 /**
@@ -36,7 +37,8 @@ internal fun GlassOutletCardLight(
     name: String,
     isSelected: Boolean,
     colorIndex: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    subscriptionStatus: String? = null
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val cardBg by animateColorAsState(
@@ -96,13 +98,34 @@ internal fun GlassOutletCardLight(
                     color      = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
                                  else MaterialTheme.colorScheme.onSurface
                 )
-                Text(
-                    "Outlet Kasir",
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = if (isSelected) primary.copy(0.8f)
-                               else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp)
-                )
+                val (statusLabel, statusColor) = billingStatusInfo(subscriptionStatus)
+                if (statusLabel != null) {
+                    Spacer(Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                            .background(statusColor.copy(alpha = 0.12f))
+                            .border(0.5.dp, statusColor.copy(alpha = 0.45f),
+                                androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            statusLabel,
+                            style      = MaterialTheme.typography.labelSmall,
+                            fontSize   = 10.sp,
+                            color      = statusColor,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                } else {
+                    Text(
+                        "Outlet Kasir",
+                        style    = MaterialTheme.typography.bodySmall,
+                        color    = if (isSelected) primary.copy(0.8f)
+                                   else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
             }
             if (isSelected) {
                 Icon(

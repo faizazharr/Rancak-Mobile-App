@@ -163,10 +163,11 @@ internal fun TenantPickerLandscape(
                         ) {
                             itemsIndexed(tenants, key = { _, t -> t.uuid }) { index, tenant ->
                                 GlassOutletCardLight(
-                                    name       = tenant.name,
-                                    isSelected = selectedTenant == tenant,
-                                    colorIndex = index,
-                                    onClick    = { onSelectTenant(tenant) }
+                                    name               = tenant.name,
+                                    isSelected         = selectedTenant == tenant,
+                                    colorIndex         = index,
+                                    subscriptionStatus = tenant.subscriptionStatus,
+                                    onClick            = { onSelectTenant(tenant) }
                                 )
                             }
                         }
@@ -179,10 +180,11 @@ internal fun TenantPickerLandscape(
                         ) {
                             itemsIndexed(tenants, key = { _, t -> t.uuid }) { index, tenant ->
                                 GlassOutletCardLight(
-                                    name       = tenant.name,
-                                    isSelected = selectedTenant == tenant,
-                                    colorIndex = index,
-                                    onClick    = { onSelectTenant(tenant) }
+                                    name               = tenant.name,
+                                    isSelected         = selectedTenant == tenant,
+                                    colorIndex         = index,
+                                    subscriptionStatus = tenant.subscriptionStatus,
+                                    onClick            = { onSelectTenant(tenant) }
                                 )
                             }
                         }

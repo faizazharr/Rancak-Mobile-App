@@ -145,10 +145,11 @@ internal fun TenantPickerPortrait(
             ) {
                 itemsIndexed(tenants, key = { _, t -> t.uuid }) { index, tenant ->
                     GlassOutletCard(
-                        name       = tenant.name,
-                        isSelected = selectedTenant == tenant,
-                        colorIndex = index,
-                        onClick    = { onSelectTenant(tenant) }
+                        name               = tenant.name,
+                        isSelected         = selectedTenant == tenant,
+                        colorIndex         = index,
+                        subscriptionStatus = tenant.subscriptionStatus,
+                        onClick            = { onSelectTenant(tenant) }
                     )
                 }
             }

@@ -3,10 +3,15 @@ package id.rancak.app.presentation.ui.auth
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.Alignment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -67,65 +72,81 @@ fun TenantPickerScreen(
         }
     }
 
+    // Saat BillingIssueContent ditampilkan, tombol system back kembali ke daftar outlet
+    BackHandler(enabled = uiState.billingIssue != null) {
+        viewModel.dismissBillingIssue()
+    }
+
     val onSelectAndConfirm: (Tenant) -> Unit = { tenant ->
         viewModel.selectTenant(tenant)
         viewModel.confirm()
     }
 
     Scaffold { padding ->
-        when {
-            uiState.isLoading     -> LoadingScreen(Modifier.padding(padding))
-            uiState.error != null -> ErrorScreen(
-                message  = uiState.error!!,
-                onRetry  = viewModel::loadTenants,
-                modifier = Modifier.padding(padding)
-            )
-            // Masalah billing — tampilkan peringatan sebelum masuk ke aplikasi
-            uiState.billingIssue != null -> BillingIssueContent(
-                tenantName       = uiState.selectedTenant?.name ?: "",
-                issue            = uiState.billingIssue!!,
-                onPayBilling     = viewModel::continueToBilling,
-                onPickOtherOutlet = viewModel::dismissBillingIssue,
-                modifier         = Modifier.padding(padding)
-            )
-            // Form atau success bisa ditampilkan meski outlet sudah ada (ajukan outlet tambahan)
-            uiState.tenants.isEmpty() ||
-            uiState.submission.isFormOpen ||
-            uiState.submission.isSubmitted -> OutletSubmissionContent(
-                state                = uiState.submission,
-                onOpenForm           = viewModel::openSubmissionForm,
-                onCloseForm          = viewModel::closeSubmissionForm,
-                onNameChange         = viewModel::updateSubmissionName,
-                onPhoneChange        = viewModel::updateSubmissionPhone,
-                onAddressChange      = viewModel::updateSubmissionAddress,
-                onGmapsChange        = viewModel::updateSubmissionGmapsUrl,
-                onNibChange          = viewModel::updateSubmissionNib,
-                onBusinessTypeChange = viewModel::updateSubmissionBusinessType,
-                onSubmit             = viewModel::submitOutletRequest,
-                onReset              = viewModel::resetSubmission,
-                onLogout             = {
-                    viewModel.logout()
-                    onLoggedOut()
-                },
-                modifier             = Modifier.padding(padding).fillMaxSize()
-            )
-            else -> BoxWithConstraints(modifier = Modifier.padding(padding).fillMaxSize()) {
-                val isWide = maxWidth > maxHeight || maxWidth >= 600.dp
-                if (isWide) {
-                    TenantPickerLandscape(
-                        tenants        = uiState.tenants,
-                        selectedTenant = uiState.selectedTenant,
-                        onSelectTenant = onSelectAndConfirm,
-                        onAddOutlet    = viewModel::openSubmissionForm
-                    )
-                } else {
-                    TenantPickerPortrait(
-                        tenants        = uiState.tenants,
-                        selectedTenant = uiState.selectedTenant,
-                        onSelectTenant = onSelectAndConfirm,
-                        onAddOutlet    = viewModel::openSubmissionForm
-                    )
+        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            when {
+                uiState.isLoading     -> LoadingScreen(Modifier.fillMaxSize())
+                uiState.error != null -> ErrorScreen(
+                    message  = uiState.error!!,
+                    onRetry  = viewModel::loadTenants,
+                    modifier = Modifier.fillMaxSize()
+                )
+                // Masalah billing — tampilkan peringatan sebelum masuk ke aplikasi
+                uiState.billingIssue != null -> BillingIssueContent(
+                    tenantName        = uiState.selectedTenant?.name ?: "",
+                    issue             = uiState.billingIssue!!,
+                    onPayBilling      = viewModel::continueToBilling,
+                    onPickOtherOutlet = viewModel::dismissBillingIssue,
+                    modifier          = Modifier.fillMaxSize()
+                )
+                // Form atau success bisa ditampilkan meski outlet sudah ada (ajukan outlet tambahan)
+                uiState.tenants.isEmpty() ||
+                uiState.submission.isFormOpen ||
+                uiState.submission.isSubmitted -> OutletSubmissionContent(
+                    state                = uiState.submission,
+                    onOpenForm           = viewModel::openSubmissionForm,
+                    onCloseForm          = viewModel::closeSubmissionForm,
+                    onNameChange         = viewModel::updateSubmissionName,
+                    onPhoneChange        = viewModel::updateSubmissionPhone,
+                    onAddressChange      = viewModel::updateSubmissionAddress,
+                    onGmapsChange        = viewModel::updateSubmissionGmapsUrl,
+                    onNibChange          = viewModel::updateSubmissionNib,
+                    onBusinessTypeChange = viewModel::updateSubmissionBusinessType,
+                    onSubmit             = viewModel::submitOutletRequest,
+                    onReset              = viewModel::resetSubmission,
+                    onLogout             = {
+                        viewModel.logout()
+                        onLoggedOut()
+                    },
+                    modifier             = Modifier.fillMaxSize()
+                )
+                else -> BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val isWide = maxWidth > maxHeight || maxWidth >= 600.dp
+                    if (isWide) {
+                        TenantPickerLandscape(
+                            tenants        = uiState.tenants,
+                            selectedTenant = uiState.selectedTenant,
+                            onSelectTenant = onSelectAndConfirm,
+                            onAddOutlet    = viewModel::openSubmissionForm
+                        )
+                    } else {
+                        TenantPickerPortrait(
+                            tenants        = uiState.tenants,
+                            selectedTenant = uiState.selectedTenant,
+                            onSelectTenant = onSelectAndConfirm,
+                            onAddOutlet    = viewModel::openSubmissionForm
+                        )
+                    }
                 }
+            }
+
+            // Indikator refresh tipis di atas saat data di-refresh di belakang layar
+            if (uiState.isRefreshing) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter)
+                )
             }
         }
     }

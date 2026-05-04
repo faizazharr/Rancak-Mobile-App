@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 /**
@@ -34,7 +35,8 @@ internal fun GlassOutletCard(
     name: String,
     isSelected: Boolean,
     colorIndex: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    subscriptionStatus: String? = null
 ) {
     val glassAlpha by animateColorAsState(
         targetValue   = if (isSelected) Color.White.copy(0.28f) else Color.White.copy(0.12f),
@@ -85,20 +87,40 @@ internal fun GlassOutletCard(
                     fontWeight = FontWeight.SemiBold,
                     color      = Color.White
                 )
-                Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    modifier              = Modifier.padding(top = 3.dp)
-                ) {
+                val (statusLabel, statusColor) = billingStatusInfo(subscriptionStatus)
+                if (statusLabel != null) {
+                    Spacer(Modifier.height(4.dp))
                     Box(
-                        Modifier.size(5.dp).clip(CircleShape)
-                            .background(if (isSelected) accent else Color.White.copy(0.40f))
-                    )
-                    Text(
-                        "Outlet Kasir",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(0.65f)
-                    )
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(statusColor.copy(alpha = 0.22f))
+                            .border(0.5.dp, statusColor.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            statusLabel,
+                            style    = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
+                            color    = statusColor,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                } else {
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier              = Modifier.padding(top = 3.dp)
+                    ) {
+                        Box(
+                            Modifier.size(5.dp).clip(CircleShape)
+                                .background(if (isSelected) accent else Color.White.copy(0.40f))
+                        )
+                        Text(
+                            "Outlet Kasir",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(0.65f)
+                        )
+                    }
                 }
             }
             if (isSelected) {
@@ -131,7 +153,10 @@ private fun GlassOutletCardPreview() {
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 GlassOutletCard("Warung Rancak",  isSelected = true,  colorIndex = 0, onClick = {})
-                GlassOutletCard("Cafe Sederhana", isSelected = false, colorIndex = 1, onClick = {})
+                GlassOutletCard("Cafe Sederhana", isSelected = false, colorIndex = 1, onClick = {},
+                    subscriptionStatus = "expired")
+                GlassOutletCard("Kedai Mie",      isSelected = false, colorIndex = 2, onClick = {},
+                    subscriptionStatus = "inactive")
             }
         }
     }
