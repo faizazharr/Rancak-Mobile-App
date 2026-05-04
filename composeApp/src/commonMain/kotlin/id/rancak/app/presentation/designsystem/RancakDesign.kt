@@ -1,8 +1,10 @@
 package id.rancak.app.presentation.designsystem
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
@@ -41,11 +43,11 @@ import androidx.compose.ui.unit.dp
  */
 object RancakDesign {
 
-    val colors: androidx.compose.material3.ColorScheme
+    val colors: ColorScheme
         @Composable @ReadOnlyComposable
         get() = MaterialTheme.colorScheme
 
-    val type: androidx.compose.material3.Typography
+    val type: Typography
         @Composable @ReadOnlyComposable
         get() = MaterialTheme.typography
 

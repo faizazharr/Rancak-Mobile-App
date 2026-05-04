@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.KdsOrder
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class KdsUiState(
     val activeOrders: List<KdsOrder> = emptyList(),
     val completedOrders: List<KdsOrder> = emptyList(),

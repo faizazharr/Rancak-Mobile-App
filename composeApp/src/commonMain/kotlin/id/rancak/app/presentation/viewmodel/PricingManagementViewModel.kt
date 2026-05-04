@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.data.local.PricingConfigStore
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class PricingManagementUiState(
     val surcharges: List<Surcharge> = emptyList(),
     val taxConfigs: List<TaxConfig> = emptyList(),

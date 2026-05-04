@@ -1,5 +1,7 @@
 package id.rancak.app.domain.repository
 
+import androidx.compose.runtime.Immutable
+
 import id.rancak.app.domain.model.OpnameItemEntry
 import id.rancak.app.domain.model.POItemEntry
 import id.rancak.app.domain.model.PurchaseOrder

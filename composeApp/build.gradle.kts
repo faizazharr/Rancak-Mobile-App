@@ -21,7 +21,7 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -40,7 +40,7 @@ kotlin {
             )
         }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
@@ -183,5 +183,28 @@ dependencies {
     add("kspAndroid", libs.room.compiler)
     add("kspIosArm64", libs.room.compiler)
     add("kspIosSimulatorArm64", libs.room.compiler)
+}
+
+// ── Compose Compiler Metrics & Stability Reports ─────────────────────────────
+// Dibutuhkan oleh Android Studio "Compose Stability Analyzer" (Explorer / Cascade / Heatmap).
+//
+// Cara pakai:
+//   ./gradlew :composeApp:assembleRelease   ← selalu pakai Release build untuk hasil akurat
+//
+// Output di:  composeApp/build/compose_compiler/
+//   ├── composeApp-classes.txt       ← stability setiap class (stable/unstable)
+//   ├── composeApp-composables.txt   ← skippable/restartable per @Composable
+//   └── composeApp-composables.csv   ← versi CSV untuk import spreadsheet
+//
+// Setelah build selesai, klik tombol refresh (↻) di panel Compose Stability Analyzer.
+composeCompiler {
+    // Direktori output laporan stabilitas
+    reportsDestination = layout.buildDirectory.dir("compose_compiler")
+    metricsDestination = layout.buildDirectory.dir("compose_compiler")
+
+    // Daftar tipe eksternal yang diketahui stabil tapi tidak dianotasi @Stable/@Immutable.
+    // Tanpa file ini, Compose Compiler akan menandai tipe-tipe ini sebagai "unstable"
+    // meskipun secara praktis sudah aman untuk skip.
+    stabilityConfigurationFiles.add(rootProject.layout.projectDirectory.file("stability_config.conf"))
 }
 

@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Modifier
@@ -15,6 +17,7 @@ import kotlinx.coroutines.launch
 
 enum class ModifierTab { GLOBAL, PER_PRODUCT }
 
+@Immutable
 data class ModifierManagementUiState(
     val modifiers: List<Modifier> = emptyList(),
     val isLoading: Boolean = false,

@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Invoice
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+@Immutable
 data class BillingUiState(
     val isLoading: Boolean = false,
     val subscription: SubscriptionState? = null,

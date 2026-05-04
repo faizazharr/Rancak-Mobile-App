@@ -1,7 +1,10 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
 // ── Stock opname ────────────────────────────────────────────────────────────
 
+@Immutable
 data class StockOpname(
     val uuid: String,
     val opnameNo: String,
@@ -15,6 +18,7 @@ data class StockOpname(
     val createdAt: String
 )
 
+@Immutable
 data class OpnameItem(
     val productUuid: String,
     val productName: String,
@@ -26,6 +30,7 @@ data class OpnameItem(
     val note: String? = null
 )
 
+@Immutable
 data class StockOpnameDetail(
     val opname: StockOpname,
     val items: List<OpnameItem>,
@@ -34,6 +39,7 @@ data class StockOpnameDetail(
 )
 
 /** Input untuk submit hasil hitung fisik per produk. */
+@Immutable
 data class OpnameItemEntry(
     val productUuid: String,
     val actualStock: Double,
@@ -42,6 +48,7 @@ data class OpnameItemEntry(
 
 // ── Suppliers ───────────────────────────────────────────────────────────────
 
+@Immutable
 data class Supplier(
     val uuid: String,
     val name: String,
@@ -56,6 +63,7 @@ data class Supplier(
     val updatedAt: String? = null
 )
 
+@Immutable
 data class SupplierInput(
     val name: String,
     val contactName: String? = null,
@@ -68,6 +76,7 @@ data class SupplierInput(
 
 // ── Purchase orders ─────────────────────────────────────────────────────────
 
+@Immutable
 data class PurchaseOrderItem(
     val uuid: String,
     val productUuid: String,
@@ -79,6 +88,7 @@ data class PurchaseOrderItem(
     val notes: String? = null
 )
 
+@Immutable
 data class PurchaseOrder(
     val uuid: String,
     val poNumber: String,
@@ -100,6 +110,7 @@ data class PurchaseOrder(
     val items: List<PurchaseOrderItem> = emptyList()
 )
 
+@Immutable
 data class POItemEntry(
     val productUuid: String,
     val qtyOrdered: Double,
@@ -107,6 +118,7 @@ data class POItemEntry(
     val notes: String? = null
 )
 
+@Immutable
 data class ReceiveItemEntry(
     val itemUuid: String,
     val qtyReceived: Double

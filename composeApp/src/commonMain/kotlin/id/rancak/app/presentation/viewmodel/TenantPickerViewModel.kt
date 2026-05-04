@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Resource
@@ -24,6 +26,7 @@ enum class BusinessType(val label: String) {
 }
 
 /** State form pengajuan outlet. */
+@Immutable
 data class OutletSubmissionFormState(
     val isFormOpen: Boolean = false,
     val name: String = "",
@@ -53,6 +56,7 @@ enum class BillingIssue {
     INACTIVE
 }
 
+@Immutable
 data class TenantPickerUiState(
     val tenants: List<Tenant> = emptyList(),
     val selectedTenant: Tenant? = null,

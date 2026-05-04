@@ -98,6 +98,7 @@ enum class SaleStatus(val value: String) {
 }
 
 /** Domain model untuk QRIS payment dari Xendit. */
+@Immutable
 data class QrPayment(
     val uuid: String,
     val saleUuid: String,
@@ -134,6 +135,7 @@ enum class PaymentMethod(val value: String) {
     }
 }
 
+@Immutable
 data class Refund(
     val uuid: String,
     val saleUuid: String,
@@ -143,6 +145,7 @@ data class Refund(
     val createdAt: String?
 )
 
+@Immutable
 data class RefundItem(
     val saleItemUuid: String,
     val productName: String,
@@ -151,12 +154,14 @@ data class RefundItem(
 )
 
 /** Input untuk request refund: refund [qty] unit dari [saleItemUuid]. */
+@Immutable
 data class RefundItemInput(
     val saleItemUuid: String,
     val qty: Int
 )
 
 /** Item yang akan ditambahkan ke keranjang belanja. */
+@Immutable
 data class CartItem(
     val productUuid: String,
     val productName: String,
@@ -171,6 +176,7 @@ data class CartItem(
 }
 
 /** Satu metode bayar dalam split payment. */
+@Immutable
 data class SplitPaymentEntry(
     val method: PaymentMethod,
     val amount: Long,
@@ -178,12 +184,14 @@ data class SplitPaymentEntry(
 )
 
 /** Hasil split bill — transaksi asal + transaksi baru. */
+@Immutable
 data class SplitBillResult(
     val original: Sale,
     val newSale: Sale
 )
 
 /** Hasil reprint — tipe cetak + sale lengkap. */
+@Immutable
 data class ReprintResult(
     val printType: String,
     val sale: Sale

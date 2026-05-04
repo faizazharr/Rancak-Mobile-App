@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Product
@@ -21,6 +23,7 @@ import kotlinx.coroutines.launch
  * mengirimkannya ke `POST /sales/:id/items` melalui
  * [SaleRepository.addItemsToHeldOrder].
  */
+@Immutable
 data class AddItemsToHeldOrderUiState(
     val isLoading: Boolean = false,
     val isSubmitting: Boolean = false,

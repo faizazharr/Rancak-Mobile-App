@@ -1,7 +1,11 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
 sealed class Resource<out T> {
+@Immutable
     data class Success<T>(val data: T) : Resource<T>()
+@Immutable
     data class Error(val message: String, val code: Int? = null) : Resource<Nothing>()
     data object Loading : Resource<Nothing>()
 

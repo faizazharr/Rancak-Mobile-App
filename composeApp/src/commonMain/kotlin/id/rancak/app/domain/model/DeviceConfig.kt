@@ -1,6 +1,9 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
 /** Konfigurasi printer untuk perangkat tertentu (atau global tenant). */
+@Immutable
 data class Printer(
     val uuid: String,
     val deviceId: String?,
@@ -17,6 +20,7 @@ data class Printer(
 )
 
 /** Key-value config tenant (mis. invoice prefix, tax rate cache, dll). */
+@Immutable
 data class AppConfig(
     val key: String,
     val value: String,

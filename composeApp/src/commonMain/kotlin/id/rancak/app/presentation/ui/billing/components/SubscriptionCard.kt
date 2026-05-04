@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.SubscriptionState
 import id.rancak.app.presentation.designsystem.Primary
@@ -168,9 +169,9 @@ private fun SubInfoItem(
     label: String,
     value: String,
     align: Alignment.Horizontal = Alignment.Start,
-    minWidth: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified
+    minWidth: Dp = Dp.Unspecified
 ) {
-    val mod = if (minWidth != androidx.compose.ui.unit.Dp.Unspecified)
+    val mod = if (minWidth != Dp.Unspecified)
         Modifier.widthIn(min = minWidth)
     else
         Modifier

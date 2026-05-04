@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Reservation
@@ -24,6 +26,7 @@ enum class ReservationStatusFilter(val apiValue: String?, val label: String) {
     CANCELLED("cancelled", "Dibatalkan")
 }
 
+@Immutable
 data class ReservationUiState(
     val reservations: List<Reservation> = emptyList(),
     val tables: List<Table> = emptyList(),

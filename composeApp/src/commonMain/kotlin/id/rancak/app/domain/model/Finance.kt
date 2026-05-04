@@ -1,5 +1,8 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class CashIn(
     val uuid: String,
     val amount: Long,
@@ -13,6 +16,7 @@ data class CashIn(
     val createdAt: String?
 )
 
+@Immutable
 data class Expense(
     val uuid: String,
     val amount: Long,
@@ -27,6 +31,7 @@ data class Expense(
     val updatedAt: String?
 )
 
+@Immutable
 data class Bundle(
     val uuid: String,
     val name: String,
@@ -35,12 +40,14 @@ data class Bundle(
     val items: List<BundleItem>
 )
 
+@Immutable
 data class BundleItem(
     val productUuid: String,
     val productName: String?,
     val qty: Int
 )
 
+@Immutable
 data class Modifier(
     val uuid: String,
     val name: String,
@@ -49,12 +56,14 @@ data class Modifier(
     val isActive: Boolean = true
 )
 
+@Immutable
 data class PaymentMethodReport(
     val method: String,
     val total: Long,
     val count: Int
 )
 
+@Immutable
 data class ShiftSummary(
     val uuid: String,
     val openedAt: String?,
@@ -72,18 +81,21 @@ data class ShiftSummary(
     val paymentSummary: List<PaymentMethodReport>
 )
 
+@Immutable
 data class MySalesReport(
     val totalSales: Long,
     val totalTransactions: Int,
     val cashTotal: Long
 )
 
+@Immutable
 data class DailyCategoryReport(
     val categoryName: String,
     val totalSales: Long,
     val totalQty: Double
 )
 
+@Immutable
 data class Receipt(
     val invoiceNo: String?,
     val tenantName: String?,
@@ -108,6 +120,7 @@ data class Receipt(
     val paymentMethod: String?
 )
 
+@Immutable
 data class ReceiptItemDomain(
     val productName: String,
     val variantName: String?,
@@ -118,6 +131,7 @@ data class ReceiptItemDomain(
 )
 
 /** Kategori pengeluaran (admin/owner). */
+@Immutable
 data class ExpenseCategory(
     val uuid: String,
     val name: String,

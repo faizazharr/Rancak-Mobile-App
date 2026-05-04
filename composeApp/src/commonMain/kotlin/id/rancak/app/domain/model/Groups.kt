@@ -1,5 +1,8 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class Group(
     val uuid: String,
     val name: String,
@@ -8,6 +11,7 @@ data class Group(
     val createdAt: String?
 )
 
+@Immutable
 data class GroupOverview(
     val totalRevenue: Double,
     val totalTransactions: Int,
@@ -18,6 +22,7 @@ data class GroupOverview(
     val periodEnd: String?
 )
 
+@Immutable
 data class BranchReport(
     val tenantUuid: String,
     val name: String,

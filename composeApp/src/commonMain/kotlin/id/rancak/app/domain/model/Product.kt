@@ -26,6 +26,7 @@ data class Category(
     val description: String?
 )
 
+@Immutable
 data class VariantGroup(
     val uuid: String,
     val name: String,
@@ -34,6 +35,7 @@ data class VariantGroup(
     val variants: List<Variant>
 )
 
+@Immutable
 data class Variant(
     val uuid: String,
     val name: String,
@@ -42,6 +44,7 @@ data class Variant(
     val isActive: Boolean = true
 )
 
+@Immutable
 data class ProductBatch(
     val uuid: String,
     val quantityInitial: Double,
@@ -56,6 +59,7 @@ data class ProductBatch(
     val isExpired: Boolean
 )
 
+@Immutable
 data class FavoriteProduct(
     val uuid: String,
     val name: String,
@@ -68,6 +72,7 @@ data class FavoriteProduct(
     val isLowStock: Boolean
 )
 
+@Immutable
 data class Product86(
     val uuid: String,
     val productUuid: String,
@@ -78,6 +83,7 @@ data class Product86(
     val createdAt: String?
 )
 
+@Immutable
 data class StockReport(
     val productUuid: String,
     val sku: String?,
@@ -86,6 +92,7 @@ data class StockReport(
     val stockAlertThreshold: Double?
 )
 
+@Immutable
 data class LowStock(
     val productUuid: String,
     val productName: String,
@@ -94,6 +101,7 @@ data class LowStock(
     val threshold: Double
 )
 
+@Immutable
 data class StockAlert(
     val productUuid: String,
     val productName: String,
@@ -103,6 +111,7 @@ data class StockAlert(
     val threshold: Double?
 )
 
+@Immutable
 data class ExpiringBatch(
     val batchUuid: String,
     val productUuid: String,

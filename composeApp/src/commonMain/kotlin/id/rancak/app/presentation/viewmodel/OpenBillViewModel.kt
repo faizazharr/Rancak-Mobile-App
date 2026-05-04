@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.data.local.LocalOpenBill
@@ -19,6 +21,7 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlin.time.Clock
 
+@Immutable
 data class OpenBillUiState(
     val bills: List<LocalOpenBill> = emptyList(),
     /** True saat dialog nama open bill sedang ditampilkan. */

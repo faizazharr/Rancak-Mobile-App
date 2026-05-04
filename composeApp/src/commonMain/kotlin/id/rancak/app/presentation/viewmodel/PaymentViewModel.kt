@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.CartItem
@@ -35,6 +37,7 @@ private const val QRIS_MAX_POLLS = 150
 private const val MAX_AMOUNT: Long = 999_999_999_999L
 
 /** Satu item yang dapat dibagi dalam split bill. */
+@Immutable
 data class SplitableItem(
     val index: Int,
     val name: String,
@@ -49,6 +52,7 @@ data class SplitableItem(
  *  [itemQtys]: itemIndex → jumlah qty yang dibayar oleh grup ini.
  *  [groupActualTotal]: total yang harus dibayar grup ini (item subtotal + biaya proporsional).
  */
+@Immutable
 data class SplitGroup(
     val id: Int,
     val itemQtys: Map<Int, Int>,
@@ -57,6 +61,7 @@ data class SplitGroup(
     val groupActualTotal: Long = 0L  // item subtotal + biaya proporsional
 )
 
+@Immutable
 data class PaymentUiState(
     val selectedMethod: PaymentMethod = PaymentMethod.CASH,
     val paidAmount: String = "",

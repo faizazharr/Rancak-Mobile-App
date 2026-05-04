@@ -1,5 +1,7 @@
 package id.rancak.app.domain.repository
 
+import androidx.compose.runtime.Immutable
+
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.OrderBoardOrder
 import id.rancak.app.domain.model.OrderType

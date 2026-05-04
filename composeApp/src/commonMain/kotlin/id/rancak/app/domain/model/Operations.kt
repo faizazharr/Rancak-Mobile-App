@@ -1,5 +1,8 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class Table(
     val uuid: String,
     val name: String,
@@ -22,6 +25,7 @@ enum class TableStatus(val value: String) {
     }
 }
 
+@Immutable
 data class Shift(
     val uuid: String,
     val openedAt: String?,
@@ -48,6 +52,7 @@ enum class ShiftStatus(val value: String) {
     }
 }
 
+@Immutable
 data class KdsOrder(
     val uuid: String,
     val invoiceNo: String?,
@@ -61,6 +66,7 @@ data class KdsOrder(
     val createdAt: String?
 )
 
+@Immutable
 data class KdsItem(
     val uuid: String,
     val productName: String,
@@ -94,6 +100,7 @@ enum class KdsItemStatus(val value: String) {
     }
 }
 
+@Immutable
 data class Surcharge(
     val uuid: String,
     val orderType: String?,
@@ -105,6 +112,7 @@ data class Surcharge(
     val sortOrder: Int
 )
 
+@Immutable
 data class TaxConfig(
     val uuid: String,
     val name: String,
@@ -114,6 +122,7 @@ data class TaxConfig(
     val isActive: Boolean
 )
 
+@Immutable
 data class DiscountRule(
     val uuid: String,
     val name: String,
@@ -131,11 +140,13 @@ data class DiscountRule(
     val isActive: Boolean
 )
 
+@Immutable
 data class VoucherValidation(
     val voucher: Voucher,
     val discountApplied: Long
 )
 
+@Immutable
 data class Voucher(
     val uuid: String,
     val code: String,
@@ -152,12 +163,14 @@ data class Voucher(
     val isActive: Boolean
 )
 
+@Immutable
 data class DiscountPreview(
     val appliedRules: List<AppliedRule>,
     val totalDiscount: Long,
     val finalTotal: Long
 )
 
+@Immutable
 data class AppliedRule(
     val uuid: String,
     val name: String,
@@ -165,6 +178,7 @@ data class AppliedRule(
     val discount: Long
 )
 
+@Immutable
 data class OrderBoardOrder(
     val uuid: String,
     val invoiceNo: String?,
@@ -177,6 +191,7 @@ data class OrderBoardOrder(
     val items: List<OrderBoardItem>
 )
 
+@Immutable
 data class OrderBoardItem(
     val productName: String,
     val qty: Int,
@@ -184,6 +199,7 @@ data class OrderBoardItem(
 )
 
 /** Cash count: rekonsiliasi kas fisik vs sistem. */
+@Immutable
 data class CashCount(
     val uuid: String,
     val shiftUuid: String,
@@ -197,6 +213,7 @@ data class CashCount(
 )
 
 /** Rekap shift per kasir untuk laporan harian. */
+@Immutable
 data class CashierShiftSummary(
     val cashierUuid: String?,
     val cashierName: String,

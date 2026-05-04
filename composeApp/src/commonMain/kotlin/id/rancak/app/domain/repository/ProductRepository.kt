@@ -1,5 +1,7 @@
 package id.rancak.app.domain.repository
 
+import androidx.compose.runtime.Immutable
+
 import id.rancak.app.domain.model.Bundle
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.FavoriteProduct

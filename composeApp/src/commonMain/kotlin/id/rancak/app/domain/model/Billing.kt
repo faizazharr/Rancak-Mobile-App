@@ -1,5 +1,8 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class Plan(
     val uuid: String,
     val code: String,
@@ -13,6 +16,7 @@ data class Plan(
     val totalPrice: Double
 )
 
+@Immutable
 data class SubscriptionState(
     val status: String,
     val plan: String?,
@@ -22,6 +26,7 @@ data class SubscriptionState(
     val hadTrial: Boolean
 )
 
+@Immutable
 data class Invoice(
     val uuid: String,
     val invoiceNo: String,

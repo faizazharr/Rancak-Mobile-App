@@ -1,6 +1,9 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
 /** Reservasi meja restoran — pending → confirmed → seated → completed. */
+@Immutable
 data class Reservation(
     val uuid: String,
     val customerName: String,
@@ -23,6 +26,7 @@ data class Reservation(
     val createdAt: String
 )
 
+@Immutable
 data class ReservationInput(
     val customerName: String,
     val customerPhone: String? = null,

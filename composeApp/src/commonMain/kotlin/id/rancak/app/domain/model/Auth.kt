@@ -1,5 +1,8 @@
 package id.rancak.app.domain.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class User(
     val uuid: String,
     val name: String,
@@ -7,6 +10,7 @@ data class User(
     val tenants: List<Tenant> = emptyList()
 )
 
+@Immutable
 data class Tenant(
     val uuid: String,
     val name: String,
@@ -17,17 +21,20 @@ data class Tenant(
     val subscriptionExpiresAt: String? = null
 )
 
+@Immutable
 data class AuthTokens(
     val accessToken: String,
     val refreshToken: String,
     val expiresIn: Long
 )
 
+@Immutable
 data class LoginResult(
     val tokens: AuthTokens,
     val user: User
 )
 
+@Immutable
 data class TenantSettings(
     val uuid: String,
     val name: String,
@@ -41,6 +48,7 @@ data class TenantSettings(
     val currentUsers: Int?
 )
 
+@Immutable
 data class ReceiptSettings(
     val logoUrl: String? = null,
     val email: String? = null,
@@ -61,6 +69,7 @@ data class ReceiptSettings(
     val receiptWifiPassword: String? = null
 )
 
+@Immutable
 data class Session(
     val sessionId: String,
     val userAgent: String?,
@@ -77,6 +86,7 @@ data class Session(
  * disubmit dan [approvedTenantUuid] selalu terisi — client bisa langsung
  * navigate ke tenant baru tanpa fetch ulang `GET /tenants`.
  */
+@Immutable
 data class TenantApplication(
     val uuid: String,
     val outletName: String,

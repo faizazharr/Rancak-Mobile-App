@@ -1,5 +1,7 @@
 package id.rancak.app.domain.repository
 
+import androidx.compose.runtime.Immutable
+
 import id.rancak.app.domain.model.Bundle
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.DiscountRule
@@ -248,6 +250,7 @@ interface AdminRepository {
 
 // ── Support types ──────────────────────────────────────────────────────────────
 
+@Immutable
 data class VoucherUpdate(
     val name: String? = null,
     val description: String? = null,
@@ -260,8 +263,10 @@ data class VoucherUpdate(
     val isActive: Boolean? = null
 )
 
+@Immutable
 data class BundleItemEntry(val productUuid: String, val qty: String = "1")
 
+@Immutable
 data class BundleUpdate(
     val name: String? = null,
     val description: String? = null,
@@ -272,6 +277,7 @@ data class BundleUpdate(
     val items: List<BundleItemEntry>? = null
 )
 
+@Immutable
 data class DiscountRuleUpdate(
     val name: String? = null,
     val description: String? = null,
@@ -288,6 +294,7 @@ data class DiscountRuleUpdate(
     val isActive: Boolean? = null
 )
 
+@Immutable
 data class StockAdjustmentResult(
     val productUuid: String,
     val productName: String,
@@ -297,6 +304,7 @@ data class StockAdjustmentResult(
     val quantity: Double
 )
 
+@Immutable
 data class ReceiptSettingsUpdate(
     val logoUrl: String? = null,
     val email: String? = null,

@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.viewmodel
 
+import androidx.compose.runtime.Immutable
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Refund
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Satu baris item yang dapat di-refund di dialog. */
+@Immutable
 data class RefundLine(
     val saleItemUuid: String,
     val productName: String,
@@ -26,6 +29,7 @@ data class RefundLine(
     val lineRefund: Long get() = unitPrice * qtyToRefund
 }
 
+@Immutable
 data class RefundUiState(
     val saleUuid: String? = null,
     val invoiceNo: String? = null,
