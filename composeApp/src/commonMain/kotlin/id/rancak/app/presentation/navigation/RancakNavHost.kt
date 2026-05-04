@@ -131,7 +131,7 @@ fun RancakNavHost() {
                     DrawerItem("Modifier",        Icons.Default.Tune,          Screen.ModifierManagement),
                     DrawerItem("Supplier",        Icons.Default.LocalShipping, Screen.SupplierManagement),
                     DrawerItem("Purchase Order",  Icons.Default.ShoppingCart,  Screen.PurchaseOrders),
-                    DrawerItem("Billing",        Icons.Default.CreditCard,    Screen.Billing),
+                    DrawerItem("Billing",        Icons.Default.CreditCard,    Screen.Billing()),  // fromSetup = false (drawer)
                     DrawerItem("Pengaturan",     Icons.Default.Settings,      Screen.Settings),
                 )
             ),
@@ -420,7 +420,8 @@ private fun NavigationContent(
                     }
                 },
                 onNavigateToBilling = {
-                    navController.navigate(Screen.Billing)
+                    // fromSetup = true → BillingScreen menampilkan back arrow, bukan hamburger
+                    navController.navigate(Screen.Billing(fromSetup = true))
                 }
             )
         }
@@ -564,7 +565,14 @@ private fun NavigationContent(
         }
 
         composable<Screen.Billing> {
-            BillingScreen(onBack = onMenuClick)
+            val route = it.toRoute<Screen.Billing>()
+            if (route.fromSetup) {
+                // Dibuka dari flow setup billing (TenantPicker) — tampilkan back arrow
+                BillingScreen(onNavigateUp = { navController.popBackStack() })
+            } else {
+                // Dibuka dari drawer — tampilkan hamburger
+                BillingScreen(onBack = onMenuClick)
+            }
         }
 
         composable<Screen.StockOpname> {

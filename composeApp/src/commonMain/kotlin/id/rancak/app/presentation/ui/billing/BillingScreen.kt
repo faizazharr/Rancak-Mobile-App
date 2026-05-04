@@ -19,7 +19,10 @@ import org.koin.compose.viewmodel.koinViewModel
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-fun BillingScreen(onBack: () -> Unit) {
+fun BillingScreen(
+    onBack: (() -> Unit)? = null,
+    onNavigateUp: (() -> Unit)? = null
+) {
     val viewModel: BillingViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -43,7 +46,8 @@ fun BillingScreen(onBack: () -> Unit) {
             RancakTopBar(
                 title = "Billing & Langganan",
                 icon = Icons.Default.CreditCard,
-                onMenu = onBack
+                onMenu = onBack,
+                onBack = onNavigateUp
             )
         }
     ) { innerPadding ->

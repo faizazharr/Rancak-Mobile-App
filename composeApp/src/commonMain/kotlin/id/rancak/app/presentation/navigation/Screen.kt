@@ -23,7 +23,7 @@ sealed class Screen {
     @Serializable data object Reports : Screen()
     @Serializable data object CashExpense : Screen()
     @Serializable data object ProductManagement : Screen()
-    @Serializable data object Billing : Screen()
+    @Serializable data class  Billing(val fromSetup: Boolean = false) : Screen()
     @Serializable data object StockOpname : Screen()
     @Serializable data object VoucherManagement : Screen()
     @Serializable data object PricingManagement : Screen()
