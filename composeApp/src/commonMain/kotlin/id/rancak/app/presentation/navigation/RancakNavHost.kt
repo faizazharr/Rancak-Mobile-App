@@ -38,6 +38,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -146,17 +147,23 @@ fun RancakNavHost() {
     }
 
     val currentDestination = navBackStackEntry?.destination
-    // showDrawer: gunakan hasRoute bertipe aman — tidak bergantung pada string route yang rapuh.
-    // Screen.Billing dikecualikan meskipun bukan layar auth, karena:
-    //   - fromSetup=true: dibuka dari TenantPicker (flow auth), tidak butuh drawer sama sekali.
-    //   - fromSetup=false: dibuka dari drawer; drawer di layar ini redundan dan menyebabkan
-    //     white-flash saat transisi dari TenantPicker → Billing.
-    val showDrawer = remember(currentDestination) {
-        currentDestination != null &&
-            !currentDestination.hasRoute(Screen.Splash::class) &&
-            !currentDestination.hasRoute(Screen.Login::class) &&
-            !currentDestination.hasRoute(Screen.TenantPicker::class) &&
-            !currentDestination.hasRoute(Screen.Billing::class)
+    // visibleEntries: semua NavBackStackEntry yang sedang di-render, termasuk
+    // entry yang masih dalam animasi enter/exit. Ketika navigasi dikonfirmasi,
+    // currentDestination langsung berubah ke tujuan baru — tetapi entry lama masih
+    // ada di visibleEntries sampai exit animation selesai (~140 ms).
+    // Menggunakan visibleEntries memastikan showDrawer hanya menjadi true SETELAH
+    // layar auth (Splash/Login/TenantPicker/Billing) benar-benar selesai keluar
+    // dari komposisi, mencegah flash drawer di tengah transisi.
+    val visibleEntries by navController.visibleEntries.collectAsState()
+    val showDrawer = remember(visibleEntries) {
+        visibleEntries.isNotEmpty() &&
+            visibleEntries.none { entry ->
+                val d = entry.destination
+                d.hasRoute(Screen.Splash::class) ||
+                d.hasRoute(Screen.Login::class) ||
+                d.hasRoute(Screen.TenantPicker::class) ||
+                d.hasRoute(Screen.Billing::class)
+            }
     }
 
     // Pastikan drawer selalu tertutup setiap kali pindah destinasi.
@@ -426,8 +433,19 @@ private fun NavigationContent(
                                        status == "past_due" ||
                                        status == "inactive"
                         if (hasIssue) {
-                            navController.navigate(Screen.TenantPicker()) {
-                                popUpTo(0) { inclusive = true }
+                            // Re-check setelah network call selesai: user bisa saja sudah
+                            // berpindah ke layar exempt selama jaringan memproses permintaan
+                            // → cegah double-navigate yang duplikat entry TenantPicker.
+                            val destNow = navController.currentBackStackEntry?.destination
+                            val isNowExempt = destNow == null ||
+                                destNow.hasRoute(Screen.Splash::class) ||
+                                destNow.hasRoute(Screen.Login::class) ||
+                                destNow.hasRoute(Screen.TenantPicker::class) ||
+                                destNow.hasRoute(Screen.Billing::class)
+                            if (!isNowExempt) {
+                                navController.navigate(Screen.TenantPicker()) {
+                                    popUpTo(0) { inclusive = true }
+                                }
                             }
                         }
                     }
@@ -451,10 +469,13 @@ private fun NavigationContent(
             modifier         = Modifier.fillMaxSize(),
             // Transisi default seragam: cross-fade halus mencegah “white flash”
             // dan memberi efek mulus saat berpindah destinasi.
-            enterTransition    = { fadeIn(animationSpec  = tween(durationMillis = 180)) },
-            exitTransition     = { fadeOut(animationSpec = tween(durationMillis = 140)) },
-            popEnterTransition = { fadeIn(animationSpec  = tween(durationMillis = 180)) },
-            popExitTransition  = { fadeOut(animationSpec = tween(durationMillis = 140)) }
+            // Enter lebih panjang dari exit: layar baru fade-in lebih lambat sehingga
+            // ViewModel sempat diinisialisasi sebelum konten sepenuhnya terlihat.
+            // Exit lebih cepat agar layar lama cepat "pergi" dan tidak mengganggu.
+            enterTransition    = { fadeIn(animationSpec  = tween(durationMillis = 220)) },
+            exitTransition     = { fadeOut(animationSpec = tween(durationMillis = 150)) },
+            popEnterTransition = { fadeIn(animationSpec  = tween(durationMillis = 200)) },
+            popExitTransition  = { fadeOut(animationSpec = tween(durationMillis = 150)) }
         ) {
             authGraph(navController)
             kasirGraph(navController, cartViewModel, onMenuClick)

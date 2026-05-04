@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.SubscriptionState
@@ -48,27 +49,54 @@ fun SubscriptionCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                // Kiri: status + nama paket — bisa mengambil ruang lebih banyak
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Icon(statusIcon, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                        Text("Status Langganan", style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.75f))
+                        Text(
+                            "Status Langganan",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.75f)
+                        )
                         SubStatusPill(statusLabel)
                     }
                     Text(
                         subscription?.plan?.uppercase() ?: "TIDAK ADA PAKET",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold, color = Color.White
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+                // Kanan: info detail — setiap kolom punya lebar tetap agar tidak kolaps
                 if (subscription != null) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                        SubInfoItem("Mulai", subscription.startedAt?.take(10) ?: "-")
-                        SubInfoItem("Berakhir", subscription.expiresAt?.take(10) ?: "-", Alignment.CenterHorizontally)
-                        SubInfoItem("Maks. User", subscription.maxUsers?.toString() ?: "∞", Alignment.End)
+                    Spacer(Modifier.width(16.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                        SubInfoItem(
+                            label = "Mulai",
+                            value = subscription.startedAt?.take(10) ?: "-",
+                            align = Alignment.Start,
+                            minWidth = 90.dp
+                        )
+                        SubInfoItem(
+                            label = "Berakhir",
+                            value = subscription.expiresAt?.take(10) ?: "-",
+                            align = Alignment.Start,
+                            minWidth = 90.dp
+                        )
+                        SubInfoItem(
+                            label = "Maks. Pengguna",
+                            value = subscription.maxUsers?.toString() ?: "Tidak terbatas",
+                            align = Alignment.End,
+                            minWidth = 100.dp
+                        )
                     }
                 }
             }
@@ -79,22 +107,42 @@ fun SubscriptionCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(statusIcon, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                    Text("Status Langganan", style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.75f))
+                    Text(
+                        "Status Langganan",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.75f)
+                    )
                     Spacer(Modifier.weight(1f))
                     SubStatusPill(statusLabel)
                 }
                 Text(
                     subscription?.plan?.uppercase() ?: "TIDAK ADA PAKET",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold, color = Color.White
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (subscription != null) {
                     HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        SubInfoItem("Mulai", subscription.startedAt?.take(10) ?: "-")
-                        SubInfoItem("Berakhir", subscription.expiresAt?.take(10) ?: "-", Alignment.CenterHorizontally)
-                        SubInfoItem("Maks. User", subscription.maxUsers?.toString() ?: "∞", Alignment.End)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        SubInfoItem(
+                            label = "Mulai",
+                            value = subscription.startedAt?.take(10) ?: "-"
+                        )
+                        SubInfoItem(
+                            label = "Berakhir",
+                            value = subscription.expiresAt?.take(10) ?: "-",
+                            align = Alignment.CenterHorizontally
+                        )
+                        SubInfoItem(
+                            label = "Maks. Pengguna",
+                            value = subscription.maxUsers?.toString() ?: "∞",
+                            align = Alignment.End
+                        )
                     }
                 }
             }
@@ -116,10 +164,36 @@ private fun SubStatusPill(label: String) {
 }
 
 @Composable
-private fun SubInfoItem(label: String, value: String, align: Alignment.Horizontal = Alignment.Start) {
-    Column(horizontalAlignment = align, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.65f))
-        Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = Color.White)
+private fun SubInfoItem(
+    label: String,
+    value: String,
+    align: Alignment.Horizontal = Alignment.Start,
+    minWidth: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified
+) {
+    val mod = if (minWidth != androidx.compose.ui.unit.Dp.Unspecified)
+        Modifier.widthIn(min = minWidth)
+    else
+        Modifier
+    Column(
+        modifier = mod,
+        horizontalAlignment = align,
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.65f),
+            maxLines = 1,
+            overflow = TextOverflow.Clip
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
