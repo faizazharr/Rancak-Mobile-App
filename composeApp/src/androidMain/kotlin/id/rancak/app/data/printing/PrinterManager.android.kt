@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.compose.runtime.Stable
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -26,6 +27,7 @@ import java.net.Socket
  *   - Sends raw bytes to IP:port (default 9100) via Java Socket
  *   - Printer must be on the same LAN/Wi-Fi network
  */
+@Stable
 actual class PrinterManager actual constructor() {
 
     private var appContext: Context? = null

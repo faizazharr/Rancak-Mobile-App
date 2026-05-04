@@ -27,11 +27,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Tenant
 import id.rancak.app.presentation.designsystem.RancakTheme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 /** Layout portrait (phone) — gradient penuh + list kartu glass. */
 @Composable
 internal fun TenantPickerPortrait(
-    tenants: List<Tenant>,
+    tenants: ImmutableList<Tenant>,
     selectedTenant: Tenant?,
     onSelectTenant: (Tenant) -> Unit,
     onAddOutlet: (() -> Unit)? = null
@@ -182,7 +184,7 @@ private fun TenantPickerPortraitPreview() {
             Tenant("1", "Warung Rancak"),
             Tenant("2", "Cafe Sederhana"),
             Tenant("3", "Kedai Kopi")
-        )
+        ).toImmutableList()
         TenantPickerPortrait(tenants, tenants.first(), {})
     }
 }

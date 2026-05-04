@@ -27,6 +27,7 @@ import id.rancak.app.presentation.ui.auth.components.OutletSubmissionContent
 import id.rancak.app.presentation.ui.auth.components.TenantPickerLandscape
 import id.rancak.app.presentation.ui.auth.components.TenantPickerPortrait
 import id.rancak.app.presentation.viewmodel.TenantPickerViewModel
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -124,14 +125,14 @@ fun TenantPickerScreen(
                     val isWide = maxWidth > maxHeight || maxWidth >= 600.dp
                     if (isWide) {
                         TenantPickerLandscape(
-                            tenants        = uiState.tenants,
+                            tenants        = uiState.tenants.toImmutableList(),
                             selectedTenant = uiState.selectedTenant,
                             onSelectTenant = onSelectAndConfirm,
                             onAddOutlet    = viewModel::openSubmissionForm
                         )
                     } else {
                         TenantPickerPortrait(
-                            tenants        = uiState.tenants,
+                            tenants        = uiState.tenants.toImmutableList(),
                             selectedTenant = uiState.selectedTenant,
                             onSelectTenant = onSelectAndConfirm,
                             onAddOutlet    = viewModel::openSubmissionForm
@@ -163,7 +164,7 @@ private fun TenantPickerScreenPhonePreview() {
         id.rancak.app.domain.model.Tenant("1", "Warung Rancak"),
         id.rancak.app.domain.model.Tenant("2", "Cafe Sederhana"),
         id.rancak.app.domain.model.Tenant("3", "Kedai Kopi")
-    )
+    ).toImmutableList()
     id.rancak.app.presentation.designsystem.RancakTheme {
         id.rancak.app.presentation.ui.auth.components.TenantPickerPortrait(
             tenants        = tenants,
@@ -181,7 +182,7 @@ private fun TenantPickerScreenTabletPreview() {
         id.rancak.app.domain.model.Tenant("2", "Cafe Sederhana"),
         id.rancak.app.domain.model.Tenant("3", "Kedai Kopi"),
         id.rancak.app.domain.model.Tenant("4", "Toko Serba Ada")
-    )
+    ).toImmutableList()
     id.rancak.app.presentation.designsystem.RancakTheme {
         id.rancak.app.presentation.ui.auth.components.TenantPickerLandscape(
             tenants        = tenants,

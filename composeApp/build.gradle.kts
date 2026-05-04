@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.stabilityAnalyzer)
 }
 
 kotlin {
@@ -114,6 +115,10 @@ kotlin {
 
             // QR Code (QRIS)
             implementation(libs.qrose)
+
+            // Kotlinx Immutable Collections — ImmutableList untuk Compose stability
+            // Ganti List<T> di parameter @Composable dengan ImmutableList<T>
+            implementation(libs.kotlinx.collections.immutable)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -198,13 +203,46 @@ dependencies {
 //
 // Setelah build selesai, klik tombol refresh (↻) di panel Compose Stability Analyzer.
 composeCompiler {
-    // Direktori output laporan stabilitas
     reportsDestination = layout.buildDirectory.dir("compose_compiler")
     metricsDestination = layout.buildDirectory.dir("compose_compiler")
-
-    // Daftar tipe eksternal yang diketahui stabil tapi tidak dianotasi @Stable/@Immutable.
-    // Tanpa file ini, Compose Compiler akan menandai tipe-tipe ini sebagai "unstable"
-    // meskipun secara praktis sudah aman untuk skip.
     stabilityConfigurationFiles.add(rootProject.layout.projectDirectory.file("stability_config.conf"))
+}
+
+// ── Skydoves Compose Stability Analyzer ──────────────────────────────────────
+// Menyediakan:
+//   • Stability Explorer  — lihat stability tree per package di panel IDE
+//   • Recomposition Cascade — trace dampak rekomposisi ke downstream
+//   • stabilityDump / stabilityCheck — baseline & CI regression gate
+//
+// Setup IDE plugin:
+//   Android Studio > Settings > Plugins > Marketplace > "Compose Stability Analyzer"
+//
+// Perintah Gradle:
+//   ./gradlew :composeApp:debugStabilityDump    ← buat/perbarui baseline
+//   ./gradlew :composeApp:debugStabilityCheck   ← cek regresi vs baseline
+//
+// Baseline tersimpan di:  composeApp/stability/composeApp.stability
+// Commit file ini ke git agar seluruh tim berbagi baseline yang sama.
+composeStabilityAnalyzer {
+    stabilityValidation {
+        enabled.set(true)
+
+        // Output baseline di dalam module (bukan di build/) agar bisa di-commit
+        outputDir.set(layout.projectDirectory.dir("stability"))
+
+        // Pakai file config yang sama dengan Compose Compiler — satu sumber kebenaran
+        stabilityConfigurationFiles.add(
+            rootProject.layout.projectDirectory.file("stability_config.conf")
+        )
+
+        // false = warn only (tidak gagal build); ubah ke true setelah baseline stabil
+        failOnStabilityChange.set(false)
+
+        // Izinkan pertama kali run tanpa baseline (otomatis buat saat stabilityDump)
+        allowMissingBaseline.set(true)
+
+        // Jangan laporkan composable @Preview — hanya ada di debug/tooling
+        ignoredClasses.set(listOf("Preview"))
+    }
 }
 

@@ -1,5 +1,8 @@
 package id.rancak.app.data.printing
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
+
 /**
  * Shared data models for cross-platform ESC/POS printing.
  * Android: Bluetooth Classic (SPP) + TCP/IP
@@ -7,12 +10,14 @@ package id.rancak.app.data.printing
  */
 
 /** Result type returned from all print operations. */
+@Immutable
 sealed class PrintResult {
     object Success : PrintResult()
-    data class Error(val message: String) : PrintResult()
+    @Immutable data class Error(val message: String) : PrintResult()
 }
 
 /** A discovered printer that can be connected to. */
+@Immutable
 data class PrinterDevice(
     /** Human-readable name (e.g. "XP-58" or "192.168.1.100"). */
     val name: String,
@@ -55,6 +60,7 @@ enum class PrintMode(val value: String) {
 }
 
 /** Full receipt data to be rendered as ESC/POS bytes. */
+@Immutable
 data class ReceiptData(
     val storeName: String,
     val storeAddress: String? = null,
@@ -80,6 +86,7 @@ data class ReceiptData(
     val isVoided: Boolean = false
 )
 
+@Immutable
 data class ReceiptItem(
     val name: String,
     val variantName: String? = null,
@@ -93,6 +100,7 @@ data class ReceiptItem(
  * Kitchen Order Ticket data — sent to kitchen printer.
  * No prices, no totals. Focused on what to cook and where to deliver.
  */
+@Immutable
 data class KitchenTicketData(
     val storeName: String,
     val invoiceNo: String,
@@ -105,6 +113,7 @@ data class KitchenTicketData(
     val items: List<KitchenTicketItem>
 )
 
+@Immutable
 data class KitchenTicketItem(
     val name: String,
     val qty: Int,

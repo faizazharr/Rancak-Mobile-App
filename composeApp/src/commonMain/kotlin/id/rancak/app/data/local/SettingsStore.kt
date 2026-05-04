@@ -1,5 +1,6 @@
 package id.rancak.app.data.local
 
+import androidx.compose.runtime.Stable
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
 
@@ -7,6 +8,7 @@ import com.russhwolf.settings.set
  * Persistent app settings stored via multiplatform-settings.
  * Covers printer connection, receipt header, and general preferences.
  */
+@Stable
 class SettingsStore {
 
     private val settings = Settings()

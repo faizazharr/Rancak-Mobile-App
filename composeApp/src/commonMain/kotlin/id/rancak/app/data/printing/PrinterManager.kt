@@ -25,6 +25,7 @@ package id.rancak.app.data.printing
  * printerManager.printViaBluetooth(device.address, receipt)
  * ```
  */
+@androidx.compose.runtime.Stable
 expect class PrinterManager() {
 
     // ── Network (TCP/IP) ── identical on both platforms ──────────────────────

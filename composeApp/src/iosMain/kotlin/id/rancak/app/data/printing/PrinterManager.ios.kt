@@ -1,5 +1,6 @@
 package id.rancak.app.data.printing
 
+import androidx.compose.runtime.Stable
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.CoreBluetooth.*
@@ -37,6 +38,7 @@ import platform.posix.*
  * ⚠️  Bluetooth Classic (SPP) TIDAK bisa di iOS tanpa sertifikasi MFi Apple.
  *     Kalau printer hanya punya SPP, gunakan mode Wi-Fi printer tersebut.
  */
+@Stable
 actual class PrinterManager actual constructor() {
 
     // ── TCP/IP via POSIX socket ───────────────────────────────────────────────
