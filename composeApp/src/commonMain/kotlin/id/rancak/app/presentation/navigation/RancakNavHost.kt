@@ -1,7 +1,10 @@
 package id.rancak.app.presentation.navigation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -156,11 +159,10 @@ fun RancakNavHost() {
     }
 
     // Pastikan drawer selalu tertutup setiap kali pindah destinasi.
-    // Ini menghindari kesan “drawer muncul duluan sebelum screen” ketika
-    // user navigasi dari satu layar ke layar lain (mis. setelah splash).
+    // Hanya jalankan animasi close() bila drawer benar-benar terbuka agar
+    // tidak memicu kerja yang tidak perlu di setiap navigasi.
     LaunchedEffect(currentRoute) {
         if (drawerState.isOpen) drawerState.close()
-        else drawerState.snapTo(DrawerValue.Closed)
     }
 
     // ── Always keep NavigationContent in the same composition node ───────────
@@ -240,12 +242,19 @@ fun RancakNavHost() {
                                         !(expandedGroups[group.label] ?: group.expandedByDefault)
                                 },
                                 onItemClick = { item ->
+                                    // Navigasi top-level drawer:
+                                    //  - popUpTo(Splash, inclusive=true, saveState=true) menghapus stack
+                                    //    saat ini tetapi menyimpan state-nya agar bisa dipulihkan.
+                                    //  - launchSingleTop mencegah duplikasi destinasi yang sudah aktif.
+                                    //  - restoreState memulihkan state destinasi tujuan jika pernah dikunjungi,
+                                    //    sehingga ViewModel & scroll position terjaga (tidak remount penuh).
                                     navController.navigate(item.screen) {
-                                        // Setiap item drawer adalah destinasi top-level yang sejajar.
-                                        // Hapus seluruh back stack agar tombol Back tidak kembali ke
-                                        // destinasi drawer sebelumnya (termasuk Kasir/POS).
-                                        popUpTo(0) { inclusive = true }
+                                        popUpTo(Screen.Splash) {
+                                            saveState = true
+                                            inclusive = true
+                                        }
                                         launchSingleTop = true
+                                        restoreState    = true
                                     }
                                     scope.launch { drawerState.close() }
                                 }
@@ -424,9 +433,15 @@ private fun NavigationContent(
         color = MaterialTheme.colorScheme.background
     ) {
         NavHost(
-            navController = navController,
+            navController    = navController,
             startDestination = Screen.Splash,
-            modifier = Modifier.fillMaxSize()
+            modifier         = Modifier.fillMaxSize(),
+            // Transisi default seragam: cross-fade halus mencegah “white flash”
+            // dan memberi efek mulus saat berpindah destinasi.
+            enterTransition    = { fadeIn(animationSpec  = tween(durationMillis = 180)) },
+            exitTransition     = { fadeOut(animationSpec = tween(durationMillis = 140)) },
+            popEnterTransition = { fadeIn(animationSpec  = tween(durationMillis = 180)) },
+            popExitTransition  = { fadeOut(animationSpec = tween(durationMillis = 140)) }
         ) {
         composable<Screen.Splash> {
             SplashScreen(
