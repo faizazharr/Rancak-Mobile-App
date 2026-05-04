@@ -566,6 +566,6 @@ private fun formatCreatedAt(epochMillis: Long): String {
         val h = local.hour.toString().padStart(2, '0')
         val m = local.minute.toString().padStart(2, '0')
         if (local.date == today) "$h:$m"
-        else "${local.dayOfMonth}/${local.monthNumber} $h:$m"
+        else "${local.day}/${local.month} $h:$m"
     } catch (_: Exception) { "" }
 }

@@ -275,7 +275,7 @@ private fun ReservationFormFields(
                     trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = state.areaMenuOpen) },
                     modifier      = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 )
                 ExposedDropdownMenu(
                     expanded         = state.areaMenuOpen,
@@ -317,7 +317,7 @@ private fun ReservationFormFields(
                 trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = state.tableMenuOpen) },
                 modifier      = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
             )
             ExposedDropdownMenu(
                 expanded         = state.tableMenuOpen,

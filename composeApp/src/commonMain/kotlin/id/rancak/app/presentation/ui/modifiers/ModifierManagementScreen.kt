@@ -41,7 +41,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -342,7 +343,7 @@ private fun PhoneLayout(
 
 @Composable
 private fun ModifierTabRow(activeTab: ModifierTab, onSelectTab: (ModifierTab) -> Unit) {
-    TabRow(selectedTabIndex = activeTab.ordinal) {
+    PrimaryTabRow(selectedTabIndex = activeTab.ordinal) {
         Tab(
             selected = activeTab == ModifierTab.GLOBAL,
             onClick  = { onSelectTab(ModifierTab.GLOBAL) },
@@ -380,7 +381,7 @@ private fun ProductPickerDropdown(
             label            = { Text("Pilih Produk") },
             trailingIcon     = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             shape            = MaterialTheme.shapes.medium,
-            modifier         = Modifier.menuAnchor().fillMaxWidth()
+            modifier         = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
         )
         ExposedDropdownMenu(
             expanded         = expanded,

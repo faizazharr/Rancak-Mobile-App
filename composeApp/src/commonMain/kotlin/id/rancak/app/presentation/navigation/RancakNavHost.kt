@@ -25,7 +25,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import id.rancak.app.data.local.LocalOpenBill
 import id.rancak.app.domain.repository.AuthRepository
+import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.SaleStatus
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import id.rancak.app.presentation.ui.auth.LoginScreen
 import id.rancak.app.presentation.ui.splash.SplashScreen
 import org.koin.compose.koinInject
@@ -372,6 +376,45 @@ private fun NavigationContent(
     // are visible in CartScreen and PaymentScreen.
     val cartViewModel: CartViewModel = koinViewModel()
     val authRepository: AuthRepository = koinInject()
+    val scope = rememberCoroutineScope()
+
+    // ── Billing guard real-time ───────────────────────────────────────────────
+    // Setiap kali Activity di-resume (termasuk saat kembali dari background),
+    // periksa status billing tenant aktif. Jika kedaluwarsa / belum aktif,
+    // paksa kembali ke TenantPicker — user tidak bisa mengakses layar lain.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                scope.launch {
+                    val currentRoute =
+                        navController.currentBackStackEntry?.destination?.route ?: return@launch
+                    // Jangan cek di layar auth/setup — sudah ada guard-nya sendiri
+                    val isExemptScreen = listOf(
+                        "TenantPicker", "Login", "Splash", "Billing"
+                    ).any { currentRoute.contains(it) }
+                    if (isExemptScreen) return@launch
+
+                    val storedUuid = authRepository.getCurrentTenantUuid() ?: return@launch
+                    val result = authRepository.getMyTenants()
+                    if (result is Resource.Success) {
+                        val tenant = result.data.find { it.uuid == storedUuid }
+                        val status = tenant?.subscriptionStatus?.lowercase()
+                        val hasIssue = status == "expired" ||
+                                       status == "past_due" ||
+                                       status == "inactive"
+                        if (hasIssue) {
+                            navController.navigate(Screen.TenantPicker()) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     // Surface dengan warna background tema mencegah “white flash” saat
     // Compose Navigation berpindah destinasi (frame kosong di antara dispose

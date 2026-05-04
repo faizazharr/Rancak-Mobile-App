@@ -74,7 +74,7 @@ fun TableFormDialog(
                         },
                         modifier      = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryEditable)
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable)
                             .onFocusChanged { if (it.isFocused) areaMenuOpen = true }
                     )
                     ExposedDropdownMenu(

@@ -41,7 +41,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -780,7 +780,7 @@ private fun CreatePOFormContent(
                     label         = { Text("Supplier") },
                     trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(supplierExpanded) },
                     shape         = MaterialTheme.shapes.medium,
-                    modifier      = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                    modifier      = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 )
                 ExposedDropdownMenu(
                     expanded         = supplierExpanded,
@@ -877,7 +877,7 @@ private fun AddPOItemDialog(
                         label         = { Text("Produk") },
                         trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(productExpanded) },
                         shape         = MaterialTheme.shapes.medium,
-                        modifier      = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                        modifier      = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(
                         expanded         = productExpanded,

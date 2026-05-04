@@ -60,8 +60,17 @@ class SplashViewModel(
                 when {
                     // Outlet kosong → harus ke picker (tampilkan form pengajuan)
                     tenants.isEmpty() -> SplashDestination.TENANT_PICKER
-                    // Tenant tersimpan masih ada di list → aman masuk POS
-                    tenants.any { it.uuid == storedTenantUuid } -> SplashDestination.POS
+                    // Tenant tersimpan masih ada di list → cek status billing
+                    tenants.any { it.uuid == storedTenantUuid } -> {
+                        val tenant = tenants.first { it.uuid == storedTenantUuid }
+                        val status = tenant.subscriptionStatus?.lowercase()
+                        // Billing bermasalah → ke TenantPicker agar user bayar
+                        if (status == "expired" || status == "past_due" || status == "inactive") {
+                            SplashDestination.TENANT_PICKER
+                        } else {
+                            SplashDestination.POS
+                        }
+                    }
                     // Tenant tersimpan sudah tidak ada → harus pilih ulang
                     else -> SplashDestination.TENANT_PICKER
                 }
