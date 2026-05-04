@@ -130,54 +130,101 @@ class BillingViewModel(
     }
 
     /**
-     * Polling 2 detik ke `GET /billing/invoices/{uuid}` menunggu status berubah.
-     * Berhenti saat: paid (sukses), cancelled/expired (gagal), atau [dismissQrPayment].
+     * Polling 2 detik ke `GET /billing/invoices/{uuid}` menunggu konfirmasi webhook Xendit.
+     *
+     * Alur normal:
+     *   1. Xendit menerima pembayaran → mengirim webhook ke backend Rancak.
+     *   2. Backend mengupdate status invoice ke "paid".
+     *   3. Polling mendeteksi perubahan → set [BillingUiState.isPaymentComplete] = true.
+     *
+     * Berhenti saat:
+     *   - status = "paid"        → sukses, trigger nav ke POS
+     *   - status = "cancelled" / "expired" → gagal, tampilkan pesan
+     *   - [MAX_POLL_ITERATIONS] tercapai → timeout 10 menit, tampilkan pesan
+     *   - [MAX_CONSECUTIVE_ERRORS] error berturut-turut → koneksi bermasalah
+     *   - [dismissQrPayment] dipanggil (pollingJob.cancel()) → isActive = false
      */
     private fun startPolling(invoiceUuid: String) {
         pollingJob?.cancel()
         pollingJob = viewModelScope.launch {
             _uiState.update { it.copy(isPolling = true) }
-            while (isActive) {
+            var iterations = 0
+            var consecutiveErrors = 0
+            while (isActive && iterations < MAX_POLL_ITERATIONS) {
                 delay(2_000L)
-                val result = billingRepository.getInvoice(invoiceUuid)
-                if (result is Resource.Success) {
-                    val updated = result.data
-                    // Selalu update data invoice di list agar status terbaru tampil.
-                    _uiState.update { state ->
-                        state.copy(
-                            invoices = state.invoices.map {
-                                if (it.uuid == invoiceUuid) updated else it
+                iterations++
+                when (val result = billingRepository.getInvoice(invoiceUuid)) {
+                    is Resource.Success -> {
+                        consecutiveErrors = 0
+                        val updated = result.data
+                        // Selalu sinkronkan list invoice agar status terbaru tampil.
+                        _uiState.update { state ->
+                            state.copy(
+                                invoices = state.invoices.map {
+                                    if (it.uuid == invoiceUuid) updated else it
+                                }
+                            )
+                        }
+                        when (updated.status) {
+                            "paid" -> {
+                                // Webhook Xendit diterima backend → konfirmasi sukses.
+                                _uiState.update {
+                                    it.copy(
+                                        isPolling = false,
+                                        qrInvoice = null,
+                                        isPaymentComplete = true
+                                    )
+                                }
+                                return@launch
                             }
-                        )
+                            "cancelled", "expired" -> {
+                                _uiState.update {
+                                    it.copy(
+                                        isPolling = false,
+                                        qrInvoice = null,
+                                        error = "Invoice dibatalkan atau kedaluwarsa."
+                                    )
+                                }
+                                return@launch
+                            }
+                            // "pending" → lanjut polling
+                        }
                     }
-                    when (updated.status) {
-                        "paid" -> {
-                            // Pembayaran dikonfirmasi Xendit — tutup QR, trigger nav ke POS.
+                    is Resource.Error -> {
+                        consecutiveErrors++
+                        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
                             _uiState.update {
                                 it.copy(
                                     isPolling = false,
                                     qrInvoice = null,
-                                    isPaymentComplete = true
+                                    error = "Koneksi bermasalah. Buka riwayat invoice untuk cek status pembayaran."
                                 )
                             }
-                            break
+                            return@launch
                         }
-                        "cancelled", "expired" -> {
-                            _uiState.update {
-                                it.copy(
-                                    isPolling = false,
-                                    qrInvoice = null,
-                                    error = "Invoice dibatalkan atau kedaluwarsa."
-                                )
-                            }
-                            break
-                        }
-                        // "pending" → lanjut polling
+                        // Error sementara (< threshold) → lanjut polling
                     }
+                    else -> Unit
                 }
             }
-            _uiState.update { it.copy(isPolling = false) }
+            // Loop selesai karena timeout (bukan dari status terminal)
+            if (isActive) {
+                _uiState.update {
+                    it.copy(
+                        isPolling = false,
+                        qrInvoice = null,
+                        error = "Waktu tunggu pembayaran habis. Silakan cek riwayat invoice untuk memverifikasi status."
+                    )
+                }
+            }
         }
+    }
+
+    companion object {
+        /** Batas iterasi polling: 300 × 2 detik = 10 menit. */
+        private const val MAX_POLL_ITERATIONS = 300
+        /** Hentikan polling setelah 5 error jaringan berturut-turut. */
+        private const val MAX_CONSECUTIVE_ERRORS = 5
     }
 
     /** Dipanggil saat user menutup dialog QR secara manual. */
