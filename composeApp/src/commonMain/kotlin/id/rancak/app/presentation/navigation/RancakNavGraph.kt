@@ -114,7 +114,9 @@ internal fun NavGraphBuilder.kasirGraph(
     composable<Screen.Cart> {
         CartScreen(
             onBack        = { navController.popBackStack() },
-            onCheckout    = { navController.navigate(Screen.Payment) },
+            // launchSingleTop mencegah duplicate Payment entry jika user tap
+            // checkout di Cart dan Pos secara berurutan tanpa sempat melihat Payment.
+            onCheckout    = { navController.navigate(Screen.Payment) { launchSingleTop = true } },
             cartViewModel = cartViewModel
         )
     }
@@ -191,8 +193,16 @@ internal fun NavGraphBuilder.salesGraph(
         PayHeldOrderScreen(
             saleUuid          = route.saleUuid,
             onBack            = { navController.popBackStack() },
-            // Direct routing: pembayaran selesai → pop semua detail, kembali ke SalesHistory.
-            onPaymentComplete = { navController.popBackStack(Screen.SalesHistory, inclusive = false) }
+            // Layar ini bisa dibuka dari dua konteks:
+            //   a) SalesHistory → PayHeldOrder  (stack: [..., SalesHistory, PayHeldOrder])
+            //   b) OpenBillList → PayHeldOrder  (stack: [..., Pos, OpenBillList, PayHeldOrder])
+            // Coba pop ke SalesHistory dulu; jika gagal (tidak ada di stack),
+            // pop ke Pos — menutup sekaligus OpenBillList dan PayHeldOrder.
+            onPaymentComplete = {
+                if (!navController.popBackStack(Screen.SalesHistory, inclusive = false)) {
+                    navController.popBackStack(Screen.Pos, inclusive = false)
+                }
+            }
         )
     }
 
@@ -212,7 +222,13 @@ internal fun NavGraphBuilder.salesGraph(
         AddItemsToHeldOrderScreen(
             saleUuid  = route.saleUuid,
             onBack    = { navController.popBackStack() },
-            onSuccess = { navController.popBackStack(Screen.SalesHistory, inclusive = false) }
+            // Sama seperti PayHeldOrder: bisa dari SalesHistory atau OpenBillList.
+            // Fallback ke Pos jika SalesHistory tidak ada di stack.
+            onSuccess = {
+                if (!navController.popBackStack(Screen.SalesHistory, inclusive = false)) {
+                    navController.popBackStack(Screen.Pos, inclusive = false)
+                }
+            }
         )
     }
 }

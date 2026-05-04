@@ -262,6 +262,11 @@ fun RancakNavHost() {
                                         restoreState    = true
                                     }
                                     scope.launch { drawerState.close() }
+                                },
+                                // Sorot item yang route-nya cocok dengan destinasi aktif saat ini.
+                                // hasRoute(KClass<*>) aman untuk data object maupun data class.
+                                isSelected = { item ->
+                                    currentDestination?.hasRoute(item.screen::class) == true
                                 }
                             )
                         }
@@ -320,7 +325,9 @@ private fun DrawerAccordionGroup(
     group: DrawerGroup,
     isExpanded: Boolean,
     onToggle: () -> Unit,
-    onItemClick: (DrawerItem) -> Unit
+    onItemClick: (DrawerItem) -> Unit,
+    /** Kembalikan true jika item adalah destinasi yang sedang aktif. */
+    isSelected: (DrawerItem) -> Boolean = { false }
 ) {
     // ── Section header ────────────────────────────────────────────────────────
     Row(
@@ -363,7 +370,7 @@ private fun DrawerAccordionGroup(
                 NavigationDrawerItem(
                     icon = { Icon(item.icon, contentDescription = null) },
                     label = { Text(item.label) },
-                    selected = false,
+                    selected = isSelected(item),
                     onClick = { onItemClick(item) },
                     modifier = Modifier.padding(
                         start = 24.dp, end = 12.dp, bottom = 2.dp
