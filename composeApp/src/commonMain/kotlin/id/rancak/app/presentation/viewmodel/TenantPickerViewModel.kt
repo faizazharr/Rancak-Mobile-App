@@ -133,9 +133,15 @@ class TenantPickerViewModel(
     /**
      * Dipanggil saat user memilih "Bayar Billing".
      * Context tenant sudah di-set di [confirm] — tinggal trigger navigasi ke layar Billing.
+     *
+     * Sengaja TIDAK menghapus [billingIssue] di sini agar:
+     * 1. BillingIssueContent tetap tampil saat navigasi berlangsung (tidak ada flash ke daftar outlet).
+     * 2. Saat user kembali (Back) dari BillingScreen, [billingIssue] masih terset sehingga
+     *    BillingIssueContent langsung tampil kembali tanpa flash ke daftar outlet.
+     * [billingIssue] akan otomatis null saat [loadTenants] + [confirm] mendapati status sudah aktif.
      */
     fun continueToBilling() {
-        _uiState.update { it.copy(isNavigatingToBilling = true, billingIssue = null) }
+        _uiState.update { it.copy(isNavigatingToBilling = true) }
     }
 
     /** Dipanggil oleh Screen setelah navigasi ke Billing terpicu — reset flag. */
