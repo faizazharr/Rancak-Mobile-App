@@ -249,11 +249,17 @@ internal fun NavGraphBuilder.managementGraph(
     composable<Screen.Billing> { entry ->
         val route = entry.toRoute<Screen.Billing>()
         if (route.fromSetup) {
-            // Dibuka dari TenantPicker — back arrow agar bisa kembali dan pilih ulang.
+            // Dibuka dari TenantPicker (fromSetup=true):
+            // Back stack: [TenantPicker, Billing].
+            // Back arrow → popBackStack() → kembali ke BillingIssueContent di TenantPicker.
             BillingScreen(onNavigateUp = { navController.popBackStack() })
         } else {
-            // Dibuka dari drawer — hamburger menu.
-            BillingScreen(onBack = onMenuClick)
+            // Dibuka dari drawer (fromSetup=false):
+            // Back stack setelah drawer nav: [Pos, Billing].
+            // Screen.Billing dikecualikan dari showDrawer → onMenuClick tidak akan membuka
+            // drawer (gesturesEnabled=false). Gunakan popBackStack() → kembali ke Pos.
+            // Dari Pos, user bisa membuka drawer kembali.
+            BillingScreen(onBack = { navController.popBackStack() })
         }
     }
 }

@@ -147,11 +147,16 @@ fun RancakNavHost() {
 
     val currentDestination = navBackStackEntry?.destination
     // showDrawer: gunakan hasRoute bertipe aman — tidak bergantung pada string route yang rapuh.
+    // Screen.Billing dikecualikan meskipun bukan layar auth, karena:
+    //   - fromSetup=true: dibuka dari TenantPicker (flow auth), tidak butuh drawer sama sekali.
+    //   - fromSetup=false: dibuka dari drawer; drawer di layar ini redundan dan menyebabkan
+    //     white-flash saat transisi dari TenantPicker → Billing.
     val showDrawer = remember(currentDestination) {
         currentDestination != null &&
             !currentDestination.hasRoute(Screen.Splash::class) &&
             !currentDestination.hasRoute(Screen.Login::class) &&
-            !currentDestination.hasRoute(Screen.TenantPicker::class)
+            !currentDestination.hasRoute(Screen.TenantPicker::class) &&
+            !currentDestination.hasRoute(Screen.Billing::class)
     }
 
     // Pastikan drawer selalu tertutup setiap kali pindah destinasi.
@@ -239,15 +244,19 @@ fun RancakNavHost() {
                                 },
                                 onItemClick = { item ->
                                     // Navigasi top-level drawer:
-                                    //  - popUpTo(Splash, inclusive=true, saveState=true) menghapus stack
-                                    //    saat ini tetapi menyimpan state-nya agar bisa dipulihkan.
-                                    //  - launchSingleTop mencegah duplikasi destinasi yang sudah aktif.
-                                    //  - restoreState memulihkan state destinasi tujuan jika pernah dikunjungi,
-                                    //    sehingga ViewModel & scroll position terjaga (tidak remount penuh).
+                                    //  - popUpTo(Screen.Pos, inclusive=false, saveState=true):
+                                    //    Pos adalah root sejati back stack setelah auth selesai.
+                                    //    Screen.Splash sudah dihapus dari stack saat auth flow,
+                                    //    jadi popUpTo(Splash) sebelumnya adalah no-op.
+                                    //    inclusive=false: Pos TETAP ada di stack → Back dari
+                                    //    drawer destination selalu kembali ke Pos lalu keluar app.
+                                    //  - launchSingleTop: cegah duplikasi destinasi yang aktif.
+                                    //  - restoreState: pulihkan state destinasi tujuan jika pernah
+                                    //    dikunjungi (scroll position, ViewModel state).
                                     navController.navigate(item.screen) {
-                                        popUpTo(Screen.Splash) {
+                                        popUpTo(Screen.Pos) {
                                             saveState = true
-                                            inclusive = true
+                                            inclusive = false
                                         }
                                         launchSingleTop = true
                                         restoreState    = true
