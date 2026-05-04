@@ -32,7 +32,6 @@ import id.rancak.app.presentation.ui.tables.TableMapScreen
 import id.rancak.app.presentation.ui.pricing.VoucherManagementScreen
 import id.rancak.app.presentation.ui.products.ProductManagementScreen
 import id.rancak.app.presentation.ui.splash.SplashScreen
-import id.rancak.app.presentation.viewmodel.CartViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Auth graph — Splash, Login, TenantPicker
@@ -95,7 +94,6 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
 
 internal fun NavGraphBuilder.kasirGraph(
     navController: NavHostController,
-    cartViewModel: CartViewModel,
     onMenuClick: () -> Unit
 ) {
     composable<Screen.Pos> {
@@ -106,18 +104,16 @@ internal fun NavGraphBuilder.kasirGraph(
             },
             onMenuClick     = onMenuClick,
             onHoldSuccess   = { navController.navigate(Screen.OpenBillList()) },
-            onOpenBillClick = { navController.navigate(Screen.OpenBillList()) },
-            cartViewModel   = cartViewModel
+            onOpenBillClick = { navController.navigate(Screen.OpenBillList()) }
         )
     }
 
     composable<Screen.Cart> {
         CartScreen(
-            onBack        = { navController.popBackStack() },
+            onBack     = { navController.popBackStack() },
             // launchSingleTop mencegah duplicate Payment entry jika user tap
             // checkout di Cart dan Pos secara berurutan tanpa sempat melihat Payment.
-            onCheckout    = { navController.navigate(Screen.Payment) { launchSingleTop = true } },
-            cartViewModel = cartViewModel
+            onCheckout = { navController.navigate(Screen.Payment) { launchSingleTop = true } }
         )
     }
 
@@ -130,12 +126,12 @@ internal fun NavGraphBuilder.kasirGraph(
                 navController.navigate(Screen.Pos) {
                     popUpTo(Screen.Pos) { inclusive = true }
                 }
-            },
-            cartViewModel = cartViewModel
+            }
         )
     }
 
     composable<Screen.OpenBillList> {
+        val cartViewModel = LocalCartViewModel.current
         OpenBillListScreen(
             onBack   = { navController.popBackStack() },
             onResume = { bill: LocalOpenBill ->

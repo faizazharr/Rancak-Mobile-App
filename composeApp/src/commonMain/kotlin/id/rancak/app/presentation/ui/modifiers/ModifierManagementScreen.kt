@@ -72,6 +72,8 @@ import id.rancak.app.presentation.viewmodel.ModifierManagementUiState
 import id.rancak.app.presentation.viewmodel.ModifierManagementViewModel
 import id.rancak.app.presentation.viewmodel.ModifierTab
 import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -80,9 +82,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ModifierManagementScreen(
-    onBack: () -> Unit,
-    viewModel: ModifierManagementViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: ModifierManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -173,7 +175,7 @@ fun ModifierManagementContent(
     val activeList = when (uiState.activeTab) {
         ModifierTab.GLOBAL      -> uiState.modifiers
         ModifierTab.PER_PRODUCT -> uiState.productModifiers
-    }
+    }.toImmutableList()
     val isLoadingActive = when (uiState.activeTab) {
         ModifierTab.GLOBAL      -> uiState.isLoading
         ModifierTab.PER_PRODUCT -> uiState.isLoadingProductModifiers
@@ -241,7 +243,7 @@ fun ModifierManagementContent(
 @Composable
 private fun TabletLayout(
     uiState: ModifierManagementUiState,
-    activeList: List<DomainModifier>,
+    activeList: ImmutableList<DomainModifier>,
     isLoadingActive: Boolean,
     activeError: String?,
     canAdd: Boolean,
@@ -262,7 +264,7 @@ private fun TabletLayout(
             ModifierTabRow(uiState.activeTab, onSelectTab)
             AnimatedVisibility(uiState.activeTab == ModifierTab.PER_PRODUCT) {
                 ProductPickerDropdown(
-                    products        = uiState.products,
+                    products        = uiState.products.toImmutableList(),
                     selectedProduct = uiState.selectedProduct,
                     onSelectProduct = onSelectProduct,
                     modifier        = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
@@ -306,7 +308,7 @@ private fun TabletLayout(
 @Composable
 private fun PhoneLayout(
     uiState: ModifierManagementUiState,
-    activeList: List<DomainModifier>,
+    activeList: ImmutableList<DomainModifier>,
     isLoadingActive: Boolean,
     activeError: String?,
     onSelectTab: (ModifierTab) -> Unit,
@@ -319,7 +321,7 @@ private fun PhoneLayout(
         ModifierTabRow(uiState.activeTab, onSelectTab)
         AnimatedVisibility(uiState.activeTab == ModifierTab.PER_PRODUCT) {
             ProductPickerDropdown(
-                products        = uiState.products,
+                products        = uiState.products.toImmutableList(),
                 selectedProduct = uiState.selectedProduct,
                 onSelectProduct = onSelectProduct,
                 modifier        = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
@@ -362,7 +364,7 @@ private fun ModifierTabRow(activeTab: ModifierTab, onSelectTab: (ModifierTab) ->
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProductPickerDropdown(
-    products: List<Product>,
+    products: ImmutableList<Product>,
     selectedProduct: Product?,
     onSelectProduct: (Product?) -> Unit,
     modifier: Modifier = Modifier
@@ -404,7 +406,7 @@ private fun ProductPickerDropdown(
 
 @Composable
 private fun ModifierListBody(
-    modifiers: List<DomainModifier>,
+    modifiers: ImmutableList<DomainModifier>,
     isLoading: Boolean,
     error: String? = null,
     onEdit: (DomainModifier) -> Unit,

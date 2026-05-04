@@ -14,12 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Product
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductPickerSheet(
-    products: List<Product>,
-    existingUuids: Set<String>,
+    products: ImmutableList<Product>,
+    existingUuids: ImmutableSet<String>,
     onConfirm: (entries: Map<String, String>) -> Unit,
     onDismiss: () -> Unit
 ) {

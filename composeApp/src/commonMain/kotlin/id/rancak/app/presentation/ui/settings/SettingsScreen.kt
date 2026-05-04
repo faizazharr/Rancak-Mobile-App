@@ -57,9 +57,9 @@ private enum class SettingsNav { PRINTER, PRINT_MODE, KITCHEN, STORE, GENERAL, P
 
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit,
-    viewModel: SettingsViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: SettingsViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.checkBluetoothState() }
 

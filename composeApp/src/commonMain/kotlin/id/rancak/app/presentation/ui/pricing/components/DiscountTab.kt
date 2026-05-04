@@ -13,10 +13,13 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.DiscountRule
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun DiscountTab(
-    rules: List<DiscountRule>,
+    rules: ImmutableList<DiscountRule>,
     onEdit: (DiscountRule) -> Unit,
     onDelete: (DiscountRule) -> Unit,
     onToggleActive: (DiscountRule, Boolean) -> Unit = { _, _ -> },
@@ -57,7 +60,7 @@ private fun DiscountTabPreview() {
             rules = listOf(
                 DiscountRule("1", "Diskon Happy Hour", null, "time_based", "pct",  10.0,   null, null, null, null, 0, false, null, true),
                 DiscountRule("2", "Member Discount",   null, "always",     "flat", 5000.0, null, null, null, null, 0, false, null, true)
-            ),
+            ).toImmutableList(),
             onEdit   = {},
             onDelete = {}
         )
@@ -68,6 +71,6 @@ private fun DiscountTabPreview() {
 @Composable
 private fun DiscountTabEmptyPreview() {
     RancakTheme {
-        DiscountTab(rules = emptyList(), onEdit = {}, onDelete = {})
+        DiscountTab(rules = persistentListOf(), onEdit = {}, onDelete = {})
     }
 }

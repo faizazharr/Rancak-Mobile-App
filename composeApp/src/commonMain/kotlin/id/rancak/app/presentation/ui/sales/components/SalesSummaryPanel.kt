@@ -35,6 +35,9 @@ import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * Right-hand summary panel (tablet layout) shown when no transaction is
@@ -42,7 +45,7 @@ import id.rancak.app.presentation.util.formatRupiah
  * and void info from the currently filtered [sales] list.
  */
 @Composable
-internal fun SalesSummaryPanel(sales: List<Sale>, modifier: Modifier = Modifier) {
+internal fun SalesSummaryPanel(sales: ImmutableList<Sale>, modifier: Modifier = Modifier) {
     val semantic = RancakColors.semantic
 
     val paidSales    = sales.filter { it.status == SaleStatus.PAID }
@@ -55,6 +58,8 @@ internal fun SalesSummaryPanel(sales: List<Sale>, modifier: Modifier = Modifier)
         .groupBy { it.paymentMethod?.value?.uppercase() ?: "LAINNYA" }
         .mapValues { (_, list) -> list.sumOf { it.total } }
         .entries.sortedByDescending { it.value }
+        .map { it.key to it.value }
+        .toImmutableList()
 
     Column(
         modifier = modifier
@@ -127,7 +132,7 @@ internal fun SalesSummaryPanel(sales: List<Sale>, modifier: Modifier = Modifier)
 }
 
 @Composable
-private fun PaymentMethodBreakdown(byMethod: List<Map.Entry<String, Long>>) {
+private fun PaymentMethodBreakdown(byMethod: ImmutableList<Pair<String, Long>>) {
     Card(
         shape     = MaterialTheme.shapes.medium,
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -281,7 +286,7 @@ private fun SummaryStatCard(
 private fun SalesSummaryPanelPreview_WithSales() {
     RancakTheme {
         SalesSummaryPanel(
-            sales    = previewSales(),
+            sales    = previewSales().toImmutableList(),
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -292,7 +297,7 @@ private fun SalesSummaryPanelPreview_WithSales() {
 private fun SalesSummaryPanelPreview_Empty() {
     RancakTheme {
         SalesSummaryPanel(
-            sales    = emptyList(),
+            sales    = persistentListOf(),
             modifier = Modifier.fillMaxWidth()
         )
     }

@@ -13,10 +13,13 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Surcharge
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun SurchargeTab(
-    surcharges: List<Surcharge>,
+    surcharges: ImmutableList<Surcharge>,
     onEdit: (Surcharge) -> Unit,
     onDelete: (Surcharge) -> Unit,
     onToggleActive: (Surcharge, Boolean) -> Unit = { _, _ -> },
@@ -57,7 +60,7 @@ private fun SurchargeTabPreview() {
             surcharges = listOf(
                 Surcharge("1", "all",      "Biaya Layanan",   5L,    true,  null, true, 0),
                 Surcharge("2", "delivery", "Biaya Pengiriman", 5000L, false, null, true, 1)
-            ),
+            ).toImmutableList(),
             onEdit   = {},
             onDelete = {}
         )
@@ -68,6 +71,6 @@ private fun SurchargeTabPreview() {
 @Composable
 private fun SurchargeTabEmptyPreview() {
     RancakTheme {
-        SurchargeTab(surcharges = emptyList(), onEdit = {}, onDelete = {})
+        SurchargeTab(surcharges = persistentListOf(), onEdit = {}, onDelete = {})
     }
 }

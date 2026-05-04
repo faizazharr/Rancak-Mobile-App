@@ -31,13 +31,15 @@ import id.rancak.app.presentation.ui.reservations.components.ReservationFormPane
 import id.rancak.app.presentation.viewmodel.ReservationStatusFilter
 import id.rancak.app.presentation.viewmodel.ReservationUiState
 import id.rancak.app.presentation.viewmodel.ReservationViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ReservationScreen(
-    onBack: () -> Unit,
-    viewModel: ReservationViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: ReservationViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.load() }
 
@@ -98,7 +100,7 @@ fun ReservationScreenContent(
         if (!isTablet && uiState.showFormDialog) {
             ReservationFormContent(
                 editing      = uiState.editingReservation,
-                tables       = uiState.tables,
+                tables       = uiState.tables.toImmutableList(),
                 isSubmitting = uiState.isSubmitting,
                 onBack       = onDismissDialog,
                 onConfirm    = onSubmitForm
@@ -165,7 +167,7 @@ fun ReservationScreenContent(
                         if (uiState.showFormDialog) {
                             ReservationFormPanel(
                                 editing      = uiState.editingReservation,
-                                tables       = uiState.tables,
+                                tables       = uiState.tables.toImmutableList(),
                                 isSubmitting = uiState.isSubmitting,
                                 onClose      = onDismissDialog,
                                 onConfirm    = onSubmitForm
@@ -353,7 +355,7 @@ private fun ReservationListContent(
 ) {
     Column(modifier.fillMaxSize()) {
         if (uiState.reservations.isNotEmpty()) {
-            ReservationSummaryStrip(uiState.reservations)
+            ReservationSummaryStrip(uiState.reservations.toImmutableList())
         }
 
         Row(
@@ -419,7 +421,7 @@ private fun ReservationListContent(
 // ── Summary strip ────────────────────────────────────────────────────────────
 
 @Composable
-private fun ReservationSummaryStrip(reservations: List<Reservation>) {
+private fun ReservationSummaryStrip(reservations: ImmutableList<Reservation>) {
     val pending   = reservations.count { it.status == "pending" }
     val confirmed = reservations.count { it.status == "confirmed" }
     val seated    = reservations.count { it.status == "seated" }

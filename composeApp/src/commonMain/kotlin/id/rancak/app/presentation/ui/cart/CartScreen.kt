@@ -21,8 +21,8 @@ import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import id.rancak.app.presentation.navigation.LocalCartViewModel
 import id.rancak.app.presentation.viewmodel.CartUiState
-import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -30,10 +30,10 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun CartScreen(
     onBack: () -> Unit,
-    onCheckout: () -> Unit,
-    cartViewModel: CartViewModel,
-    shiftViewModel: ShiftViewModel = koinViewModel()
+    onCheckout: () -> Unit
 ) {
+    val cartViewModel  = LocalCartViewModel.current
+    val shiftViewModel: ShiftViewModel = koinViewModel()
     val uiState    by cartViewModel.uiState.collectAsStateWithLifecycle()
     val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
     val hasOpenShift = shiftState.currentShift != null

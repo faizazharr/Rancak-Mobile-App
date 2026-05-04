@@ -18,10 +18,12 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.DailyCategoryReport
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 /** Kartu rincian penjualan hari ini per kategori produk. */
 @Composable
-internal fun DailyCategoryCard(categories: List<DailyCategoryReport>) {
+internal fun DailyCategoryCard(categories: ImmutableList<DailyCategoryReport>) {
     Card(
         modifier  = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(1.dp),
@@ -77,7 +79,7 @@ private fun DailyCategoryCardPreview() {
                     DailyCategoryReport(categoryName = "Kopi",     totalSales = 4_500_000, totalQty = 28.0),
                     DailyCategoryReport(categoryName = "Makanan",  totalSales = 2_800_000, totalQty = 14.0),
                     DailyCategoryReport(categoryName = "Snack",    totalSales =   750_000, totalQty =  9.0)
-                )
+                ).toImmutableList()
             )
         }
     }

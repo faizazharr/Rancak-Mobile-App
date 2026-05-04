@@ -93,9 +93,9 @@ private val statusLabels = mapOf(
 
 @Composable
 fun PurchaseOrderScreen(
-    onBack: () -> Unit,
-    viewModel: PurchaseOrderViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: PurchaseOrderViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()

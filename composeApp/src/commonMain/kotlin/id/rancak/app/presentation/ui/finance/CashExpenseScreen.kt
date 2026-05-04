@@ -30,6 +30,8 @@ import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseUiState
 import id.rancak.app.presentation.viewmodel.CashExpenseViewModel
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
 /** Semua callback dari [CashExpenseViewModel] — memudahkan preview. */
@@ -49,9 +51,9 @@ data class CashExpenseActions(
 
 @Composable
 fun CashExpenseScreen(
-    onBack: () -> Unit,
-    viewModel: CashExpenseViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: CashExpenseViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.loadAll() }
 
@@ -211,10 +213,10 @@ private fun PhoneCashLayout(
         }
         if (selectedTab == 0) {
             if (uiState.showCashInForm) CashInForm(uiState, actions)
-            CashInList(uiState.cashIns, onDelete = actions.onDeleteCashIn)
+            CashInList(uiState.cashIns.toImmutableList(), onDelete = actions.onDeleteCashIn)
         } else {
             if (uiState.showExpenseForm) ExpenseForm(uiState, actions)
-            ExpenseList(uiState.expenses, onDelete = actions.onDeleteExpense)
+            ExpenseList(uiState.expenses.toImmutableList(), onDelete = actions.onDeleteExpense)
         }
     }
 }
@@ -230,7 +232,7 @@ private fun CashInListPreview() {
             items = listOf(
                 CashIn(uuid = "1", amount = 500000, source = "Modal", description = "Kas Awal", note = null, cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null),
                 CashIn(uuid = "2", amount = 200000, source = "Pinjaman", description = "Tambahan Modal", note = "Dari owner", cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null)
-            ),
+            ).toImmutableList(),
             onDelete = {}
         )
     }
@@ -244,7 +246,7 @@ private fun ExpenseListPreview() {
             items = listOf(
                 Expense(uuid = "1", amount = 50000, description = "Beli Gas", note = "2 tabung", categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null),
                 Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null, categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null)
-            ),
+            ).toImmutableList(),
             onDelete = {}
         )
     }

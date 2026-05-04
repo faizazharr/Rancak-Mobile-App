@@ -42,9 +42,9 @@ private const val PAGE_SIZE_TABLET = 12
 
 @Composable
 fun OrderBoardScreen(
-    onBack: () -> Unit,
-    viewModel: OrderBoardViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: OrderBoardViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.loadOrders() }
 

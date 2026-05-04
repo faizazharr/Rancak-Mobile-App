@@ -65,6 +65,11 @@ import id.rancak.app.presentation.ui.pos.FeeInputDialog
 import id.rancak.app.presentation.ui.pos.feeFormatNumber
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartUiState
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * Detailed order / cart panel used on tablet & landscape (right pane).
@@ -78,7 +83,7 @@ internal fun OrderPanel(
     onUpdateQty: (CartItem, Int) -> Unit,
     onUpdateNote: (CartItem, String) -> Unit,
     /** Cache modifier per-produk dari PosViewModel — key = productUuid. */
-    modifierCache: Map<String, List<DomainModifier>> = emptyMap(),
+    modifierCache: ImmutableMap<String, ImmutableList<DomainModifier>> = persistentMapOf(),
     /** Dipanggil saat note dialog dibuka agar ViewModel load modifier secara lazy. */
     onLoadModifiers: (productUuid: String) -> Unit = {},
     onClearCart: () -> Unit,
@@ -433,7 +438,7 @@ private fun CartItemList(
     onSurfaceVariant: Color,
     onUpdateQty: (CartItem, Int) -> Unit,
     onUpdateNote: (CartItem, String) -> Unit,
-    modifierCache: Map<String, List<DomainModifier>> = emptyMap(),
+    modifierCache: ImmutableMap<String, ImmutableList<DomainModifier>> = persistentMapOf(),
     onLoadModifiers: (productUuid: String) -> Unit = {}
 ) {
     if (cartState.items.isEmpty()) {
@@ -474,7 +479,7 @@ private fun CartItemList(
                 OrderItemRow(
                     item            = item,
                     primary         = primary,
-                    modifiers       = modifierCache[item.productUuid] ?: emptyList(),
+                    modifiers       = (modifierCache[item.productUuid] ?: emptyList()).toImmutableList(),
                     onLoadModifiers = { onLoadModifiers(item.productUuid) },
                     onIncrease      = { onUpdateQty(item, item.qty + 1) },
                     onDecrease      = { onUpdateQty(item, item.qty - 1) },
@@ -1036,7 +1041,7 @@ private fun FeeInputRow(
 private fun OrderItemRow(
     item: CartItem,
     primary: Color,
-    modifiers: List<DomainModifier> = emptyList(),
+    modifiers: ImmutableList<DomainModifier> = persistentListOf(),
     onLoadModifiers: () -> Unit = {},
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,

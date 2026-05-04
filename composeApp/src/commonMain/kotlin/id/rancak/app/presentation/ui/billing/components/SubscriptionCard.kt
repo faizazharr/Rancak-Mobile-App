@@ -42,109 +42,59 @@ fun SubscriptionCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(Brush.linearGradientBrush(listOf(gradientStart, gradientEnd)))
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .padding(horizontal = if (isTablet) 20.dp else 16.dp, vertical = if (isTablet) 18.dp else 14.dp)
     ) {
-        if (isTablet) {
+        // Tablet & phone share the same vertical structure — tablet just gets bigger text/spacing.
+        val planNameStyle  = if (isTablet) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge
+        val labelStyle     = if (isTablet) MaterialTheme.typography.labelMedium   else MaterialTheme.typography.labelSmall
+        val spacing        = if (isTablet) 10.dp else 8.dp
+        val iconSize       = if (isTablet) 16.dp else 14.dp
+
+        Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Kiri: status + nama paket — bisa mengambil ruang lebih banyak
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(statusIcon, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                        Text(
-                            "Status Langganan",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.75f)
-                        )
-                        SubStatusPill(statusLabel)
-                    }
-                    Text(
-                        subscription?.plan?.uppercase() ?: "TIDAK ADA PAKET",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                // Kanan: info detail — setiap kolom punya lebar tetap agar tidak kolaps
-                if (subscription != null) {
-                    Spacer(Modifier.width(16.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        SubInfoItem(
-                            label = "Mulai",
-                            value = subscription.startedAt?.take(10) ?: "-",
-                            align = Alignment.Start,
-                            minWidth = 90.dp
-                        )
-                        SubInfoItem(
-                            label = "Berakhir",
-                            value = subscription.expiresAt?.take(10) ?: "-",
-                            align = Alignment.Start,
-                            minWidth = 90.dp
-                        )
-                        SubInfoItem(
-                            label = "Maks. Pengguna",
-                            value = subscription.maxUsers?.toString() ?: "Tidak terbatas",
-                            align = Alignment.End,
-                            minWidth = 100.dp
-                        )
-                    }
-                }
-            }
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(statusIcon, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                    Text(
-                        "Status Langganan",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.75f)
-                    )
-                    Spacer(Modifier.weight(1f))
-                    SubStatusPill(statusLabel)
-                }
+                Icon(statusIcon, null, tint = Color.White, modifier = Modifier.size(iconSize))
                 Text(
-                    subscription?.plan?.uppercase() ?: "TIDAK ADA PAKET",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    "Status Langganan",
+                    style = labelStyle,
+                    color = Color.White.copy(alpha = 0.75f)
                 )
-                if (subscription != null) {
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        SubInfoItem(
-                            label = "Mulai",
-                            value = subscription.startedAt?.take(10) ?: "-"
-                        )
-                        SubInfoItem(
-                            label = "Berakhir",
-                            value = subscription.expiresAt?.take(10) ?: "-",
-                            align = Alignment.CenterHorizontally
-                        )
-                        SubInfoItem(
-                            label = "Maks. Pengguna",
-                            value = subscription.maxUsers?.toString() ?: "∞",
-                            align = Alignment.End
-                        )
-                    }
+                Spacer(Modifier.weight(1f))
+                SubStatusPill(statusLabel)
+            }
+            Text(
+                subscription?.plan?.uppercase() ?: "TIDAK ADA PAKET",
+                style = planNameStyle,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (subscription != null) {
+                HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    SubInfoItem(
+                        label = "Mulai",
+                        value = subscription.startedAt?.take(10) ?: "-",
+                        isTablet = isTablet
+                    )
+                    SubInfoItem(
+                        label = "Berakhir",
+                        value = subscription.expiresAt?.take(10) ?: "-",
+                        align = Alignment.CenterHorizontally,
+                        isTablet = isTablet
+                    )
+                    SubInfoItem(
+                        label = "Maks. Pengguna",
+                        value = subscription.maxUsers?.toString() ?: "∞",
+                        align = Alignment.End,
+                        isTablet = isTablet
+                    )
                 }
             }
         }
@@ -169,12 +119,10 @@ private fun SubInfoItem(
     label: String,
     value: String,
     align: Alignment.Horizontal = Alignment.Start,
+    isTablet: Boolean = false,
     minWidth: Dp = Dp.Unspecified
 ) {
-    val mod = if (minWidth != Dp.Unspecified)
-        Modifier.widthIn(min = minWidth)
-    else
-        Modifier
+    val mod = if (minWidth != Dp.Unspecified) Modifier.widthIn(min = minWidth) else Modifier
     Column(
         modifier = mod,
         horizontalAlignment = align,
@@ -182,14 +130,14 @@ private fun SubInfoItem(
     ) {
         Text(
             label,
-            style = MaterialTheme.typography.labelSmall,
+            style = if (isTablet) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.65f),
             maxLines = 1,
             overflow = TextOverflow.Clip
         )
         Text(
             value,
-            style = MaterialTheme.typography.bodySmall,
+            style = if (isTablet) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
             maxLines = 1,

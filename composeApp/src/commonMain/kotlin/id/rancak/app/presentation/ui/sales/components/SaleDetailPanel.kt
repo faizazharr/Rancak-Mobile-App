@@ -41,6 +41,8 @@ import id.rancak.app.presentation.components.RoleGate
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.koinInject
 
 /**
@@ -153,7 +155,7 @@ private fun SaleDetailBody(
                         letterSpacing = 2.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    ReceiptItems(sale.items)
+                    ReceiptItems(sale.items.toImmutableList())
 
                     DashedDivider()
                     ReceiptPricingSummary(sale)
@@ -392,7 +394,7 @@ private fun ReceiptInfoChips(sale: Sale) {
 }
 
 @Composable
-private fun ReceiptItems(items: List<SaleItem>) {
+private fun ReceiptItems(items: ImmutableList<SaleItem>) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         items.forEach { item ->
             Row(

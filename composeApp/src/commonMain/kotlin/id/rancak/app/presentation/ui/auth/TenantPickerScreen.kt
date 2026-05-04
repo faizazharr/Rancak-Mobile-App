@@ -44,9 +44,9 @@ fun TenantPickerScreen(
     onTenantSelected: () -> Unit,
     onLoggedOut: () -> Unit = {},
     onNavigateToBilling: () -> Unit = {},
-    switchMode: Boolean = false,
-    viewModel: TenantPickerViewModel = koinViewModel()
+    switchMode: Boolean = false
 ) {
+    val viewModel: TenantPickerViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Reload tenant dari API setiap kali layar di-RESUME — termasuk saat pertama kali

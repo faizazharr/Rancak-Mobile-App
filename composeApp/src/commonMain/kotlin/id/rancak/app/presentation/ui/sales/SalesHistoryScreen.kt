@@ -33,6 +33,7 @@ import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.OrderType
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -67,9 +68,9 @@ fun SalesHistoryScreen(
     onPayHeldOrder: (String) -> Unit = {},
     onSplitBill: (String) -> Unit = {},
     onAddItems: (String) -> Unit = {},
-    initialStatusFilter: id.rancak.app.domain.model.SaleStatus? = null,
-    viewModel: SalesHistoryViewModel = koinViewModel()
+    initialStatusFilter: id.rancak.app.domain.model.SaleStatus? = null
 ) {
+    val viewModel: SalesHistoryViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var refundTarget by remember { mutableStateOf<Sale?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -187,7 +188,7 @@ private fun TabletLayout(
                     modifier       = Modifier.fillMaxSize()
                 )
             } else {
-                SalesSummaryPanel(sales = uiState.sales, modifier = Modifier.fillMaxSize())
+                SalesSummaryPanel(sales = uiState.sales.toImmutableList(), modifier = Modifier.fillMaxSize())
             }
         }
     }

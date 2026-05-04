@@ -17,12 +17,15 @@ import id.rancak.app.domain.model.Invoice
 import id.rancak.app.domain.model.Plan
 import id.rancak.app.domain.model.SubscriptionState
 import id.rancak.app.presentation.designsystem.RancakTheme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun BillingContent(
     subscription: SubscriptionState?,
-    plans: List<Plan>,
-    invoices: List<Invoice>,
+    plans: ImmutableList<Plan>,
+    invoices: ImmutableList<Invoice>,
     onSubscribe: (Plan) -> Unit,
     onCancelInvoice: (Invoice) -> Unit,
     onRefresh: () -> Unit,
@@ -30,7 +33,7 @@ fun BillingContent(
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val isTablet = maxWidth >= 600.dp
-        val leftPaneWidth = maxOf(320.dp, minOf(440.dp, maxWidth * 0.42f))
+        val leftPaneWidth = maxOf(360.dp, minOf(460.dp, maxWidth * 0.44f))
 
         if (isTablet) {
             Row(modifier = Modifier.fillMaxSize()) {
@@ -39,8 +42,8 @@ fun BillingContent(
                         .width(leftPaneWidth)
                         .fillMaxHeight()
                         .verticalScroll(rememberScrollState())
-                        .padding(start = 24.dp, end = 12.dp, top = 16.dp, bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(start = 16.dp, end = 12.dp, top = 20.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     SubscriptionCard(subscription = subscription, isTablet = true)
                     if (plans.isNotEmpty()) {
@@ -67,19 +70,20 @@ fun BillingContent(
                         .weight(1f)
                         .fillMaxHeight()
                         .verticalScroll(rememberScrollState())
-                        .padding(start = 12.dp, end = 24.dp, top = 16.dp, bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                        .padding(start = 16.dp, end = 24.dp, top = 20.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SectionLabel(Icons.Default.Receipt, "Riwayat Invoice")
                     if (invoices.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                        Box(modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
                             contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Icon(Icons.Default.Receipt, null, modifier = Modifier.size(40.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Icon(Icons.Default.Receipt, null, modifier = Modifier.size(48.dp),
                                     tint = MaterialTheme.colorScheme.outlineVariant)
-                                Text("Belum ada invoice", color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    style = MaterialTheme.typography.bodyMedium)
+                                Text("Belum ada invoice",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyLarge)
                             }
                         }
                     } else {
@@ -145,8 +149,8 @@ private fun BillingContentPreview() {
     RancakTheme {
         BillingContent(
             subscription = SubscriptionState("active", "pro", "2024-01-01", "2025-01-01", 5, false),
-            plans = listOf(Plan("1", "pro", "Pro Plan", "Paket terbaik", 100000.0, 0.11, 30, 5, false, 111000.0)),
-            invoices = emptyList(),
+            plans = listOf(Plan("1", "pro", "Pro Plan", "Paket terbaik", 100000.0, 0.11, 30, 5, false, 111000.0)).toImmutableList(),
+            invoices = persistentListOf(),
             onSubscribe = {},
             onCancelInvoice = {},
             onRefresh = {}

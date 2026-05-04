@@ -33,9 +33,9 @@ import org.koin.compose.viewmodel.koinViewModel
 fun RefundBottomSheet(
     sale: Sale,
     onDismiss: () -> Unit,
-    onRefundSuccess: () -> Unit,
-    viewModel: RefundViewModel = koinViewModel()
+    onRefundSuccess: () -> Unit
 ) {
+    val viewModel: RefundViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 

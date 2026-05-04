@@ -12,6 +12,10 @@ import id.rancak.app.domain.model.Product86
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.ProductRepository
 import id.rancak.app.domain.repository.UserSessionProvider
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,7 +40,7 @@ data class PosUiState(
      * Cache modifier per produk: productUuid → list modifier (global + per-produk).
      * Di-load lazy saat pertama kali item di-tap di OrderPanel.
      */
-    val modifierCache: Map<String, List<Modifier>> = emptyMap(),
+    val modifierCache: PersistentMap<String, ImmutableList<Modifier>> = persistentMapOf(),
     /** Set productUuid yang sedang dalam proses load modifier — cegah double request. */
     val loadingModifierUuids: Set<String> = emptySet()
 )
@@ -148,7 +152,7 @@ class PosViewModel(
             when (val result = productRepository.getModifiers(productUuid)) {
                 is Resource.Success -> _uiState.update { s ->
                     s.copy(
-                        modifierCache       = s.modifierCache + (productUuid to result.data),
+                        modifierCache       = s.modifierCache.put(productUuid, result.data.toImmutableList()),
                         loadingModifierUuids = s.loadingModifierUuids - productUuid
                     )
                 }

@@ -47,9 +47,9 @@ private const val PAGE_SIZE_TABLET = 12
 
 @Composable
 fun KdsScreen(
-    onBack: () -> Unit,
-    viewModel: KdsViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: KdsViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.loadOrders() }
 

@@ -13,6 +13,7 @@ import id.rancak.app.presentation.ui.billing.components.BillingQrPaymentDialog
 import id.rancak.app.presentation.ui.billing.components.CancelInvoiceDialog
 import id.rancak.app.presentation.ui.billing.components.SubscribeConfirmDialog
 import id.rancak.app.presentation.viewmodel.BillingViewModel
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,8 +75,8 @@ fun BillingScreen(
                 else -> {
                     BillingContent(
                         subscription = state.subscription,
-                        plans = state.plans,
-                        invoices = state.invoices,
+                        plans = state.plans.toImmutableList(),
+                        invoices = state.invoices.toImmutableList(),
                         onSubscribe = { viewModel.openSubscribeDialog(it) },
                         onCancelInvoice = { viewModel.openCancelDialog(it) },
                         onRefresh = { viewModel.loadAll() }

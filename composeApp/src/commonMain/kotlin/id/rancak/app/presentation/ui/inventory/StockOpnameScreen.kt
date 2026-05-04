@@ -22,13 +22,14 @@ import id.rancak.app.presentation.ui.inventory.components.OpnameDetailContent
 import id.rancak.app.presentation.ui.inventory.components.OpnameDetailTabletPanel
 import id.rancak.app.presentation.viewmodel.StockOpnameViewModel
 import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun StockOpnameScreen(
-    onBack: () -> Unit,
-    viewModel: StockOpnameViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: StockOpnameViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -48,7 +49,7 @@ fun StockOpnameScreen(
         if (!isTablet && detail != null) {
             OpnameDetailContent(
                 detail              = detail,
-                products            = uiState.products,
+                products            = uiState.products.toImmutableList(),
                 isSubmitting        = uiState.isSubmitting,
                 isLoading           = uiState.isLoadingDetail,
                 showFinalizeConfirm = uiState.showFinalizeConfirm,
@@ -154,7 +155,7 @@ fun StockOpnameScreen(
                         if (detail != null) {
                             OpnameDetailTabletPanel(
                                 detail              = detail,
-                                products            = uiState.products,
+                                products            = uiState.products.toImmutableList(),
                                 isSubmitting        = uiState.isSubmitting,
                                 isLoading           = uiState.isLoadingDetail,
                                 showFinalizeConfirm = uiState.showFinalizeConfirm,

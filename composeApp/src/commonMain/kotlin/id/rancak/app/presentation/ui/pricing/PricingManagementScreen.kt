@@ -27,6 +27,7 @@ import id.rancak.app.presentation.ui.pricing.components.TaxTab
 import id.rancak.app.presentation.viewmodel.PricingManagementViewModel
 import id.rancak.app.presentation.viewmodel.PricingManagementUiState
 import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -35,9 +36,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun PricingManagementScreen(
-    onBack: () -> Unit,
-    viewModel: PricingManagementViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: PricingManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -182,9 +183,9 @@ fun PricingManagementContent(
                                 LoadingScreen()
                             } else {
                                 when (selectedTab) {
-                                    0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge, onToggleActive = onToggleSurchargeActive)
-                                    1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax, onToggleActive = onToggleTaxActive)
-                                    else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount, onToggleActive = onToggleDiscountActive)
+                                    0 -> SurchargeTab(uiState.surcharges.toImmutableList(), onEdit = onEditSurcharge, onDelete = onDeleteSurcharge, onToggleActive = onToggleSurchargeActive)
+                                    1 -> TaxTab(uiState.taxConfigs.toImmutableList(), onEdit = onEditTax, onDelete = onDeleteTax, onToggleActive = onToggleTaxActive)
+                                    else -> DiscountTab(uiState.discountRules.toImmutableList(), onEdit = onEditDiscount, onDelete = onDeleteDiscount, onToggleActive = onToggleDiscountActive)
                                 }
                             }
                         }
@@ -218,9 +219,9 @@ fun PricingManagementContent(
                             LoadingScreen()
                         } else {
                             when (selectedTab) {
-                                0 -> SurchargeTab(uiState.surcharges, onEdit = onEditSurcharge, onDelete = onDeleteSurcharge, onToggleActive = onToggleSurchargeActive)
-                                1 -> TaxTab(uiState.taxConfigs, onEdit = onEditTax, onDelete = onDeleteTax, onToggleActive = onToggleTaxActive)
-                                else -> DiscountTab(uiState.discountRules, onEdit = onEditDiscount, onDelete = onDeleteDiscount, onToggleActive = onToggleDiscountActive)
+                                0 -> SurchargeTab(uiState.surcharges.toImmutableList(), onEdit = onEditSurcharge, onDelete = onDeleteSurcharge, onToggleActive = onToggleSurchargeActive)
+                                1 -> TaxTab(uiState.taxConfigs.toImmutableList(), onEdit = onEditTax, onDelete = onDeleteTax, onToggleActive = onToggleTaxActive)
+                                else -> DiscountTab(uiState.discountRules.toImmutableList(), onEdit = onEditDiscount, onDelete = onDeleteDiscount, onToggleActive = onToggleDiscountActive)
                             }
                         }
                     }

@@ -31,9 +31,9 @@ import org.koin.compose.viewmodel.koinViewModel
  */
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
-    viewModel: LoginViewModel = koinViewModel()
+    onLoginSuccess: () -> Unit
 ) {
+    val viewModel: LoginViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var passwordVisible by remember { mutableStateOf(false) }
     var showEmailForm   by remember { mutableStateOf(false) }

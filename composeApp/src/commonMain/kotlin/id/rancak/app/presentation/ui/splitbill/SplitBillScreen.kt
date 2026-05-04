@@ -39,9 +39,9 @@ import org.koin.compose.viewmodel.koinViewModel
 fun SplitBillScreen(
     saleUuid: String,
     onBack: () -> Unit,
-    onSplitComplete: (originalUuid: String, newSaleUuid: String) -> Unit,
-    viewModel: SplitBillViewModel = koinViewModel()
+    onSplitComplete: (originalUuid: String, newSaleUuid: String) -> Unit
 ) {
+    val viewModel: SplitBillViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(saleUuid) { viewModel.loadSale(saleUuid) }

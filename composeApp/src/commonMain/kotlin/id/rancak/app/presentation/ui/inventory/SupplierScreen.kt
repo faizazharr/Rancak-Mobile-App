@@ -70,9 +70,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SupplierScreen(
-    onBack: () -> Unit,
-    viewModel: SupplierViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: SupplierViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()

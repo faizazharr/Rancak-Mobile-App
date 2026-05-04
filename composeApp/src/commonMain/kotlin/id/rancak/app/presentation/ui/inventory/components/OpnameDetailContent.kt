@@ -23,11 +23,15 @@ import id.rancak.app.domain.model.StockOpnameDetail
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
 
 @Composable
 fun OpnameDetailContent(
     detail: StockOpnameDetail,
-    products: List<Product>,
+    products: ImmutableList<Product>,
     isSubmitting: Boolean,
     isLoading: Boolean,
     showFinalizeConfirm: Boolean,
@@ -161,7 +165,7 @@ fun OpnameDetailContent(
         if (showPicker) {
             ProductPickerSheet(
                 products = products,
-                existingUuids = stockInputs.keys.toSet(),
+                existingUuids = stockInputs.keys.toImmutableSet(),
                 onConfirm = { entries ->
                     stockInputs.putAll(entries)
                     showPicker = false
@@ -204,7 +208,7 @@ internal fun SummaryChip(label: String, count: Int, color: Color) {
 @Composable
 fun OpnameDetailTabletPanel(
     detail: StockOpnameDetail,
-    products: List<Product>,
+    products: ImmutableList<Product>,
     isSubmitting: Boolean,
     isLoading: Boolean,
     showFinalizeConfirm: Boolean,
@@ -353,7 +357,7 @@ fun OpnameDetailTabletPanel(
     if (showPicker) {
         ProductPickerSheet(
             products      = products,
-            existingUuids = stockInputs.keys.toSet(),
+            existingUuids = stockInputs.keys.toImmutableSet(),
             onConfirm     = { entries ->
                 stockInputs.putAll(entries)
                 showPicker = false
@@ -394,7 +398,7 @@ private fun OpnameDetailContentPreview() {
                 ),
                 shortageCount = 1, surplusCount = 0
             ),
-            products = emptyList(),
+            products = persistentListOf(),
             isSubmitting = false, isLoading = false, showFinalizeConfirm = false,
             snackbarHostState = SnackbarHostState(),
             onBack = {}, onSaveItems = {}, onFinalizeClick = {}, onFinalizeConfirm = {}, onFinalizeDismiss = {}

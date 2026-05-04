@@ -32,9 +32,9 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShiftScreen(
-    onBack: () -> Unit,
-    viewModel: ShiftViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: ShiftViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {

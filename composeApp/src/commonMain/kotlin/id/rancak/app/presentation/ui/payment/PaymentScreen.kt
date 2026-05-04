@@ -35,12 +35,12 @@ import id.rancak.app.domain.model.OrderType
 import id.rancak.app.presentation.ui.payment.components.NamedAmount
 import id.rancak.app.presentation.components.PartialReceiptPrintDialog
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.navigation.LocalCartViewModel
 import id.rancak.app.presentation.ui.payment.components.OrderLineItem
 import id.rancak.app.presentation.ui.payment.components.PaymentFormContent
 import id.rancak.app.presentation.ui.payment.components.PaymentSuccessContent
 import id.rancak.app.presentation.ui.payment.components.QrisWaitingContent
 import id.rancak.app.presentation.ui.payment.components.SplitPaymentPanel
-import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
 import id.rancak.app.presentation.viewmodel.SplitableItem
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,6 +48,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import org.koin.compose.koinInject
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -59,10 +61,10 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun PaymentScreen(
     onBack: () -> Unit,
-    onPaymentComplete: () -> Unit,
-    cartViewModel: CartViewModel,
-    paymentViewModel: PaymentViewModel = koinViewModel()
+    onPaymentComplete: () -> Unit
 ) {
+    val cartViewModel    = LocalCartViewModel.current
+    val paymentViewModel: PaymentViewModel = koinViewModel()
     val cartState    by cartViewModel.uiState.collectAsStateWithLifecycle()
     val paymentState by paymentViewModel.uiState.collectAsStateWithLifecycle()
     val printerManager: PrinterManager = koinInject()
@@ -98,7 +100,7 @@ fun PaymentScreen(
 
     // ── Breakdown pajak & surcharge per-line agar ringkasan pembayaran
     //    persis match dengan tampilan kasir (per-konfigurasi, bukan agregat). ──
-    val taxLines: List<NamedAmount> = remember(cartState) {
+    val taxLines: ImmutableList<NamedAmount> = remember(cartState) {
         buildList {
             if (cartState.tax > 0) add(NamedAmount("Pajak", cartState.tax))
             cartState.activeTaxConfigs.forEach { cfg ->
@@ -110,9 +112,9 @@ fun PaymentScreen(
                 val amt = ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
                 if (amt > 0) add(NamedAmount("${cfg.name} (${cfg.rate}%)", amt))
             }
-        }
+        }.toImmutableList()
     }
-    val surchargeLines: List<NamedAmount> = remember(cartState) {
+    val surchargeLines: ImmutableList<NamedAmount> = remember(cartState) {
         buildList {
             if (cartState.adminFee > 0) add(NamedAmount("Biaya Admin", cartState.adminFee))
             cartState.activeSurcharges.forEach { sc ->
@@ -124,7 +126,7 @@ fun PaymentScreen(
                 val label = sc.name + if (sc.isPercentage) " (${sc.amount}%)" else ""
                 if (amt > 0) add(NamedAmount(label, amt))
             }
-        }
+        }.toImmutableList()
     }
     val orderTypeLabel = when (cartState.orderType) {
         OrderType.DINE_IN  -> "Dine In"
@@ -236,8 +238,8 @@ fun PaymentScreen(
                             )
                         }
                         SplitPaymentPanel(
-                            items           = paymentState.splitableItems,
-                            splitGroups     = paymentState.splitGroups,
+                            items           = paymentState.splitableItems.toImmutableList(),
+                            splitGroups     = paymentState.splitGroups.toImmutableList(),
                             currentItemQtys = paymentState.currentSplitItemQtys,
                             currentMethod   = paymentState.currentSplitMethod,
                             currentCashInput = paymentState.currentSplitCashInput,
@@ -335,7 +337,7 @@ fun PaymentScreen(
                                     price       = item.price,
                                     subtotal    = item.subtotal
                                 )
-                            },
+                            }.toImmutableList(),
                             taxLines       = taxLines,
                             surchargeLines = surchargeLines,
                             orderTypeLabel = orderTypeLabel,

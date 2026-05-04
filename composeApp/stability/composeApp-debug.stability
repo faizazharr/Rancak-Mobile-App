@@ -377,11 +377,10 @@ private fun id.rancak.app.presentation.navigation.DrawerAccordionGroup(group: id
     - isSelected: STABLE (function type)
 
 @Composable
-private fun id.rancak.app.presentation.navigation.NavigationContent(navController: androidx.navigation.NavHostController, onMenuClick: kotlin.Function0<kotlin.Unit>): kotlin.Unit
+private fun id.rancak.app.presentation.navigation.NavigationContent(onMenuClick: kotlin.Function0<kotlin.Unit>): kotlin.Unit
   skippable: true
   restartable: true
   params:
-    - navController: STABLE (matched by stability configuration)
     - onMenuClick: STABLE (function type)
 
 @Composable

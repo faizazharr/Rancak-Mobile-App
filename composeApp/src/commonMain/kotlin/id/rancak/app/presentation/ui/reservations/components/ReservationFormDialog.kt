@@ -28,6 +28,7 @@ import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.components.DatePickerField
 import id.rancak.app.presentation.components.TimePickerField
+import kotlinx.collections.immutable.ImmutableList
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Phone: form full-screen (Scaffold + TopAppBar)
@@ -37,7 +38,7 @@ import id.rancak.app.presentation.components.TimePickerField
 @Composable
 fun ReservationFormContent(
     editing: Reservation?,
-    tables: List<Table>,
+    tables: ImmutableList<Table>,
     isSubmitting: Boolean,
     onBack: () -> Unit,
     onConfirm: (ReservationInput) -> Unit
@@ -93,7 +94,7 @@ fun ReservationFormContent(
 @Composable
 fun ReservationFormPanel(
     editing: Reservation?,
-    tables: List<Table>,
+    tables: ImmutableList<Table>,
     isSubmitting: Boolean,
     onClose: () -> Unit,
     onConfirm: (ReservationInput) -> Unit
@@ -154,7 +155,7 @@ fun ReservationFormPanel(
 @Composable
 private fun ReservationFormFields(
     state: ReservationFormMutableState,
-    tables: List<Table>,
+    tables: ImmutableList<Table>,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -378,6 +379,7 @@ private fun ReservationFormFields(
 // State holder
 // ─────────────────────────────────────────────────────────────────────────────
 
+@Stable
 class ReservationFormMutableState(editing: Reservation?) {
     var customerName  by mutableStateOf(editing?.customerName ?: "")
     var customerPhone by mutableStateOf(editing?.customerPhone ?: "")

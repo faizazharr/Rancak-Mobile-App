@@ -28,14 +28,14 @@ fun SmallBadge(label: String, color: Color) {
 @Composable
 fun SectionLabel(icon: ImageVector, title: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 2.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Icon(icon, null, modifier = Modifier.size(14.dp), tint = Primary)
+        Icon(icon, null, modifier = Modifier.size(16.dp), tint = Primary)
         Text(
             title,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

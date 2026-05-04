@@ -39,9 +39,9 @@ private val AuroraViolet = Color(0xFF7B3FE4)  // violet hint — luxury
 
 @Composable
 fun SplashScreen(
-    onNavigate: (Screen) -> Unit,
-    viewModel: SplashViewModel = koinViewModel()
+    onNavigate: (Screen) -> Unit
 ) {
+    val viewModel: SplashViewModel = koinViewModel()
     val destination by viewModel.destination.collectAsStateWithLifecycle()
 
     // ── Navigasi otomatis setelah ViewModel menyelesaikan validasi ────────────

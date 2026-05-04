@@ -38,6 +38,7 @@ import id.rancak.app.presentation.ui.payment.components.SplitPaymentPanel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
 import id.rancak.app.presentation.viewmodel.SplitableItem
 import kotlin.time.Clock
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.koinInject
@@ -50,9 +51,9 @@ import org.koin.compose.viewmodel.koinViewModel
 fun PayHeldOrderScreen(
     saleUuid: String,
     onBack: () -> Unit,
-    onPaymentComplete: () -> Unit,
-    paymentViewModel: PaymentViewModel = koinViewModel()
+    onPaymentComplete: () -> Unit
 ) {
+    val paymentViewModel: PaymentViewModel = koinViewModel()
     val printerManager: PrinterManager = koinInject()
     val settingsStore: SettingsStore   = koinInject()
     val paymentState by paymentViewModel.uiState.collectAsStateWithLifecycle()
@@ -168,8 +169,8 @@ fun PayHeldOrderScreen(
                             )
                         }
                         SplitPaymentPanel(
-                            items           = paymentState.splitableItems,
-                            splitGroups     = paymentState.splitGroups,
+                            items           = paymentState.splitableItems.toImmutableList(),
+                            splitGroups     = paymentState.splitGroups.toImmutableList(),
                             currentItemQtys = paymentState.currentSplitItemQtys,
                             currentMethod   = paymentState.currentSplitMethod,
                             currentCashInput = paymentState.currentSplitCashInput,
@@ -229,7 +230,7 @@ fun PayHeldOrderScreen(
                                     price       = saleItem.price,
                                     subtotal    = saleItem.subtotal
                                 )
-                            },
+                            }.toImmutableList(),
                             modifier = Modifier.fillMaxSize()
                         )
                     }

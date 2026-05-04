@@ -1,5 +1,6 @@
 package id.rancak.app.data.local
 
+import androidx.compose.runtime.Immutable
 import id.rancak.app.domain.model.CartItem
 import kotlinx.serialization.Serializable
 
@@ -7,6 +8,7 @@ import kotlinx.serialization.Serializable
  * Open bill yang disimpan secara lokal di perangkat kasir.
  * Tidak memerlukan koneksi internet — hanya disimpan via [OpenBillStore].
  */
+@Immutable
 @Serializable
 data class LocalOpenBill(
     val id: String,
@@ -39,6 +41,7 @@ data class LocalOpenBill(
     val itemCount: Int get() = items.sumOf { it.qty }
 }
 
+@Immutable
 @Serializable
 data class LocalOpenBillItem(
     val productUuid: String,

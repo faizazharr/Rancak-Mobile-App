@@ -51,6 +51,7 @@ import id.rancak.app.presentation.ui.reports.components.PeriodSelectorRow
 import id.rancak.app.presentation.ui.reports.components.ShiftInfoCard
 import id.rancak.app.presentation.viewmodel.ReportUiState
 import id.rancak.app.presentation.viewmodel.ReportViewModel
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -59,9 +60,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ReportScreen(
-    onBack: () -> Unit,
-    viewModel: ReportViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: ReportViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedPeriod by remember { mutableStateOf(ReportPeriod.THIS_MONTH) }
 
@@ -189,7 +190,7 @@ private fun TabletLayout(uiState: ReportUiState) {
                 item { KpiCardsGrid(summary) }
                 item { FinancialBreakdownCard(summary) }
                 if (summary.paymentSummary.isNotEmpty()) {
-                    item { PaymentDonutCard(summary.paymentSummary) }
+                    item { PaymentDonutCard(summary.paymentSummary.toImmutableList()) }
                 }
             } else {
                 item { EmptySummaryPlaceholder() }
@@ -221,7 +222,7 @@ private fun TabletLayout(uiState: ReportUiState) {
                     item { MySalesTodayCard(mySales) }
                 }
                 if (uiState.dailyByCategory.isNotEmpty()) {
-                    item { DailyCategoryCard(uiState.dailyByCategory) }
+                    item { DailyCategoryCard(uiState.dailyByCategory.toImmutableList()) }
                 }
             } else {
                 item {
@@ -251,7 +252,7 @@ private fun PhoneLayout(uiState: ReportUiState) {
             item { KpiCardsGrid(summary) }
             item { FinancialBreakdownCard(summary) }
             if (summary.paymentSummary.isNotEmpty()) {
-                item { PaymentDonutCard(summary.paymentSummary) }
+                item { PaymentDonutCard(summary.paymentSummary.toImmutableList()) }
             }
             item {
                 Text(
@@ -266,7 +267,7 @@ private fun PhoneLayout(uiState: ReportUiState) {
                 item { MySalesTodayCard(mySales) }
             }
             if (uiState.dailyByCategory.isNotEmpty()) {
-                item { DailyCategoryCard(uiState.dailyByCategory) }
+                item { DailyCategoryCard(uiState.dailyByCategory.toImmutableList()) }
             }
         }
     }

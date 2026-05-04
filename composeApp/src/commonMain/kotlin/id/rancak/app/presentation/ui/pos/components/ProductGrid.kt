@@ -40,6 +40,7 @@ import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.PosUiState
+import kotlinx.collections.immutable.ImmutableMap
 
 /**
  * Product grid body. Renders loading, error, empty, and populated states.
@@ -47,7 +48,7 @@ import id.rancak.app.presentation.viewmodel.PosUiState
 @Composable
 internal fun ProductGridContent(
     uiState: PosUiState,
-    cartQtyMap: Map<String, Int>,
+    cartQtyMap: ImmutableMap<String, Int>,
     bottomPad: Dp,
     onRefresh: () -> Unit,
     onAdd: (Product) -> Unit,

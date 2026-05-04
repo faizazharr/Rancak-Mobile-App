@@ -20,6 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.presentation.designsystem.RancakTheme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * Horizontal scrollable category chip row. Emits `null` for the "Semua"
@@ -27,7 +29,7 @@ import id.rancak.app.presentation.designsystem.RancakTheme
  */
 @Composable
 internal fun PosCategoryRow(
-    categories: List<Category>,
+    categories: ImmutableList<Category>,
     selected: Category?,
     onSelect: (Category?) -> Unit
 ) {
@@ -83,7 +85,7 @@ private fun PosCategoryRowPreview() {
     )
     RancakTheme {
         PosCategoryRow(
-            categories = categories,
+            categories = categories.toImmutableList(),
             selected   = categories[1],
             onSelect   = {}
         )

@@ -12,10 +12,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.TaxConfig
 import id.rancak.app.presentation.designsystem.RancakTheme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun TaxTab(
-    taxConfigs: List<TaxConfig>,
+    taxConfigs: ImmutableList<TaxConfig>,
     onEdit: (TaxConfig) -> Unit,
     onDelete: (TaxConfig) -> Unit,
     onToggleActive: (TaxConfig, Boolean) -> Unit = { _, _ -> },
@@ -55,7 +58,7 @@ private fun TaxTabPreview() {
             taxConfigs = listOf(
                 TaxConfig("1", "PPN", 11.0, "after_discount", 1, true),
                 TaxConfig("2", "PPn BM", 20.0, "before_discount", 2, false)
-            ),
+            ).toImmutableList(),
             onEdit   = {},
             onDelete = {}
         )
@@ -66,6 +69,6 @@ private fun TaxTabPreview() {
 @Composable
 private fun TaxTabEmptyPreview() {
     RancakTheme {
-        TaxTab(taxConfigs = emptyList(), onEdit = {}, onDelete = {})
+        TaxTab(taxConfigs = persistentListOf(), onEdit = {}, onDelete = {})
     }
 }

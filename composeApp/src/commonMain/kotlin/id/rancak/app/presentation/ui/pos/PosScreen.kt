@@ -29,12 +29,17 @@ import id.rancak.app.presentation.ui.pos.components.PosCategoryRow
 import id.rancak.app.presentation.ui.pos.components.PosSearchBar
 import id.rancak.app.presentation.ui.pos.components.PosTopBar
 import id.rancak.app.presentation.ui.pos.components.ProductGridContent
+import id.rancak.app.presentation.navigation.LocalCartViewModel
 import id.rancak.app.presentation.viewmodel.CartUiState
-import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.OpenBillViewModel
 import id.rancak.app.presentation.viewmodel.PosUiState
 import id.rancak.app.presentation.viewmodel.PosViewModel
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -52,12 +57,12 @@ fun PosScreen(
     onMenuClick: () -> Unit,
     /** Dipanggil setelah open bill berhasil dibuat — gunakan untuk navigasi ke daftar open bill. */
     onHoldSuccess: () -> Unit = {},
-    onOpenBillClick: () -> Unit = {},
-    posViewModel: PosViewModel = koinViewModel(),
-    shiftViewModel: ShiftViewModel = koinViewModel(),
-    openBillViewModel: OpenBillViewModel = koinViewModel(),
-    cartViewModel: CartViewModel
+    onOpenBillClick: () -> Unit = {}
 ) {
+    val posViewModel: PosViewModel       = koinViewModel()
+    val cartViewModel                    = LocalCartViewModel.current
+    val shiftViewModel: ShiftViewModel   = koinViewModel()
+    val openBillViewModel: OpenBillViewModel = koinViewModel()
     val uiState       by posViewModel.uiState.collectAsStateWithLifecycle()
     val cartState     by cartViewModel.uiState.collectAsStateWithLifecycle()
     val shiftState    by shiftViewModel.uiState.collectAsStateWithLifecycle()
@@ -127,7 +132,7 @@ fun PosScreen(
     }
 
     val cartQtyMap = remember(cartState.items) {
-        cartState.items.associate { it.productUuid to it.qty }
+        cartState.items.associate { it.productUuid to it.qty }.toImmutableMap()
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -200,7 +205,7 @@ fun PosScreen(
 private fun PhoneLayout(
     uiState: PosUiState,
     cartState: CartUiState,
-    cartQtyMap: Map<String, Int>,
+    cartQtyMap: ImmutableMap<String, Int>,
     outletName: String,
     hasOpenShift: Boolean,
     onMenuClick: () -> Unit,
@@ -244,7 +249,7 @@ private fun PhoneLayout(
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp, vertical = 8.dp)
                 )
-                PosCategoryRow(uiState.categories, uiState.selectedCategory, onCategorySelect)
+                PosCategoryRow(uiState.categories.toImmutableList(), uiState.selectedCategory, onCategorySelect)
                 ProductGridContent(
                     uiState    = uiState,
                     cartQtyMap = cartQtyMap,
@@ -277,7 +282,7 @@ private fun PhoneLayout(
 private fun SplitLayout(
     uiState: PosUiState,
     cartState: CartUiState,
-    cartQtyMap: Map<String, Int>,
+    cartQtyMap: ImmutableMap<String, Int>,
     outletName: String,
     hasOpenShift: Boolean,
     onMenuClick: () -> Unit,
@@ -302,7 +307,7 @@ private fun SplitLayout(
     onTip: (Long) -> Unit,
     onVoucherCode: (String) -> Unit,
     onScanClick: () -> Unit,
-    modifierCache: Map<String, List<id.rancak.app.domain.model.Modifier>> = emptyMap(),
+    modifierCache: ImmutableMap<String, ImmutableList<id.rancak.app.domain.model.Modifier>> = persistentMapOf(),
     onLoadModifiers: (String) -> Unit = {}
 ) {
     Row(Modifier.fillMaxSize()) {
@@ -330,7 +335,7 @@ private fun SplitLayout(
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp, vertical = 8.dp)
             )
-            PosCategoryRow(uiState.categories, uiState.selectedCategory, onCategorySelect)
+            PosCategoryRow(uiState.categories.toImmutableList(), uiState.selectedCategory, onCategorySelect)
             ProductGridContent(
                 uiState    = uiState,
                 cartQtyMap = cartQtyMap,
@@ -405,7 +410,7 @@ private fun PosScreenPhonePreview() {
         PhoneLayout(
             uiState          = PosUiState(products = previewProducts, categories = listOf(previewCategory)),
             cartState        = CartUiState(),
-            cartQtyMap       = emptyMap(),
+            cartQtyMap       = persistentMapOf(),
             outletName       = "Warung Rancak",
             hasOpenShift     = true,
             onMenuClick      = {},
@@ -426,7 +431,7 @@ private fun PosScreenTabletPreview() {
         SplitLayout(
             uiState          = PosUiState(products = previewProducts, categories = listOf(previewCategory)),
             cartState        = CartUiState(),
-            cartQtyMap       = emptyMap(),
+            cartQtyMap       = persistentMapOf(),
             outletName       = "Warung Rancak",
             hasOpenShift     = true,
             onMenuClick      = {},

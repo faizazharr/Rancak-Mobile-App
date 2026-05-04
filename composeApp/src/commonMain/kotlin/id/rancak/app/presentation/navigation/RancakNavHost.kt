@@ -29,6 +29,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
@@ -76,6 +78,16 @@ private data class DrawerGroup(
     val items: List<DrawerItem>,
     val expandedByDefault: Boolean = false
 )
+
+/**
+ * CompositionLocal yang menyediakan [NavHostController] ke seluruh subtree
+ * di dalam [RancakNavHost]. Menggunakan [staticCompositionLocalOf] karena
+ * navController dibuat sekali saat composable masuk komposisi dan tidak
+ * pernah diganti — tidak perlu rekomposisi saat nilai berubah.
+ */
+private val LocalNavController = staticCompositionLocalOf<NavHostController> {
+    error("NavHostController not provided — pastikan dipanggil di dalam RancakNavHost()")
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,6 +192,7 @@ fun RancakNavHost() {
     // Wrapping in ModalNavigationDrawer unconditionally prevents the NavHost
     // from being destroyed and recreated when showDrawer changes (login → main),
     // which was the root cause of white-screen flashes.
+    CompositionLocalProvider(LocalNavController provides navController) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = showDrawer,
@@ -320,10 +333,11 @@ fun RancakNavHost() {
             }
         }
     ) {
-        NavigationContent(navController, onMenuClick = {
+        NavigationContent(onMenuClick = {
             if (showDrawer) scope.launch { drawerState.open() }
         })
     }
+    } // end CompositionLocalProvider
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -399,9 +413,9 @@ private fun DrawerAccordionGroup(
 
 @Composable
 private fun NavigationContent(
-    navController: NavHostController,
     onMenuClick: () -> Unit
 ) {
+    val navController = LocalNavController.current
     // CartViewModel is created here (Activity scope) so PosScreen, CartScreen,
     // and PaymentScreen all share the SAME instance — items added in PosScreen
     // are visible in CartScreen and PaymentScreen.
@@ -462,30 +476,32 @@ private fun NavigationContent(
     // Surface dengan warna background tema mencegah “white flash” saat
     // Compose Navigation berpindah destinasi (frame kosong di antara dispose
     // composable lama dan compose pertama composable baru).
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        NavHost(
-            navController    = navController,
-            startDestination = Screen.Splash,
-            modifier         = Modifier.fillMaxSize(),
-            // Transisi default seragam: cross-fade halus mencegah “white flash”
-            // dan memberi efek mulus saat berpindah destinasi.
-            // Enter lebih panjang dari exit: layar baru fade-in lebih lambat sehingga
-            // ViewModel sempat diinisialisasi sebelum konten sepenuhnya terlihat.
-            // Exit lebih cepat agar layar lama cepat "pergi" dan tidak mengganggu.
-            enterTransition    = { fadeIn(animationSpec  = tween(durationMillis = 220)) },
-            exitTransition     = { fadeOut(animationSpec = tween(durationMillis = 150)) },
-            popEnterTransition = { fadeIn(animationSpec  = tween(durationMillis = 200)) },
-            popExitTransition  = { fadeOut(animationSpec = tween(durationMillis = 150)) }
+    CompositionLocalProvider(LocalCartViewModel provides cartViewModel) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            authGraph(navController)
-            kasirGraph(navController, cartViewModel, onMenuClick)
-            operationsGraph(navController, onMenuClick)
-            salesGraph(navController, onMenuClick)
-            financeGraph(onMenuClick)
-            managementGraph(navController, onMenuClick)
+            NavHost(
+                navController    = navController,
+                startDestination = Screen.Splash,
+                modifier         = Modifier.fillMaxSize(),
+                // Transisi default seragam: cross-fade halus mencegah "white flash"
+                // dan memberi efek mulus saat berpindah destinasi.
+                // Enter lebih panjang dari exit: layar baru fade-in lebih lambat sehingga
+                // ViewModel sempat diinisialisasi sebelum konten sepenuhnya terlihat.
+                // Exit lebih cepat agar layar lama cepat "pergi" dan tidak mengganggu.
+                enterTransition    = { fadeIn(animationSpec  = tween(durationMillis = 220)) },
+                exitTransition     = { fadeOut(animationSpec = tween(durationMillis = 150)) },
+                popEnterTransition = { fadeIn(animationSpec  = tween(durationMillis = 200)) },
+                popExitTransition  = { fadeOut(animationSpec = tween(durationMillis = 150)) }
+            ) {
+                authGraph(navController)
+                kasirGraph(navController, onMenuClick)
+                operationsGraph(navController, onMenuClick)
+                salesGraph(navController, onMenuClick)
+                financeGraph(onMenuClick)
+                managementGraph(navController, onMenuClick)
+            }
         }
     }
 }

@@ -40,14 +40,15 @@ import id.rancak.app.presentation.viewmodel.TableUiState
 import id.rancak.app.presentation.viewmodel.TableViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun TableMapScreen(
     onBack: () -> Unit,
-    onTableSelect: ((String) -> Unit)? = null,
-    viewModel: TableViewModel = koinViewModel()
+    onTableSelect: ((String) -> Unit)? = null
 ) {
+    val viewModel: TableViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val canManage = true
 
@@ -188,7 +189,7 @@ fun TableMapScreenContent(
         TableFormDialog(
             editingTable  = uiState.editingTable,
             isSubmitting  = uiState.isSubmitting,
-            existingAreas = uiState.tables.mapNotNull { it.area }.distinct().sorted(),
+            existingAreas = uiState.tables.mapNotNull { it.area }.distinct().sorted().toImmutableList(),
             onDismiss     = onDismissDialog,
             onConfirm     = onConfirmSave
         )

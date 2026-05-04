@@ -80,11 +80,11 @@ fun PlanCard(
                     }
                 }
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (plan.description != null) {
-                        Text(plan.description, style = MaterialTheme.typography.labelSmall,
+                        Text(plan.description, style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2,
                             overflow = TextOverflow.Ellipsis)
                     }
@@ -120,8 +120,8 @@ fun PlanCard(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -132,7 +132,7 @@ fun PlanCard(
                     if (plan.isTrial) SmallBadge("TRIAL", Secondary)
                 }
                 if (plan.description != null) {
-                    Text(plan.description, style = MaterialTheme.typography.labelSmall,
+                    Text(plan.description, style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2,
                         overflow = TextOverflow.Ellipsis)
                 }

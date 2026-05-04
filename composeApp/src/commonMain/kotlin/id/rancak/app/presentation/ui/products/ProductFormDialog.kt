@@ -17,12 +17,14 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.RancakTheme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductFormDialog(
     editingProduct: Product?,
-    categories: List<Category>,
+    categories: ImmutableList<Category>,
     isSubmitting: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (name: String, price: Long, description: String?, sku: String?, barcode: String?,
@@ -219,7 +221,7 @@ private fun ProductFormDialogAddPreview() {
             categories     = listOf(
                 Category("c1", "Makanan", null),
                 Category("c2", "Minuman", null)
-            ),
+            ).toImmutableList(),
             isSubmitting = false,
             onDismiss    = {},
             onConfirm    = { _, _, _, _, _, _, _, _, _ -> }
@@ -238,7 +240,7 @@ private fun ProductFormDialogEditPreview() {
                 price = 25000L, stock = 10.0, unit = "porsi",
                 imageUrl = null, isActive = true, hasExpiry = false, updatedAt = null
             ),
-            categories   = listOf(Category("c1", "Makanan", null), Category("c2", "Minuman", null)),
+            categories   = listOf(Category("c1", "Makanan", null), Category("c2", "Minuman", null)).toImmutableList(),
             isSubmitting = false,
             onDismiss    = {},
             onConfirm    = { _, _, _, _, _, _, _, _, _ -> }

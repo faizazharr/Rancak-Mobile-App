@@ -13,6 +13,8 @@ import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.designsystem.RancakTheme
 import androidx.compose.ui.focus.onFocusChanged
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 /**
  * Dialog form tambah/edit meja. Dipakai admin di [TableMapScreen] saat
@@ -25,7 +27,7 @@ import androidx.compose.ui.focus.onFocusChanged
 fun TableFormDialog(
     editingTable: Table?,
     isSubmitting: Boolean,
-    existingAreas: List<String> = emptyList(),
+    existingAreas: ImmutableList<String> = persistentListOf(),
     onDismiss: () -> Unit,
     onConfirm: (name: String, area: String?, capacity: Int, isActive: Boolean, sortOrder: Int) -> Unit
 ) {

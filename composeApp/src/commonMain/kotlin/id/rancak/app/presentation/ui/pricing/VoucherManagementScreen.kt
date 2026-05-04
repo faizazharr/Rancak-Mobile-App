@@ -19,13 +19,15 @@ import id.rancak.app.presentation.ui.pricing.components.VoucherFormContent
 import id.rancak.app.presentation.ui.pricing.components.VoucherFormPanel
 import id.rancak.app.presentation.viewmodel.VoucherManagementViewModel
 import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun VoucherManagementScreen(
-    onBack: () -> Unit,
-    viewModel: VoucherManagementViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: VoucherManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -94,7 +96,7 @@ fun VoucherManagementScreen(
                         HorizontalDivider()
                         VoucherListContent(
                             isLoading = uiState.isLoading,
-                            vouchers  = uiState.vouchers,
+                            vouchers  = uiState.vouchers.toImmutableList(),
                             onEdit    = { viewModel.openForm(it) },
                             onDelete  = { viewModel.openDeleteConfirm(it) },
                             modifier  = Modifier.fillMaxSize()
@@ -155,7 +157,7 @@ fun VoucherManagementScreen(
                     HorizontalDivider()
                     VoucherListContent(
                         isLoading = uiState.isLoading,
-                        vouchers  = uiState.vouchers,
+                        vouchers  = uiState.vouchers.toImmutableList(),
                         onEdit    = { viewModel.openForm(it) },
                         onDelete  = { viewModel.openDeleteConfirm(it) },
                         modifier  = Modifier.fillMaxSize()
@@ -213,7 +215,7 @@ private fun VoucherFilterRow(
 @Composable
 private fun VoucherListContent(
     isLoading: Boolean,
-    vouchers: List<Voucher>,
+    vouchers: ImmutableList<Voucher>,
     onEdit: (Voucher) -> Unit,
     onDelete: (Voucher) -> Unit,
     modifier: Modifier = Modifier

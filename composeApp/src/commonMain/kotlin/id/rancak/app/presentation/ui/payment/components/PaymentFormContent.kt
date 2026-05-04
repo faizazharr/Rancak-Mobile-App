@@ -28,6 +28,9 @@ import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.SummaryRow
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 /** Metode yang ditampilkan — hanya Cash dan QRIS. */
 private val visiblePaymentMethods = listOf(PaymentMethod.CASH, PaymentMethod.QRIS)
@@ -81,17 +84,17 @@ internal fun PaymentFormContent(
     deliveryFee: Long = 0L,
     tip: Long = 0L,
     /** Detail setiap baris item untuk ditampilkan di ringkasan — opsional. */
-    orderItems: List<OrderLineItem> = emptyList(),
+    orderItems: ImmutableList<OrderLineItem> = persistentListOf(),
     /**
      * Breakdown pajak per-konfigurasi (manual + auto dari Pricing Settings).
      * Bila kosong, fallback ke single-line dengan label "Pajak".
      */
-    taxLines: List<NamedAmount> = emptyList(),
+    taxLines: ImmutableList<NamedAmount> = persistentListOf(),
     /**
      * Breakdown surcharge per-konfigurasi (manual + auto dari Pricing Settings).
      * Bila kosong, fallback ke single-line dengan label "Biaya Admin".
      */
-    surchargeLines: List<NamedAmount> = emptyList(),
+    surchargeLines: ImmutableList<NamedAmount> = persistentListOf(),
     /** Konteks pesanan agar match dengan kasir. */
     orderTypeLabel: String? = null,
     customerName: String? = null,
@@ -113,7 +116,7 @@ internal fun PaymentFormContent(
             ((total / 10_000) + 1) * 10_000,
             ((total / 50_000) + 1) * 50_000,
             ((total / 100_000) + 1) * 100_000
-        ).distinct().sorted()
+        ).distinct().sorted().toImmutableList()
     }
 
     Row(
@@ -179,9 +182,9 @@ private fun OrderSummaryColumn(
     changeAmount: Long,
     isSplit: Boolean,
     onToggleMode: () -> Unit,
-    orderItems: List<OrderLineItem> = emptyList(),
-    taxLines: List<NamedAmount> = emptyList(),
-    surchargeLines: List<NamedAmount> = emptyList(),
+    orderItems: ImmutableList<OrderLineItem> = persistentListOf(),
+    taxLines: ImmutableList<NamedAmount> = persistentListOf(),
+    surchargeLines: ImmutableList<NamedAmount> = persistentListOf(),
     orderTypeLabel: String? = null,
     customerName: String? = null,
     tableLabel: String? = null,
@@ -305,9 +308,9 @@ private fun SummaryCard(
     deliveryFee: Long,
     tip: Long,
     total: Long,
-    orderItems: List<OrderLineItem> = emptyList(),
-    taxLines: List<NamedAmount> = emptyList(),
-    surchargeLines: List<NamedAmount> = emptyList()
+    orderItems: ImmutableList<OrderLineItem> = persistentListOf(),
+    taxLines: ImmutableList<NamedAmount> = persistentListOf(),
+    surchargeLines: ImmutableList<NamedAmount> = persistentListOf()
 ) {
     Card(
         shape  = MaterialTheme.shapes.medium,
@@ -505,7 +508,7 @@ private fun PaymentInputColumn(
     isProcessing: Boolean,
     onProcessPayment: () -> Unit,
     onQrisSelected: () -> Unit = {},
-    quickAmounts: List<Long>,
+    quickAmounts: ImmutableList<Long>,
     isQrisWaiting: Boolean = false,
     qrisQrString: String? = null,
     qrisAmount: Long = 0L,
@@ -670,7 +673,7 @@ private fun PaidAmountDisplay(paidAmount: String, onClear: () -> Unit) {
 
 @Composable
 private fun QuickAmountRow(
-    quickAmounts: List<Long>,
+    quickAmounts: ImmutableList<Long>,
     paidAmount: String,
     onSelect: (Long) -> Unit
 ) {

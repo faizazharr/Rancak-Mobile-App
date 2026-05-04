@@ -28,6 +28,8 @@ import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.AddItemsToHeldOrderViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -42,9 +44,9 @@ import org.koin.compose.viewmodel.koinViewModel
 fun AddItemsToHeldOrderScreen(
     saleUuid: String,
     onBack: () -> Unit,
-    onSuccess: () -> Unit,
-    viewModel: AddItemsToHeldOrderViewModel = koinViewModel()
+    onSuccess: () -> Unit
 ) {
+    val viewModel: AddItemsToHeldOrderViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
 
@@ -94,7 +96,7 @@ fun AddItemsToHeldOrderScreen(
                 uiState.filteredProducts.isEmpty() ->
                     EmptyScreen("Produk tidak ditemukan", Modifier.weight(1f).fillMaxWidth())
                 else -> ProductGrid(
-                    products    = uiState.filteredProducts,
+                    products    = uiState.filteredProducts.toImmutableList(),
                     selectedQty = { uuid -> uiState.selected[uuid]?.qty ?: 0 },
                     onIncrement = viewModel::increment,
                     onDecrement = viewModel::decrement,
@@ -119,7 +121,7 @@ private fun SearchBar(query: String, onChange: (String) -> Unit) {
 
 @Composable
 private fun ProductGrid(
-    products: List<Product>,
+    products: ImmutableList<Product>,
     selectedQty: (String) -> Int,
     onIncrement: (Product) -> Unit,
     onDecrement: (String) -> Unit,

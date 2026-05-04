@@ -15,6 +15,8 @@ import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatDateFriendly
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun ExpenseItemCard(
@@ -58,7 +60,7 @@ fun ExpenseItemCard(
 
 @Composable
 fun ExpenseList(
-    items: List<Expense>,
+    items: ImmutableList<Expense>,
     onDelete: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -91,7 +93,7 @@ private fun ExpenseListPreview() {
                 Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null,
                     categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null,
                     expenseDate = null, createdAt = "2026-04-28T08:30:00Z", updatedAt = null)
-            ),
+            ).toImmutableList(),
             onDelete = {}
         )
     }

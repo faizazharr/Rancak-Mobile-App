@@ -31,6 +31,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.data.local.LocalOpenBill
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.OpenBillViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
@@ -53,9 +55,9 @@ fun OpenBillListScreen(
     /** Untuk bill synced — navigasi ke PayHeldOrderScreen. */
     onPayHeldOrder: (saleUuid: String) -> Unit = {},
     /** Untuk bill synced — navigasi ke AddItemsToHeldOrderScreen. */
-    onAddItems: (saleUuid: String) -> Unit = {},
-    viewModel: OpenBillViewModel = koinViewModel()
+    onAddItems: (saleUuid: String) -> Unit = {}
 ) {
+    val viewModel: OpenBillViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val amber  = Color(0xFFF59E0B)
     val amber2 = Color(0xFFFBBF24)
@@ -119,7 +121,7 @@ fun OpenBillListScreen(
                 // ── Summary banner ────────────────────────────────────────
                 item {
                     SummaryBanner(
-                        bills = state.bills,
+                        bills = state.bills.toImmutableList(),
                         amber = amber,
                         amber2 = amber2
                     )
@@ -149,7 +151,7 @@ fun OpenBillListScreen(
 
 @Composable
 private fun SummaryBanner(
-    bills: List<LocalOpenBill>,
+    bills: ImmutableList<LocalOpenBill>,
     amber: Color,
     amber2: Color
 ) {

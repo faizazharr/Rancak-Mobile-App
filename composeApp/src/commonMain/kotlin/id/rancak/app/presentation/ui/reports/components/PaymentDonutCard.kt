@@ -29,13 +29,15 @@ import id.rancak.app.domain.model.PaymentMethodReport
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.reports.chartColors
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * Kartu pembayaran: donut chart di kiri + legenda metode pembayaran di kanan,
  * menampilkan total rupiah, jumlah transaksi, dan persentase per metode.
  */
 @Composable
-internal fun PaymentDonutCard(methods: List<PaymentMethodReport>) {
+internal fun PaymentDonutCard(methods: ImmutableList<PaymentMethodReport>) {
     val total = methods.sumOf { it.total }.takeIf { it > 0L } ?: return
 
     Card(
@@ -59,7 +61,7 @@ internal fun PaymentDonutCard(methods: List<PaymentMethodReport>) {
                 DonutChart(
                     slices = methods.mapIndexed { i, m ->
                         m.total.toFloat() / total.toFloat() to chartColors[i % chartColors.size]
-                    },
+                    }.toImmutableList(),
                     modifier = Modifier.size(100.dp)
                 )
 
@@ -106,7 +108,7 @@ internal fun PaymentDonutCard(methods: List<PaymentMethodReport>) {
 
 @Composable
 private fun DonutChart(
-    slices: List<Pair<Float, Color>>,
+    slices: ImmutableList<Pair<Float, Color>>,
     modifier: Modifier = Modifier
 ) {
     Canvas(modifier = modifier) {
@@ -143,7 +145,7 @@ private fun PaymentDonutCardPreview() {
                     PaymentMethodReport("cash", 4_500_000, 32),
                     PaymentMethodReport("qris", 2_800_000, 22),
                     PaymentMethodReport("card", 1_450_000, 10)
-                )
+                ).toImmutableList()
             )
         }
     }

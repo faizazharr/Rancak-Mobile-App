@@ -35,6 +35,10 @@ import id.rancak.app.presentation.components.SummaryRow
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.SplitGroup
 import id.rancak.app.presentation.viewmodel.SplitableItem
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.coroutines.flow.merge
 
 private val splitMethods = listOf(PaymentMethod.CASH, PaymentMethod.QRIS)
 
@@ -55,9 +59,9 @@ private val groupAccentColors = listOf(
  */
 @Composable
 internal fun SplitPaymentPanel(
-    items: List<SplitableItem>,
-    splitGroups: List<SplitGroup>,
-    currentItemQtys: Map<Int, Int>,
+    items: ImmutableList<SplitableItem>,
+    splitGroups: ImmutableList<SplitGroup>,
+    currentItemQtys: ImmutableMap<Int, Int>,
     currentMethod: PaymentMethod,
     currentCashInput: String,
     orderTotal: Long,
@@ -77,12 +81,12 @@ internal fun SplitPaymentPanel(
     merchantQrisString: String = "",
     modifier: Modifier = Modifier
 ) {
-    val confirmedQtyMap: Map<Int, Int> = remember(splitGroups) {
-        buildMap {
+    val confirmedQtyMap: ImmutableMap<Int, Int> = remember(splitGroups) {
+        buildMap<Int, Int> {
             splitGroups.forEach { g ->
                 g.itemQtys.forEach { (idx, qty) -> merge(idx, qty, Int::plus) }
             }
-        }
+        }.toImmutableMap()
     }
     val allAssigned = items.isNotEmpty() && items.all { (confirmedQtyMap[it.index] ?: 0) >= it.qty }
 
@@ -157,10 +161,10 @@ internal fun SplitPaymentPanel(
 @Composable
 private fun SplitItemColumn(
     orderTotal: Long,
-    items: List<SplitableItem>,
-    confirmedQtyMap: Map<Int, Int>,
-    currentItemQtys: Map<Int, Int>,
-    splitGroups: List<SplitGroup>,
+    items: ImmutableList<SplitableItem>,
+    confirmedQtyMap: ImmutableMap<Int, Int>,
+    currentItemQtys: ImmutableMap<Int, Int>,
+    splitGroups: ImmutableList<SplitGroup>,
     isSplit: Boolean,
     onSetItemQty: (Int, Int) -> Unit,
     onToggleMode: () -> Unit,

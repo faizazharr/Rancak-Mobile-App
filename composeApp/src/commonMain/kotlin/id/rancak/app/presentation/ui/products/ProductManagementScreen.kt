@@ -16,13 +16,14 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.ProductManagementUiState
 import id.rancak.app.presentation.viewmodel.ProductManagementViewModel
 import kotlinx.coroutines.launch
+import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ProductManagementScreen(
-    onBack: () -> Unit,
-    viewModel: ProductManagementViewModel = koinViewModel()
+    onBack: () -> Unit
 ) {
+    val viewModel: ProductManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -112,7 +113,7 @@ fun ProductManagementScreen(
             if (uiState.showProductFormDialog) {
                 ProductFormDialog(
                     editingProduct = uiState.actionProduct,
-                    categories     = uiState.categories,
+                    categories     = uiState.categories.toImmutableList(),
                     isSubmitting   = uiState.isSubmitting,
                     onDismiss      = viewModel::closeProductForm,
                     onConfirm      = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->

@@ -14,6 +14,9 @@ import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SplitPaymentEntry
 import id.rancak.app.domain.model.User
 import id.rancak.app.domain.repository.SaleRepository
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,7 +80,7 @@ data class PaymentUiState(
     /** Grup pelanggan yang sudah dikonfirmasi. */
     val splitGroups: List<SplitGroup> = emptyList(),
     /** Qty setiap item yang sedang dipilih untuk grup berikutnya (itemIndex → qty). */
-    val currentSplitItemQtys: Map<Int, Int> = emptyMap(),
+    val currentSplitItemQtys: PersistentMap<Int, Int> = persistentMapOf(),
     /** Metode bayar untuk grup yang sedang dibuat. */
     val currentSplitMethod: PaymentMethod = PaymentMethod.CASH,
     /** Input nominal uang tunai untuk grup saat ini. */
@@ -458,7 +461,7 @@ class PaymentViewModel(
                 isSplitPayment        = !state.isSplitPayment,
                 splitableItems        = emptyList(),
                 splitGroups           = emptyList(),
-                currentSplitItemQtys  = emptyMap(),
+                currentSplitItemQtys  = persistentMapOf(),
                 currentSplitMethod    = PaymentMethod.CASH,
                 currentSplitCashInput = "",
                 error                 = null
@@ -472,7 +475,7 @@ class PaymentViewModel(
             state.copy(
                 splitableItems        = items,
                 splitGroups           = emptyList(),
-                currentSplitItemQtys  = emptyMap(),
+                currentSplitItemQtys  = persistentMapOf(),
                 currentSplitMethod    = PaymentMethod.CASH,
                 currentSplitCashInput = "",
                 error                 = null
@@ -487,9 +490,9 @@ class PaymentViewModel(
     fun setCurrentSplitItemQty(index: Int, qty: Int) {
         _uiState.update { state ->
             val updated = if (qty <= 0)
-                state.currentSplitItemQtys - index
+                state.currentSplitItemQtys.remove(index)
             else
-                state.currentSplitItemQtys + (index to qty)
+                state.currentSplitItemQtys.put(index, qty)
             state.copy(currentSplitItemQtys = updated)
         }
     }
@@ -538,7 +541,7 @@ class PaymentViewModel(
         _uiState.update {
             it.copy(
                 splitGroups           = it.splitGroups + newGroup,
-                currentSplitItemQtys  = emptyMap(),
+                currentSplitItemQtys  = persistentMapOf(),
                 currentSplitMethod    = PaymentMethod.CASH,
                 currentSplitCashInput = "",
                 error                 = null
