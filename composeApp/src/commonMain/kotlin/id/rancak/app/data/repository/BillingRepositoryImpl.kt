@@ -11,6 +11,8 @@ import id.rancak.app.data.remote.api.getInvoices
 import id.rancak.app.data.remote.api.getSubscription
 import id.rancak.app.data.util.safe
 import id.rancak.app.data.util.safeUnit
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import id.rancak.app.domain.model.Invoice
 import id.rancak.app.domain.model.Plan
 import id.rancak.app.domain.model.Resource
@@ -49,11 +51,15 @@ class BillingRepositoryImpl(
         errorMsg = "Gagal memuat detail invoice"
     )
 
-    override suspend fun createInvoice(planCode: String): Resource<Invoice> = safe(
-        block = { api.createInvoice(tenantUuid, planCode) },
-        map = { it.toDomain() },
-        errorMsg = "Gagal membuat invoice"
-    )
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun createInvoice(planCode: String): Resource<Invoice> {
+        val idempotencyKey = Uuid.random().toString()
+        return safe(
+            block = { api.createInvoice(tenantUuid, planCode, idempotencyKey) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal membuat invoice"
+        )
+    }
 
     override suspend fun cancelInvoice(invoiceUuid: String): Resource<Unit> = safeUnit(
         block = { api.cancelInvoice(tenantUuid, invoiceUuid) },

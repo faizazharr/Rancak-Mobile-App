@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.billing.components.BillingContent
+import id.rancak.app.presentation.ui.billing.components.BillingQrPaymentDialog
 import id.rancak.app.presentation.ui.billing.components.CancelInvoiceDialog
 import id.rancak.app.presentation.ui.billing.components.SubscribeConfirmDialog
 import id.rancak.app.presentation.viewmodel.BillingViewModel
@@ -21,7 +22,9 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun BillingScreen(
     onBack: (() -> Unit)? = null,
-    onNavigateUp: (() -> Unit)? = null
+    onNavigateUp: (() -> Unit)? = null,
+    /** Dipanggil setelah pembayaran subscription dikonfirmasi — navigasi ke POS. */
+    onPaymentComplete: () -> Unit = {}
 ) {
     val viewModel: BillingViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
@@ -37,6 +40,14 @@ fun BillingScreen(
         state.successMessage?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearSuccessMessage()
+        }
+    }
+
+    // Saat polling mendeteksi status "paid" → bersihkan flag lalu arahkan ke POS.
+    LaunchedEffect(state.isPaymentComplete) {
+        if (state.isPaymentComplete) {
+            viewModel.clearPaymentComplete()
+            onPaymentComplete()
         }
     }
 
@@ -75,6 +86,8 @@ fun BillingScreen(
     }
 
     // ── Dialogs ───────────────────────────────────────────────────────────────
+
+    // 1. Konfirmasi berlangganan (tampilkan detail paket + harga sebelum buat invoice)
     if (state.showSubscribeDialog && state.selectedPlan != null) {
         SubscribeConfirmDialog(
             plan = state.selectedPlan!!,
@@ -84,6 +97,17 @@ fun BillingScreen(
         )
     }
 
+    // 2. QR pembayaran — muncul langsung setelah invoice dibuat dan QR string tersedia.
+    //    Polling berjalan di ViewModel; dialog ditutup otomatis saat status = "paid".
+    if (state.qrInvoice != null) {
+        BillingQrPaymentDialog(
+            invoice   = state.qrInvoice!!,
+            isPolling = state.isPolling,
+            onDismiss = { viewModel.dismissQrPayment() }
+        )
+    }
+
+    // 3. Konfirmasi pembatalan invoice
     if (state.showCancelDialog && state.cancelTargetInvoice != null) {
         CancelInvoiceDialog(
             invoice = state.cancelTargetInvoice!!,
@@ -93,6 +117,7 @@ fun BillingScreen(
         )
     }
 }
+
 
 
 

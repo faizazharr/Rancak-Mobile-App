@@ -252,14 +252,27 @@ internal fun NavGraphBuilder.managementGraph(
             // Dibuka dari TenantPicker (fromSetup=true):
             // Back stack: [TenantPicker, Billing].
             // Back arrow → popBackStack() → kembali ke BillingIssueContent di TenantPicker.
-            BillingScreen(onNavigateUp = { navController.popBackStack() })
+            // Pembayaran sukses → bersihkan seluruh stack → POS.
+            BillingScreen(
+                onNavigateUp      = { navController.popBackStack() },
+                onPaymentComplete = {
+                    navController.navigate(Screen.Pos) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         } else {
             // Dibuka dari drawer (fromSetup=false):
             // Back stack setelah drawer nav: [Pos, Billing].
-            // Screen.Billing dikecualikan dari showDrawer → onMenuClick tidak akan membuka
-            // drawer (gesturesEnabled=false). Gunakan popBackStack() → kembali ke Pos.
-            // Dari Pos, user bisa membuka drawer kembali.
-            BillingScreen(onBack = { navController.popBackStack() })
+            // Screen.Billing dikecualikan dari showDrawer → onMenuClick tidak membuka drawer.
+            // Back arrow → popBackStack() → kembali ke Pos.
+            // Pembayaran sukses → kembali ke Pos (sudah di stack), tidak perlu navigate baru.
+            BillingScreen(
+                onBack            = { navController.popBackStack() },
+                onPaymentComplete = {
+                    navController.popBackStack(Screen.Pos, inclusive = false)
+                }
+            )
         }
     }
 }

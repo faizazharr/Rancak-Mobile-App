@@ -6,6 +6,7 @@ import id.rancak.app.data.remote.dto.billing.PlanDto
 import id.rancak.app.data.remote.dto.billing.SubscriptionStateDto
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -29,9 +30,14 @@ suspend fun RancakApiService.getInvoices(tenantUuid: String): ApiResponse<List<I
 suspend fun RancakApiService.getInvoice(tenantUuid: String, invoiceUuid: String): ApiResponse<InvoiceDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/billing/invoices/$invoiceUuid").body()
 
-suspend fun RancakApiService.createInvoice(tenantUuid: String, planCode: String): ApiResponse<InvoiceDto> =
+suspend fun RancakApiService.createInvoice(
+    tenantUuid: String,
+    planCode: String,
+    idempotencyKey: String
+): ApiResponse<InvoiceDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/billing/invoices") {
         contentType(ContentType.Application.Json)
+        header("X-Idempotency-Key", idempotencyKey)
         setBody(mapOf("plan_code" to planCode))
     }.body()
 
