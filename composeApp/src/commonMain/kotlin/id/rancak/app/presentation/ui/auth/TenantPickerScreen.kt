@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Tenant
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
+import id.rancak.app.presentation.ui.auth.components.BillingIssueContent
 import id.rancak.app.presentation.ui.auth.components.OutletSubmissionContent
 import id.rancak.app.presentation.ui.auth.components.TenantPickerLandscape
 import id.rancak.app.presentation.ui.auth.components.TenantPickerPortrait
@@ -25,11 +26,14 @@ import org.koin.compose.viewmodel.koinViewModel
  *
  * Tap kartu outlet langsung memilih + konfirmasi (tanpa tombol terpisah).
  * Jika pengguna belum memiliki outlet, tampilkan form pengajuan outlet.
+ * Jika outlet yang dipilih memiliki masalah billing, tampilkan layar peringatan
+ * billing dan arahkan ke [onNavigateToBilling] bila user memilih membayar.
  */
 @Composable
 fun TenantPickerScreen(
     onTenantSelected: () -> Unit,
     onLoggedOut: () -> Unit = {},
+    onNavigateToBilling: () -> Unit = {},
     switchMode: Boolean = false,
     viewModel: TenantPickerViewModel = koinViewModel()
 ) {
@@ -38,6 +42,12 @@ fun TenantPickerScreen(
     LaunchedEffect(Unit) { viewModel.loadTenants(autoConfirmSingle = !switchMode) }
     LaunchedEffect(uiState.isConfirmed) {
         if (uiState.isConfirmed) onTenantSelected()
+    }
+    LaunchedEffect(uiState.isNavigatingToBilling) {
+        if (uiState.isNavigatingToBilling) {
+            viewModel.clearNavigatingToBilling()
+            onNavigateToBilling()
+        }
     }
 
     val onSelectAndConfirm: (Tenant) -> Unit = { tenant ->
@@ -52,6 +62,14 @@ fun TenantPickerScreen(
                 message  = uiState.error!!,
                 onRetry  = viewModel::loadTenants,
                 modifier = Modifier.padding(padding)
+            )
+            // Masalah billing — tampilkan peringatan sebelum masuk ke aplikasi
+            uiState.billingIssue != null -> BillingIssueContent(
+                tenantName       = uiState.selectedTenant?.name ?: "",
+                issue            = uiState.billingIssue!!,
+                onPayBilling     = viewModel::continueToBilling,
+                onPickOtherOutlet = viewModel::dismissBillingIssue,
+                modifier         = Modifier.padding(padding)
             )
             // Form atau success bisa ditampilkan meski outlet sudah ada (ajukan outlet tambahan)
             uiState.tenants.isEmpty() ||

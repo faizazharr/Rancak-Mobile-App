@@ -44,13 +44,26 @@ data class OutletSubmissionFormState(
                 businessType != null
 }
 
+/** Jenis masalah billing yang mencegah akses masuk ke aplikasi. */
+enum class BillingIssue {
+    /** Langganan telah habis masa berlakunya. */
+    EXPIRED,
+
+    /** Langganan belum aktif — belum ada pembayaran sama sekali. */
+    INACTIVE
+}
+
 data class TenantPickerUiState(
     val tenants: List<Tenant> = emptyList(),
     val selectedTenant: Tenant? = null,
     val isLoading: Boolean = false,
     val isConfirmed: Boolean = false,
     val error: String? = null,
-    val submission: OutletSubmissionFormState = OutletSubmissionFormState()
+    val submission: OutletSubmissionFormState = OutletSubmissionFormState(),
+    /** Non-null ketika tenant terpilih memiliki masalah billing (kedaluwarsa / belum bayar). */
+    val billingIssue: BillingIssue? = null,
+    /** True saat user memilih "Bayar Billing" — dipakai Screen untuk trigger navigasi. */
+    val isNavigatingToBilling: Boolean = false
 )
 
 class TenantPickerViewModel(
@@ -62,7 +75,7 @@ class TenantPickerViewModel(
 
     fun loadTenants(autoConfirmSingle: Boolean = true) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, isConfirmed = false) }
+            _uiState.update { it.copy(isLoading = true, isConfirmed = false, billingIssue = null) }
             when (val result = authRepository.getMyTenants()) {
                 is Resource.Success -> {
                     val tenants = result.data
@@ -88,7 +101,44 @@ class TenantPickerViewModel(
         val tenant = _uiState.value.selectedTenant ?: return
         authRepository.setTenant(tenant.uuid, tenant.name)
         tenant.role?.let { authRepository.setUserRole(it) }
-        _uiState.update { it.copy(isConfirmed = true) }
+
+        val issue = detectBillingIssue(tenant.subscriptionStatus)
+        if (issue != null) {
+            _uiState.update { it.copy(billingIssue = issue) }
+        } else {
+            _uiState.update { it.copy(isConfirmed = true) }
+        }
+    }
+
+    /**
+     * Deteksi masalah billing dari status langganan tenant.
+     * Status `null`, `"active"`, dan `"trial"` dianggap tidak bermasalah.
+     */
+    private fun detectBillingIssue(status: String?): BillingIssue? = when (status?.lowercase()) {
+        "expired", "past_due" -> BillingIssue.EXPIRED
+        "inactive"            -> BillingIssue.INACTIVE
+        else                  -> null
+    }
+
+    /**
+     * Dipanggil saat user memilih "Bayar Billing".
+     * Context tenant sudah di-set di [confirm] — tinggal trigger navigasi ke layar Billing.
+     */
+    fun continueToBilling() {
+        _uiState.update { it.copy(isNavigatingToBilling = true, billingIssue = null) }
+    }
+
+    /** Dipanggil oleh Screen setelah navigasi ke Billing terpicu — reset flag. */
+    fun clearNavigatingToBilling() {
+        _uiState.update { it.copy(isNavigatingToBilling = false) }
+    }
+
+    /**
+     * Dipanggil saat user memilih "Pilih Outlet Lain" dari layar billing issue.
+     * Menghapus tenant aktif dari state sehingga daftar tenant ditampilkan kembali.
+     */
+    fun dismissBillingIssue() {
+        _uiState.update { it.copy(billingIssue = null, selectedTenant = null) }
     }
 
     // ── Outlet submission ─────────────────────────────────────────────────────

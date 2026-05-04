@@ -418,6 +418,9 @@ private fun NavigationContent(
                     navController.navigate(Screen.Login) {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onNavigateToBilling = {
+                    navController.navigate(Screen.Billing)
                 }
             )
         }
