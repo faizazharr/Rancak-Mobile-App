@@ -7,62 +7,57 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import id.rancak.app.data.local.LocalOpenBill
-import id.rancak.app.domain.repository.AuthRepository
-import id.rancak.app.domain.model.Resource
-import id.rancak.app.domain.model.SaleStatus
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import id.rancak.app.presentation.ui.auth.LoginScreen
-import id.rancak.app.presentation.ui.splash.SplashScreen
-import org.koin.compose.koinInject
-import id.rancak.app.presentation.ui.auth.TenantPickerScreen
-import id.rancak.app.presentation.ui.cart.CartScreen
-import id.rancak.app.presentation.ui.finance.CashExpenseScreen
-import id.rancak.app.presentation.ui.kds.KdsScreen
-import id.rancak.app.presentation.ui.orderboard.OrderBoardScreen
-import id.rancak.app.presentation.ui.openbill.OpenBillListScreen
-import id.rancak.app.presentation.ui.payment.PayHeldOrderScreen
-import id.rancak.app.presentation.ui.payment.PaymentScreen
-import id.rancak.app.presentation.ui.pos.PosScreen
-import id.rancak.app.presentation.ui.reports.ReportScreen
-import id.rancak.app.presentation.ui.sales.SalesHistoryScreen
-import id.rancak.app.presentation.ui.sales.AddItemsToHeldOrderScreen
-import id.rancak.app.presentation.ui.billing.BillingScreen
-import id.rancak.app.presentation.ui.inventory.StockOpnameScreen
-import id.rancak.app.presentation.ui.pricing.PricingManagementScreen
-import id.rancak.app.presentation.ui.modifiers.ModifierManagementScreen
-import id.rancak.app.presentation.ui.inventory.SupplierScreen
-import id.rancak.app.presentation.ui.inventory.PurchaseOrderScreen
-import id.rancak.app.presentation.ui.pricing.VoucherManagementScreen
-import id.rancak.app.presentation.ui.products.ProductManagementScreen
-import id.rancak.app.presentation.ui.reservations.ReservationScreen
-import id.rancak.app.presentation.ui.settings.SettingsScreen
-import id.rancak.app.presentation.ui.shift.ShiftScreen
-import id.rancak.app.presentation.ui.splitbill.SplitBillScreen
-import id.rancak.app.presentation.ui.tables.TableMapScreen
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.repository.AuthRepository
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 private data class DrawerItem(
@@ -150,18 +145,19 @@ fun RancakNavHost() {
         }
     }
 
-    val currentRoute = navBackStackEntry?.destination?.route
-    val showDrawer = remember(currentRoute) {
-        currentRoute != null &&
-            !currentRoute.contains("Splash") &&
-            !currentRoute.contains("Login") &&
-            !currentRoute.contains("TenantPicker")
+    val currentDestination = navBackStackEntry?.destination
+    // showDrawer: gunakan hasRoute bertipe aman — tidak bergantung pada string route yang rapuh.
+    val showDrawer = remember(currentDestination) {
+        currentDestination != null &&
+            !currentDestination.hasRoute(Screen.Splash::class) &&
+            !currentDestination.hasRoute(Screen.Login::class) &&
+            !currentDestination.hasRoute(Screen.TenantPicker::class)
     }
 
     // Pastikan drawer selalu tertutup setiap kali pindah destinasi.
     // Hanya jalankan animasi close() bila drawer benar-benar terbuka agar
     // tidak memicu kerja yang tidak perlu di setiap navigasi.
-    LaunchedEffect(currentRoute) {
+    LaunchedEffect(currentDestination) {
         if (drawerState.isOpen) drawerState.close()
     }
 
@@ -329,7 +325,7 @@ private fun DrawerAccordionGroup(
         Icon(
             group.icon,
             contentDescription = null,
-            modifier = androidx.compose.ui.Modifier.size(18.dp),
+            modifier = Modifier.size(18.dp),
             tint = MaterialTheme.colorScheme.primary
         )
         Text(
@@ -337,12 +333,12 @@ private fun DrawerAccordionGroup(
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = androidx.compose.ui.Modifier.weight(1f)
+            modifier = Modifier.weight(1f)
         )
         Icon(
             if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
             contentDescription = if (isExpanded) "Tutup" else "Buka",
-            modifier = androidx.compose.ui.Modifier.size(18.dp),
+            modifier = Modifier.size(18.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -360,17 +356,17 @@ private fun DrawerAccordionGroup(
                     label = { Text(item.label) },
                     selected = false,
                     onClick = { onItemClick(item) },
-                    modifier = androidx.compose.ui.Modifier.padding(
+                    modifier = Modifier.padding(
                         start = 24.dp, end = 12.dp, bottom = 2.dp
                     )
                 )
             }
-            Spacer(androidx.compose.ui.Modifier.height(4.dp))
+            Spacer(Modifier.height(4.dp))
         }
     }
 
     HorizontalDivider(
-        modifier = androidx.compose.ui.Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp),
         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     )
 }
@@ -396,13 +392,14 @@ private fun NavigationContent(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 scope.launch {
-                    val currentRoute =
-                        navController.currentBackStackEntry?.destination?.route ?: return@launch
-                    // Jangan cek di layar auth/setup — sudah ada guard-nya sendiri
-                    val isExemptScreen = listOf(
-                        "TenantPicker", "Login", "Splash", "Billing"
-                    ).any { currentRoute.contains(it) }
-                    if (isExemptScreen) return@launch
+                    // Gunakan hasRoute (type-safe) — lebih aman dari string contains
+                    val currentDest =
+                        navController.currentBackStackEntry?.destination ?: return@launch
+                    val isExempt = currentDest.hasRoute(Screen.Splash::class) ||
+                                   currentDest.hasRoute(Screen.Login::class) ||
+                                   currentDest.hasRoute(Screen.TenantPicker::class) ||
+                                   currentDest.hasRoute(Screen.Billing::class)
+                    if (isExempt) return@launch
 
                     val storedUuid = authRepository.getCurrentTenantUuid() ?: return@launch
                     val result = authRepository.getMyTenants()
@@ -443,219 +440,12 @@ private fun NavigationContent(
             popEnterTransition = { fadeIn(animationSpec  = tween(durationMillis = 180)) },
             popExitTransition  = { fadeOut(animationSpec = tween(durationMillis = 140)) }
         ) {
-        composable<Screen.Splash> {
-            SplashScreen(
-                onNavigate = { destination ->
-                    navController.navigate(destination) {
-                        popUpTo(Screen.Splash) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable<Screen.Login> {
-            LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(Screen.TenantPicker()) {
-                        popUpTo(Screen.Login) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable<Screen.TenantPicker> {
-            val route = it.toRoute<Screen.TenantPicker>()
-            TenantPickerScreen(
-                switchMode = route.switchMode,
-                onTenantSelected = {
-                    navController.navigate(Screen.Pos) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                },
-                onLoggedOut = {
-                    navController.navigate(Screen.Login) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                },
-                onNavigateToBilling = {
-                    // fromSetup = true → BillingScreen menampilkan back arrow, bukan hamburger
-                    navController.navigate(Screen.Billing(fromSetup = true))
-                }
-            )
-        }
-
-        composable<Screen.Pos> {
-            PosScreen(
-                onCartClick = { navController.navigate(Screen.Cart) },
-                onCheckoutClick = {
-                    navController.navigate(Screen.Payment) {
-                        launchSingleTop = true
-                    }
-                },
-                onMenuClick = onMenuClick,
-                onHoldSuccess = {
-                    navController.navigate(Screen.OpenBillList())
-                },
-                onOpenBillClick = {
-                    navController.navigate(Screen.OpenBillList())
-                },
-                cartViewModel = cartViewModel
-            )
-        }
-
-        composable<Screen.Cart> {
-            CartScreen(
-                onBack = { navController.popBackStack() },
-                onCheckout = { navController.navigate(Screen.Payment) },
-                cartViewModel = cartViewModel
-            )
-        }
-
-        composable<Screen.Payment> {
-            PaymentScreen(
-                onBack = { navController.popBackStack() },
-                onPaymentComplete = {
-                    navController.navigate(Screen.Pos) {
-                        popUpTo(Screen.Pos) { inclusive = true }
-                    }
-                },
-                cartViewModel = cartViewModel
-            )
-        }
-
-        composable<Screen.Shift> {
-            ShiftScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.Tables> {
-            TableMapScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.Reservations> {
-            ReservationScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.Kds> {
-            KdsScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.OrderBoard> {
-            OrderBoardScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.SalesHistory> {
-            SalesHistoryScreen(
-                onBack = onMenuClick,
-                onPayHeldOrder = { saleUuid -> navController.navigate(Screen.PayHeldOrder(saleUuid)) },
-                onSplitBill    = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) },
-                onAddItems     = { saleUuid -> navController.navigate(Screen.AddItemsToHeldOrder(saleUuid)) }
-            )
-        }
-
-        composable<Screen.OpenBillList> {
-            OpenBillListScreen(
-                onBack   = { navController.popBackStack() },
-                onResume = { bill: LocalOpenBill ->
-                    cartViewModel.loadOpenBill(bill)
-                    navController.navigate(Screen.Pos) {
-                        launchSingleTop = true
-                        popUpTo(Screen.Pos) { inclusive = false }
-                    }
-                },
-                onPayHeldOrder = { saleUuid ->
-                    navController.navigate(Screen.PayHeldOrder(saleUuid))
-                },
-                onAddItems = { saleUuid ->
-                    navController.navigate(Screen.AddItemsToHeldOrder(saleUuid))
-                }
-            )
-        }
-
-        composable<Screen.PayHeldOrder> { backStackEntry ->
-            val route: Screen.PayHeldOrder = backStackEntry.toRoute()
-            PayHeldOrderScreen(
-                saleUuid = route.saleUuid,
-                onBack   = { navController.popBackStack() },
-                onPaymentComplete = {
-                    navController.popBackStack(Screen.SalesHistory, inclusive = false)
-                }
-            )
-        }
-
-        composable<Screen.SplitBill> { backStackEntry ->
-            val route: Screen.SplitBill = backStackEntry.toRoute()
-            SplitBillScreen(
-                saleUuid = route.saleUuid,
-                onBack   = { navController.popBackStack() },
-                onSplitComplete = { _, _ ->
-                    navController.popBackStack(Screen.SalesHistory, inclusive = false)
-                }
-            )
-        }
-
-        composable<Screen.AddItemsToHeldOrder> { backStackEntry ->
-            val route: Screen.AddItemsToHeldOrder = backStackEntry.toRoute()
-            AddItemsToHeldOrderScreen(
-                saleUuid  = route.saleUuid,
-                onBack    = { navController.popBackStack() },
-                onSuccess = {
-                    navController.popBackStack(Screen.SalesHistory, inclusive = false)
-                }
-            )
-        }
-
-        // TODO(role-gating): wrap dengan RoleGatedScreen(UserRole.OWNER) setelah
-        // backend menyediakan field `role` di respons tenant/login.
-        composable<Screen.Reports> {
-            ReportScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.CashExpense> {
-            CashExpenseScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.Settings> {
-            SettingsScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.ProductManagement> {
-            ProductManagementScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.Billing> {
-            val route = it.toRoute<Screen.Billing>()
-            if (route.fromSetup) {
-                // Dibuka dari flow setup billing (TenantPicker) — tampilkan back arrow
-                BillingScreen(onNavigateUp = { navController.popBackStack() })
-            } else {
-                // Dibuka dari drawer — tampilkan hamburger
-                BillingScreen(onBack = onMenuClick)
-            }
-        }
-
-        composable<Screen.StockOpname> {
-            StockOpnameScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.VoucherManagement> {
-            VoucherManagementScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.PricingManagement> {
-            PricingManagementScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.ModifierManagement> {
-            ModifierManagementScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.SupplierManagement> {
-            SupplierScreen(onBack = onMenuClick)
-        }
-
-        composable<Screen.PurchaseOrders> {
-            PurchaseOrderScreen(onBack = onMenuClick)
-        }
+            authGraph(navController)
+            kasirGraph(navController, cartViewModel, onMenuClick)
+            operationsGraph(navController, onMenuClick)
+            salesGraph(navController, onMenuClick)
+            financeGraph(onMenuClick)
+            managementGraph(navController, onMenuClick)
         }
     }
 }
