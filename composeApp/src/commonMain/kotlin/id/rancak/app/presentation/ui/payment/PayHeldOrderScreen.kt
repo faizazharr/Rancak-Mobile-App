@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import id.rancak.app.data.local.OpenBillStore
@@ -33,6 +34,7 @@ import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.PartialReceiptPrintDialog
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.payment.components.OrderLineItem
 import id.rancak.app.presentation.ui.payment.components.PaymentFormContent
 import id.rancak.app.presentation.ui.payment.components.PaymentSuccessContent
@@ -41,6 +43,7 @@ import id.rancak.app.presentation.ui.payment.components.SplitPaymentPanel
 import id.rancak.app.presentation.viewmodel.PaymentViewModel
 import id.rancak.app.presentation.viewmodel.SplitableItem
 import kotlin.time.Clock
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -278,6 +281,42 @@ fun PayHeldOrderScreen(
             settingsStore  = settingsStore,
             onDismiss      = { pendingGroupReceiptData = null }
         )
+    }
+}
+
+// ── Preview ───────────────────────────────────────────────────────────────────
+
+@Preview(name = "PayHeldOrder – Form", widthDp = 800, heightDp = 600)
+@Composable
+private fun PayHeldOrderScreenPreview_Form() {
+    RancakTheme {
+        Scaffold(
+            topBar = {
+                RancakTopBar(
+                    title    = "Pembayaran Held Order",
+                    icon     = Icons.Default.PointOfSale,
+                    subtitle = "Pilih metode & masukkan jumlah bayar",
+                    onBack   = {}
+                )
+            }
+        ) { padding ->
+            PaymentFormContent(
+                itemCount          = 2,
+                subtotal           = 58_000L,
+                selectedMethod     = PaymentMethod.CASH,
+                onSelectMethod     = {},
+                paidAmount         = "60000",
+                onPaidAmountChange = {},
+                isCashSelected     = true,
+                isProcessing       = false,
+                onProcessPayment   = {},
+                orderItems         = persistentListOf(
+                    OrderLineItem("Kopi Susu", null, 1, 25_000L, 25_000L),
+                    OrderLineItem("Croissant", null, 1, 33_000L, 33_000L)
+                ),
+                modifier = Modifier.fillMaxSize().padding(padding)
+            )
+        }
     }
 }
 

@@ -35,8 +35,12 @@ import id.rancak.app.presentation.components.SummaryRow
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.SplitGroup
 import id.rancak.app.presentation.viewmodel.SplitableItem
+import androidx.compose.ui.tooling.preview.Preview
+import id.rancak.app.presentation.designsystem.RancakTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.flow.merge
 
@@ -912,5 +916,74 @@ private fun ConfirmedGroupRow(
                 )
             }
         }
+    }
+}
+// ── Previews ─────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true, widthDp = 800, heightDp = 600)
+@Composable
+private fun SplitPaymentPanelPreview_Empty() {
+    RancakTheme {
+        SplitPaymentPanel(
+            items             = persistentListOf(
+                SplitableItem(0, "Kopi Susu",    2, 18_000L),
+                SplitableItem(1, "Croissant",    1, 22_000L),
+                SplitableItem(2, "Es Teh",       1, 12_000L)
+            ),
+            splitGroups       = persistentListOf(),
+            currentItemQtys   = persistentMapOf(),
+            currentMethod     = PaymentMethod.CASH,
+            currentCashInput  = "",
+            orderTotal        = 70_000L,
+            isProcessing      = false,
+            onSetItemQty      = { _, _ -> },
+            onSetMethod       = {},
+            onSetCashInput    = {},
+            onConfirmGroup    = {},
+            onConfirmAndPrint = {},
+            onRemoveGroup     = {},
+            onProcess         = {},
+            isSplit           = true,
+            onToggleMode      = {},
+            modifier          = Modifier.fillMaxSize()
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 800, heightDp = 600)
+@Composable
+private fun SplitPaymentPanelPreview_WithGroup() {
+    RancakTheme {
+        SplitPaymentPanel(
+            items             = persistentListOf(
+                SplitableItem(0, "Kopi Susu",    2, 18_000L),
+                SplitableItem(1, "Croissant",    1, 22_000L),
+                SplitableItem(2, "Es Teh",       1, 12_000L)
+            ),
+            splitGroups       = persistentListOf(
+                SplitGroup(
+                    id               = 1,
+                    itemQtys         = mapOf(0 to 1, 2 to 1),
+                    method           = PaymentMethod.CASH,
+                    cashPaid         = 35_000L,
+                    groupActualTotal = 30_000L
+                )
+            ),
+            currentItemQtys   = persistentMapOf(1 to 1),
+            currentMethod     = PaymentMethod.QRIS,
+            currentCashInput  = "",
+            orderTotal        = 70_000L,
+            isProcessing      = false,
+            onSetItemQty      = { _, _ -> },
+            onSetMethod       = {},
+            onSetCashInput    = {},
+            onConfirmGroup    = {},
+            onConfirmAndPrint = {},
+            onRemoveGroup     = {},
+            onProcess         = {},
+            isSplit           = true,
+            onToggleMode      = {},
+            modifier          = Modifier.fillMaxSize()
+        )
     }
 }

@@ -133,6 +133,9 @@ fun PaymentScreen(
         OrderType.TAKEAWAY -> "Take Away"
         OrderType.DELIVERY -> "Delivery"
     }
+    // Ongkir hanya relevan untuk tipe Delivery — jika tab Dine In/Takeaway,
+    // jangan tampilkan atau kirim ongkir meski sebelumnya pernah diisi.
+    val effectiveDeliveryFee = if (cartState.orderType == OrderType.DELIVERY) cartState.deliveryFee else 0L
 
     // Per-customer receipt printing (split payment)
     var pendingGroupReceiptData by remember { mutableStateOf<ReceiptData?>(null) }
@@ -273,7 +276,7 @@ fun PaymentScreen(
                                         discount     = cartState.discount,
                                         tax          = cartState.totalTax,
                                         adminFee     = cartState.totalSurcharge,
-                                        deliveryFee  = cartState.deliveryFee,
+                                        deliveryFee  = effectiveDeliveryFee,
                                         tip          = cartState.tip,
                                         voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
                                     )
@@ -300,7 +303,7 @@ fun PaymentScreen(
                                     discount     = cartState.discount,
                                     tax          = cartState.totalTax,
                                     adminFee     = cartState.totalSurcharge,
-                                    deliveryFee  = cartState.deliveryFee,
+                                    deliveryFee  = effectiveDeliveryFee,
                                     tip          = cartState.tip,
                                     voucherCode  = cartState.voucherCode.takeIf { it.isNotBlank() }
                                 )
@@ -327,7 +330,7 @@ fun PaymentScreen(
                             discount           = cartState.discount,
                             tax                = cartState.totalTax,
                             adminFee           = cartState.totalSurcharge,
-                            deliveryFee        = cartState.deliveryFee,
+                            deliveryFee        = effectiveDeliveryFee,
                             tip                = cartState.tip,
                             orderItems         = cartState.items.map { item ->
                                 OrderLineItem(
