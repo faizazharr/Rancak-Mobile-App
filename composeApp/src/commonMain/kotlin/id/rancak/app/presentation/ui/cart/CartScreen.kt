@@ -67,6 +67,24 @@ fun CartScreenContent(
     onUpdateQty: (String, String?, Int) -> Unit = { _, _, _ -> },
     onRemoveItem: (String, String?) -> Unit = { _, _ -> }
 ) {
+    var showClearConfirm by remember { mutableStateOf(false) }
+
+    if (showClearConfirm) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirm = false },
+            title = { Text("Hapus semua pesanan?") },
+            text  = { Text("Tindakan ini akan menghapus ${uiState.itemCount} item dari keranjang.") },
+            confirmButton = {
+                TextButton(onClick = { onClearCart(); showClearConfirm = false }) {
+                    Text("Hapus", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearConfirm = false }) { Text("Batalkan") }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             RancakTopBar(
@@ -76,8 +94,12 @@ fun CartScreenContent(
                 onBack = onBack,
                 actions = {
                     if (!uiState.isEmpty) {
-                        TextButton(onClick = onClearCart) {
-                            Text("Hapus Semua", color = MaterialTheme.colorScheme.error)
+                        IconButton(onClick = { showClearConfirm = true }) {
+                            Icon(
+                                Icons.Default.DeleteOutline,
+                                contentDescription = "Hapus semua pesanan",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }

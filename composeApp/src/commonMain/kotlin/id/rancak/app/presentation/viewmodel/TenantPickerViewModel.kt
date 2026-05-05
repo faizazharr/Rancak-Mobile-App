@@ -60,7 +60,9 @@ enum class BillingIssue {
 data class TenantPickerUiState(
     val tenants: List<Tenant> = emptyList(),
     val selectedTenant: Tenant? = null,
-    val isLoading: Boolean = false,
+    // Mulai dengan isLoading=true agar UI tidak flash ke OutletSubmissionContent
+    // sebelum coroutine loadTenants() sempat set isLoading=true.
+    val isLoading: Boolean = true,
     /** True saat data sudah ada dan di-refresh di belakang layar (no full-screen spinner). */
     val isRefreshing: Boolean = false,
     val isConfirmed: Boolean = false,
@@ -193,10 +195,6 @@ class TenantPickerViewModel(
 
     fun resetSubmission() =
         _uiState.update { it.copy(submission = OutletSubmissionFormState()) }
-
-    fun logout() {
-        viewModelScope.launch { authRepository.logout() }
-    }
 
     /**
      * Kirim pengajuan outlet baru ke `POST /applications`.

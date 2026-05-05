@@ -35,12 +35,20 @@ import id.rancak.app.domain.model.TenantApplication
 import id.rancak.app.domain.model.TenantSettings
 import id.rancak.app.domain.model.User
 import id.rancak.app.domain.model.UserRole
+import id.rancak.app.data.local.OfflineSaleQueue
+import id.rancak.app.data.local.OpenBillStore
+import id.rancak.app.data.local.PricingConfigStore
 import id.rancak.app.domain.repository.AuthRepository
+import id.rancak.app.domain.repository.CartRepository
 import id.rancak.app.domain.repository.UserSessionProvider
 
 class AuthRepositoryImpl(
     private val api: RancakApiService,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val cartRepository: CartRepository,
+    private val offlineSaleQueue: OfflineSaleQueue,
+    private val pricingConfigStore: PricingConfigStore,
+    private val openBillStore: OpenBillStore,
 ) : AuthRepository, UserSessionProvider {
 
     override suspend fun login(email: String, password: String): Resource<LoginResult> {
@@ -100,15 +108,30 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun logout(): Resource<Unit> {
-        val refreshToken = tokenManager.refreshToken ?: return Resource.Success(Unit)
+        val refreshToken = tokenManager.refreshToken
         return try {
-            api.logout(LogoutRequest(refreshToken))
-            tokenManager.clear()
+            if (refreshToken != null) api.logout(LogoutRequest(refreshToken))
+            clearSessionData()
             Resource.Success(Unit)
         } catch (e: Exception) {
-            tokenManager.clear()
+            // Pastikan data lokal selalu dibersihkan meski request gagal.
+            clearSessionData()
             Resource.Success(Unit)
         }
+    }
+
+    /**
+     * Hapus seluruh data sesi: token auth, keranjang, antrian offline,
+     * cache harga, dan open bill. Dipanggil saat logout agar user berikutnya
+     * tidak melihat data dari sesi / tenant sebelumnya.
+     */
+    private suspend fun clearSessionData() {
+        tokenManager.clear()
+        api.clearBearerTokenCache()   // invalidate Ktor internal bearer token cache
+        cartRepository.clearAll()
+        offlineSaleQueue.clear()
+        pricingConfigStore.clear()
+        openBillStore.clear()
     }
 
     override suspend fun getMe(): Resource<User> = safe(

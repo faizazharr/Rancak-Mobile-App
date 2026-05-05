@@ -100,7 +100,13 @@ data class PaymentUiState(
     /** Sale yang sedang dibayar dari held order — dimuat via [PaymentViewModel.loadHeldSale]. */
     val heldSale: Sale? = null,
     /** Pesan error saat memuat held sale, jika ada. */
-    val heldSaleError: String? = null
+    val heldSaleError: String? = null,
+    /**
+     * True saat server menolak pembayaran karena order sudah berstatus 'paid'.
+     * Ini berarti ada stale bill di local store — user perlu diarahkan untuk
+     * menghapusnya dari daftar.
+     */
+    val saleAlreadyPaid: Boolean = false
 ) {
     val paidAmountLong: Long get() = paidAmount.toLongOrNull() ?: 0L
 
@@ -660,8 +666,15 @@ class PaymentViewModel(
                     is Resource.Success -> {
                         _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
                     }
-                    is Resource.Error ->
-                        _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                    is Resource.Error -> {
+                        // 400 dengan pesan 'paid' berarti order sudah dibayar sebelumnya — ini
+                        // stale bill di local store, bukan kesalahan user.
+                        if (result.message?.contains("paid", ignoreCase = true) == true) {
+                            _uiState.update { it.copy(isProcessing = false, saleAlreadyPaid = true) }
+                        } else {
+                            _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                        }
+                    }
                     is Resource.Loading -> {}
                 }
             } catch (e: Exception) {
@@ -700,8 +713,13 @@ class PaymentViewModel(
                     is Resource.Success -> {
                         _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
                     }
-                    is Resource.Error ->
-                        _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                    is Resource.Error -> {
+                        if (result.message?.contains("paid", ignoreCase = true) == true) {
+                            _uiState.update { it.copy(isProcessing = false, saleAlreadyPaid = true) }
+                        } else {
+                            _uiState.update { it.copy(isProcessing = false, error = result.message) }
+                        }
+                    }
                     is Resource.Loading -> {}
                 }
             } catch (e: Exception) {
@@ -728,6 +746,8 @@ class PaymentViewModel(
     }
 
     fun clearError() = _uiState.update { it.copy(error = null) }
+
+    fun clearAlreadyPaid() = _uiState.update { it.copy(saleAlreadyPaid = false) }
 
     override fun onCleared() {
         super.onCleared()

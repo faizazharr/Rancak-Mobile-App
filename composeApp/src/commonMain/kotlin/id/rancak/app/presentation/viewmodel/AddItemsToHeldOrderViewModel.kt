@@ -4,6 +4,9 @@ import androidx.compose.runtime.Immutable
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import id.rancak.app.data.local.LocalOpenBillItem
+import id.rancak.app.data.local.OpenBillStore
+import kotlin.time.Clock
 import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
@@ -46,7 +49,8 @@ data class AddItemsToHeldOrderUiState(
 
 class AddItemsToHeldOrderViewModel(
     private val productRepository: ProductRepository,
-    private val saleRepository: SaleRepository
+    private val saleRepository: SaleRepository,
+    private val openBillStore: OpenBillStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddItemsToHeldOrderUiState())
@@ -103,8 +107,25 @@ class AddItemsToHeldOrderViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true, error = null) }
             when (val result = saleRepository.addItemsToHeldOrder(saleUuid, items)) {
-                is Resource.Success -> _uiState.update {
-                    it.copy(isSubmitting = false, successSale = result.data)
+                is Resource.Success -> {
+                    // Perbarui snapshot lokal agar item count di OpenBillList akurat
+                    val sale = result.data
+                    val localBill = openBillStore.getAll().find { it.remoteSaleUuid == saleUuid }
+                    if (localBill != null) {
+                        val updatedItems = sale.items.map { saleItem ->
+                            LocalOpenBillItem(
+                                productUuid = saleItem.productUuid ?: "",
+                                productName = saleItem.productName,
+                                qty         = saleItem.qty.toDoubleOrNull()?.toInt() ?: saleItem.qty.toIntOrNull() ?: 1,
+                                price       = saleItem.price
+                            )
+                        }
+                        openBillStore.save(localBill.copy(
+                            items       = updatedItems,
+                            lastAddedAt = Clock.System.now().toEpochMilliseconds()
+                        ))
+                    }
+                    _uiState.update { it.copy(isSubmitting = false, successSale = sale) }
                 }
                 is Resource.Error   -> _uiState.update {
                     it.copy(isSubmitting = false, error = result.message)

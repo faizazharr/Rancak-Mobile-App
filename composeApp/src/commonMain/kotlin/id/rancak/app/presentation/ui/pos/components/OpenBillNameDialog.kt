@@ -1,6 +1,10 @@
 package id.rancak.app.presentation.ui.pos.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,24 +21,21 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
 /**
- * Dialog untuk memasukkan nama open bill dan nama pelanggan sebelum menyimpan keranjang.
+ * Dialog untuk memasukkan nama open bill sebelum menyimpan keranjang.
  *
- * @param initialName           Nama tagihan awal (kosong = buat baru).
- * @param initialCustomerName   Nama pelanggan/atas nama awal (kosong = belum diisi).
- * @param isUpdate              True jika ini memperbarui open bill yang sudah ada.
- * @param onConfirm             Dipanggil dengan (nama tagihan, nama pelanggan) saat kasir menekan "Simpan".
- * @param onDismiss             Dipanggil saat kasir membatalkan / menutup dialog.
+ * @param initialName  Nama tagihan awal (kosong = buat baru).
+ * @param isUpdate     True jika ini memperbarui open bill yang sudah ada.
+ * @param onConfirm    Dipanggil dengan nama tagihan saat kasir menekan "Simpan".
+ * @param onDismiss    Dipanggil saat kasir membatalkan / menutup dialog.
  */
 @Composable
 internal fun OpenBillNameDialog(
     initialName: String = "",
-    initialCustomerName: String = "",
     isUpdate: Boolean = false,
-    onConfirm: (name: String, customerName: String) -> Unit,
+    onConfirm: (name: String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var name         by remember(initialName)         { mutableStateOf(initialName) }
-    var customerName by remember(initialCustomerName) { mutableStateOf(initialCustomerName) }
+    var name         by remember(initialName) { mutableStateOf(initialName) }
     val focusRequester = remember { FocusRequester() }
     val amber = Color(0xFFF59E0B)
 
@@ -75,24 +76,9 @@ internal fun OpenBillNameDialog(
                     modifier         = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
-                    keyboardOptions  = KeyboardOptions(imeAction = ImeAction.Next),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor   = amber,
-                        focusedLabelColor    = amber,
-                        cursorColor          = amber
-                    )
-                )
-                OutlinedTextField(
-                    value            = customerName,
-                    onValueChange    = { customerName = it },
-                    label            = { Text("Atas Nama") },
-                    placeholder      = { Text("cth. Pak Budi, Mbak Sari", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f)) },
-                    singleLine       = true,
-                    shape            = RoundedCornerShape(10.dp),
-                    modifier         = Modifier.fillMaxWidth(),
                     keyboardOptions  = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions  = KeyboardActions(
-                        onDone = { if (name.isNotBlank()) onConfirm(name.trim(), customerName.trim()) }
+                        onDone = { if (name.isNotBlank()) onConfirm(name.trim()) }
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = amber,
@@ -104,7 +90,7 @@ internal fun OpenBillNameDialog(
         },
         confirmButton = {
             Button(
-                onClick  = { onConfirm(name.trim(), customerName.trim()) },
+                onClick  = { onConfirm(name.trim()) },
                 enabled  = name.isNotBlank(),
                 colors   = ButtonDefaults.buttonColors(containerColor = amber, contentColor = Color.White),
                 shape    = RoundedCornerShape(8.dp)

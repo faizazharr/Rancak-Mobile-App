@@ -91,8 +91,10 @@ val dataModule = module {
         createSecureSettings(namespace = "offline_queue")
     }
     single { TokenManager(get(qualifier = org.koin.core.qualifier.named("secure-auth"))) }
-    single { createHttpClient(get()) }
-    single { RancakApiService(get()) }
+    single {
+        val (httpClient, clearBearer) = createHttpClient(get())
+        RancakApiService(httpClient, clearBearer)
+    }
     // Offline queue — disimpan di encrypted storage (berisi data transaksi
     // yang belum ter-sync; sensitif karena memuat item, harga, customer).
     single { OfflineSaleQueue(get(qualifier = org.koin.core.qualifier.named("secure-queue"))) }

@@ -27,6 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.data.local.LocalOpenBill
 import id.rancak.app.presentation.util.formatRupiah
@@ -62,7 +65,16 @@ fun OpenBillListScreen(
     val amber  = Color(0xFFF59E0B)
     val amber2 = Color(0xFFFBBF24)
 
-    LaunchedEffect(Unit) { viewModel.refresh() }
+    // Refresh setiap kali layar di-resume (termasuk kembali dari AddItemsToHeldOrder)
+    // sehingga item count selalu mencerminkan data terbaru di store.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refresh()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         topBar = {
@@ -343,20 +355,41 @@ private fun OpenBillCard(
                             }
                         }
                     }
-                    // Time chip
-                    val timeStr = formatCreatedAt(bill.createdAt)
-                    if (timeStr.isNotEmpty()) {
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                        ) {
-                            Text(
-                                timeStr,
-                                modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                style      = MaterialTheme.typography.labelSmall,
-                                color      = onSurfaceVariant.copy(alpha = 0.7f),
-                                fontWeight = FontWeight.Medium
-                            )
+                    // Time chip (jam dibuat)
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        val timeStr = formatCreatedAt(bill.createdAt)
+                        if (timeStr.isNotEmpty()) {
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                            ) {
+                                Text(
+                                    timeStr,
+                                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style      = MaterialTheme.typography.labelSmall,
+                                    color      = onSurfaceVariant.copy(alpha = 0.7f),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                        // Chip waktu terakhir item ditambahkan
+                        val lastAddedStr = bill.lastAddedAt?.let { formatCreatedAt(it) }
+                        if (!lastAddedStr.isNullOrEmpty()) {
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = kdsGreen.copy(alpha = 0.10f)
+                            ) {
+                                Text(
+                                    "+item $lastAddedStr",
+                                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style      = MaterialTheme.typography.labelSmall,
+                                    color      = kdsGreen.copy(alpha = 0.8f),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
                 }

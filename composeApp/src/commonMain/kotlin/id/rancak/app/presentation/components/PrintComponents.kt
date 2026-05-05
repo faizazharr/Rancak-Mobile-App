@@ -22,6 +22,7 @@ import id.rancak.app.data.printing.toKitchenTicketData
 import id.rancak.app.data.printing.toReceiptData
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -87,6 +88,7 @@ fun PrintDialog(
     var networkIp   by remember { mutableStateOf(savedNetworkIp) }
     var isPrinting  by remember { mutableStateOf(false) }
     var printResult by remember { mutableStateOf<PrintResult?>(null) }
+    var activePrintJob by remember { mutableStateOf<Job?>(null) }
 
     suspend fun executePrint(
         cashierType: String,
@@ -149,8 +151,10 @@ fun PrintDialog(
             autoPrintAttempted = true
             isPrinting  = true
             printResult = null
-            printResult = executePrint(savedType, savedAddress, savedNetworkIp, savedNetworkPort)
-            isPrinting  = false
+            activePrintJob = scope.launch {
+                printResult = executePrint(savedType, savedAddress, savedNetworkIp, savedNetworkPort)
+                isPrinting  = false
+            }
         }
     }
 
@@ -376,9 +380,9 @@ fun PrintDialog(
             }
             Button(
                 onClick = {
-                    scope.launch {
-                        isPrinting  = true
-                        printResult = null
+                    isPrinting  = true
+                    printResult = null
+                    activePrintJob = scope.launch {
                         printResult = when {
                             hasSavedPrinter ->
                                 executePrint(savedType, savedAddress, savedNetworkIp, savedNetworkPort)
@@ -394,7 +398,13 @@ fun PrintDialog(
             ) { Text(buttonText) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isPrinting) { Text("Tutup") }
+            TextButton(
+                onClick = {
+                    activePrintJob?.cancel()
+                    isPrinting = false
+                    onDismiss()
+                }
+            ) { Text(if (isPrinting) "Batalkan" else "Tutup") }
         }
     )
 }
@@ -430,6 +440,7 @@ fun PartialReceiptPrintDialog(
 
     var isPrinting  by remember { mutableStateOf(false) }
     var printResult by remember { mutableStateOf<PrintResult?>(null) }
+    var activePrintJob by remember { mutableStateOf<Job?>(null) }
 
     suspend fun doPrint(): PrintResult {
         val bytes = EscPosBuilder.buildReceipt(receiptData)
@@ -442,8 +453,10 @@ fun PartialReceiptPrintDialog(
         if (hasSavedPrinter && !autoPrintDone) {
             autoPrintDone = true
             isPrinting  = true
-            printResult = doPrint()
-            isPrinting  = false
+            activePrintJob = scope.launch {
+                printResult = doPrint()
+                isPrinting  = false
+            }
         }
     }
 
@@ -555,25 +568,30 @@ fun PartialReceiptPrintDialog(
             }
         },
         confirmButton = {
-            if (!isPrinting) {
-                if (printResult is PrintResult.Error && hasSavedPrinter) {
-                    Button(onClick = {
-                        scope.launch {
-                            isPrinting  = true
-                            printResult = null
+            if (printResult is PrintResult.Error && hasSavedPrinter) {
+                Button(
+                    enabled = !isPrinting,
+                    onClick = {
+                        isPrinting  = true
+                        printResult = null
+                        activePrintJob = scope.launch {
                             printResult = doPrint()
                             isPrinting  = false
                         }
-                    }) { Text("Cetak Ulang") }
-                } else {
-                    Button(onClick = onDismiss) { Text("Tutup") }
-                }
+                    }
+                ) { Text("Cetak Ulang") }
+            } else if (!isPrinting) {
+                Button(onClick = onDismiss) { Text("Tutup") }
             }
         },
         dismissButton = {
-            if (!isPrinting) {
-                TextButton(onClick = onDismiss) { Text("Lewati") }
-            }
+            TextButton(
+                onClick = {
+                    activePrintJob?.cancel()
+                    isPrinting = false
+                    onDismiss()
+                }
+            ) { Text(if (isPrinting) "Batalkan" else "Lewati") }
         }
     )
 }

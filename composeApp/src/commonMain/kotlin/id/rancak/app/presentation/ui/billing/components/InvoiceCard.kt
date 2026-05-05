@@ -25,6 +25,7 @@ import id.rancak.app.presentation.ui.billing.formatPlanPrice
 fun InvoiceCard(
     invoice: Invoice,
     onCancel: () -> Unit,
+    onShowQr: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val (statusColor, statusLabel, statusIcon) = when (invoice.status) {
@@ -91,13 +92,6 @@ fun InvoiceCard(
                     }
                 }
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    if (invoice.taxAmount > 0) {
-                        Text(formatPlanPrice(invoice.baseAmount), style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("+${(invoice.taxRate * 100).toInt()}% pajak",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
                     Text(formatPlanPrice(invoice.totalAmount), style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.ExtraBold, color = Primary)
                 }
@@ -114,23 +108,42 @@ fun InvoiceCard(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text("QRIS tersedia — selesaikan pembayaran via e-wallet",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f))
                     }
                 }
             }
 
             if (invoice.status == "pending") {
-                OutlinedButton(
-                    onClick = onCancel,
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Error.copy(alpha = 0.4f))
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Default.Cancel, null, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Batalkan Invoice", style = MaterialTheme.typography.labelMedium)
+                    if (invoice.qrString != null && onShowQr != null) {
+                        Button(
+                            onClick = onShowQr,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                        ) {
+                            Icon(Icons.Default.QrCode, null, modifier = Modifier.size(14.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Lihat QR", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = onCancel,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Error.copy(alpha = 0.4f))
+                    ) {
+                        Icon(Icons.Default.Cancel, null, modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Batalkan", style = MaterialTheme.typography.labelMedium)
+                    }
                 }
             }
         }

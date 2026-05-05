@@ -129,18 +129,19 @@ internal fun PosProductCard(
     val unavailable      = !product.isActive || is86
     val inCart           = qty > 0
     val accent           = accentFor(product.category?.name ?: product.name)
+    val inCartColor      = MaterialTheme.colorScheme.primary   // FIX-005: selalu hijau saat di keranjang
     val onSurface        = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
     val surfaceVariant   = MaterialTheme.colorScheme.surfaceVariant
 
     val cardBg = when {
         unavailable -> surfaceVariant.copy(0.35f)
-        inCart      -> accent.copy(0.05f)
+        inCart      -> inCartColor.copy(0.05f)        // hijau pucat
         else        -> MaterialTheme.colorScheme.surface
     }
     val borderColor = when {
         unavailable -> MaterialTheme.colorScheme.outlineVariant.copy(0.3f)
-        inCart      -> accent.copy(0.65f)
+        inCart      -> inCartColor.copy(0.65f)        // border hijau jelas
         else        -> MaterialTheme.colorScheme.outlineVariant.copy(0.55f)
     }
 
@@ -188,7 +189,7 @@ internal fun PosProductCard(
                         Modifier
                             .size(22.dp)
                             .clip(CircleShape)
-                            .background(accent),
+                            .background(inCartColor),   // FIX-005: selalu hijau
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -214,7 +215,7 @@ internal fun PosProductCard(
                     style      = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     fontSize   = 11.sp,
-                    color      = if (!unavailable) accent.copy(0.85f)
+                    color      = if (!unavailable) (if (inCart) inCartColor else accent).copy(0.85f)
                                  else onSurfaceVariant.copy(0.3f),
                     maxLines   = 1
                 )

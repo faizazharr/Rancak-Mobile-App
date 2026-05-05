@@ -35,7 +35,12 @@ data class LocalOpenBill(
      * UUID sale di backend (status HELD) — non-null jika open bill sudah disinkronkan ke server
      * sehingga muncul di KDS. Saat dibayar/dibatalkan, UUID ini dipakai untuk menghindari KDS card ganda.
      */
-    val remoteSaleUuid: String? = null
+    val remoteSaleUuid: String? = null,
+    /**
+     * Epoch millis terakhir kali item ditambahkan lewat "Tambah Item".
+     * Null jika belum pernah ada penambahan item setelah bill dibuat.
+     */
+    val lastAddedAt: Long? = null
 ) {
     val subtotal: Long get() = items.sumOf { it.price * it.qty }
     val itemCount: Int get() = items.sumOf { it.qty }

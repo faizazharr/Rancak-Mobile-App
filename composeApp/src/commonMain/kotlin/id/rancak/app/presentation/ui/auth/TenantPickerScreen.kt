@@ -56,7 +56,7 @@ fun TenantPickerScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.loadTenants(autoConfirmSingle = !switchMode)
+                viewModel.loadTenants(autoConfirmSingle = false)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -115,10 +115,7 @@ fun TenantPickerScreen(
                     onBusinessTypeChange = viewModel::updateSubmissionBusinessType,
                     onSubmit             = viewModel::submitOutletRequest,
                     onReset              = viewModel::resetSubmission,
-                    onLogout             = {
-                        viewModel.logout()
-                        onLoggedOut()
-                    },
+                    onLogout             = onLoggedOut,
                     modifier             = Modifier.fillMaxSize()
                 )
                 else -> BoxWithConstraints(modifier = Modifier.fillMaxSize()) {

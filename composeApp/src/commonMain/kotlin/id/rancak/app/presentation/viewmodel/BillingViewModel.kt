@@ -37,7 +37,9 @@ data class BillingUiState(
     /** True saat polling ke server setiap 2 detik menunggu status "paid". */
     val isPolling: Boolean = false,
     /** True saat status invoice menjadi "paid" — trigger navigasi ke POS. */
-    val isPaymentComplete: Boolean = false
+    val isPaymentComplete: Boolean = false,
+    /** True saat pull-to-refresh sedang memuat data terbaru. */
+    val isRefreshing: Boolean = false
 )
 
 class BillingViewModel(
@@ -242,6 +244,13 @@ class BillingViewModel(
         _uiState.update { it.copy(isPaymentComplete = false) }
     }
 
+    /** Buka kembali dialog QR untuk invoice pending yang sudah punya qrString. */
+    fun showQrPayment(invoice: Invoice) {
+        if (invoice.qrString == null) return
+        _uiState.update { it.copy(qrInvoice = invoice) }
+        startPolling(invoice.uuid)
+    }
+
     fun cancelInvoice() {
         val invoice = _uiState.value.cancelTargetInvoice ?: return
         viewModelScope.launch {
@@ -270,6 +279,20 @@ class BillingViewModel(
                     }
                 }
                 else -> Unit
+            }
+        }
+    }
+
+    /** Dipanggil oleh pull-to-refresh — hanya memuat ulang invoices tanpa full-screen loader. */
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
+            val invoicesResult = billingRepository.getInvoices()
+            _uiState.update { state ->
+                var s = state.copy(isRefreshing = false)
+                if (invoicesResult is Resource.Success) s = s.copy(invoices = invoicesResult.data)
+                if (invoicesResult is Resource.Error) s = s.copy(error = invoicesResult.message)
+                s
             }
         }
     }

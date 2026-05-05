@@ -1,10 +1,14 @@
 package id.rancak.app.presentation.navigation
 
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import id.rancak.app.data.local.LocalOpenBill
+import id.rancak.app.domain.repository.AuthRepository
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import id.rancak.app.presentation.ui.auth.LoginScreen
 import id.rancak.app.presentation.ui.auth.TenantPickerScreen
 import id.rancak.app.presentation.ui.billing.BillingScreen
@@ -65,6 +69,11 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
 
     composable<Screen.TenantPicker> { entry ->
         val route = entry.toRoute<Screen.TenantPicker>()
+        // scope terikat pada composable ini, bukan ViewModel — sehingga
+        // authRepository.logout() tetap selesai meski ViewModel di-clear
+        // akibat popUpTo(0) saat navigasi terjadi.
+        val scope = rememberCoroutineScope()
+        val authRepository: AuthRepository = koinInject()
         TenantPickerScreen(
             switchMode       = route.switchMode,
             onTenantSelected = {
@@ -75,8 +84,14 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
                 }
             },
             onLoggedOut = {
-                navController.navigate(Screen.Login) {
-                    popUpTo(0) { inclusive = true }
+                // Logout dijalankan di composable scope (bukan viewModelScope) agar
+                // clearSessionData() selesai sebelum navigasi terjadi, dan tidak
+                // ikut di-cancel ketika back stack di-pop.
+                scope.launch {
+                    authRepository.logout()
+                    navController.navigate(Screen.Login) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             },
             onNavigateToBilling = {
@@ -218,11 +233,14 @@ internal fun NavGraphBuilder.salesGraph(
         AddItemsToHeldOrderScreen(
             saleUuid  = route.saleUuid,
             onBack    = { navController.popBackStack() },
-            // Sama seperti PayHeldOrder: bisa dari SalesHistory atau OpenBillList.
-            // Fallback ke Pos jika SalesHistory tidak ada di stack.
+            // Prioritas pop: OpenBillList (dari kasir) → SalesHistory → Pos (fallback).
+            // Setelah item berhasil ditambahkan, kembali ke OpenBillList agar jumlah
+            // item terbaru langsung terlihat di daftar.
             onSuccess = {
-                if (!navController.popBackStack(Screen.SalesHistory, inclusive = false)) {
-                    navController.popBackStack(Screen.Pos, inclusive = false)
+                if (!navController.popBackStack(Screen.OpenBillList(), inclusive = false)) {
+                    if (!navController.popBackStack(Screen.SalesHistory, inclusive = false)) {
+                        navController.popBackStack(Screen.Pos, inclusive = false)
+                    }
                 }
             }
         )

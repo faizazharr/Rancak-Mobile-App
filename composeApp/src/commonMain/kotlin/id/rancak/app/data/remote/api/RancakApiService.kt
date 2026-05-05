@@ -10,5 +10,15 @@ import io.ktor.client.HttpClient
  *
  * The [client] is internal so extension functions in the same module can use
  * it without exposing it to the public API.
+ *
+ * [clearBearerToken] — invalidate cache token internal Ktor Bearer Auth agar
+ * request pertama setelah login ulang selalu memanggil [loadTokens] dan
+ * mendapatkan access token terbaru, bukan token lama dari sesi sebelumnya.
+ * Dipanggil oleh [AuthRepositoryImpl.clearSessionData] saat logout.
  */
-class RancakApiService(internal val client: HttpClient)
+class RancakApiService(
+    internal val client: HttpClient,
+    private val clearBearerToken: () -> Unit = {}
+) {
+    fun clearBearerTokenCache() = clearBearerToken()
+}

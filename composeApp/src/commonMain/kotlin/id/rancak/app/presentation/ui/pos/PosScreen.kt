@@ -8,14 +8,23 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.OrderType
@@ -74,17 +83,15 @@ fun PosScreen(
     // Dialog nama open bill — tampilkan saat openBillState.showNameDialog = true
     if (openBillState.showNameDialog) {
         OpenBillNameDialog(
-            initialName         = openBillState.dialogInitialName,
-            initialCustomerName = cartState.customerName,
-            isUpdate            = openBillState.editingBillId != null,
-            onConfirm   = { name, customerName ->
-                cartViewModel.setCustomerName(customerName)
+            initialName = openBillState.dialogInitialName,
+            isUpdate    = openBillState.editingBillId != null,
+            onConfirm   = { name ->
                 openBillViewModel.saveCart(
                     name              = name,
                     items             = cartState.items,
                     orderType         = cartState.orderType,
                     tableUuid         = cartState.tableUuid,
-                    customerName      = customerName,
+                    customerName      = cartState.customerName,
                     note              = cartState.note,
                     pax               = cartState.pax,
                     discountInput     = cartState.discountInput,
@@ -103,6 +110,35 @@ fun PosScreen(
                 openBillViewModel.hideDialog()
             },
             onDismiss = openBillViewModel::hideDialog
+        )
+    }
+
+    // Success dialog — tampil setelah open bill berhasil disimpan
+    if (openBillState.showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = openBillViewModel::dismissSuccessDialog,
+            icon = {
+                Icon(
+                    imageVector        = Icons.Default.Bookmark,
+                    contentDescription = null,
+                    tint               = Color(0xFFF59E0B)
+                )
+            },
+            title = {
+                Text(
+                    "Open Bill Disimpan",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text("Tagihan berhasil disimpan. Lanjutkan proses dari halaman Open Bill kapan saja.")
+            },
+            confirmButton = {
+                TextButton(onClick = openBillViewModel::dismissSuccessDialog) {
+                    Text("Oke")
+                }
+            },
+            shape = RoundedCornerShape(16.dp)
         )
     }
 

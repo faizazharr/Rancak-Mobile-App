@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PointOfSale
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import id.rancak.app.data.local.OpenBillStore
 import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.printing.PrinterManager
 import id.rancak.app.data.printing.ReceiptData
@@ -56,6 +59,7 @@ fun PayHeldOrderScreen(
     val paymentViewModel: PaymentViewModel = koinViewModel()
     val printerManager: PrinterManager = koinInject()
     val settingsStore: SettingsStore   = koinInject()
+    val openBillStore: OpenBillStore   = koinInject()
     val paymentState by paymentViewModel.uiState.collectAsStateWithLifecycle()
 
     // Per-customer receipt printing (split payment)
@@ -109,6 +113,27 @@ fun PayHeldOrderScreen(
 
     LaunchedEffect(saleUuid) { paymentViewModel.loadHeldSale(saleUuid) }
 
+    // Dialog: order sudah dibayar sebelumnya (stale local bill)
+    if (paymentState.saleAlreadyPaid) {
+        AlertDialog(
+            onDismissRequest = paymentViewModel::clearAlreadyPaid,
+            title   = { Text("Pesanan Sudah Dibayar") },
+            text    = { Text("Pesanan ini sudah lunas sebelumnya. Hapus dari daftar Open Bill?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    openBillStore.getAll()
+                        .find { it.remoteSaleUuid == saleUuid }
+                        ?.let { openBillStore.remove(it.id) }
+                    paymentViewModel.clearAlreadyPaid()
+                    onPaymentComplete()
+                }) { Text("Hapus dari Daftar") }
+            },
+            dismissButton = {
+                TextButton(onClick = paymentViewModel::clearAlreadyPaid) { Text("Tutup") }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             RancakTopBar(
@@ -133,6 +158,10 @@ fun PayHeldOrderScreen(
                     printerManager   = printerManager,
                     settingsStore    = settingsStore,
                     onNewTransaction = {
+                        // Hapus open bill lokal setelah pembayaran berhasil
+                        openBillStore.getAll()
+                            .find { it.remoteSaleUuid == saleUuid }
+                            ?.let { openBillStore.remove(it.id) }
                         paymentViewModel.reset()
                         onPaymentComplete()
                     },

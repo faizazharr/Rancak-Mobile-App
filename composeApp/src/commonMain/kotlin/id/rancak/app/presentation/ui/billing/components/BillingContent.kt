@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +22,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillingContent(
     subscription: SubscriptionState?,
@@ -28,10 +30,17 @@ fun BillingContent(
     invoices: ImmutableList<Invoice>,
     onSubscribe: (Plan) -> Unit,
     onCancelInvoice: (Invoice) -> Unit,
+    onShowQr: (Invoice) -> Unit,
     onRefresh: () -> Unit,
+    isRefreshing: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier.fillMaxSize()
+    ) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val isTablet = maxWidth >= 600.dp
         val leftPaneWidth = maxOf(360.dp, minOf(460.dp, maxWidth * 0.44f))
 
@@ -88,7 +97,11 @@ fun BillingContent(
                         }
                     } else {
                         invoices.forEach { invoice ->
-                            InvoiceCard(invoice = invoice, onCancel = { onCancelInvoice(invoice) })
+                            InvoiceCard(
+                                invoice = invoice,
+                                onCancel = { onCancelInvoice(invoice) },
+                                onShowQr = if (invoice.qrString != null) {{ onShowQr(invoice) }} else null
+                            )
                         }
                     }
                     Spacer(Modifier.height(8.dp))
@@ -117,7 +130,11 @@ fun BillingContent(
                 if (invoices.isNotEmpty()) {
                     item { SectionLabel(Icons.Default.Receipt, "Riwayat Invoice (${invoices.size})") }
                     items(invoices, key = { it.uuid }) { invoice ->
-                        InvoiceCard(invoice = invoice, onCancel = { onCancelInvoice(invoice) })
+                        InvoiceCard(
+                            invoice = invoice,
+                            onCancel = { onCancelInvoice(invoice) },
+                            onShowQr = if (invoice.qrString != null) {{ onShowQr(invoice) }} else null
+                        )
                     }
                 }
 
@@ -139,6 +156,7 @@ fun BillingContent(
             }
         }
     }
+    } // PullToRefreshBox
 }
 
 // ── Preview ───────────────────────────────────────────────────────────────────
@@ -153,6 +171,7 @@ private fun BillingContentPreview() {
             invoices = persistentListOf(),
             onSubscribe = {},
             onCancelInvoice = {},
+            onShowQr = {},
             onRefresh = {}
         )
     }

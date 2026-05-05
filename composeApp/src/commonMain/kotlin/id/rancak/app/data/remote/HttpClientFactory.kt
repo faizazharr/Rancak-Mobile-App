@@ -17,8 +17,15 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-fun createHttpClient(tokenManager: TokenManager): HttpClient {
-    return HttpClient {
+/**
+ * Membuat [HttpClient] beserta lambda untuk mengosongkan cache Bearer token
+ * internal Ktor.  Keduanya harus didaftarkan bersama sehingga [RancakApiService]
+ * dapat memanggil [clearBearerToken] saat logout.
+ */
+fun createHttpClient(tokenManager: TokenManager): Pair<HttpClient, () -> Unit> {
+    // Ditangkap dari AuthConfig.providers (public) setelah bearer{} dipanggil.
+    var capturedBearerProvider: BearerAuthProvider? = null
+    val client = HttpClient {
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -111,8 +118,12 @@ fun createHttpClient(tokenManager: TokenManager): HttpClient {
                     !path.contains("/auth/reset-password")
                 }
             }
+            // AuthConfig.providers adalah public — capture setelah bearer{} menambahkan provider.
+            capturedBearerProvider = providers.filterIsInstance<BearerAuthProvider>().firstOrNull()
         }
 
         expectSuccess = false
     }
+    val clearBearerToken: () -> Unit = { capturedBearerProvider?.clearToken() }
+    return Pair(client, clearBearerToken)
 }

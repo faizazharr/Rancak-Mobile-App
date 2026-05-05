@@ -33,7 +33,9 @@ data class OpenBillUiState(
     /** True saat sedang sinkron ke backend (create / cancel held sale). */
     val isSyncing: Boolean = false,
     /** Pesan error sinkron ke backend (KDS). Null jika tidak ada error. */
-    val syncError: String? = null
+    val syncError: String? = null,
+    /** True setelah saveCart() berhasil — Screen menampilkan success dialog. */
+    val showSuccessDialog: Boolean = false
 )
 
 /**
@@ -70,6 +72,8 @@ class OpenBillViewModel(
     }
 
     fun clearSyncError() = _uiState.update { it.copy(syncError = null) }
+
+    fun dismissSuccessDialog() = _uiState.update { it.copy(showSuccessDialog = false) }
 
     // ── Store operations ──────────────────────────────────────────────────────
 
@@ -152,7 +156,7 @@ class OpenBillViewModel(
                     remoteSaleUuid    = existingRemoteSaleUuid // tetap pakai UUID lama
                 )
                 store.save(bill)
-                _uiState.update { it.copy(isSyncing = false, bills = store.getAll()) }
+                _uiState.update { it.copy(isSyncing = false, bills = store.getAll(), showSuccessDialog = true) }
                 return@launch
             }
 
@@ -207,7 +211,7 @@ class OpenBillViewModel(
                 remoteSaleUuid    = remoteUuid
             )
             store.save(bill)
-            _uiState.update { it.copy(isSyncing = false, bills = store.getAll()) }
+            _uiState.update { it.copy(isSyncing = false, bills = store.getAll(), showSuccessDialog = true) }
         }
     }
 

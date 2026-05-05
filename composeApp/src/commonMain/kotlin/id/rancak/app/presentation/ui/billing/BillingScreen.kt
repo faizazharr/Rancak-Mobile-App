@@ -79,7 +79,9 @@ fun BillingScreen(
                         invoices = state.invoices.toImmutableList(),
                         onSubscribe = { viewModel.openSubscribeDialog(it) },
                         onCancelInvoice = { viewModel.openCancelDialog(it) },
-                        onRefresh = { viewModel.loadAll() }
+                        onShowQr = { viewModel.showQrPayment(it) },
+                        onRefresh = { viewModel.refresh() },
+                        isRefreshing = state.isRefreshing
                     )
                 }
             }
