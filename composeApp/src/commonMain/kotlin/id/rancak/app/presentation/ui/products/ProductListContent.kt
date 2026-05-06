@@ -114,17 +114,17 @@ private fun CategorySidePanel(
             .width(220.dp)
             .fillMaxHeight()
             .verticalScroll(rememberScrollState())
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+            .padding(horizontal = 12.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Row(
-            Modifier.fillMaxWidth(),
+            Modifier.fillMaxWidth().padding(start = 4.dp, bottom = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment     = Alignment.CenterVertically
         ) {
             Text("Kategori", style = MaterialTheme.typography.titleSmall)
-            IconButton(onClick = onAddCategory, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.Add, "Tambah kategori", Modifier.size(18.dp))
+            FilledTonalIconButton(onClick = onAddCategory, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Add, "Tambah kategori", Modifier.size(16.dp))
             }
         }
 
@@ -162,7 +162,7 @@ private fun CategoryRow(
             .clip(MaterialTheme.shapes.small)
             .background(if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
             .clickable(onClick = onClick)
-            .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+            .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
@@ -194,7 +194,7 @@ private fun CategoryFilterRow(
     Row(
         modifier = Modifier
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment     = Alignment.CenterVertically
     ) {
@@ -266,9 +266,9 @@ fun ProductSearchAndList(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             OutlinedTextField(
                 value         = uiState.searchQuery,
@@ -324,8 +324,8 @@ fun ProductSearchAndList(
             }
         } else {
             LazyColumn(
-                contentPadding      = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier            = Modifier.fillMaxSize()
             ) {
                 items(uiState.filteredProducts, key = { it.uuid }) { product ->

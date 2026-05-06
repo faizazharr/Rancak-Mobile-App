@@ -197,8 +197,13 @@ fun RancakNavHost() {
         drawerState = drawerState,
         gesturesEnabled = showDrawer,
         drawerContent = {
-            if (showDrawer) {
-                ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+            // ModalDrawerSheet selalu di-compose dengan lebar tetap 280.dp agar
+            // AnchoredDraggableState punya anchor (Closed → -280.dp, Open → 0)
+            // sejak frame pertama. Tanpa ini, offset awal = Float.NaN yang
+            // Compose render sebagai 0 (Open) selama satu frame → drawer flash
+            // terlihat terbuka sesaat setelah splash screen selesai.
+            ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+                if (showDrawer) {
                     Spacer(Modifier.height(24.dp))
 
                     // ── Header: brand + outlet aktif ──────────────────────
