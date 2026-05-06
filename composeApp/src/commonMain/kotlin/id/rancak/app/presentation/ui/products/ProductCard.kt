@@ -1,15 +1,22 @@
 package id.rancak.app.presentation.ui.products
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.components.StatusChip
@@ -183,6 +190,206 @@ fun ProductManagementCard(
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Compact table row — digunakan hanya di tablet dashboard
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun ProductTableRow(
+    product: Product,
+    is86: Boolean,
+    onAdjustStock: () -> Unit,
+    onAddBatch: () -> Unit,
+    on86Toggle: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val sem = RancakColors.semantic
+    val stockColor = when {
+        is86               -> MaterialTheme.colorScheme.error
+        product.stock <= 0 -> MaterialTheme.colorScheme.error
+        product.stock <= 5 -> sem.warning
+        else               -> sem.success
+    }
+    val stockText = when {
+        is86               -> "86"
+        product.stock <= 0 -> "Habis"
+        else               -> product.stock.toStockDisplay()
+    }
+
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color    = if (is86) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f)
+                   else MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier          = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // ── Thumbnail ─────────────────────────────────────────────────────
+            ProductThumbnail(
+                name     = product.name,
+                imageUrl = product.imageUrl,
+                modifier = Modifier.size(44.dp)
+            )
+
+            Spacer(Modifier.width(12.dp))
+
+            // ── Nama + SKU + Kategori ─────────────────────────────────────────
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                Text(
+                    text     = product.name,
+                    style    = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (!product.sku.isNullOrBlank()) {
+                    Text(
+                        text  = "SKU: ${product.sku}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (product.category != null) {
+                    Text(
+                        text  = product.category.name,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            // ── Indikator stok ────────────────────────────────────────────────
+            Row(
+                modifier              = Modifier.width(110.dp),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(9.dp)
+                        .clip(CircleShape)
+                        .background(stockColor)
+                )
+                Text(
+                    text       = stockText,
+                    style      = MaterialTheme.typography.bodySmall,
+                    color      = stockColor,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            // ── Harga ─────────────────────────────────────────────────────────
+            Text(
+                text       = formatRupiah(product.price),
+                style      = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color      = MaterialTheme.colorScheme.primary,
+                textAlign  = TextAlign.End,
+                modifier   = Modifier.width(100.dp)
+            )
+
+            Spacer(Modifier.width(4.dp))
+
+            // ── Kebab menu ────────────────────────────────────────────────────
+            Box {
+                IconButton(
+                    onClick  = { menuExpanded = true },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = "Aksi produk",
+                        modifier           = Modifier.size(20.dp)
+                    )
+                }
+                DropdownMenu(
+                    expanded          = menuExpanded,
+                    onDismissRequest  = { menuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text         = { Text("Edit Produk") },
+                        leadingIcon  = { Icon(Icons.Default.Edit, null) },
+                        onClick      = { menuExpanded = false; onEdit() }
+                    )
+                    DropdownMenuItem(
+                        text         = { Text("Sesuaikan Stok") },
+                        leadingIcon  = { Icon(Icons.Default.Tune, null) },
+                        onClick      = { menuExpanded = false; onAdjustStock() }
+                    )
+                    if (product.hasExpiry) {
+                        DropdownMenuItem(
+                            text        = { Text("Tambah Batch") },
+                            leadingIcon = { Icon(Icons.Default.AddBox, null) },
+                            onClick     = { menuExpanded = false; onAddBatch() }
+                        )
+                    }
+                    DropdownMenuItem(
+                        text        = { Text(if (is86) "Aktifkan Produk" else "Tandai 86") },
+                        leadingIcon = {
+                            Icon(
+                                if (is86) Icons.Default.CheckCircle else Icons.Default.Block,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { menuExpanded = false; on86Toggle() }
+                    )
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text        = { Text("Hapus", color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.DeleteOutline,
+                                contentDescription = null,
+                                tint               = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        onClick = { menuExpanded = false; onDelete() }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProductThumbnail(
+    name: String,
+    imageUrl: String?,
+    modifier: Modifier = Modifier
+) {
+    val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "P"
+
+    Box(modifier = modifier.clip(MaterialTheme.shapes.small)) {
+        if (!imageUrl.isNullOrBlank()) {
+            AsyncImage(
+                model              = imageUrl,
+                contentDescription = name,
+                modifier           = Modifier.fillMaxSize(),
+                contentScale       = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier          = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment  = Alignment.Center
+            ) {
+                Text(
+                    text       = initial,
+                    style      = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color      = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
         }
     }

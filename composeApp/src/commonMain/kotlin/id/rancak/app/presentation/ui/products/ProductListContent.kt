@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -18,10 +19,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.ProductManagementUiState
 
@@ -56,20 +61,18 @@ fun ProductListContent(
                 onDeleteCategory = onDeleteCategory
             )
             VerticalDivider(modifier = Modifier.fillMaxHeight())
-            Column(Modifier.weight(1f).fillMaxHeight()) {
-                ProductSearchAndList(
-                    uiState          = uiState,
-                    isTablet         = true,
-                    onAddProduct     = onAddProduct,
-                    onSearchChange   = onSearchChange,
-                    onCategorySelect = onCategorySelect,
-                    onAdjustStock    = onAdjustStock,
-                    onAddBatch       = onAddBatch,
-                    on86Toggle       = on86Toggle,
-                    onEditProduct    = onEditProduct,
-                    onDeleteProduct  = onDeleteProduct
-                )
-            }
+            TabletDashboard(
+                uiState          = uiState,
+                onAddProduct     = onAddProduct,
+                onSearchChange   = onSearchChange,
+                onCategorySelect = onCategorySelect,
+                onAdjustStock    = onAdjustStock,
+                onAddBatch       = onAddBatch,
+                on86Toggle       = on86Toggle,
+                onEditProduct    = onEditProduct,
+                onDeleteProduct  = onDeleteProduct,
+                modifier         = Modifier.weight(1f).fillMaxHeight()
+            )
         }
     } else {
         Column(modifier.fillMaxSize()) {
@@ -176,6 +179,237 @@ private fun CategoryRow(
                 Icon(Icons.Default.DeleteOutline, "Hapus kategori", Modifier.size(14.dp), tint = MaterialTheme.colorScheme.error)
             }
         }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tablet dashboard: metric summary + compact table
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun TabletDashboard(
+    uiState: ProductManagementUiState,
+    onAddProduct: () -> Unit,
+    onSearchChange: (String) -> Unit,
+    onCategorySelect: (Category?) -> Unit,
+    onAdjustStock: (Product) -> Unit,
+    onAddBatch: (Product) -> Unit,
+    on86Toggle: (Product) -> Unit,
+    onEditProduct: (Product) -> Unit,
+    onDeleteProduct: (Product) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
+
+        // ── Metric summary row ────────────────────────────────────────────────
+        MetricSummaryRow(uiState = uiState)
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        // ── Search bar + Tambah Produk ────────────────────────────────────────
+        Row(
+            modifier              = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            OutlinedTextField(
+                value         = uiState.searchQuery,
+                onValueChange = onSearchChange,
+                placeholder   = { Text("Cari nama, SKU, barcode…") },
+                leadingIcon   = { Icon(Icons.Default.Search, null) },
+                trailingIcon  = {
+                    if (uiState.searchQuery.isNotBlank()) {
+                        IconButton(onClick = { onSearchChange("") }) {
+                            Icon(Icons.Default.Clear, "Hapus pencarian")
+                        }
+                    }
+                },
+                modifier   = Modifier.weight(1f),
+                singleLine = true,
+                shape      = MaterialTheme.shapes.medium
+            )
+            Button(
+                onClick        = onAddProduct,
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+            ) {
+                Icon(Icons.Default.Add, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Tambah Produk")
+            }
+        }
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        // ── Tabel produk ──────────────────────────────────────────────────────
+        if (uiState.filteredProducts.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Default.Inventory2,
+                        contentDescription = null,
+                        modifier           = Modifier.size(64.dp),
+                        tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Tidak ada produk ditemukan",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (uiState.searchQuery.isNotBlank() || uiState.selectedCategory != null) {
+                        Spacer(Modifier.height(8.dp))
+                        TextButton(onClick = { onSearchChange(""); onCategorySelect(null) }) {
+                            Text("Reset filter")
+                        }
+                    }
+                }
+            }
+        } else {
+            // Header kolom tabel
+            ProductTableHeader()
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(uiState.filteredProducts, key = { it.uuid }) { product ->
+                    ProductTableRow(
+                        product       = product,
+                        is86          = uiState.is86(product.uuid),
+                        onAdjustStock = { onAdjustStock(product) },
+                        onAddBatch    = { onAddBatch(product) },
+                        on86Toggle    = { on86Toggle(product) },
+                        onEdit        = { onEditProduct(product) },
+                        onDelete      = { onDeleteProduct(product) }
+                    )
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ── Metric summary ────────────────────────────────────────────────────────────
+
+@Composable
+private fun MetricSummaryRow(uiState: ProductManagementUiState) {
+    val sem       = RancakColors.semantic
+    val lowStock  = uiState.products.count { it.stock <= 5 && !uiState.is86(it.uuid) }
+
+    Row(
+        modifier              = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        MetricCard(
+            modifier   = Modifier.weight(1f),
+            icon       = Icons.Default.Inventory2,
+            label      = "Total Produk",
+            value      = "${uiState.products.size}",
+            iconTint   = MaterialTheme.colorScheme.primary
+        )
+        MetricCard(
+            modifier   = Modifier.weight(1f),
+            icon       = Icons.Default.Category,
+            label      = "Kategori",
+            value      = "${uiState.categories.size}",
+            iconTint   = sem.info
+        )
+        MetricCard(
+            modifier   = Modifier.weight(1f),
+            icon       = if (lowStock > 0) Icons.Default.Warning else Icons.Default.CheckCircle,
+            label      = "Stok Rendah",
+            value      = if (lowStock > 0) "$lowStock produk" else "Semua aman",
+            iconTint   = if (lowStock > 0) sem.warning else sem.success
+        )
+    }
+}
+
+@Composable
+private fun MetricCard(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    label: String,
+    value: String,
+    iconTint: Color
+) {
+    Card(
+        modifier  = modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape     = MaterialTheme.shapes.medium,
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Row(
+            modifier              = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Box(
+                modifier         = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .background(iconTint.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, Modifier.size(24.dp), tint = iconTint)
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text  = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text       = value,
+                    style      = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+// ── Header kolom tabel ────────────────────────────────────────────────────────
+
+@Composable
+private fun ProductTableHeader() {
+    Row(
+        modifier          = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Thumbnail placeholder
+        Spacer(Modifier.size(44.dp))
+        Spacer(Modifier.width(12.dp))
+
+        Text(
+            text      = "Produk",
+            style     = MaterialTheme.typography.labelMedium,
+            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier  = Modifier.weight(1f)
+        )
+        Text(
+            text     = "Stok",
+            style    = MaterialTheme.typography.labelMedium,
+            color    = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(110.dp)
+        )
+        Text(
+            text      = "Harga",
+            style     = MaterialTheme.typography.labelMedium,
+            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.End,
+            modifier  = Modifier.width(100.dp)
+        )
+        // Kebab placeholder
+        Spacer(Modifier.width(4.dp + 36.dp))
     }
 }
 
