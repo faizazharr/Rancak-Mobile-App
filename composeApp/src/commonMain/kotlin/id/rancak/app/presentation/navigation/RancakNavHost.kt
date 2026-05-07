@@ -1,11 +1,15 @@
 package id.rancak.app.presentation.navigation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -391,8 +395,8 @@ private fun DrawerAccordionGroup(
     // ── Items (animated) ──────────────────────────────────────────────────────
     AnimatedVisibility(
         visible = isExpanded,
-        enter = expandVertically(),
-        exit = shrinkVertically()
+        enter = expandVertically(animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)),
+        exit  = shrinkVertically(animationSpec = tween(durationMillis = 150, easing = FastOutLinearInEasing))
     ) {
         Column {
             group.items.forEach { item ->
@@ -490,15 +494,45 @@ private fun NavigationContent(
                 navController    = navController,
                 startDestination = Screen.Splash,
                 modifier         = Modifier.fillMaxSize(),
-                // Transisi default seragam: cross-fade halus mencegah "white flash"
-                // dan memberi efek mulus saat berpindah destinasi.
-                // Enter lebih panjang dari exit: layar baru fade-in lebih lambat sehingga
-                // ViewModel sempat diinisialisasi sebelum konten sepenuhnya terlihat.
-                // Exit lebih cepat agar layar lama cepat "pergi" dan tidak mengganggu.
-                enterTransition    = { fadeIn(animationSpec  = tween(durationMillis = 220)) },
-                exitTransition     = { fadeOut(animationSpec = tween(durationMillis = 150)) },
-                popEnterTransition = { fadeIn(animationSpec  = tween(durationMillis = 200)) },
-                popExitTransition  = { fadeOut(animationSpec = tween(durationMillis = 150)) }
+                // Transisi slide+fade — gerakan spatial memberi otak sinyal "progress"
+                // sehingga perpindahan terasa lebih responsif vs. pure cross-fade.
+                //
+                // Strategi offset:
+                //  • Enter maju  (push) : geser dari +15% lebar layar  → posisi normal
+                //  • Exit  maju         : geser dari posisi normal     → -8%  (subtle push-back)
+                //  • Enter mundur (pop) : geser dari -15%              → posisi normal
+                //  • Exit  mundur       : geser dari posisi normal     → +8%
+                //
+                // Offset kecil (15 / 8%) sengaja dipilih agar tidak terlalu dramatis
+                // untuk aplikasi POS yang lebih sering dipakai dari drawer (bukan push).
+                //
+                // Easing:
+                //  • FastOutSlowInEasing (decelerating) untuk enter → terasa "tiba"
+                //  • FastOutLinearInEasing (accelerating) untuk exit → terasa cepat pergi
+                enterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { w -> (w * 0.15f).toInt() },
+                        animationSpec  = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing))
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { w -> -(w * 0.08f).toInt() },
+                        animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing)
+                    ) + fadeOut(animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing))
+                },
+                popEnterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { w -> -(w * 0.15f).toInt() },
+                        animationSpec  = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing))
+                },
+                popExitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { w -> (w * 0.08f).toInt() },
+                        animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing)
+                    ) + fadeOut(animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing))
+                }
             ) {
                 authGraph(navController)
                 kasirGraph(navController, onMenuClick)

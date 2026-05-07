@@ -62,29 +62,42 @@ class ProductManagementViewModel(
 
     fun loadAll() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            // Langkah 1: Sajikan data dari Room cache secara instan (tidak ada loading flicker).
+            val categoryId = _uiState.value.selectedCategory?.uuid
+            val cachedProducts    = productRepository.getProductsFromCache(categoryId = categoryId)
+            val cachedCategories  = productRepository.getCategoriesFromCache()
 
+            val hasCachedData =
+                (cachedProducts   as? Resource.Success)?.data?.isNotEmpty() == true ||
+                (cachedCategories as? Resource.Success)?.data?.isNotEmpty() == true
+
+            _uiState.update { state ->
+                var s = state.copy(
+                    isLoading = !hasCachedData, // loading hanya jika cache benar-benar kosong
+                    error = null
+                )
+                if (cachedProducts   is Resource.Success) s = s.copy(products    = cachedProducts.data)
+                if (cachedCategories is Resource.Success) s = s.copy(categories  = cachedCategories.data)
+                s
+            }
+
+            // Langkah 2: Refresh dari network secara silent di background.
             val categoriesResult = productRepository.getCategories()
             val products86Result = productRepository.get86Products()
-
-            // Load products using the currently selected category (server-side filter)
-            // so category filtering works even when the server omits the nested category object.
-            val categoryId = _uiState.value.selectedCategory?.uuid
-            val productsResult = productRepository.getProducts(categoryId = categoryId)
+            val productsResult   = productRepository.getProducts(categoryId = categoryId)
 
             _uiState.update { state ->
                 var s = state.copy(isLoading = false)
-                if (productsResult is Resource.Success) s = s.copy(products = productsResult.data)
-                if (categoriesResult is Resource.Success) s = s.copy(categories = categoriesResult.data)
-                if (products86Result is Resource.Success) {
-                    s = s.copy(products86 = products86Result.data)
-                }
+                if (productsResult   is Resource.Success) s = s.copy(products    = productsResult.data)
+                if (categoriesResult is Resource.Success) s = s.copy(categories  = categoriesResult.data)
+                if (products86Result is Resource.Success) s = s.copy(products86  = products86Result.data)
+                // Tampilkan error hanya jika cache memang kosong (pengguna belum punya data sama sekali)
                 s.copy(
-                    error = when {
-                        productsResult is Resource.Error -> productsResult.message
+                    error = if (!hasCachedData) when {
+                        productsResult   is Resource.Error -> productsResult.message
                         categoriesResult is Resource.Error -> categoriesResult.message
                         else -> null
-                    }
+                    } else null
                 )
             }
         }
@@ -93,14 +106,20 @@ class ProductManagementViewModel(
     fun setSearchQuery(query: String) = _uiState.update { it.copy(searchQuery = query) }
 
     fun setCategory(category: Category?) {
-        _uiState.update { it.copy(selectedCategory = category, isLoading = true) }
+        _uiState.update { it.copy(selectedCategory = category) }
         viewModelScope.launch {
+            // Langkah 1: Sajikan dari Room cache secara instan — tidak ada loading indicator.
+            val cachedResult = productRepository.getProductsFromCache(categoryId = category?.uuid)
+            if (cachedResult is Resource.Success) {
+                _uiState.update { it.copy(products = cachedResult.data) }
+            }
+
+            // Langkah 2: Refresh dari network secara silent — update data tanpa flicker.
             val result = productRepository.getProducts(categoryId = category?.uuid)
             _uiState.update { state ->
                 when (result) {
-                    is Resource.Success -> state.copy(products = result.data, isLoading = false)
-                    is Resource.Error   -> state.copy(error = result.message, isLoading = false)
-                    else                -> state.copy(isLoading = false)
+                    is Resource.Success -> state.copy(products = result.data)
+                    else                -> state // Jika gagal, tetap tampilkan data cache
                 }
             }
         }

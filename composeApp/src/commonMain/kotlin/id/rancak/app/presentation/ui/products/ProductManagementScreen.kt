@@ -65,12 +65,14 @@ fun ProductManagementScreen(
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { padding ->
-            if (uiState.isLoading) {
+            val isInitialLoad = uiState.isLoading && uiState.products.isEmpty() && uiState.categories.isEmpty()
+            if (isInitialLoad) {
                 LoadingScreen(Modifier.padding(padding))
             } else {
                 ProductListContent(
                     uiState          = uiState,
                     isTablet         = isTablet,
+                    isLoading        = uiState.isLoading,
                     onAddProduct     = viewModel::openProductForm,
                     onSearchChange   = viewModel::setSearchQuery,
                     onCategorySelect = viewModel::setCategory,
@@ -82,13 +84,21 @@ fun ProductManagementScreen(
                     onAddCategory    = { viewModel.openCategoryForm() },
                     onEditCategory   = { viewModel.openCategoryForm(it) },
                     onDeleteCategory = { viewModel.deleteCategory(it) },
+                    onFormConfirm    = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->
+                        viewModel.saveProduct(name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry)
+                    },
+                    onFormDismiss    = viewModel::closeProductForm,
+                    onAdjustConfirm  = { type, qty, note ->
+                        viewModel.adjustStock(uiState.actionProduct!!.uuid, type, qty, note)
+                    },
+                    onAdjustDismiss  = viewModel::closeAdjustDialog,
                     modifier         = Modifier.padding(padding)
                 )
             }
 
             // ── Dialogs ───────────────────────────────────────────────────────
 
-            if (uiState.showAdjustDialog && uiState.actionProduct != null) {
+            if (uiState.showAdjustDialog && uiState.actionProduct != null && !isTablet) {
                 StockAdjustDialog(
                     product      = uiState.actionProduct!!,
                     isSubmitting = uiState.isSubmitting,
@@ -110,13 +120,14 @@ fun ProductManagementScreen(
                 )
             }
 
-            if (uiState.showProductFormDialog) {
+            if (uiState.showProductFormDialog && !isTablet) {
                 ProductFormDialog(
-                    editingProduct = uiState.actionProduct,
-                    categories     = uiState.categories.toImmutableList(),
-                    isSubmitting   = uiState.isSubmitting,
-                    onDismiss      = viewModel::closeProductForm,
-                    onConfirm      = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->
+                    editingProduct      = uiState.actionProduct,
+                    categories          = uiState.categories.toImmutableList(),
+                    isSubmitting        = uiState.isSubmitting,
+                    initialCategoryUuid = uiState.selectedCategory?.uuid,
+                    onDismiss           = viewModel::closeProductForm,
+                    onConfirm           = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->
                         viewModel.saveProduct(name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry)
                     }
                 )

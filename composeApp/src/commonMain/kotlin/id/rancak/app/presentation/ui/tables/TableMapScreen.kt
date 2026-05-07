@@ -226,7 +226,8 @@ private fun CompactTableLayout(
     onEditTable: (Table) -> Unit,
     onRequestDelete: (Table) -> Unit
 ) {
-    val areas = uiState.tables.groupBy { it.area ?: "Umum" }
+    // Memoize: groupBy iterasi seluruh list; hanya ulangi saat list meja berubah.
+    val areas = remember(uiState.tables) { uiState.tables.groupBy { it.area ?: "Umum" } }
     LazyVerticalGrid(
         columns = GridCells.Adaptive(108.dp),
         contentPadding = PaddingValues(12.dp),
@@ -257,10 +258,28 @@ private fun TabletTableLayout(
     onEditTable: (Table) -> Unit,
     onRequestDelete: (Table) -> Unit
 ) {
-    val available = uiState.tables.count { it.status == TableStatus.AVAILABLE }
-    val occupied  = uiState.tables.count { it.status == TableStatus.OCCUPIED }
-    val inactive  = uiState.tables.count { it.status == TableStatus.INACTIVE }
-    val areas = uiState.tables.groupBy { it.area ?: "Umum" }
+    // Memoize: 4x iterasi list dalam satu remember — hanya ulangi saat list meja berubah.
+    // Tanpa ini, 3x count() + 1x groupBy() dijalankan setiap rekomposisi (layout ulang,
+    // drawer buka/tutup, dll) yang sangat boros terutama dengan banyak meja.
+    data class TableStats(val available: Int, val occupied: Int, val inactive: Int, val areas: Map<String, List<Table>>)
+    val stats = remember(uiState.tables) {
+        var av = 0; var oc = 0; var ia = 0
+        val areaMap = mutableMapOf<String, MutableList<Table>>()
+        for (t in uiState.tables) {
+            when (t.status) {
+                TableStatus.AVAILABLE -> av++
+                TableStatus.OCCUPIED  -> oc++
+                TableStatus.INACTIVE  -> ia++
+                else -> Unit
+            }
+            areaMap.getOrPut(t.area ?: "Umum") { mutableListOf() }.add(t)
+        }
+        TableStats(av, oc, ia, areaMap)
+    }
+    val available = stats.available
+    val occupied  = stats.occupied
+    val inactive  = stats.inactive
+    val areas     = stats.areas
 
     Row(Modifier.fillMaxSize()) {
         // Kiri — grid meja

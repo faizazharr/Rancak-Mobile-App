@@ -101,8 +101,14 @@ fun KdsScreenContent(
         ) {
             val isTablet = maxWidth >= 600.dp
             val pageSize = if (isTablet) PAGE_SIZE_TABLET else PAGE_SIZE
-            val totalPages  = ((orders.size + pageSize - 1) / pageSize).coerceAtLeast(1)
-            val pagedOrders = orders.drop(page * pageSize).take(pageSize)
+            // Memoize: hanya hitung ulang bila orders atau pageSize berubah.
+            // Tanpa ini, drop()+take() mengalokasikan list baru setiap rekomposisi.
+            val totalPages = remember(orders.size, pageSize) {
+                ((orders.size + pageSize - 1) / pageSize).coerceAtLeast(1)
+            }
+            val pagedOrders = remember(orders, page, pageSize) {
+                orders.drop(page * pageSize).take(pageSize)
+            }
         Column(Modifier.fillMaxSize()) {
             when {
                 uiState.isLoading -> LoadingScreen(Modifier.weight(1f))

@@ -1,5 +1,8 @@
 package id.rancak.app.presentation.ui.inventory
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,7 +19,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
-import id.rancak.app.presentation.ui.inventory.components.CreateOpnameDialog
 import id.rancak.app.presentation.ui.inventory.components.OpnameCard
 import id.rancak.app.presentation.ui.inventory.components.OpnameDetailContent
 import id.rancak.app.presentation.ui.inventory.components.OpnameDetailTabletPanel
@@ -44,6 +46,7 @@ fun StockOpnameScreen(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val isTablet = maxWidth >= 600.dp
         val detail = uiState.detail
+        var inlineNote by remember { mutableStateOf("") }
 
         // Phone: navigate into detail as a full-screen view
         if (!isTablet && detail != null) {
@@ -177,6 +180,52 @@ fun StockOpnameScreen(
                 } else {
                     // ── Phone: list-only (detail handled above as full-screen) ─
                     Column(Modifier.padding(padding).fillMaxSize()) {
+                        AnimatedVisibility(
+                            visible = uiState.showCreateDialog,
+                            enter   = expandVertically(),
+                            exit    = shrinkVertically()
+                        ) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Column(Modifier.padding(16.dp)) {
+                                    Text(
+                                        "Buat Sesi Opname Baru",
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    OutlinedTextField(
+                                        value         = inlineNote,
+                                        onValueChange = { inlineNote = it },
+                                        label         = { Text("Catatan (opsional)") },
+                                        modifier      = Modifier.fillMaxWidth(),
+                                        maxLines      = 3
+                                    )
+                                    Spacer(Modifier.height(10.dp))
+                                    Row(
+                                        horizontalArrangement = Arrangement.End,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        TextButton(
+                                            onClick  = { inlineNote = ""; viewModel.closeCreateDialog() },
+                                            enabled  = !uiState.isSubmitting
+                                        ) { Text("Batal") }
+                                        Spacer(Modifier.width(8.dp))
+                                        Button(
+                                            onClick  = { viewModel.createOpname(inlineNote.ifBlank { null }); inlineNote = "" },
+                                            enabled  = !uiState.isSubmitting
+                                        ) {
+                                            if (uiState.isSubmitting)
+                                                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                                            else Text("Buat")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         Row(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -219,13 +268,7 @@ fun StockOpnameScreen(
                 }
             }
 
-            if (uiState.showCreateDialog) {
-                CreateOpnameDialog(
-                    isSubmitting = uiState.isSubmitting,
-                    onDismiss    = viewModel::closeCreateDialog,
-                    onConfirm    = viewModel::createOpname
-                )
-            }
+
         }
     }
 }

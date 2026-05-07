@@ -7,16 +7,21 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -29,6 +34,7 @@ import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.ProductManagementUiState
+import kotlinx.collections.immutable.toImmutableList
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Layout utama: tablet (sidebar kategori + list) / phone (chips + list)
@@ -49,6 +55,11 @@ fun ProductListContent(
     onAddCategory: () -> Unit,
     onEditCategory: (Category) -> Unit,
     onDeleteCategory: (Category) -> Unit,
+    onFormConfirm: (String, Long, String?, String?, String?, String?, String?, Double, Boolean) -> Unit = { _, _, _, _, _, _, _, _, _ -> },
+    onFormDismiss: () -> Unit = {},
+    onAdjustConfirm: (type: String, qty: Double, note: String?) -> Unit = { _, _, _ -> },
+    onAdjustDismiss: () -> Unit = {},
+    isLoading: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     if (isTablet) {
@@ -63,6 +74,7 @@ fun ProductListContent(
             VerticalDivider(modifier = Modifier.fillMaxHeight())
             TabletDashboard(
                 uiState          = uiState,
+                isLoading        = isLoading,
                 onAddProduct     = onAddProduct,
                 onSearchChange   = onSearchChange,
                 onCategorySelect = onCategorySelect,
@@ -71,6 +83,10 @@ fun ProductListContent(
                 on86Toggle       = on86Toggle,
                 onEditProduct    = onEditProduct,
                 onDeleteProduct  = onDeleteProduct,
+                onFormConfirm    = onFormConfirm,
+                onFormDismiss    = onFormDismiss,
+                onAdjustConfirm  = onAdjustConfirm,
+                onAdjustDismiss  = onAdjustDismiss,
                 modifier         = Modifier.weight(1f).fillMaxHeight()
             )
         }
@@ -87,6 +103,7 @@ fun ProductListContent(
             ProductSearchAndList(
                 uiState          = uiState,
                 isTablet         = false,
+                isLoading        = isLoading,
                 onAddProduct     = onAddProduct,
                 onSearchChange   = onSearchChange,
                 onCategorySelect = onCategorySelect,
@@ -131,9 +148,21 @@ private fun CategorySidePanel(
             }
         }
 
+        // Hitung produk per kategori:
+        // - Saat Semua: groupBy seluruh produk → setiap kategori dapat badge
+        // - Saat filter aktif: tampilkan hanya count untuk kategori yang dipilih
+        //   (uiState.products berisi produk dari kategori itu saja)
+        val countByCat: Map<String?, Int> = remember(uiState.selectedCategory, uiState.products) {
+            if (uiState.selectedCategory == null)
+                uiState.products.groupingBy { it.category?.uuid }.eachCount()
+            else
+                mapOf(uiState.selectedCategory.uuid to uiState.products.size)
+        }
+
         // Semua
         CategoryRow(
-            label      = "Semua (${uiState.products.size})",
+            label      = "Semua",
+            count      = if (uiState.selectedCategory == null) uiState.products.size else null,
             isSelected = uiState.selectedCategory == null,
             onClick    = { onCategorySelect(null) }
         )
@@ -142,6 +171,7 @@ private fun CategorySidePanel(
         uiState.categories.forEach { cat ->
             CategoryRow(
                 label      = cat.name,
+                count      = countByCat[cat.uuid],
                 isSelected = uiState.selectedCategory?.uuid == cat.uuid,
                 onClick    = { onCategorySelect(cat) },
                 onEdit     = { onEditCategory(cat) },
@@ -156,6 +186,7 @@ private fun CategoryRow(
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit,
+    count: Int? = null,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null
 ) {
@@ -169,6 +200,25 @@ private fun CategoryRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+        if (count != null) {
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.secondary.copy(alpha = 0.18f)
+                        else MaterialTheme.colorScheme.surfaceVariant
+                    )
+                    .padding(horizontal = 7.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text  = "$count",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(Modifier.width(2.dp))
+        }
         if (onEdit != null) {
             IconButton(onClick = onEdit, modifier = Modifier.size(28.dp)) {
                 Icon(Icons.Default.Edit, "Edit kategori", Modifier.size(14.dp))
@@ -189,6 +239,7 @@ private fun CategoryRow(
 @Composable
 private fun TabletDashboard(
     uiState: ProductManagementUiState,
+    isLoading: Boolean = false,
     onAddProduct: () -> Unit,
     onSearchChange: (String) -> Unit,
     onCategorySelect: (Category?) -> Unit,
@@ -197,9 +248,63 @@ private fun TabletDashboard(
     on86Toggle: (Product) -> Unit,
     onEditProduct: (Product) -> Unit,
     onDeleteProduct: (Product) -> Unit,
+    onFormConfirm: (String, Long, String?, String?, String?, String?, String?, Double, Boolean) -> Unit,
+    onFormDismiss: () -> Unit,
+    onAdjustConfirm: (type: String, qty: Double, note: String?) -> Unit,
+    onAdjustDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
+    // Which panel to show
+    val panelState = when {
+        uiState.showProductFormDialog -> TabletPanel.ProductForm
+        uiState.showAdjustDialog     -> TabletPanel.StockAdjust
+        else                          -> TabletPanel.Table
+    }
+
+    AnimatedContent(
+        targetState  = panelState,
+        transitionSpec = {
+            if (targetState != TabletPanel.Table) {
+                (slideInHorizontally { it / 3 } + fadeIn(tween(220))) togetherWith
+                        (slideOutHorizontally { -it / 6 } + fadeOut(tween(150)))
+            } else {
+                (slideInHorizontally { -it / 6 } + fadeIn(tween(220))) togetherWith
+                        (slideOutHorizontally { it / 3 } + fadeOut(tween(150)))
+            }
+        },
+        label    = "tablet_panel",
+        modifier = modifier
+    ) { panel ->
+        when (panel) {
+            TabletPanel.ProductForm -> {
+                ProductFormPanel(
+                    editingProduct      = uiState.actionProduct,
+                    initialCategoryUuid = uiState.selectedCategory?.uuid,
+                    categories          = uiState.categories.toImmutableList(),
+                    isSubmitting        = uiState.isSubmitting,
+                    onDismiss           = onFormDismiss,
+                    onConfirm           = onFormConfirm,
+                    modifier            = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface)
+                )
+            }
+            TabletPanel.StockAdjust -> {
+                val product = uiState.actionProduct
+                if (product != null) {
+                    StockAdjustPanel(
+                        product      = product,
+                        isSubmitting = uiState.isSubmitting,
+                        onDismiss    = onAdjustDismiss,
+                        onConfirm    = onAdjustConfirm,
+                        modifier     = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface)
+                    )
+                }
+            }
+            TabletPanel.Table -> {
+                Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 
         // ── Metric summary row ────────────────────────────────────────────────
         MetricSummaryRow(uiState = uiState)
@@ -211,7 +316,7 @@ private fun TabletDashboard(
             modifier              = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -244,88 +349,159 @@ private fun TabletDashboard(
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         // ── Tabel produk ──────────────────────────────────────────────────────
-        if (uiState.filteredProducts.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Inventory2,
-                        contentDescription = null,
-                        modifier           = Modifier.size(64.dp),
-                        tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Tidak ada produk ditemukan",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (uiState.searchQuery.isNotBlank() || uiState.selectedCategory != null) {
+        AnimatedContent(
+            targetState = isLoading,
+            transitionSpec = {
+                if (targetState) {
+                    fadeIn(tween(180)) togetherWith fadeOut(tween(130))
+                } else {
+                    fadeIn(tween(320, delayMillis = 80)) togetherWith fadeOut(tween(180))
+                }
+            },
+            label    = "tablet_product_list",
+            modifier = Modifier.fillMaxSize()
+        ) { loading ->
+            if (loading) {
+                ShimmerTableContent()
+            } else if (uiState.filteredProducts.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Inventory2,
+                            contentDescription = null,
+                            modifier           = Modifier.size(48.dp),
+                            tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                        )
                         Spacer(Modifier.height(8.dp))
-                        TextButton(onClick = { onSearchChange(""); onCategorySelect(null) }) {
-                            Text("Reset filter")
+                        Text(
+                            if (uiState.searchQuery.isNotBlank() || uiState.selectedCategory != null)
+                                "Tidak ada produk ditemukan"
+                            else
+                                "Belum ada produk",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (uiState.searchQuery.isNotBlank() || uiState.selectedCategory != null) {
+                            Spacer(Modifier.height(4.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = { onSearchChange(""); onCategorySelect(null) }) {
+                                    Text("Reset filter")
+                                }
+                                Button(onClick = onAddProduct) {
+                                    Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        if (uiState.selectedCategory != null)
+                                            "Tambah di ${uiState.selectedCategory.name}"
+                                        else
+                                            "Tambah Produk"
+                                    )
+                                }
+                            }
+                        } else {
+                            Spacer(Modifier.height(4.dp))
+                            Button(onClick = onAddProduct) {
+                                Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Tambah Produk Pertama")
+                            }
+                        }
+                    }
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    ProductTableHeader()
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(uiState.filteredProducts, key = { it.uuid }) { product ->
+                            ProductTableRow(
+                                product       = product,
+                                is86          = uiState.is86(product.uuid),
+                                onAdjustStock = { onAdjustStock(product) },
+                                onAddBatch    = { onAddBatch(product) },
+                                on86Toggle    = { on86Toggle(product) },
+                                onEdit        = { onEditProduct(product) },
+                                onDelete      = { onDeleteProduct(product) }
+                            )
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                            )
                         }
                     }
                 }
             }
-        } else {
-            // Header kolom tabel
-            ProductTableHeader()
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(uiState.filteredProducts, key = { it.uuid }) { product ->
-                    ProductTableRow(
-                        product       = product,
-                        is86          = uiState.is86(product.uuid),
-                        onAdjustStock = { onAdjustStock(product) },
-                        onAddBatch    = { onAddBatch(product) },
-                        on86Toggle    = { on86Toggle(product) },
-                        onEdit        = { onEditProduct(product) },
-                        onDelete      = { onDeleteProduct(product) }
-                    )
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-                    )
-                }
-            }
         }
-    }
+        } // closes Column (tabel + metrik)
+            } // TabletPanel.Table
+        } // when(panel)
+    } // AnimatedContent panel
 }
+
+private enum class TabletPanel { Table, ProductForm, StockAdjust }
 
 // ── Metric summary ────────────────────────────────────────────────────────────
 
 @Composable
 private fun MetricSummaryRow(uiState: ProductManagementUiState) {
-    val sem       = RancakColors.semantic
-    val lowStock  = uiState.products.count { it.stock <= 5 && !uiState.is86(it.uuid) }
+    val sem           = RancakColors.semantic
+    val activeCount   = uiState.products.count { it.isActive }
+    val inactive      = uiState.products.size - activeCount
+    val marked86      = uiState.products86.size
+    val outOfStock    = uiState.products.count { it.stock <= 0 && !uiState.is86(it.uuid) }
+    val criticalStock = uiState.products.count { it.stock in 1.0..5.0 && !uiState.is86(it.uuid) }
+    val lowStock      = outOfStock + criticalStock
+
+    val productSubtitle = buildString {
+        append("$activeCount aktif")
+        if (inactive > 0) append(" · $inactive nonaktif")
+        if (marked86 > 0) append(" · $marked86 produk 86")
+    }
+
+    val categorySubtitle = if (uiState.selectedCategory != null)
+        null  // value card sudah menampilkan nama kategori — subtitle tidak perlu
+    else
+        "${uiState.categories.size} kategori aktif"
+
+    val stockSubtitle = when {
+        outOfStock > 0 && criticalStock > 0 -> "$outOfStock habis · $criticalStock kritis"
+        outOfStock > 0                      -> "$outOfStock produk habis"
+        criticalStock > 0                   -> "$criticalStock produk kritis"
+        else                                -> "Semua stok normal"
+    }
 
     Row(
         modifier              = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         MetricCard(
-            modifier   = Modifier.weight(1f),
-            icon       = Icons.Default.Inventory2,
-            label      = "Total Produk",
-            value      = "${uiState.products.size}",
-            iconTint   = MaterialTheme.colorScheme.primary
+            modifier  = Modifier.weight(1f),
+            icon      = Icons.Default.Inventory2,
+            label     = "Total Produk",
+            value     = "${uiState.products.size}",
+            subtitle  = productSubtitle,
+            iconTint  = MaterialTheme.colorScheme.primary
         )
         MetricCard(
-            modifier   = Modifier.weight(1f),
-            icon       = Icons.Default.Category,
-            label      = "Kategori",
-            value      = "${uiState.categories.size}",
-            iconTint   = sem.info
+            modifier  = Modifier.weight(1f),
+            icon      = Icons.Default.Category,
+            label     = "Kategori",
+            value     = if (uiState.selectedCategory != null) uiState.selectedCategory.name else "${uiState.categories.size}",
+            subtitle  = categorySubtitle,
+            iconTint  = if (uiState.selectedCategory != null) sem.info else sem.info
         )
         MetricCard(
-            modifier   = Modifier.weight(1f),
-            icon       = if (lowStock > 0) Icons.Default.Warning else Icons.Default.CheckCircle,
-            label      = "Stok Rendah",
-            value      = if (lowStock > 0) "$lowStock produk" else "Semua aman",
-            iconTint   = if (lowStock > 0) sem.warning else sem.success
+            modifier  = Modifier.weight(1f),
+            icon      = if (lowStock > 0) Icons.Default.Warning else Icons.Default.CheckCircle,
+            label     = "Stok Rendah",
+            value     = if (lowStock > 0) "$lowStock produk" else "Aman",
+            subtitle  = stockSubtitle,
+            iconTint  = if (lowStock > 0) sem.warning else sem.success
         )
     }
 }
@@ -336,39 +512,47 @@ private fun MetricCard(
     icon: ImageVector,
     label: String,
     value: String,
+    subtitle: String? = null,
     iconTint: Color
 ) {
     Card(
         modifier  = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape     = MaterialTheme.shapes.medium,
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
-            modifier              = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            modifier              = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(
                 modifier         = Modifier
-                    .size(46.dp)
+                    .size(34.dp)
                     .clip(CircleShape)
                     .background(iconTint.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, null, Modifier.size(24.dp), tint = iconTint)
+                Icon(icon, null, Modifier.size(18.dp), tint = iconTint)
             }
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 Text(
                     text  = label,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text       = value,
-                    style      = MaterialTheme.typography.titleLarge,
+                    style      = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
+                if (subtitle != null) {
+                    Text(
+                        text  = subtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
             }
         }
     }
@@ -486,6 +670,7 @@ private fun CategoryFilterRow(
 fun ProductSearchAndList(
     uiState: ProductManagementUiState,
     isTablet: Boolean,
+    isLoading: Boolean = false,
     onAddProduct: () -> Unit,
     onSearchChange: (String) -> Unit,
     onCategorySelect: (Category?) -> Unit,
@@ -500,7 +685,7 @@ fun ProductSearchAndList(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -533,46 +718,210 @@ fun ProductSearchAndList(
         }
 
         // ── Daftar produk / empty state ───────────────────────────────────────
-        if (uiState.filteredProducts.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.Inventory2,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint     = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Tidak ada produk ditemukan",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (uiState.searchQuery.isNotBlank() || uiState.selectedCategory != null) {
-                        Spacer(Modifier.height(6.dp))
-                        TextButton(onClick = { onSearchChange(""); onCategorySelect(null) }) {
-                            Text("Reset filter")
+        AnimatedContent(
+            targetState = isLoading,
+            transitionSpec = {
+                if (targetState) {
+                    fadeIn(tween(180)) togetherWith fadeOut(tween(130))
+                } else {
+                    fadeIn(tween(320, delayMillis = 80)) togetherWith fadeOut(tween(180))
+                }
+            },
+            label    = "phone_product_list",
+            modifier = Modifier.fillMaxSize()
+        ) { loading ->
+            if (loading) {
+                ShimmerCardContent()
+            } else if (uiState.filteredProducts.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Inventory2,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint     = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            if (uiState.searchQuery.isNotBlank() || uiState.selectedCategory != null)
+                                "Tidak ada produk ditemukan"
+                            else
+                                "Belum ada produk",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (uiState.searchQuery.isNotBlank() || uiState.selectedCategory != null) {
+                            Spacer(Modifier.height(4.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = { onSearchChange(""); onCategorySelect(null) }) {
+                                    Text("Reset filter")
+                                }
+                                Button(onClick = onAddProduct) {
+                                    Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        if (uiState.selectedCategory != null)
+                                            "Tambah di ${uiState.selectedCategory.name}"
+                                        else
+                                            "Tambah Produk"
+                                    )
+                                }
+                            }
+                        } else {
+                            Spacer(Modifier.height(4.dp))
+                            Button(onClick = onAddProduct) {
+                                Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Tambah Produk Pertama")
+                            }
                         }
                     }
                 }
-            }
-        } else {
-            LazyColumn(
-                contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier            = Modifier.fillMaxSize()
-            ) {
-                items(uiState.filteredProducts, key = { it.uuid }) { product ->
-                    ProductManagementCard(
-                        product       = product,
-                        is86          = uiState.is86(product.uuid),
-                        onAdjustStock = { onAdjustStock(product) },
-                        onAddBatch    = { onAddBatch(product) },
-                        on86Toggle    = { on86Toggle(product) },
-                        onEdit        = { onEditProduct(product) },
-                        onDelete      = { onDeleteProduct(product) }
-                    )
+            } else {
+                LazyColumn(
+                    contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier            = Modifier.fillMaxSize()
+                ) {
+                    items(uiState.filteredProducts, key = { it.uuid }) { product ->
+                        ProductManagementCard(
+                            product       = product,
+                            is86          = uiState.is86(product.uuid),
+                            onAdjustStock = { onAdjustStock(product) },
+                            onAddBatch    = { onAddBatch(product) },
+                            on86Toggle    = { on86Toggle(product) },
+                            onEdit        = { onEditProduct(product) },
+                            onDelete      = { onDeleteProduct(product) }
+                        )
+                    }
                 }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shimmer skeleton — digunakan saat loading kategori berlangsung
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun rememberShimmerAlpha(): Float {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val alpha by transition.animateFloat(
+        initialValue  = 0.3f,
+        targetValue   = 0.85f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(durationMillis = 850, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shimmerAlpha"
+    )
+    return alpha
+}
+
+@Composable
+private fun ShimmerTableContent() {
+    val alpha = rememberShimmerAlpha()
+    val color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        repeat(8) {
+            ShimmerTableRow(alpha = alpha, shimmerColor = color)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+        }
+    }
+}
+
+@Composable
+private fun ShimmerTableRow(alpha: Float, shimmerColor: Color) {
+    Row(
+        modifier          = Modifier.padding(horizontal = 16.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(MaterialTheme.shapes.small)
+                .alpha(alpha)
+                .background(shimmerColor)
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(
+            modifier            = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            Box(Modifier.fillMaxWidth(0.52f).height(13.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha).background(shimmerColor))
+            Box(Modifier.fillMaxWidth(0.33f).height(10.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha * 0.6f).background(shimmerColor))
+        }
+        Row(
+            modifier              = Modifier.width(110.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Box(Modifier.size(9.dp).clip(CircleShape).alpha(alpha).background(shimmerColor))
+            Box(Modifier.width(38.dp).height(11.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha).background(shimmerColor))
+        }
+        Box(Modifier.width(68.dp).height(13.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha).background(shimmerColor))
+        Spacer(Modifier.width(40.dp))
+    }
+}
+
+@Composable
+private fun ShimmerCardContent() {
+    val alpha = rememberShimmerAlpha()
+    val color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        repeat(5) { ShimmerProductCard(alpha = alpha, shimmerColor = color) }
+    }
+}
+
+@Composable
+private fun ShimmerProductCard(alpha: Float, shimmerColor: Color) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape     = MaterialTheme.shapes.medium
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(Modifier.fillMaxWidth(0.6f).height(16.dp).clip(RoundedCornerShape(4.dp)).alpha(alpha).background(shimmerColor))
+                    Box(Modifier.fillMaxWidth(0.4f).height(11.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha * 0.6f).background(shimmerColor))
+                    Box(Modifier.fillMaxWidth(0.28f).height(11.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha * 0.6f).background(shimmerColor))
+                    Spacer(Modifier.height(2.dp))
+                    Box(Modifier.width(80.dp).height(22.dp).clip(RoundedCornerShape(11.dp)).alpha(alpha).background(shimmerColor))
+                }
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(Modifier.width(72.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).alpha(alpha).background(shimmerColor))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Box(Modifier.size(36.dp).clip(CircleShape).alpha(alpha).background(shimmerColor))
+                        Box(Modifier.size(36.dp).clip(CircleShape).alpha(alpha).background(shimmerColor))
+                    }
+                }
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(Modifier.weight(1f).height(36.dp).clip(RoundedCornerShape(4.dp)).alpha(alpha * 0.55f).background(shimmerColor))
+                Box(Modifier.weight(1f).height(36.dp).clip(RoundedCornerShape(4.dp)).alpha(alpha * 0.55f).background(shimmerColor))
             }
         }
     }

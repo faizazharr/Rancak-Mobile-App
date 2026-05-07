@@ -255,6 +255,9 @@ private fun PhoneLayout(
 ) {
     val hasCart = cartState.itemCount > 0
     val primary = MaterialTheme.colorScheme.primary
+    // Memoize: toImmutableList() mengalokasikan list baru setiap rekomposisi.
+    // Hanya buat ulang saat daftar kategori benar-benar berubah.
+    val immutableCategories = remember(uiState.categories) { uiState.categories.toImmutableList() }
 
     Scaffold(
         topBar = {
@@ -285,7 +288,7 @@ private fun PhoneLayout(
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp, vertical = 8.dp)
                 )
-                PosCategoryRow(uiState.categories.toImmutableList(), uiState.selectedCategory, onCategorySelect)
+                PosCategoryRow(immutableCategories, uiState.selectedCategory, onCategorySelect)
                 ProductGridContent(
                     uiState    = uiState,
                     cartQtyMap = cartQtyMap,
@@ -346,6 +349,9 @@ private fun SplitLayout(
     modifierCache: ImmutableMap<String, ImmutableList<id.rancak.app.domain.model.Modifier>> = persistentMapOf(),
     onLoadModifiers: (String) -> Unit = {}
 ) {
+    // Memoize: toImmutableList() mengalokasikan list baru setiap rekomposisi.
+    val immutableCategories = remember(uiState.categories) { uiState.categories.toImmutableList() }
+
     Row(Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -371,7 +377,7 @@ private fun SplitLayout(
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp, vertical = 8.dp)
             )
-            PosCategoryRow(uiState.categories.toImmutableList(), uiState.selectedCategory, onCategorySelect)
+            PosCategoryRow(immutableCategories, uiState.selectedCategory, onCategorySelect)
             ProductGridContent(
                 uiState    = uiState,
                 cartQtyMap = cartQtyMap,

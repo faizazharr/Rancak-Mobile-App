@@ -176,26 +176,30 @@ private fun OrderItemRow(
                             style = MaterialTheme.typography.labelSmall,
                             color = onSurfaceVariant
                         )
+                        // Memoize parsed set: split+trim+filter hanya jalan ulang
+                        // saat noteText berubah, bukan pada setiap rekomposisi.
+                        val selectedNames by remember(noteText) {
+                            derivedStateOf {
+                                noteText.split(", ")
+                                    .mapTo(mutableSetOf()) { it.trim() }
+                                    .filter { it.isNotBlank() }
+                                    .toSet()
+                            }
+                        }
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             activeModifiers.chunked(3).forEach { rowModifiers ->
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     rowModifiers.forEach { mod ->
-                                        val isSelected = noteText.split(", ")
-                                            .map { it.trim() }
-                                            .contains(mod.name)
+                                        val isSelected = mod.name in selectedNames
                                         Surface(
                                             onClick = {
-                                                noteText = if (isSelected) {
-                                                    noteText.split(", ")
-                                                        .map { it.trim() }
-                                                        .filter { it.isNotBlank() && it != mod.name }
-                                                        .joinToString(", ")
+                                                // Gunakan selectedNames yang sudah diparse — tidak perlu split ulang
+                                                val updated = if (isSelected) {
+                                                    selectedNames - mod.name
                                                 } else {
-                                                    val parts = noteText.split(", ")
-                                                        .map { it.trim() }
-                                                        .filter { it.isNotBlank() }
-                                                    (parts + mod.name).joinToString(", ")
+                                                    selectedNames + mod.name
                                                 }
+                                                noteText = updated.filter { it.isNotBlank() }.joinToString(", ")
                                             },
                                             shape          = RoundedCornerShape(20.dp),
                                             color          = if (isSelected) primary else MaterialTheme.colorScheme.surfaceVariant,

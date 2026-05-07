@@ -220,18 +220,27 @@ fun ProductTableRow(
     val stockText = when {
         is86               -> "86"
         product.stock <= 0 -> "Habis"
-        else               -> product.stock.toStockDisplay()
+        else               -> buildString {
+            append(product.stock.toStockDisplay())
+            if (!product.unit.isNullOrBlank()) append(" ${product.unit}")
+        }
+    }
+
+    val rowBackground = when {
+        is86                      -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f)
+        product.stock <= 0        -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.06f)
+        product.stock in 1.0..5.0 -> sem.warning.copy(alpha = 0.07f)
+        else                      -> MaterialTheme.colorScheme.surface
     }
 
     var menuExpanded by remember { mutableStateOf(false) }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color    = if (is86) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f)
-                   else MaterialTheme.colorScheme.surface
+        color    = rowBackground
     ) {
         Row(
-            modifier          = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            modifier          = Modifier.padding(horizontal = 16.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // ── Thumbnail ─────────────────────────────────────────────────────

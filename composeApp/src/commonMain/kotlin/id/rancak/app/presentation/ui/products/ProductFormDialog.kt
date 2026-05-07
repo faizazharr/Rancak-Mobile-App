@@ -5,12 +5,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,7 +30,8 @@ fun ProductFormDialog(
     isSubmitting: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (name: String, price: Long, description: String?, sku: String?, barcode: String?,
-                categoryUuid: String?, unit: String?, stock: Double, hasExpiry: Boolean) -> Unit
+                categoryUuid: String?, unit: String?, stock: Double, hasExpiry: Boolean) -> Unit,
+    initialCategoryUuid: String? = null
 ) {
     var name             by remember(editingProduct) { mutableStateOf(editingProduct?.name ?: "") }
     var priceText        by remember(editingProduct) { mutableStateOf(editingProduct?.price?.toString() ?: "") }
@@ -38,7 +41,7 @@ fun ProductFormDialog(
     var unit             by remember(editingProduct) { mutableStateOf(editingProduct?.unit ?: "") }
     var stockText        by remember(editingProduct) { mutableStateOf(if (editingProduct == null) "0" else editingProduct.stock.toStockDisplay()) }
     var hasExpiry        by remember(editingProduct) { mutableStateOf(editingProduct?.hasExpiry ?: false) }
-    var categoryUuid     by remember(editingProduct) { mutableStateOf(editingProduct?.category?.uuid) }
+    var categoryUuid     by remember(editingProduct) { mutableStateOf(editingProduct?.category?.uuid ?: initialCategoryUuid) }
     var categoryExpanded by remember { mutableStateOf(false) }
 
     val price      = priceText.toLongOrNull()
@@ -208,6 +211,226 @@ fun ProductFormDialog(
             TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Batal") }
         }
     )
+}
+
+// ── Inline panel (tablet) ─────────────────────────────────────────────────────
+
+/**
+ * Versi inline dari ProductFormDialog — digunakan di tablet sebagai panel kanan,
+ * menggantikan tabel produk tanpa membuka popup.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductFormPanel(
+    editingProduct: Product?,
+    initialCategoryUuid: String?,
+    categories: ImmutableList<Category>,
+    isSubmitting: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (name: String, price: Long, description: String?, sku: String?, barcode: String?,
+                categoryUuid: String?, unit: String?, stock: Double, hasExpiry: Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var name             by remember(editingProduct) { mutableStateOf(editingProduct?.name ?: "") }
+    var priceText        by remember(editingProduct) { mutableStateOf(editingProduct?.price?.toString() ?: "") }
+    var description      by remember(editingProduct) { mutableStateOf(editingProduct?.description ?: "") }
+    var sku              by remember(editingProduct) { mutableStateOf(editingProduct?.sku ?: "") }
+    var barcode          by remember(editingProduct) { mutableStateOf(editingProduct?.barcode ?: "") }
+    var unit             by remember(editingProduct) { mutableStateOf(editingProduct?.unit ?: "") }
+    var stockText        by remember(editingProduct) { mutableStateOf(if (editingProduct == null) "0" else editingProduct.stock.toStockDisplay()) }
+    var hasExpiry        by remember(editingProduct) { mutableStateOf(editingProduct?.hasExpiry ?: false) }
+    var categoryUuid     by remember(editingProduct) { mutableStateOf(editingProduct?.category?.uuid ?: initialCategoryUuid) }
+    var categoryExpanded by remember { mutableStateOf(false) }
+
+    val price      = priceText.toLongOrNull()
+    val stock      = stockText.toDoubleOrNull() ?: 0.0
+    val canConfirm = !isSubmitting && name.isNotBlank() && price != null && price > 0
+
+    Column(modifier = modifier) {
+        // ── Header ────────────────────────────────────────────────────────────
+        Row(
+            modifier          = Modifier
+                .fillMaxWidth()
+                .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { if (!isSubmitting) onDismiss() }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
+            }
+            Text(
+                text       = if (editingProduct == null) "Tambah Produk" else "Edit Produk",
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        HorizontalDivider()
+
+        // ── Form fields (scrollable, max-width capped for large tablets) ──────
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .widthIn(max = 560.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(
+                value         = name,
+                onValueChange = { name = it },
+                label         = { Text("Nama Produk *") },
+                modifier      = Modifier.fillMaxWidth(),
+                singleLine    = true,
+                isError       = name.isBlank()
+            )
+            OutlinedTextField(
+                value           = priceText,
+                onValueChange   = { priceText = it.filter { c -> c.isDigit() } },
+                label           = { Text("Harga (Rp) *") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier        = Modifier.fillMaxWidth(),
+                singleLine      = true,
+                isError         = priceText.isNotBlank() && (price == null || price <= 0),
+                supportingText  = if (priceText.isNotBlank() && (price == null || price <= 0))
+                    { { Text("Harga harus lebih dari 0") } } else null
+            )
+            OutlinedTextField(
+                value         = description,
+                onValueChange = { description = it },
+                label         = { Text("Deskripsi") },
+                modifier      = Modifier.fillMaxWidth(),
+                maxLines      = 3
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value         = sku,
+                    onValueChange = { sku = it },
+                    label         = { Text("SKU") },
+                    placeholder   = { Text("Otomatis", style = MaterialTheme.typography.bodySmall) },
+                    modifier      = Modifier.weight(1f),
+                    singleLine    = true,
+                    trailingIcon  = {
+                        if (sku.isBlank()) {
+                            IconButton(onClick = { sku = generateSku(name) }) {
+                                Icon(Icons.Default.Refresh, "Generate SKU", Modifier.size(16.dp))
+                            }
+                        } else {
+                            IconButton(onClick = { sku = "" }) {
+                                Icon(Icons.Default.Clear, "Hapus SKU", Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                )
+                OutlinedTextField(
+                    value           = barcode,
+                    onValueChange   = { barcode = it.filter { c -> c.isDigit() } },
+                    label           = { Text("Barcode") },
+                    placeholder     = { Text("Otomatis", style = MaterialTheme.typography.bodySmall) },
+                    modifier        = Modifier.weight(1f),
+                    singleLine      = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    trailingIcon    = {
+                        if (barcode.isBlank()) {
+                            IconButton(onClick = { barcode = generateBarcode() }) {
+                                Icon(Icons.Default.Refresh, "Generate Barcode", Modifier.size(16.dp))
+                            }
+                        } else {
+                            IconButton(onClick = { barcode = "" }) {
+                                Icon(Icons.Default.Clear, "Hapus Barcode", Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value         = unit,
+                    onValueChange = { unit = it },
+                    label         = { Text("Satuan") },
+                    modifier      = Modifier.weight(1f),
+                    singleLine    = true
+                )
+                if (editingProduct == null) {
+                    OutlinedTextField(
+                        value           = stockText,
+                        onValueChange   = { stockText = it.filter { c -> c.isDigit() || c == '.' } },
+                        label           = { Text("Stok Awal") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier        = Modifier.weight(1f),
+                        singleLine      = true
+                    )
+                }
+            }
+            ExposedDropdownMenuBox(
+                expanded         = categoryExpanded,
+                onExpandedChange = { categoryExpanded = !categoryExpanded }
+            ) {
+                OutlinedTextField(
+                    value         = categories.find { it.uuid == categoryUuid }?.name ?: "Tanpa kategori",
+                    onValueChange = {},
+                    readOnly      = true,
+                    label         = { Text("Kategori") },
+                    trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                    modifier      = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                )
+                ExposedDropdownMenu(
+                    expanded         = categoryExpanded,
+                    onDismissRequest = { categoryExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text    = { Text("Tanpa kategori") },
+                        onClick = { categoryUuid = null; categoryExpanded = false }
+                    )
+                    categories.forEach { cat ->
+                        DropdownMenuItem(
+                            text    = { Text(cat.name) },
+                            onClick = { categoryUuid = cat.uuid; categoryExpanded = false }
+                        )
+                    }
+                }
+            }
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Text("Produk kadaluarsa (FIFO)", style = MaterialTheme.typography.bodyMedium)
+                Switch(checked = hasExpiry, onCheckedChange = { hasExpiry = it })
+            }
+        }
+
+        // ── Action buttons ────────────────────────────────────────────────────
+        HorizontalDivider()
+        Row(
+            modifier              = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment     = Alignment.CenterVertically
+        ) {
+            TextButton(onClick = { if (!isSubmitting) onDismiss() }, enabled = !isSubmitting) {
+                Text("Batal")
+            }
+            Spacer(Modifier.width(8.dp))
+            Button(
+                onClick = {
+                    onConfirm(
+                        name.trim(), price!!,
+                        description.ifBlank { null },
+                        sku.ifBlank { null },
+                        barcode.ifBlank { null },
+                        categoryUuid,
+                        unit.ifBlank { null },
+                        stock, hasExpiry
+                    )
+                },
+                enabled = canConfirm
+            ) {
+                if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                else Text("Simpan")
+            }
+        }
+    }
 }
 
 // ── Preview ───────────────────────────────────────────────────────────────────

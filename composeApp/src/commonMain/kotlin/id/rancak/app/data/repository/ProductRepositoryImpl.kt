@@ -78,6 +78,16 @@ class ProductRepositoryImpl(
         }
     }
 
+    override suspend fun getProductsFromCache(query: String?, categoryId: String?): Resource<List<Product>> {
+        val cached = productDao.search(query ?: "", categoryId ?: "")
+        return Resource.Success(cached.map { it.toDomain() })
+    }
+
+    override suspend fun getCategoriesFromCache(): Resource<List<Category>> {
+        val cached = categoryDao.getAll()
+        return Resource.Success(cached.map { it.toDomain() })
+    }
+
     override suspend fun getProductByUuid(productUuid: String): Resource<Product> = safe(
         block    = { api.getProductByUuid(tenantUuid, productUuid) },
         map      = { it.toDomain() },
