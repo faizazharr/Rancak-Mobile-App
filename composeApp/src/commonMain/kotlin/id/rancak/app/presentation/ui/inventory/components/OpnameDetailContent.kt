@@ -37,6 +37,8 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 
+private val OpnameGradientEnd = Color(0xFF0B7A60)
+
 @Composable
 fun OpnameDetailContent(
     detail: StockOpnameDetail,
@@ -341,23 +343,34 @@ fun OpnameDetailTabletPanel(
     }
 
     Column(modifier = modifier) {
-        // ── Header ────────────────────────────────────────────────────────────
-        Surface(tonalElevation = 2.dp) {
+        // ── Gradient header ───────────────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Brush.horizontalGradient(listOf(Primary, OpnameGradientEnd)))
+        ) {
             Row(
-                modifier            = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier            = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment   = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Column(Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                ) {
                     Text(
                         "Opname #${detail.opname.opnameNo}",
                         style      = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color      = Color.White
                     )
                     Text(
                         "${detail.items.size + pendingItems.size} item · $statusLabel · ${formatOpnameDate(detail.opname.createdAt)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.78f)
                     )
                 }
                 if (isDraft) {
@@ -368,28 +381,36 @@ fun OpnameDetailTabletPanel(
                             }
                             onSaveItems(entries)
                         },
-                        enabled = !isSubmitting
+                        enabled = !isSubmitting,
+                        border  = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f)),
+                        colors  = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
                     ) { Text("Simpan") }
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Button(
                             onClick  = onFinalizeClick,
-                            enabled  = !isSubmitting && detail.items.isNotEmpty()
-                        ) { Text("Finalisasi") }
+                            enabled  = !isSubmitting && detail.items.isNotEmpty(),
+                            colors   = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor   = Primary
+                            )
+                        ) {
+                            Text("Finalisasi", fontWeight = FontWeight.Bold)
+                        }
                         if (detail.items.isEmpty()) {
                             Text(
                                 "Simpan item lebih dulu",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = Color.White.copy(alpha = 0.65f)
                             )
                         }
                     }
                 }
                 IconButton(onClick = onClose) {
-                    Icon(Icons.Default.Close, contentDescription = "Tutup detail")
+                    Icon(Icons.Default.Close, contentDescription = "Tutup detail", tint = Color.White)
                 }
             }
         }
-        HorizontalDivider()
+        HorizontalDivider(color = Primary.copy(alpha = 0.3f))
 
         if (isLoading) {
             LoadingScreen(Modifier.fillMaxSize())
@@ -492,7 +513,11 @@ fun OpnameDetailTabletPanel(
                     FilledTonalButton(
                         onClick        = { showPicker = true },
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
-                        modifier       = Modifier.height(36.dp)
+                        modifier       = Modifier.height(36.dp),
+                        colors         = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = Primary.copy(alpha = 0.12f),
+                            contentColor   = Primary
+                        )
                     ) {
                         Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
@@ -710,13 +735,13 @@ private fun OpnameTableRow(
         ) {
             Box(
                 modifier         = Modifier.size(28.dp).background(
-                    MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small
+                    Primary.copy(alpha = 0.10f), MaterialTheme.shapes.small
                 ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.Inventory, null,
-                    tint     = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint     = Primary.copy(alpha = 0.70f),
                     modifier = Modifier.size(14.dp)
                 )
             }

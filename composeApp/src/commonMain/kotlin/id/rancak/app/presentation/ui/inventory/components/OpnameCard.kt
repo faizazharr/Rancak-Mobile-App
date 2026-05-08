@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.StockOpname
 import id.rancak.app.presentation.components.StatusChip
+import id.rancak.app.presentation.designsystem.Primary
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 
@@ -50,7 +51,7 @@ fun OpnameCard(
             defaultElevation = if (isSelected) 3.dp else 1.dp
         ),
         colors    = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+            containerColor = if (isSelected) Primary.copy(alpha = 0.10f)
                              else MaterialTheme.colorScheme.surface
         )
     ) {
@@ -58,7 +59,7 @@ fun OpnameCard(
             // Left status strip
             Box(
                 modifier = Modifier.width(3.dp).fillMaxHeight()
-                    .background(if (isSelected) MaterialTheme.colorScheme.primary else statusColor)
+                    .background(if (isSelected) Primary else statusColor)
             )
             Row(
                 modifier              = Modifier.weight(1f).padding(start = 10.dp, top = 10.dp, bottom = 10.dp, end = 4.dp),

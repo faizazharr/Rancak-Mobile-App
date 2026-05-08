@@ -3,23 +3,27 @@ package id.rancak.app.presentation.ui.inventory
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.Primary
 import id.rancak.app.presentation.ui.inventory.components.CreateOpnameDialog
 import id.rancak.app.presentation.ui.inventory.components.OpnameCard
 import id.rancak.app.presentation.ui.inventory.components.OpnameDetailContent
@@ -78,9 +82,11 @@ fun StockOpnameScreen(
                 },
                 floatingActionButton = {
                     if (!isTablet) {
-                        FloatingActionButton(onClick = viewModel::openCreateDialog) {
-                            Icon(Icons.Default.Add, contentDescription = "Buat opname baru")
-                        }
+                        ExtendedFloatingActionButton(
+                            onClick = viewModel::openCreateDialog,
+                            icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                            text = { Text("Sesi Baru") }
+                        )
                     }
                 },
                 snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -96,24 +102,42 @@ fun StockOpnameScreen(
                         ) {
                             // Sidebar header: title + add button
                             Row(
-                                modifier              = Modifier.fillMaxWidth().padding(start = 14.dp, end = 6.dp, top = 10.dp, bottom = 10.dp),
+                                modifier              = Modifier.fillMaxWidth().padding(start = 14.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
                                 verticalAlignment     = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(
-                                    "Sesi Opname",
-                                    style      = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                IconButton(
-                                    onClick  = viewModel::openCreateDialog,
-                                    modifier = Modifier.size(34.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.Add,
-                                        contentDescription = "Buat opname baru",
-                                        modifier           = Modifier.size(20.dp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier         = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(Primary),
                                     )
+                                    Spacer(Modifier.width(7.dp))
+                                    Text(
+                                        "Sesi Opname",
+                                        style      = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Box(
+                                    modifier         = Modifier
+                                        .size(30.dp)
+                                        .clip(CircleShape)
+                                        .background(Primary.copy(alpha = 0.12f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    IconButton(
+                                        onClick  = viewModel::openCreateDialog,
+                                        modifier = Modifier.size(30.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Add,
+                                            contentDescription = "Buat opname baru",
+                                            tint     = Primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
                                 }
                             }
                             HorizontalDivider()
