@@ -14,11 +14,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.ui.inventory.components.CreateOpnameDialog
 import id.rancak.app.presentation.ui.inventory.components.OpnameCard
 import id.rancak.app.presentation.ui.inventory.components.OpnameDetailContent
 import id.rancak.app.presentation.ui.inventory.components.OpnameDetailTabletPanel
@@ -86,24 +88,49 @@ fun StockOpnameScreen(
                 if (isTablet) {
                     // ── Tablet: master-detail two-panel ─────────────────────
                     Row(Modifier.padding(padding).fillMaxSize()) {
-                        // Left panel — opname list
+                        // ── Left sidebar — compact session list ──────────────
                         Column(
                             modifier = Modifier
-                                .width(300.dp)
+                                .width(248.dp)
                                 .fillMaxHeight()
                         ) {
+                            // Sidebar header: title + add button
+                            Row(
+                                modifier              = Modifier.fillMaxWidth().padding(start = 14.dp, end = 6.dp, top = 10.dp, bottom = 10.dp),
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "Sesi Opname",
+                                    style      = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                IconButton(
+                                    onClick  = viewModel::openCreateDialog,
+                                    modifier = Modifier.size(34.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = "Buat opname baru",
+                                        modifier           = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                            HorizontalDivider()
+
+                            // Filter chips — compact horizontal scroll
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .horizontalScroll(rememberScrollState())
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 listOf(
-                                    null to "Semua",
-                                    "draft" to "Draft",
+                                    null       to "Semua",
+                                    "draft"    to "Draft",
                                     "finalized" to "Final",
-                                    "cancelled" to "Dibatalkan"
+                                    "cancelled" to "Batal"
                                 ).forEach { (value, label) ->
                                     FilterChip(
                                         selected = uiState.filterStatus == value,
@@ -114,16 +141,17 @@ fun StockOpnameScreen(
                             }
                             HorizontalDivider()
 
+                            // Session list
                             Box(Modifier.weight(1f)) {
                                 when {
-                    uiState.isLoading -> LoadingScreen()
+                                    uiState.isLoading -> LoadingScreen()
                                     uiState.opnames.isEmpty() -> EmptyScreen(
                                         message  = "Belum ada sesi opname",
                                         modifier = Modifier.fillMaxSize()
                                     )
                                     else -> LazyColumn(
-                                        contentPadding      = PaddingValues(12.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        contentPadding      = PaddingValues(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
                                         items(uiState.opnames, key = { it.uuid }) { opname ->
                                             OpnameCard(
@@ -134,20 +162,6 @@ fun StockOpnameScreen(
                                             )
                                         }
                                     }
-                                }
-                            }
-
-                            HorizontalDivider()
-                            Surface(tonalElevation = 2.dp) {
-                                Button(
-                                    onClick  = viewModel::openCreateDialog,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 10.dp)
-                                ) {
-                                    Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
-                                    Spacer(Modifier.width(6.dp))
-                                    Text("Buat Opname Baru")
                                 }
                             }
                         }
@@ -176,6 +190,15 @@ fun StockOpnameScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
+                    }
+
+                    // Modal dialog for creating a new session (tablet only)
+                    if (uiState.showCreateDialog) {
+                        CreateOpnameDialog(
+                            isSubmitting = uiState.isSubmitting,
+                            onDismiss    = viewModel::closeCreateDialog,
+                            onConfirm    = { note -> viewModel.createOpname(note) }
+                        )
                     }
                 } else {
                     // ── Phone: list-only (detail handled above as full-screen) ─

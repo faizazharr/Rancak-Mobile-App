@@ -39,6 +39,7 @@ import id.rancak.app.data.mapper.toSaleItemRequest
 import id.rancak.app.data.util.isNetworkError
 import id.rancak.app.data.util.safe
 import id.rancak.app.data.util.safeUnit
+import id.rancak.app.data.util.toNetworkMessage
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.OrderBoardOrder
 import id.rancak.app.domain.model.OrderType
@@ -155,7 +156,7 @@ class SaleRepositoryImpl(
                 syncManager.scheduleSync()
                 Resource.Error("Offline: penjualan tersimpan, akan dikirim saat online (${offlineQueue.size} antrian)")
             } else {
-                Resource.Error(e.message ?: "Kesalahan jaringan")
+                Resource.Error(e.toNetworkMessage())
             }
         }
     }
@@ -211,7 +212,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal membuat penjualan")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -241,7 +242,7 @@ class SaleRepositoryImpl(
                 }
                 Resource.Success(sales)
             } else {
-                Resource.Error(e.message ?: "Kesalahan jaringan")
+                Resource.Error(e.toNetworkMessage())
             }
         }
     }
@@ -266,7 +267,7 @@ class SaleRepositoryImpl(
             if (cached != null) {
                 Resource.Success(cached.toDomain(saleDao.getItemsForSale(saleUuid)))
             } else {
-                Resource.Error(e.message ?: "Kesalahan jaringan")
+                Resource.Error(e.toNetworkMessage())
             }
         }
     }
@@ -290,7 +291,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal membayar pesanan")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -314,7 +315,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal membayar pesanan dengan split payment")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -333,7 +334,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal memisahkan tagihan")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -404,7 +405,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal membuat QR QRIS")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -426,7 +427,7 @@ class SaleRepositoryImpl(
             val bytes = api.getReceiptEscpos(tenantUuid, saleUuid)
             Resource.Success(bytes)
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Gagal mengambil data cetak struk")
+            Resource.Error(e.toNetworkMessage("Gagal mengambil data cetak struk"))
         }
     }
 
@@ -436,7 +437,7 @@ class SaleRepositoryImpl(
             val bytes = api.getReceiptKitchen(tenantUuid, saleUuid)
             Resource.Success(bytes)
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Gagal mengambil tiket dapur")
+            Resource.Error(e.toNetworkMessage("Gagal mengambil tiket dapur"))
         }
     }
 
@@ -446,7 +447,7 @@ class SaleRepositoryImpl(
             val bytes = api.getReceiptCombined(tenantUuid, saleUuid, kotFirst)
             Resource.Success(bytes)
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Gagal mengambil data cetak gabungan")
+            Resource.Error(e.toNetworkMessage("Gagal mengambil data cetak gabungan"))
         }
     }
 
@@ -473,7 +474,7 @@ class SaleRepositoryImpl(
             val bytes = api.getReceiptQueue(tenantUuid, saleUuid)
             Resource.Success(bytes)
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Gagal mengambil struk antrian")
+            Resource.Error(e.toNetworkMessage("Gagal mengambil struk antrian"))
         }
     }
 
@@ -495,7 +496,7 @@ class SaleRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal cetak ulang struk")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -504,7 +505,7 @@ class SaleRepositoryImpl(
             val bytes = api.openCashDrawer(tenantUuid)
             Resource.Success(bytes)
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Gagal membuka laci kas")
+            Resource.Error(e.toNetworkMessage("Gagal membuka laci kas"))
         }
     }
 }

@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -173,7 +174,7 @@ fun RancakNavHost() {
     // Menggunakan visibleEntries memastikan showDrawer hanya menjadi true SETELAH
     // layar auth (Splash/Login/TenantPicker/Billing) benar-benar selesai keluar
     // dari komposisi, mencegah flash drawer di tengah transisi.
-    val visibleEntries by navController.visibleEntries.collectAsState()
+    val visibleEntries by navController.visibleEntries.collectAsStateWithLifecycle()
     val showDrawer = remember(visibleEntries) {
         visibleEntries.isNotEmpty() &&
             visibleEntries.none { entry ->

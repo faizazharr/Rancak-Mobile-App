@@ -194,7 +194,7 @@ class CartViewModel(
             activeTaxConfigs       = activeTax,
             activeSurcharges       = applicableSurcharges
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, CartUiState())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CartUiState())
 
     fun addProduct(product: Product, variantUuid: String? = null, variantName: String? = null) {
         viewModelScope.launch {

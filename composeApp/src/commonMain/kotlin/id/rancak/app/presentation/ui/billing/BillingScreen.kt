@@ -14,6 +14,7 @@ import id.rancak.app.presentation.ui.billing.components.CancelInvoiceDialog
 import id.rancak.app.presentation.ui.billing.components.SubscribeConfirmDialog
 import id.rancak.app.presentation.viewmodel.BillingViewModel
 import kotlinx.collections.immutable.toImmutableList
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.viewmodel.koinViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,7 +29,7 @@ fun BillingScreen(
     onPaymentComplete: () -> Unit = {}
 ) {
     val viewModel: BillingViewModel = koinViewModel()
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.error) {

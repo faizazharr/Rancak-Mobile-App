@@ -28,6 +28,7 @@ import id.rancak.app.data.remote.api.validateVoucher
 import id.rancak.app.data.remote.dto.operations.SubmitCashCountRequest
 import id.rancak.app.data.util.safe
 import id.rancak.app.data.util.safeUnit
+import id.rancak.app.data.util.toNetworkMessage
 import id.rancak.app.domain.model.CashCount
 import id.rancak.app.domain.model.DiscountPreview
 import id.rancak.app.domain.model.DiscountRule
@@ -68,7 +69,7 @@ class OperationsRepositoryImpl(
             if (cached.isNotEmpty()) {
                 Resource.Success(cached.map { it.toDomain() })
             } else {
-                Resource.Error(e.message ?: "Kesalahan jaringan")
+                Resource.Error(e.toNetworkMessage())
             }
         }
     }
@@ -91,7 +92,7 @@ class OperationsRepositoryImpl(
             if (cached != null) {
                 Resource.Success(cached.toDomain())
             } else {
-                Resource.Error(e.message ?: "Kesalahan jaringan")
+                Resource.Error(e.toNetworkMessage())
             }
         }
     }
@@ -108,7 +109,7 @@ class OperationsRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal membuka shift")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -124,7 +125,7 @@ class OperationsRepositoryImpl(
                 Resource.Error(response.message ?: "Gagal menutup shift")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 

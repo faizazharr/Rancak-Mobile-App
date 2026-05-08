@@ -299,4 +299,9 @@ class BillingViewModel(
 
     fun clearError() = _uiState.update { it.copy(error = null) }
     fun clearSuccessMessage() = _uiState.update { it.copy(successMessage = null) }
+
+    override fun onCleared() {
+        super.onCleared()
+        pollingJob?.cancel()
+    }
 }

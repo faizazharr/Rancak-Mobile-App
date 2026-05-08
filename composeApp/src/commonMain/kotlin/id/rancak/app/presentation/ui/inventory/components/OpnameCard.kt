@@ -1,8 +1,10 @@
 package id.rancak.app.presentation.ui.inventory.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,41 +37,84 @@ fun OpnameCard(
         else        -> "Draft"
     }
 
+    val statusIcon = when (opname.status) {
+        "finalized" -> Icons.Default.Visibility
+        "cancelled" -> Icons.Default.DoNotDisturb
+        else        -> Icons.Default.Edit
+    }
+
     Card(
-        modifier  = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(if (isSelected) 2.dp else 1.dp),
+        modifier  = modifier.fillMaxWidth().clickable(onClick = onOpen),
+        shape     = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 3.dp else 1.dp
+        ),
         colors    = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
                              else MaterialTheme.colorScheme.surface
         )
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Opname #${opname.opnameNo}", style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(2.dp))
-                Text("${opname.itemCount} item · ${opname.createdAt.take(10)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (!opname.note.isNullOrBlank()) {
-                    Text(opname.note, style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Spacer(Modifier.height(4.dp))
-                StatusChip(text = statusLabel, color = statusColor)
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                if (opname.status == "draft") {
-                    TextButton(onClick = onOpen) { Text("Buka") }
-                    TextButton(onClick = onCancel) {
-                        Text("Batalkan", color = MaterialTheme.colorScheme.error)
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            // Left status strip
+            Box(
+                modifier = Modifier.width(3.dp).fillMaxHeight()
+                    .background(if (isSelected) MaterialTheme.colorScheme.primary else statusColor)
+            )
+            Row(
+                modifier              = Modifier.weight(1f).padding(start = 10.dp, top = 10.dp, bottom = 10.dp, end = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            modifier         = Modifier.size(20.dp).background(
+                                statusColor.copy(alpha = 0.14f), MaterialTheme.shapes.extraSmall
+                            ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(statusIcon, null, tint = statusColor, modifier = Modifier.size(11.dp))
+                        }
+                        Text(
+                            "#${opname.opnameNo}",
+                            style      = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines   = 1
+                        )
                     }
-                } else {
-                    TextButton(onClick = onOpen) { Text("Lihat") }
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        "${opname.itemCount} item · ${formatOpnameDate(opname.createdAt)}",
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = MaterialTheme.colorScheme.outline,
+                        maxLines = 1
+                    )
+                    if (!opname.note.isNullOrBlank()) {
+                        Text(
+                            opname.note,
+                            style    = MaterialTheme.typography.labelSmall,
+                            color    = MaterialTheme.colorScheme.outline,
+                            maxLines = 1
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    StatusChip(text = statusLabel, color = statusColor)
+                }
+                if (opname.status == "draft") {
+                    IconButton(
+                        onClick  = onCancel,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Batalkan",
+                            tint     = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
         }

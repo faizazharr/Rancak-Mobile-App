@@ -14,6 +14,9 @@ import id.rancak.app.domain.repository.DiscountRuleUpdate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -50,21 +53,15 @@ class PricingManagementViewModel(
 
     init {
         // Sinkronkan dari store agar perubahan dari kasir / panel lain langsung terlihat.
-        viewModelScope.launch {
-            pricingStore.taxConfigs.collect { list ->
-                _uiState.update { it.copy(taxConfigs = list) }
-            }
-        }
-        viewModelScope.launch {
-            pricingStore.surcharges.collect { list ->
-                _uiState.update { it.copy(surcharges = list) }
-            }
-        }
-        viewModelScope.launch {
-            pricingStore.discountRules.collect { list ->
-                _uiState.update { it.copy(discountRules = list) }
-            }
-        }
+        combine(
+            pricingStore.taxConfigs,
+            pricingStore.surcharges,
+            pricingStore.discountRules
+        ) { taxes, surcharges, discounts ->
+            Triple(taxes, surcharges, discounts)
+        }.onEach { (taxes, surcharges, discounts) ->
+            _uiState.update { it.copy(taxConfigs = taxes, surcharges = surcharges, discountRules = discounts) }
+        }.launchIn(viewModelScope)
         loadAll()
     }
 

@@ -19,6 +19,7 @@ import id.rancak.app.data.remote.api.mark86
 import id.rancak.app.data.remote.api.unmark86
 import id.rancak.app.data.util.safe
 import id.rancak.app.data.util.safeUnit
+import id.rancak.app.data.util.toNetworkMessage
 import id.rancak.app.domain.model.Bundle
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.FavoriteProduct
@@ -108,7 +109,7 @@ class ProductRepositoryImpl(
         } catch (e: Exception) {
             val local = productDao.findByBarcode(barcode)
             if (local != null) Resource.Success(local.toDomain())
-            else Resource.Error(e.message ?: "Tidak ada koneksi internet")
+            else Resource.Error(e.toNetworkMessage("Tidak ada koneksi internet"))
         }
     }
 
@@ -128,7 +129,7 @@ class ProductRepositoryImpl(
         } catch (e: Exception) {
             val cached = categoryDao.getAll()
             if (cached.isNotEmpty()) Resource.Success(cached.map { it.toDomain() })
-            else Resource.Error(e.message ?: "Tidak ada koneksi internet")
+            else Resource.Error(e.toNetworkMessage("Tidak ada koneksi internet"))
         }
     }
 
@@ -157,7 +158,7 @@ class ProductRepositoryImpl(
             if (response.isSuccess || response.statusCode == 404) Resource.Success(Unit)
             else Resource.Error(response.message ?: "Gagal membatalkan produk 86")
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 

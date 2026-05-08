@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.OpnameItem
 import id.rancak.app.presentation.designsystem.RancakTheme
 
+private fun formatStock(value: Double): String =
+    if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
+
 @Composable
 fun OpnameItemCard(
     item: OpnameItem,
@@ -29,26 +32,20 @@ fun OpnameItemCard(
         item.difference > 0 -> MaterialTheme.colorScheme.primary
         else                -> MaterialTheme.colorScheme.onSurfaceVariant
     }
-    Card(modifier = modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(1.dp)) {
-        Row(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(item.productName, style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold)
-                Text("Sistem: ${item.systemStock}", style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (!isDraft) {
-                    Text("Aktual: ${item.actualStock}", style = MaterialTheme.typography.bodySmall)
-                    Text(
-                        "Selisih: ${if (item.difference >= 0) "+${item.difference}" else "${item.difference}"}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = diffColor, fontWeight = FontWeight.SemiBold
-                    )
+
+    if (isDraft) {
+        Card(modifier = modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(1.dp)) {
+            Row(
+                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(item.productName, style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold)
+                    Text("Sistem: ${formatStock(item.systemStock)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-            }
-            if (isDraft) {
                 OutlinedTextField(
                     value = stockInputValue,
                     onValueChange = { onStockInputChange(it.filter { c -> c.isDigit() || c == '.' }) },
@@ -68,6 +65,40 @@ fun OpnameItemCard(
                     }
                 }
             }
+        }
+    } else {
+        Column(modifier = modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    item.productName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        "Sistem: ${formatStock(item.systemStock)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        "Aktual: ${formatStock(item.actualStock)}",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                    Text(
+                        "Selisih: ${if (item.difference >= 0) "+${formatStock(item.difference)}" else formatStock(item.difference)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = diffColor
+                    )
+                }
+            }
+            HorizontalDivider()
         }
     }
 }

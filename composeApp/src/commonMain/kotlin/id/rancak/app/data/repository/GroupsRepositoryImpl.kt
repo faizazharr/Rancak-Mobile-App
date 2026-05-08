@@ -25,6 +25,7 @@ import id.rancak.app.data.remote.api.updateGroup
 import id.rancak.app.data.remote.dto.ApiResponse
 import id.rancak.app.data.util.safe
 import id.rancak.app.data.util.safeUnit
+import id.rancak.app.data.util.toNetworkMessage
 import id.rancak.app.domain.model.BranchReport
 import id.rancak.app.domain.model.Group
 import id.rancak.app.domain.model.GroupOverview
@@ -127,6 +128,6 @@ class GroupsRepositoryImpl(
         if (response.isSuccess && response.data != null) Resource.Success(response.data.toString())
         else Resource.Error(response.message ?: "Gagal memuat data")
     } catch (e: Exception) {
-        Resource.Error(e.message ?: "Kesalahan jaringan")
+        Resource.Error(e.toNetworkMessage())
     }
 }

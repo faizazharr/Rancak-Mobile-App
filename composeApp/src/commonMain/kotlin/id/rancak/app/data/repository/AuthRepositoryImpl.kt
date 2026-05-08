@@ -26,6 +26,7 @@ import id.rancak.app.data.remote.dto.auth.RefreshTokenRequest
 import id.rancak.app.data.remote.dto.auth.SubmitApplicationRequest
 import id.rancak.app.data.util.safe
 import id.rancak.app.data.util.safeUnit
+import id.rancak.app.data.util.toNetworkMessage
 import id.rancak.app.domain.model.LoginResult
 import id.rancak.app.domain.model.ReceiptSettings
 import id.rancak.app.domain.model.Resource
@@ -103,7 +104,7 @@ class AuthRepositoryImpl(
                 Resource.Error(response.message ?: "Refresh token gagal")
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Kesalahan jaringan")
+            Resource.Error(e.toNetworkMessage())
         }
     }
 
@@ -264,31 +265,5 @@ class AuthRepositoryImpl(
     }
 }
 
-/**
- * Mengubah exception jaringan menjadi pesan yang ramah pengguna dalam Bahasa Indonesia.
- * Menghindari pesan raw seperti "java.net.UnknownHostException: Unable to resolve host…"
- */
-private fun Exception.toNetworkMessage(): String {
-    val msg = message ?: ""
-    return when {
-        msg.contains("UnknownHostException", ignoreCase = true) ||
-        msg.contains("Unable to resolve", ignoreCase = true) ||
-        msg.contains("No address associated", ignoreCase = true) ||
-        msg.contains("nodename nor servname", ignoreCase = true) ->
-            "Tidak ada koneksi internet. Periksa jaringan Anda."
-        msg.contains("SocketTimeoutException", ignoreCase = true) ||
-        msg.contains("TimeoutException", ignoreCase = true) ||
-        msg.contains("timed out", ignoreCase = true) ||
-        msg.contains("timeout", ignoreCase = true) ->
-            "Koneksi timeout. Coba lagi."
-        msg.contains("ConnectException", ignoreCase = true) ||
-        msg.contains("Connection refused", ignoreCase = true) ||
-        msg.contains("Failed to connect", ignoreCase = true) ->
-            "Gagal terhubung ke server. Coba lagi."
-        msg.contains("SSLException", ignoreCase = true) ||
-        msg.contains("certificate", ignoreCase = true) ->
-            "Masalah keamanan koneksi. Coba lagi."
-        else -> "Terjadi kesalahan. Coba lagi."
-    }
-}
+
 
