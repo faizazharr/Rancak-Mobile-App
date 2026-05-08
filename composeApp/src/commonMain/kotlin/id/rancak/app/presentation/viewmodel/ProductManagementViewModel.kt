@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+enum class ProductSortField { NAME, STOCK, PRICE }
+
 @Immutable
 data class ProductManagementUiState(
     val products: List<Product> = emptyList(),
@@ -23,6 +25,8 @@ data class ProductManagementUiState(
     val products86: List<Product86> = emptyList(),
     val selectedCategory: Category? = null,
     val searchQuery: String = "",
+    val sortField: ProductSortField = ProductSortField.NAME,
+    val sortAscending: Boolean = true,
     val isLoading: Boolean = false,
     val error: String? = null,
     val actionProduct: Product? = null,
@@ -36,16 +40,23 @@ data class ProductManagementUiState(
     val successMessage: String? = null
 ) {
     // Products are already filtered by category server-side (via setCategory/loadAll).
-    // filteredProducts only applies the local search query on top.
+    // filteredProducts applies the local search query on top, then sorts.
     val filteredProducts: List<Product>
         get() {
-            if (searchQuery.isBlank()) return products
-            val q = searchQuery.lowercase()
-            return products.filter {
-                it.name.lowercase().contains(q) ||
-                it.sku?.lowercase()?.contains(q) == true ||
-                it.barcode?.contains(q) == true
+            val base = if (searchQuery.isBlank()) products else {
+                val q = searchQuery.lowercase()
+                products.filter {
+                    it.name.lowercase().contains(q) ||
+                    it.sku?.lowercase()?.contains(q) == true ||
+                    it.barcode?.contains(q) == true
+                }
             }
+            val comparator: Comparator<Product> = when (sortField) {
+                ProductSortField.NAME  -> compareBy { it.name.lowercase() }
+                ProductSortField.STOCK -> compareBy { it.stock }
+                ProductSortField.PRICE -> compareBy { it.price }
+            }
+            return if (sortAscending) base.sortedWith(comparator) else base.sortedWith(comparator.reversed())
         }
 
     fun is86(productUuid: String) = products86.any { it.productUuid == productUuid }
@@ -104,6 +115,11 @@ class ProductManagementViewModel(
     }
 
     fun setSearchQuery(query: String) = _uiState.update { it.copy(searchQuery = query) }
+
+    fun setSort(field: ProductSortField) = _uiState.update {
+        if (it.sortField == field) it.copy(sortAscending = !it.sortAscending)
+        else it.copy(sortField = field, sortAscending = true)
+    }
 
     fun setCategory(category: Category?) {
         _uiState.update { it.copy(selectedCategory = category) }

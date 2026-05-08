@@ -33,8 +33,12 @@ fun CreateOpnameDialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
         properties       = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        Box(
+            modifier         = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            contentAlignment = Alignment.Center
+        ) {
         Card(
-            modifier  = Modifier.width(460.dp),
+            modifier  = Modifier.widthIn(max = 460.dp).fillMaxWidth(),
             shape     = MaterialTheme.shapes.extraLarge,
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -145,6 +149,7 @@ fun CreateOpnameDialog(
                     }
                 }
             }
+        }
         }
     }
 }

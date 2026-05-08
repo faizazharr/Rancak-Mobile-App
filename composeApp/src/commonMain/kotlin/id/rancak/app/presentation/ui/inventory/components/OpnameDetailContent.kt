@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.OpnameItem
 import id.rancak.app.domain.model.OpnameItemEntry
 import id.rancak.app.domain.model.Product
@@ -253,7 +254,7 @@ fun OpnameDetailContent(
                     verticalArrangement = if (isDraft) Arrangement.spacedBy(8.dp) else Arrangement.Top
                 ) {
                     items(detail.items, key = { it.productUuid }) { item ->
-                        OpnameItemCard(
+                        OpnameItem(
                             item = item,
                             isDraft = isDraft,
                             stockInputValue = stockInputs[item.productUuid] ?: item.actualStock.toString(),
@@ -262,7 +263,7 @@ fun OpnameDetailContent(
                         )
                     }
                     items(pendingItems, key = { "pending_${it.productUuid}" }) { item ->
-                        OpnameItemCard(
+                        OpnameItem(
                             item = item,
                             isDraft = true,
                             stockInputValue = stockInputs[item.productUuid] ?: item.actualStock.toString(),
@@ -506,21 +507,25 @@ fun OpnameDetailTabletPanel(
                 modifier          = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .padding(start = 16.dp, end = 8.dp, top = 7.dp, bottom = 7.dp),
+                    .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Produk",
+                    "PRODUK",
                     modifier = Modifier.weight(1f),
                     style    = MaterialTheme.typography.labelSmall,
-                    color    = MaterialTheme.colorScheme.outline
+                    fontWeight = FontWeight.Bold,
+                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 0.8.sp
                 )
                 Text(
-                    "Sistem",
+                    "SISTEM",
                     modifier   = Modifier.width(68.dp),
                     textAlign  = TextAlign.End,
                     style      = MaterialTheme.typography.labelSmall,
-                    color      = MaterialTheme.colorScheme.outline
+                    fontWeight = FontWeight.Bold,
+                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 0.8.sp
                 )
                 Spacer(Modifier.width(10.dp))
                 Row(
@@ -529,26 +534,30 @@ fun OpnameDetailTabletPanel(
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Aktual",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline
+                        "AKTUAL",
+                        style      = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 0.8.sp
                     )
                     if (isDraft) {
-                        Spacer(Modifier.width(2.dp))
+                        Spacer(Modifier.width(3.dp))
                         Icon(
                             Icons.Default.Edit, null,
-                            tint     = MaterialTheme.colorScheme.outline,
+                            tint     = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(10.dp)
                         )
                     }
                 }
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    "Selisih",
+                    "SELISIH",
                     modifier  = Modifier.width(68.dp),
                     textAlign = TextAlign.End,
                     style     = MaterialTheme.typography.labelSmall,
-                    color     = MaterialTheme.colorScheme.outline
+                    fontWeight = FontWeight.Bold,
+                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 0.8.sp
                 )
                 Spacer(Modifier.width(32.dp))
             }
@@ -596,7 +605,7 @@ fun OpnameDetailTabletPanel(
                             item               = item,
                             isDraft            = isDraft,
                             rowIndex           = index,
-                            stockInputValue    = stockInputs[item.productUuid] ?: item.actualStock.toString(),
+                            stockInputValue    = stockInputs[item.productUuid] ?: formatStockValue(item.actualStock),
                             onStockInputChange = { stockInputs[item.productUuid] = it },
                             onDelete           = if (isDraft) ({ onDeleteItem(item.productUuid) }) else null
                         )
@@ -607,7 +616,7 @@ fun OpnameDetailTabletPanel(
                             item               = item,
                             isDraft            = true,
                             rowIndex           = detail.items.size + index,
-                            stockInputValue    = stockInputs[item.productUuid] ?: item.actualStock.toString(),
+                            stockInputValue    = stockInputs[item.productUuid] ?: formatStockValue(item.actualStock),
                             onStockInputChange = { stockInputs[item.productUuid] = it },
                             onDelete           = { stockInputs.remove(item.productUuid) }
                         )
@@ -690,7 +699,7 @@ private fun OpnameTableRow(
     val rowBg = if (rowIndex % 2 != 0) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                 else Color.Transparent
     Row(
-        modifier          = modifier.fillMaxWidth().background(rowBg).padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+        modifier          = modifier.fillMaxWidth().background(rowBg).padding(start = 16.dp, end = 8.dp, top = 13.dp, bottom = 13.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Product icon + name

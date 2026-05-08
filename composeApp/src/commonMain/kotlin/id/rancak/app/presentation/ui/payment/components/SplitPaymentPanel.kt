@@ -50,7 +50,7 @@ internal fun SplitPaymentPanel(
     val confirmedQtyMap: ImmutableMap<Int, Int> = remember(splitGroups) {
         buildMap<Int, Int> {
             splitGroups.forEach { g ->
-                g.itemQtys.forEach { (idx, qty) -> merge(idx, qty, Int::plus) }
+                g.itemQtys.forEach { (idx, qty) -> put(idx, (get(idx) ?: 0) + qty) }
             }
         }.toImmutableMap()
     }

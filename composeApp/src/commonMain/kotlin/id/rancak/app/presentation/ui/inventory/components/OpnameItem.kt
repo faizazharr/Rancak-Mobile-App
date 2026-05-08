@@ -13,13 +13,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.OpnameItem
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 private fun formatStock(value: Double): String =
     if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
 
 @Composable
-fun OpnameItemCard(
+fun OpnameItem(
     item: OpnameItem,
     isDraft: Boolean,
     stockInputValue: String,
@@ -27,10 +28,10 @@ fun OpnameItemCard(
     modifier: Modifier = Modifier,
     onDelete: (() -> Unit)? = null
 ) {
+    val sem = RancakColors.semantic
     val diffColor = when {
-        item.difference < 0 -> MaterialTheme.colorScheme.error
-        item.difference > 0 -> MaterialTheme.colorScheme.primary
-        else                -> MaterialTheme.colorScheme.onSurfaceVariant
+        item.difference == 0.0 -> sem.success
+        else                   -> sem.warning
     }
 
     if (isDraft) {
@@ -52,7 +53,8 @@ fun OpnameItemCard(
                     label = { Text("Aktual") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.width(100.dp),
-                    singleLine = true
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.medium
                 )
                 if (onDelete != null) {
                     Spacer(Modifier.width(4.dp))
@@ -112,18 +114,18 @@ private val sampleItem = OpnameItem(
 
 @Preview
 @Composable
-private fun OpnameItemCardDraftPreview() {
+private fun OpnameItemDraftPreview() {
     RancakTheme {
-        OpnameItemCard(item = sampleItem, isDraft = true, stockInputValue = "47",
+        OpnameItem(item = sampleItem, isDraft = true, stockInputValue = "47",
             onStockInputChange = {})
     }
 }
 
 @Preview
 @Composable
-private fun OpnameItemCardFinalizedPreview() {
+private fun OpnameItemFinalizedPreview() {
     RancakTheme {
-        OpnameItemCard(item = sampleItem, isDraft = false, stockInputValue = "47",
+        OpnameItem(item = sampleItem, isDraft = false, stockInputValue = "47",
             onStockInputChange = {})
     }
 }

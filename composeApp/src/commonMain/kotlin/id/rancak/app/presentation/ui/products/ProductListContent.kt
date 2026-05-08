@@ -33,7 +33,7 @@ import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
-import id.rancak.app.presentation.viewmodel.ProductManagementUiState
+import id.rancak.app.presentation.viewmodel.ProductSortField
 import kotlinx.collections.immutable.toImmutableList
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -59,6 +59,7 @@ fun ProductListContent(
     onFormDismiss: () -> Unit = {},
     onAdjustConfirm: (type: String, qty: Double, note: String?) -> Unit = { _, _, _ -> },
     onAdjustDismiss: () -> Unit = {},
+    onSortChange: (ProductSortField) -> Unit = {},
     isLoading: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -83,6 +84,7 @@ fun ProductListContent(
                 on86Toggle       = on86Toggle,
                 onEditProduct    = onEditProduct,
                 onDeleteProduct  = onDeleteProduct,
+                onSortChange     = onSortChange,
                 onFormConfirm    = onFormConfirm,
                 onFormDismiss    = onFormDismiss,
                 onAdjustConfirm  = onAdjustConfirm,
@@ -248,6 +250,7 @@ private fun TabletDashboard(
     on86Toggle: (Product) -> Unit,
     onEditProduct: (Product) -> Unit,
     onDeleteProduct: (Product) -> Unit,
+    onSortChange: (ProductSortField) -> Unit,
     onFormConfirm: (String, Long, String?, String?, String?, String?, String?, Double, Boolean) -> Unit,
     onFormDismiss: () -> Unit,
     onAdjustConfirm: (type: String, qty: Double, note: String?) -> Unit,
@@ -413,7 +416,11 @@ private fun TabletDashboard(
                 }
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    ProductTableHeader()
+                    ProductTableHeader(
+                        sortField     = uiState.sortField,
+                        sortAscending = uiState.sortAscending,
+                        onSort        = onSortChange
+                    )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(uiState.filteredProducts, key = { it.uuid }) { product ->
@@ -561,7 +568,68 @@ private fun MetricCard(
 // ── Header kolom tabel ────────────────────────────────────────────────────────
 
 @Composable
-private fun ProductTableHeader() {
+private fun SortHeaderCell(
+    label: String,
+    field: ProductSortField,
+    sortField: ProductSortField,
+    sortAscending: Boolean,
+    onSort: (ProductSortField) -> Unit,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign = TextAlign.Start
+) {
+    val active = sortField == field
+    val color  = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.extraSmall)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication        = null,
+                onClick           = { onSort(field) }
+            )
+            .padding(horizontal = 4.dp, vertical = 2.dp),
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = if (textAlign == TextAlign.End) Arrangement.End else Arrangement.Start
+    ) {
+        if (textAlign == TextAlign.End && active) {
+            Icon(
+                imageVector = if (sortAscending) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                contentDescription = null,
+                tint     = color,
+                modifier = Modifier.size(13.dp)
+            )
+            Spacer(Modifier.width(2.dp))
+        }
+        Text(
+            text      = label,
+            style     = MaterialTheme.typography.labelMedium,
+            color     = color,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+            textAlign = textAlign
+        )
+        if (textAlign != TextAlign.End) {
+            Spacer(Modifier.width(2.dp))
+            if (active) {
+                Icon(
+                    imageVector = if (sortAscending) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                    contentDescription = null,
+                    tint     = color,
+                    modifier = Modifier.size(13.dp)
+                )
+            } else {
+                // Reserved space so layout doesn't shift
+                Spacer(Modifier.size(13.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProductTableHeader(
+    sortField: ProductSortField,
+    sortAscending: Boolean,
+    onSort: (ProductSortField) -> Unit
+) {
     Row(
         modifier          = Modifier
             .fillMaxWidth()
@@ -573,24 +641,30 @@ private fun ProductTableHeader() {
         Spacer(Modifier.size(44.dp))
         Spacer(Modifier.width(12.dp))
 
-        Text(
-            text      = "Produk",
-            style     = MaterialTheme.typography.labelMedium,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier  = Modifier.weight(1f)
+        SortHeaderCell(
+            label         = "Produk",
+            field         = ProductSortField.NAME,
+            sortField     = sortField,
+            sortAscending = sortAscending,
+            onSort        = onSort,
+            modifier      = Modifier.weight(1f)
         )
-        Text(
-            text     = "Stok",
-            style    = MaterialTheme.typography.labelMedium,
-            color    = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(110.dp)
+        SortHeaderCell(
+            label         = "Stok",
+            field         = ProductSortField.STOCK,
+            sortField     = sortField,
+            sortAscending = sortAscending,
+            onSort        = onSort,
+            modifier      = Modifier.width(110.dp)
         )
-        Text(
-            text      = "Harga",
-            style     = MaterialTheme.typography.labelMedium,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.End,
-            modifier  = Modifier.width(100.dp)
+        SortHeaderCell(
+            label         = "Harga",
+            field         = ProductSortField.PRICE,
+            sortField     = sortField,
+            sortAscending = sortAscending,
+            onSort        = onSort,
+            modifier      = Modifier.width(100.dp),
+            textAlign     = TextAlign.End
         )
         // Kebab placeholder
         Spacer(Modifier.width(4.dp + 36.dp))
