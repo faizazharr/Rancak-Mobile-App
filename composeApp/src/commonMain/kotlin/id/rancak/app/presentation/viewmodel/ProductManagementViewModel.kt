@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 enum class ProductSortField { NAME, STOCK, PRICE }
+enum class StockFilter { ALL, LOW, OUT, MARKED_86 }
+enum class PriceFilter { ALL, BUDGET, MID, HIGH, PREMIUM }
 
 @Immutable
 data class ProductManagementUiState(
@@ -27,6 +29,8 @@ data class ProductManagementUiState(
     val searchQuery: String = "",
     val sortField: ProductSortField = ProductSortField.NAME,
     val sortAscending: Boolean = true,
+    val stockFilter: StockFilter = StockFilter.ALL,
+    val priceFilter: PriceFilter = PriceFilter.ALL,
     val isLoading: Boolean = false,
     val error: String? = null,
     val actionProduct: Product? = null,
@@ -40,16 +44,29 @@ data class ProductManagementUiState(
     val successMessage: String? = null
 ) {
     // Products are already filtered by category server-side (via setCategory/loadAll).
-    // filteredProducts applies the local search query on top, then sorts.
+    // filteredProducts applies local search, stock filter, price filter, then sorts.
     val filteredProducts: List<Product>
         get() {
-            val base = if (searchQuery.isBlank()) products else {
+            var base = if (searchQuery.isBlank()) products else {
                 val q = searchQuery.lowercase()
                 products.filter {
                     it.name.lowercase().contains(q) ||
                     it.sku?.lowercase()?.contains(q) == true ||
                     it.barcode?.contains(q) == true
                 }
+            }
+            base = when (stockFilter) {
+                StockFilter.ALL       -> base
+                StockFilter.LOW       -> base.filter { it.stock in 1.0..5.0 && !is86(it.uuid) }
+                StockFilter.OUT       -> base.filter { it.stock <= 0.0 && !is86(it.uuid) }
+                StockFilter.MARKED_86 -> base.filter { is86(it.uuid) }
+            }
+            base = when (priceFilter) {
+                PriceFilter.ALL     -> base
+                PriceFilter.BUDGET  -> base.filter { it.price < 10_000L }
+                PriceFilter.MID     -> base.filter { it.price in 10_000L..50_000L }
+                PriceFilter.HIGH    -> base.filter { it.price in 50_001L..100_000L }
+                PriceFilter.PREMIUM -> base.filter { it.price > 100_000L }
             }
             val comparator: Comparator<Product> = when (sortField) {
                 ProductSortField.NAME  -> compareBy { it.name.lowercase() }
@@ -120,6 +137,9 @@ class ProductManagementViewModel(
         if (it.sortField == field) it.copy(sortAscending = !it.sortAscending)
         else it.copy(sortField = field, sortAscending = true)
     }
+
+    fun setStockFilter(f: StockFilter) = _uiState.update { it.copy(stockFilter = f) }
+    fun setPriceFilter(f: PriceFilter) = _uiState.update { it.copy(priceFilter = f) }
 
     fun setCategory(category: Category?) {
         _uiState.update { it.copy(selectedCategory = category) }

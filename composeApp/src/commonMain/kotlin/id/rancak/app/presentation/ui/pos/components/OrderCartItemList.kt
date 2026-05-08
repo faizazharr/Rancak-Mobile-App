@@ -1,5 +1,7 @@
 package id.rancak.app.presentation.ui.pos.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,27 +10,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material.icons.automirrored.filled.Notes
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.ShoppingCartCheckout
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -37,8 +31,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.Modifier as DomainModifier
+import id.rancak.app.presentation.designsystem.Primary
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.pos.FeeInputDialog
 import id.rancak.app.presentation.util.formatRupiah
@@ -48,6 +45,8 @@ import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
+
+private val NoteGradientEnd = Color(0xFF0B7A60)
 
 // ── CartItemList ──────────────────────────────────────────────────────────────
 
@@ -158,84 +157,15 @@ private fun OrderItemRow(
 
     // ── Note dialog ───────────────────────────────────────────────────────
     if (showNoteDialog) {
-        AlertDialog(
-            onDismissRequest = { showNoteDialog = false },
-            title = {
-                Text(
-                    "Catatan — ${item.productName}",
-                    style      = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    val activeModifiers = modifiers.filter { it.isActive }
-                    if (activeModifiers.isNotEmpty()) {
-                        Text(
-                            "Preset cepat",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = onSurfaceVariant
-                        )
-                        // Memoize parsed set: split+trim+filter hanya jalan ulang
-                        // saat noteText berubah, bukan pada setiap rekomposisi.
-                        val selectedNames by remember(noteText) {
-                            derivedStateOf {
-                                noteText.split(", ")
-                                    .mapTo(mutableSetOf()) { it.trim() }
-                                    .filter { it.isNotBlank() }
-                                    .toSet()
-                            }
-                        }
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            activeModifiers.chunked(3).forEach { rowModifiers ->
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    rowModifiers.forEach { mod ->
-                                        val isSelected = mod.name in selectedNames
-                                        Surface(
-                                            onClick = {
-                                                // Gunakan selectedNames yang sudah diparse — tidak perlu split ulang
-                                                val updated = if (isSelected) {
-                                                    selectedNames - mod.name
-                                                } else {
-                                                    selectedNames + mod.name
-                                                }
-                                                noteText = updated.filter { it.isNotBlank() }.joinToString(", ")
-                                            },
-                                            shape          = RoundedCornerShape(20.dp),
-                                            color          = if (isSelected) primary else MaterialTheme.colorScheme.surfaceVariant,
-                                            tonalElevation = if (isSelected) 0.dp else 1.dp
-                                        ) {
-                                            Text(
-                                                text       = mod.name,
-                                                modifier   = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                                style      = MaterialTheme.typography.labelSmall,
-                                                color      = if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant,
-                                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    OutlinedTextField(
-                        value         = noteText,
-                        onValueChange = { noteText = it },
-                        label         = { Text("Contoh: gula sedikit, tambah es") },
-                        shape         = RoundedCornerShape(12.dp),
-                        modifier      = Modifier.fillMaxWidth(),
-                        maxLines      = 3
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    onSetNote(noteText.trim())
-                    showNoteDialog = false
-                }) { Text("Simpan", fontWeight = FontWeight.Bold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showNoteDialog = false }) { Text("Batal") }
+        ItemNoteDialog(
+            productName     = item.productName,
+            initialNote     = item.note ?: "",
+            modifiers       = modifiers,
+            primary         = primary,
+            onDismiss       = { showNoteDialog = false },
+            onSave          = { note ->
+                onSetNote(note)
+                showNoteDialog = false
             }
         )
     }
@@ -379,6 +309,283 @@ private fun SmallQtyButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(icon, null, Modifier.size(15.dp), tint = tint)
+    }
+}
+
+// ── ItemNoteDialog ────────────────────────────────────────────────────────────
+
+@Composable
+private fun ItemNoteDialog(
+    productName: String,
+    initialNote: String,
+    modifiers:   ImmutableList<DomainModifier>,
+    primary:     Color,
+    onDismiss:   () -> Unit,
+    onSave:      (String) -> Unit
+) {
+    var noteText by remember(initialNote) { mutableStateOf(initialNote) }
+    val activeModifiers = remember(modifiers) { modifiers.filter { it.isActive } }
+    val selectedNames by remember(noteText) {
+        derivedStateOf {
+            noteText.split(", ").mapTo(mutableSetOf()) { it.trim() }.filter { it.isNotBlank() }.toSet()
+        }
+    }
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+    val surfaceColor     = MaterialTheme.colorScheme.surface
+    val canSave          = noteText.isNotBlank()
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties       = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            shape  = RoundedCornerShape(20.dp),
+            color  = surfaceColor,
+            tonalElevation = 3.dp,
+            modifier = Modifier
+                .widthIn(max = 480.dp)
+                .fillMaxWidth(0.92f)
+                .wrapContentHeight()
+        ) {
+            Column {
+                // ── Teal header ─────────────────────────────────────────────
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.horizontalGradient(listOf(Primary, NoteGradientEnd)),
+                            RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                        )
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                ) {
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            Modifier
+                                .size(38.dp)
+                                .background(Color.White.copy(0.18f), RoundedCornerShape(10.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.NoteAdd, null,
+                                Modifier.size(20.dp),
+                                tint = Color.White
+                            )
+                        }
+                        Column {
+                            Text(
+                                "Catatan",
+                                style      = MaterialTheme.typography.labelSmall,
+                                color      = Color.White.copy(0.75f),
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                productName,
+                                style      = MaterialTheme.typography.titleSmall,
+                                color      = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                maxLines   = 1,
+                                overflow   = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+
+                // ── Body ────────────────────────────────────────────────────
+                Column(
+                    modifier            = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Preset chips
+                    if (activeModifiers.isNotEmpty()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Bolt, null,
+                                    Modifier.size(13.dp),
+                                    tint = primary.copy(0.8f)
+                                )
+                                Text(
+                                    "Preset cepat",
+                                    style      = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color      = onSurfaceVariant
+                                )
+                            }
+                            // Wrap chips in flexible rows
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                activeModifiers.chunked(3).forEach { row ->
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        row.forEach { mod ->
+                                            val isSelected = mod.name in selectedNames
+                                            val chipBg by animateColorAsState(
+                                                if (isSelected) primary else MaterialTheme.colorScheme.surfaceVariant,
+                                                tween(200), label = "ChipBg_${mod.name}"
+                                            )
+                                            val chipBorder by animateColorAsState(
+                                                if (isSelected) primary else MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
+                                                tween(200), label = "ChipBorder_${mod.name}"
+                                            )
+                                            val chipText by animateColorAsState(
+                                                if (isSelected) Color.White else onSurfaceVariant,
+                                                tween(200), label = "ChipText_${mod.name}"
+                                            )
+                                            Row(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(50.dp))
+                                                    .background(chipBg)
+                                                    .border(1.dp, chipBorder, RoundedCornerShape(50.dp))
+                                                    .clickable {
+                                                        val updated = if (isSelected) selectedNames - mod.name
+                                                                      else selectedNames + mod.name
+                                                        noteText = updated.filter { it.isNotBlank() }.joinToString(", ")
+                                                    }
+                                                    .padding(horizontal = 11.dp, vertical = 5.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                if (isSelected) {
+                                                    Icon(Icons.Default.Check, null, Modifier.size(11.dp), tint = Color.White)
+                                                }
+                                                Text(
+                                                    mod.name,
+                                                    style      = MaterialTheme.typography.labelSmall,
+                                                    color      = chipText,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.4f))
+                    }
+
+                    // Text input
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            modifier              = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment     = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Icon(Icons.AutoMirrored.Filled.Notes, null, Modifier.size(13.dp), tint = primary.copy(0.8f))
+                                Text(
+                                    "Catatan bebas",
+                                    style      = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color      = onSurfaceVariant
+                                )
+                            }
+                            Text(
+                                "${noteText.length}/120",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (noteText.length > 100) MaterialTheme.colorScheme.error.copy(0.8f)
+                                        else onSurfaceVariant.copy(0.5f)
+                            )
+                        }
+                        val fieldBorder by animateColorAsState(
+                            if (noteText.isNotBlank()) primary.copy(0.6f) else MaterialTheme.colorScheme.outlineVariant,
+                            tween(200), label = "NoteFieldBorder"
+                        )
+                        val fieldBg by animateColorAsState(
+                            if (noteText.isNotBlank()) primary.copy(0.04f) else MaterialTheme.colorScheme.surfaceVariant.copy(0.5f),
+                            tween(200), label = "NoteFieldBg"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(fieldBg)
+                                .border(1.dp, fieldBorder, RoundedCornerShape(12.dp))
+                                .padding(12.dp)
+                        ) {
+                            if (noteText.isEmpty()) {
+                                Text(
+                                    "Contoh: gula sedikit, tambah es…",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = onSurfaceVariant.copy(0.4f),
+                                    fontStyle = FontStyle.Italic
+                                )
+                            }
+                            BasicTextField(
+                                value         = noteText,
+                                onValueChange = { if (it.length <= 120) noteText = it },
+                                textStyle     = MaterialTheme.typography.bodySmall.copy(
+                                    color      = MaterialTheme.colorScheme.onSurface,
+                                    lineHeight = 20.sp
+                                ),
+                                cursorBrush  = SolidColor(primary),
+                                maxLines     = 4,
+                                modifier     = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+
+                    // Action buttons
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick  = onDismiss,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                "Batal",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = onSurfaceVariant
+                            )
+                        }
+                        // Gradient Simpan button
+                        val saveStart by animateColorAsState(
+                            if (canSave) Primary else MaterialTheme.colorScheme.outlineVariant.copy(0.4f),
+                            tween(220), label = "SaveGradStart"
+                        )
+                        val saveEnd by animateColorAsState(
+                            if (canSave) NoteGradientEnd else MaterialTheme.colorScheme.outlineVariant.copy(0.4f),
+                            tween(220), label = "SaveGradEnd"
+                        )
+                        val saveTextColor by animateColorAsState(
+                            if (canSave) Color.White else onSurfaceVariant.copy(0.5f),
+                            tween(200), label = "SaveTextColor"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1.6f)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Brush.horizontalGradient(listOf(saveStart, saveEnd)))
+                                .clickable(enabled = canSave) { onSave(noteText.trim()) }
+                                .padding(vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(Icons.Default.Check, null, Modifier.size(15.dp), tint = saveTextColor)
+                                Text(
+                                    "Simpan",
+                                    style      = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color      = saveTextColor
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

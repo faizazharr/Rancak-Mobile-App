@@ -27,6 +27,9 @@ import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.Primary
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 
 private val GradientEnd = Color(0xFF0B7A60)
 
@@ -164,6 +167,10 @@ private fun StockTypeButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val bgColor      by animateColorAsState(if (selected) color.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface, tween(220), label = "StockTypeBg")
+    val borderColor  by animateColorAsState(if (selected) color else MaterialTheme.colorScheme.outlineVariant, tween(220), label = "StockTypeBorder")
+    val borderWidth  by animateDpAsState(if (selected) 1.5.dp else 1.dp, tween(220), label = "StockTypeBorderW")
+    val contentColor by animateColorAsState(if (selected) color else MaterialTheme.colorScheme.onSurfaceVariant, tween(220), label = "StockTypeContent")
     Surface(
         modifier        = modifier.clickable(
             interactionSource = remember { MutableInteractionSource() },
@@ -171,24 +178,21 @@ private fun StockTypeButton(
             onClick           = onClick
         ),
         shape           = MaterialTheme.shapes.medium,
-        color           = if (selected) color.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface,
-        border          = androidx.compose.foundation.BorderStroke(
-            width = if (selected) 1.5.dp else 1.dp,
-            color = if (selected) color else MaterialTheme.colorScheme.outlineVariant
-        )
+        color           = bgColor,
+        border          = androidx.compose.foundation.BorderStroke(width = borderWidth, color = borderColor)
     ) {
         Row(
             modifier              = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Icon(icon, null, tint = if (selected) color else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+            Icon(icon, null, tint = contentColor, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(
                 label,
                 style      = MaterialTheme.typography.labelLarge,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                color      = if (selected) color else MaterialTheme.colorScheme.onSurfaceVariant
+                color      = contentColor
             )
         }
     }
@@ -196,14 +200,14 @@ private fun StockTypeButton(
 
 @Composable
 private fun GradientSaveButton(canConfirm: Boolean, isSubmitting: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val gradStart by animateColorAsState(if (canConfirm) Primary      else MaterialTheme.colorScheme.surfaceVariant, tween(250), label = "GradSaveStart")
+    val gradEnd   by animateColorAsState(if (canConfirm) GradientEnd  else MaterialTheme.colorScheme.surfaceVariant, tween(250), label = "GradSaveEnd")
+    val textColor by animateColorAsState(if (canConfirm) Color.White  else MaterialTheme.colorScheme.onSurfaceVariant, tween(250), label = "GradSaveText")
     Box(
         modifier = modifier
             .height(44.dp)
             .clip(MaterialTheme.shapes.medium)
-            .background(
-                if (canConfirm) Brush.horizontalGradient(listOf(Primary, GradientEnd))
-                else Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surfaceVariant))
-            )
+            .background(Brush.horizontalGradient(listOf(gradStart, gradEnd)))
             .clickable(
                 enabled           = canConfirm,
                 interactionSource = remember { MutableInteractionSource() },
@@ -217,7 +221,7 @@ private fun GradientSaveButton(canConfirm: Boolean, isSubmitting: Boolean, modif
             "Simpan",
             style      = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
-            color      = if (canConfirm) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+            color      = textColor
         )
     }
 }

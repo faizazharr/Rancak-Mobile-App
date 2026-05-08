@@ -91,7 +91,8 @@ fun VoucherManagementScreen(
                     ) {
                         VoucherFilterRow(
                             filterActive = uiState.filterActive,
-                            onFilter     = viewModel::setFilter
+                            onFilter     = viewModel::setFilter,
+                            onAddVoucher = { viewModel.openForm() }
                         )
                         HorizontalDivider()
                         VoucherListContent(
@@ -189,15 +190,19 @@ fun VoucherManagementScreen(
     }
 }
 
-// ── Filter chips row ──────────────────────────────────────────────────────────
+// ── Filter chips row + Tambah button ─────────────────────────────────────────
 
 @Composable
 private fun VoucherFilterRow(
     filterActive: Boolean?,
-    onFilter: (Boolean?) -> Unit
+    onFilter: (Boolean?) -> Unit,
+    onAddVoucher: (() -> Unit)? = null  // non-null → tablet mode: show inline button
 ) {
     Row(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier              = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         listOf(null to "Semua", true to "Aktif", false to "Nonaktif").forEach { (value, label) ->
@@ -206,6 +211,17 @@ private fun VoucherFilterRow(
                 onClick  = { onFilter(value) },
                 label    = { Text(label, style = MaterialTheme.typography.labelMedium) }
             )
+        }
+        if (onAddVoucher != null) {
+            Spacer(Modifier.weight(1f))
+            Button(
+                onClick        = onAddVoucher,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Icon(Icons.Default.Add, null, Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Tambah Voucher")
+            }
         }
     }
 }

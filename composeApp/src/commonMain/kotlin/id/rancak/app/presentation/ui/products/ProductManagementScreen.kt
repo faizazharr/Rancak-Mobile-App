@@ -91,9 +91,11 @@ fun ProductManagementScreen(
                     onAdjustConfirm  = { type, qty, note ->
                         viewModel.adjustStock(uiState.actionProduct!!.uuid, type, qty, note)
                     },
-                    onAdjustDismiss  = viewModel::closeAdjustDialog,
-                    onSortChange     = viewModel::setSort,
-                    modifier         = Modifier.padding(padding)
+                    onAdjustDismiss     = viewModel::closeAdjustDialog,
+                    onSortChange        = viewModel::setSort,
+                    onStockFilterChange = viewModel::setStockFilter,
+                    onPriceFilterChange = viewModel::setPriceFilter,
+                    modifier            = Modifier.padding(padding)
                 )
             }
 

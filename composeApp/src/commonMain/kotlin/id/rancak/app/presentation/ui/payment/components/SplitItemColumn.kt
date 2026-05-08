@@ -208,8 +208,7 @@ private fun ConfirmedGroupsSection(
                 group         = group,
                 label         = "Pelanggan ${group.id}",
                 groupSubtotal = groupSubtotal,
-                accentColor   = accentColor,
-                onRemove      = { onRemoveGroup(group.id) }
+                accentColor   = accentColor
             )
         }
     }
@@ -385,8 +384,7 @@ private fun ConfirmedGroupRow(
     group:         SplitGroup,
     label:         String,
     groupSubtotal: Long,
-    accentColor:   Color,
-    onRemove:      () -> Unit
+    accentColor:   Color
 ) {
     val expectedAmount = group.groupActualTotal.takeIf { it > 0 } ?: groupSubtotal
     val displayAmount  = if (group.method == PaymentMethod.CASH && group.cashPaid > 0)
@@ -442,13 +440,6 @@ private fun ConfirmedGroupRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
-                Icon(
-                    Icons.Default.Delete, "Hapus grup",
-                    Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
         }
     }
 }
@@ -490,7 +481,7 @@ private fun ConfirmedGroupRowPreview() {
                     method = PaymentMethod.CASH, cashPaid = 40_000L, groupActualTotal = 36_000L
                 ),
                 label = "Pelanggan 1", groupSubtotal = 36_000L,
-                accentColor = groupAccentColors[0], onRemove = {}
+                accentColor = groupAccentColors[0]
             )
             ConfirmedGroupRow(
                 group = SplitGroup(
@@ -498,7 +489,7 @@ private fun ConfirmedGroupRowPreview() {
                     method = PaymentMethod.QRIS, cashPaid = 0L, groupActualTotal = 22_000L
                 ),
                 label = "Pelanggan 2", groupSubtotal = 22_000L,
-                accentColor = groupAccentColors[1], onRemove = {}
+                accentColor = groupAccentColors[1]
             )
         }
     }

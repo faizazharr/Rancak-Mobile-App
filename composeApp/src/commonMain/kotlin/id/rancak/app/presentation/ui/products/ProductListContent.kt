@@ -33,7 +33,10 @@ import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.viewmodel.ProductManagementUiState
 import id.rancak.app.presentation.viewmodel.ProductSortField
+import id.rancak.app.presentation.viewmodel.StockFilter
+import id.rancak.app.presentation.viewmodel.PriceFilter
 import kotlinx.collections.immutable.toImmutableList
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +63,8 @@ fun ProductListContent(
     onAdjustConfirm: (type: String, qty: Double, note: String?) -> Unit = { _, _, _ -> },
     onAdjustDismiss: () -> Unit = {},
     onSortChange: (ProductSortField) -> Unit = {},
+    onStockFilterChange: (StockFilter) -> Unit = {},
+    onPriceFilterChange: (PriceFilter) -> Unit = {},
     isLoading: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -74,22 +79,24 @@ fun ProductListContent(
             )
             VerticalDivider(modifier = Modifier.fillMaxHeight())
             TabletDashboard(
-                uiState          = uiState,
-                isLoading        = isLoading,
-                onAddProduct     = onAddProduct,
-                onSearchChange   = onSearchChange,
-                onCategorySelect = onCategorySelect,
-                onAdjustStock    = onAdjustStock,
-                onAddBatch       = onAddBatch,
-                on86Toggle       = on86Toggle,
-                onEditProduct    = onEditProduct,
-                onDeleteProduct  = onDeleteProduct,
-                onSortChange     = onSortChange,
-                onFormConfirm    = onFormConfirm,
-                onFormDismiss    = onFormDismiss,
-                onAdjustConfirm  = onAdjustConfirm,
-                onAdjustDismiss  = onAdjustDismiss,
-                modifier         = Modifier.weight(1f).fillMaxHeight()
+                uiState             = uiState,
+                isLoading           = isLoading,
+                onAddProduct        = onAddProduct,
+                onSearchChange      = onSearchChange,
+                onCategorySelect    = onCategorySelect,
+                onAdjustStock       = onAdjustStock,
+                onAddBatch          = onAddBatch,
+                on86Toggle          = on86Toggle,
+                onEditProduct       = onEditProduct,
+                onDeleteProduct     = onDeleteProduct,
+                onSortChange        = onSortChange,
+                onStockFilterChange = onStockFilterChange,
+                onPriceFilterChange = onPriceFilterChange,
+                onFormConfirm       = onFormConfirm,
+                onFormDismiss       = onFormDismiss,
+                onAdjustConfirm     = onAdjustConfirm,
+                onAdjustDismiss     = onAdjustDismiss,
+                modifier            = Modifier.weight(1f).fillMaxHeight()
             )
         }
     } else {
@@ -251,6 +258,8 @@ private fun TabletDashboard(
     onEditProduct: (Product) -> Unit,
     onDeleteProduct: (Product) -> Unit,
     onSortChange: (ProductSortField) -> Unit,
+    onStockFilterChange: (StockFilter) -> Unit,
+    onPriceFilterChange: (PriceFilter) -> Unit,
     onFormConfirm: (String, Long, String?, String?, String?, String?, String?, Double, Boolean) -> Unit,
     onFormDismiss: () -> Unit,
     onAdjustConfirm: (type: String, qty: Double, note: String?) -> Unit,
@@ -348,6 +357,16 @@ private fun TabletDashboard(
                 Text("Tambah Produk")
             }
         }
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        // ── Filter row (stok + harga) ─────────────────────────────────────────
+        ProductFilterRow(
+            stockFilter       = uiState.stockFilter,
+            priceFilter       = uiState.priceFilter,
+            onStockFilter     = onStockFilterChange,
+            onPriceFilter     = onPriceFilterChange
+        )
 
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
@@ -578,7 +597,10 @@ private fun SortHeaderCell(
     textAlign: TextAlign = TextAlign.Start
 ) {
     val active = sortField == field
-    val color  = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val color  by animateColorAsState(
+        if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        tween(200), label = "SortCellColor"
+    )
     Row(
         modifier = modifier
             .clip(MaterialTheme.shapes.extraSmall)
@@ -591,35 +613,66 @@ private fun SortHeaderCell(
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = if (textAlign == TextAlign.End) Arrangement.End else Arrangement.Start
     ) {
-        if (textAlign == TextAlign.End && active) {
-            Icon(
-                imageVector = if (sortAscending) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
-                contentDescription = null,
-                tint     = color,
-                modifier = Modifier.size(13.dp)
-            )
-            Spacer(Modifier.width(2.dp))
+        if (textAlign == TextAlign.End) {
+            // Reserved space for alignment — icon visible only when active
+            Box(modifier = Modifier.size(if (active) 13.dp else 0.dp).then(Modifier.padding(end = if (active) 2.dp else 0.dp))) {}
+            AnimatedVisibility(
+                visible = active,
+                enter   = fadeIn(tween(150)) + scaleIn(tween(150), initialScale = 0.6f),
+                exit    = fadeOut(tween(120)) + scaleOut(tween(120), targetScale = 0.6f)
+            ) {
+                Row {
+                    AnimatedContent(
+                        targetState  = sortAscending,
+                        transitionSpec = { (fadeIn(tween(160)) + scaleIn(tween(160), initialScale = 0.7f)) togetherWith (fadeOut(tween(120)) + scaleOut(tween(120), targetScale = 0.7f)) },
+                        label        = "SortIconEnd"
+                    ) { asc ->
+                        Icon(
+                            imageVector = if (asc) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                            contentDescription = null,
+                            tint     = color,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(2.dp))
+                }
+            }
         }
         Text(
-            text      = label,
-            style     = MaterialTheme.typography.labelMedium,
-            color     = color,
+            text       = label,
+            style      = MaterialTheme.typography.labelMedium,
+            color      = color,
             fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-            textAlign = textAlign
+            textAlign  = textAlign
         )
         if (textAlign != TextAlign.End) {
             Spacer(Modifier.width(2.dp))
-            if (active) {
-                Icon(
-                    imageVector = if (sortAscending) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
-                    contentDescription = null,
-                    tint     = color,
-                    modifier = Modifier.size(13.dp)
-                )
-            } else {
-                // Reserved space so layout doesn't shift
-                Spacer(Modifier.size(13.dp))
+            // Always reserve the icon space; animate icon in/out + direction flip
+            Box(modifier = Modifier.size(13.dp)) {
+                SortArrow(active = active, ascending = sortAscending, color = color)
             }
+        }
+    }
+}
+
+@Composable
+private fun SortArrow(active: Boolean, ascending: Boolean, color: Color) {
+    AnimatedVisibility(
+        visible = active,
+        enter   = fadeIn(tween(150)) + scaleIn(tween(150), initialScale = 0.6f),
+        exit    = fadeOut(tween(120)) + scaleOut(tween(120), targetScale = 0.6f)
+    ) {
+        AnimatedContent(
+            targetState    = ascending,
+            transitionSpec = { (fadeIn(tween(160)) + scaleIn(tween(160), initialScale = 0.7f)) togetherWith (fadeOut(tween(120)) + scaleOut(tween(120), targetScale = 0.7f)) },
+            label          = "SortIconArrow"
+        ) { asc ->
+            Icon(
+                imageVector        = if (asc) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                contentDescription = null,
+                tint               = color,
+                modifier           = Modifier.size(13.dp)
+            )
         }
     }
 }
@@ -668,6 +721,74 @@ private fun ProductTableHeader(
         )
         // Kebab placeholder
         Spacer(Modifier.width(4.dp + 36.dp))
+    }
+}
+
+// ── Filter row: stock status + price range ────────────────────────────────────
+
+@Composable
+private fun ProductFilterRow(
+    stockFilter: StockFilter,
+    priceFilter: PriceFilter,
+    onStockFilter: (StockFilter) -> Unit,
+    onPriceFilter: (PriceFilter) -> Unit
+) {
+    val sem = RancakColors.semantic
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment     = Alignment.CenterVertically
+    ) {
+        // Stock filter group
+        Icon(Icons.Default.Inventory2, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.width(2.dp))
+        listOf(
+            StockFilter.ALL       to "Semua Stok",
+            StockFilter.LOW       to "Stok Kritis",
+            StockFilter.OUT       to "Habis",
+            StockFilter.MARKED_86 to "Produk 86"
+        ).forEach { (value, label) ->
+            FilterChip(
+                selected = stockFilter == value,
+                onClick  = { onStockFilter(value) },
+                label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                colors   = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = when (value) {
+                        StockFilter.LOW       -> sem.warning.copy(alpha = 0.15f)
+                        StockFilter.OUT       -> MaterialTheme.colorScheme.errorContainer
+                        StockFilter.MARKED_86 -> MaterialTheme.colorScheme.secondaryContainer
+                        else                  -> MaterialTheme.colorScheme.secondaryContainer
+                    },
+                    selectedLabelColor = when (value) {
+                        StockFilter.LOW       -> sem.warning
+                        StockFilter.OUT       -> MaterialTheme.colorScheme.onErrorContainer
+                        else                  -> MaterialTheme.colorScheme.onSecondaryContainer
+                    }
+                )
+            )
+        }
+
+        VerticalDivider(modifier = Modifier.height(20.dp), color = MaterialTheme.colorScheme.outlineVariant)
+
+        // Price filter group
+        Icon(Icons.Default.Sell, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.width(2.dp))
+        listOf(
+            PriceFilter.ALL     to "Semua Harga",
+            PriceFilter.BUDGET  to "< Rp10rb",
+            PriceFilter.MID     to "Rp10–50rb",
+            PriceFilter.HIGH    to "Rp50–100rb",
+            PriceFilter.PREMIUM to "> Rp100rb"
+        ).forEach { (value, label) ->
+            FilterChip(
+                selected = priceFilter == value,
+                onClick  = { onPriceFilter(value) },
+                label    = { Text(label, style = MaterialTheme.typography.labelSmall) }
+            )
+        }
     }
 }
 

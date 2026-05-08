@@ -63,6 +63,7 @@ internal fun SplitPaymentColumn(
             groupNumber        = groupNumber,
             groupActualTotal   = groupActualTotal,
             merchantQrisString = merchantQrisString,
+            onConfirm          = { showQrisConfirmDialog = false; onConfirmGroup() },
             onConfirmAndPrint  = { showQrisConfirmDialog = false; onConfirmAndPrint() },
             onDismiss          = { showQrisConfirmDialog = false }
         )
@@ -399,6 +400,7 @@ private fun QrisConfirmDialog(
     groupNumber:        Int,
     groupActualTotal:   Long,
     merchantQrisString: String,
+    onConfirm:          () -> Unit,
     onConfirmAndPrint:  () -> Unit,
     onDismiss:          () -> Unit
 ) {
@@ -467,18 +469,22 @@ private fun QrisConfirmDialog(
                 }
 
                 Text(
-                    "Setelah customer selesai bayar, tekan \"Sudah Bayar & Cetak\" " +
-                    "untuk konfirmasi grup ini dan mencetak struk.",
+                    "Setelah customer selesai bayar, pilih konfirmasi di bawah.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
         confirmButton = {
-            Button(onClick = onConfirmAndPrint) {
-                Icon(Icons.Default.Print, null, Modifier.size(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Sudah Bayar & Cetak")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onConfirm) {
+                    Text("Bayar Saja")
+                }
+                Button(onClick = onConfirmAndPrint) {
+                    Icon(Icons.Default.Print, null, Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Bayar & Cetak")
+                }
             }
         },
         dismissButton = {
@@ -505,7 +511,7 @@ private fun SplitActionButtons(
             onClick  = onConfirmGroup,
             enabled  = canConfirm,
             modifier = Modifier.weight(1f)
-        ) { Text("Tambah Saja") }
+        ) { Text("Bayar Saja") }
 
         Button(
             onClick  = {
