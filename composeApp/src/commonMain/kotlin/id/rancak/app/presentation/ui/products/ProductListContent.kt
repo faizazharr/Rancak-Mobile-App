@@ -649,7 +649,7 @@ private fun SortHeaderCell(
             Spacer(Modifier.width(2.dp))
             // Always reserve the icon space; animate icon in/out + direction flip
             Box(modifier = Modifier.size(13.dp)) {
-                SortArrow(active = active, ascending = sortAscending, color = color)
+                 SortArrow(active = active, ascending = sortAscending, color = color)
             }
         }
     }
