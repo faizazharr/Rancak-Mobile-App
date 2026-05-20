@@ -27,6 +27,7 @@ import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.Primary
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.components.RancakFormDialog
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
@@ -351,31 +352,22 @@ fun ProductFormDialog(
 ) {
     val state = remember(editingProduct) { ProductFormState(editingProduct, initialCategoryUuid) }
 
-    AlertDialog(
-        onDismissRequest = { if (!isSubmitting) onDismiss() },
-        title = { Text(if (editingProduct == null) "Tambah Produk" else "Edit Produk") },
-        text  = {
-            Column(
-                modifier            = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                ProductFormBody(state, editingProduct, categories, isCompact = true)
-            }
+    RancakFormDialog(
+        icon             = Icons.Default.ShoppingBag,
+        title            = if (editingProduct == null) "Tambah Produk" else "Edit Produk",
+        subtitle         = if (editingProduct == null) "Isi detail produk baru" else "Perbarui informasi produk",
+        onDismissRequest = onDismiss,
+        confirmLabel     = "Simpan",
+        onConfirm        = {
+            val (a, b, c) = state.buildConfirmArgs()
+            onConfirm(a.first, a.second, a.third, b.first, b.second, b.third, c.first, c.second, c.third)
         },
-        confirmButton = {
-            GradientSaveButton(
-                canConfirm  = state.canConfirm(isSubmitting),
-                isSubmitting = isSubmitting,
-                modifier    = Modifier.width(120.dp)
-            ) {
-                val (a, b, c) = state.buildConfirmArgs()
-                onConfirm(a.first, a.second, a.third, b.first, b.second, b.third, c.first, c.second, c.third)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Batal") }
-        }
-    )
+        confirmEnabled   = state.canConfirm(isSubmitting),
+        isSubmitting     = isSubmitting,
+        maxWidth         = 560.dp
+    ) {
+        ProductFormBody(state, editingProduct, categories, isCompact = true)
+    }
 }
 
 // ── Inline panel (tablet) ─────────────────────────────────────────────────────

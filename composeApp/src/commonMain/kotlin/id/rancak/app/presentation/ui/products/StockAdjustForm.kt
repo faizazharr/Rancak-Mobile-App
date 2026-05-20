@@ -27,6 +27,7 @@ import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.Primary
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.components.RancakFormDialog
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -248,43 +249,27 @@ fun StockAdjustDialog(
     }
     val canConfirm = !isSubmitting && qty != null && qty > 0
 
-    AlertDialog(
-        onDismissRequest = { if (!isSubmitting) onDismiss() },
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box(
-                    modifier         = Modifier.size(28.dp).background(Primary.copy(alpha = 0.12f), MaterialTheme.shapes.extraSmall),
-                    contentAlignment = Alignment.Center
-                ) { Icon(Icons.Default.SwapVert, null, tint = Primary, modifier = Modifier.size(15.dp)) }
-                Text("Sesuaikan Stok")
-            }
-        },
-        text = {
-            Column(
-                modifier            = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                StockAdjustBody(
-                    product            = product,
-                    adjustType         = adjustType,
-                    onAdjustTypeChange = { adjustType = it },
-                    quantityText       = quantityText,
-                    onQuantityChange   = { quantityText = it.filter { c -> c.isDigit() || c == '.' } },
-                    noteText           = noteText,
-                    onNoteChange       = { noteText = it },
-                    qtyError           = qtyError
-                )
-            }
-        },
-        confirmButton = {
-            GradientSaveButton(canConfirm = canConfirm, isSubmitting = isSubmitting, modifier = Modifier.width(120.dp)) {
-                onConfirm(adjustType, qty!!, noteText.ifBlank { null })
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Batal") }
-        }
-    )
+    RancakFormDialog(
+        icon             = Icons.Default.SwapVert,
+        title            = "Sesuaikan Stok",
+        subtitle         = product.name,
+        onDismissRequest = onDismiss,
+        confirmLabel     = "Simpan",
+        onConfirm        = { onConfirm(adjustType, qty!!, noteText.ifBlank { null }) },
+        confirmEnabled   = canConfirm,
+        isSubmitting     = isSubmitting
+    ) {
+        StockAdjustBody(
+            product            = product,
+            adjustType         = adjustType,
+            onAdjustTypeChange = { adjustType = it },
+            quantityText       = quantityText,
+            onQuantityChange   = { quantityText = it.filter { c -> c.isDigit() || c == '.' } },
+            noteText           = noteText,
+            onNoteChange       = { noteText = it },
+            qtyError           = qtyError
+        )
+    }
 }
 
 // ── Inline panel (tablet) ─────────────────────────────────────────────────────

@@ -2,16 +2,18 @@ package id.rancak.app.presentation.ui.products
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.components.DatePickerField
+import id.rancak.app.presentation.components.RancakFormDialog
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
@@ -30,79 +32,72 @@ fun AddBatchDialog(
     val qty        = quantityText.toDoubleOrNull()
     val canConfirm = !isSubmitting && qty != null && qty > 0
 
-    AlertDialog(
-        onDismissRequest = { if (!isSubmitting) onDismiss() },
-        title = { Text("Tambah Batch Stok") },
-        text  = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(product.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-
-                OutlinedTextField(
-                    value          = quantityText,
-                    onValueChange  = { quantityText = it.filter { c -> c.isDigit() || c == '.' } },
-                    label          = { Text("Jumlah *") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier       = Modifier.fillMaxWidth(),
-                    singleLine     = true,
-                    isError        = quantityText.isNotBlank() && (qty == null || qty <= 0),
-                    supportingText = if (quantityText.isNotBlank() && (qty == null || qty <= 0))
-                        { { Text("Jumlah harus lebih dari 0") } } else null
-                )
-
-                DatePickerField(
-                    label = "Tanggal Kadaluarsa",
-                    value = expiryDate,
-                    onDateSelected = { expiryDate = it },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                OutlinedTextField(
-                    value          = costPriceText,
-                    onValueChange  = { costPriceText = it.filter { c -> c.isDigit() } },
-                    label          = { Text("Harga Beli (opsional)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier       = Modifier.fillMaxWidth(),
-                    singleLine     = true
-                )
-
-                OutlinedTextField(
-                    value         = batchNumber,
-                    onValueChange = { batchNumber = it },
-                    label         = { Text("Nomor Batch (opsional)") },
-                    modifier      = Modifier.fillMaxWidth(),
-                    singleLine    = true
-                )
-
-                OutlinedTextField(
-                    value         = noteText,
-                    onValueChange = { noteText = it },
-                    label         = { Text("Catatan (opsional)") },
-                    modifier      = Modifier.fillMaxWidth(),
-                    singleLine    = true
-                )
-            }
+    RancakFormDialog(
+        icon             = Icons.Default.Inventory,
+        title            = "Tambah Batch Stok",
+        subtitle         = product.name,
+        onDismissRequest = onDismiss,
+        confirmLabel     = "Simpan",
+        onConfirm        = {
+            onConfirm(
+                qty!!,
+                expiryDate.ifBlank { null },
+                costPriceText.toLongOrNull(),
+                batchNumber.ifBlank { null },
+                noteText.ifBlank { null }
+            )
         },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onConfirm(
-                        qty!!,
-                        expiryDate.ifBlank { null },
-                        costPriceText.toLongOrNull(),
-                        batchNumber.ifBlank { null },
-                        noteText.ifBlank { null }
-                    )
-                },
-                enabled = canConfirm
-            ) {
-                if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                else Text("Simpan")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Batal") }
-        }
-    )
+        confirmEnabled   = canConfirm,
+        isSubmitting     = isSubmitting
+    ) {
+        OutlinedTextField(
+            value           = quantityText,
+            onValueChange   = { quantityText = it.filter { c -> c.isDigit() || c == '.' } },
+            label           = { Text("Jumlah *") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier        = Modifier.fillMaxWidth(),
+            singleLine      = true,
+            isError         = quantityText.isNotBlank() && (qty == null || qty <= 0),
+            supportingText  = if (quantityText.isNotBlank() && (qty == null || qty <= 0))
+                { { Text("Jumlah harus lebih dari 0") } } else null,
+            shape           = MaterialTheme.shapes.medium
+        )
+
+        DatePickerField(
+            label          = "Tanggal Kadaluarsa",
+            value          = expiryDate,
+            onDateSelected = { expiryDate = it },
+            modifier       = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value           = costPriceText,
+            onValueChange   = { costPriceText = it.filter { c -> c.isDigit() } },
+            label           = { Text("Harga Beli (opsional)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier        = Modifier.fillMaxWidth(),
+            singleLine      = true,
+            shape           = MaterialTheme.shapes.medium
+        )
+
+        OutlinedTextField(
+            value         = batchNumber,
+            onValueChange = { batchNumber = it },
+            label         = { Text("Nomor Batch (opsional)") },
+            modifier      = Modifier.fillMaxWidth(),
+            singleLine    = true,
+            shape         = MaterialTheme.shapes.medium
+        )
+
+        OutlinedTextField(
+            value         = noteText,
+            onValueChange = { noteText = it },
+            label         = { Text("Catatan (opsional)") },
+            modifier      = Modifier.fillMaxWidth(),
+            singleLine    = true,
+            shape         = MaterialTheme.shapes.medium
+        )
+    }
 }
 
 // ── Preview ───────────────────────────────────────────────────────────────────

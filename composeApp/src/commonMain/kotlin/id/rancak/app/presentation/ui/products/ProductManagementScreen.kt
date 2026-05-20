@@ -101,7 +101,7 @@ fun ProductManagementScreen(
 
             // ── Dialogs ───────────────────────────────────────────────────────
 
-            if (uiState.showAdjustDialog && uiState.actionProduct != null && !isTablet) {
+            if (uiState.showAdjustDialog && uiState.actionProduct != null) {
                 StockAdjustDialog(
                     product      = uiState.actionProduct!!,
                     isSubmitting = uiState.isSubmitting,
@@ -123,7 +123,7 @@ fun ProductManagementScreen(
                 )
             }
 
-            if (uiState.showProductFormDialog && !isTablet) {
+            if (uiState.showProductFormDialog) {
                 ProductFormDialog(
                     editingProduct      = uiState.actionProduct,
                     categories          = uiState.categories.toImmutableList(),

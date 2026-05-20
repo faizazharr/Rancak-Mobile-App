@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Tune
+import id.rancak.app.presentation.components.RancakFormDialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -489,50 +490,36 @@ private fun ModifierFormDialog(
     onSortOrderChange: (Int) -> Unit,
     onIsActiveChange: (Boolean) -> Unit
 ) {
-    AlertDialog(
+    RancakFormDialog(
+        icon             = Icons.Default.Tune,
+        title            = if (uiState.selectedModifier == null) "Tambah Modifier" else "Edit Modifier",
+        subtitle         = if (uiState.selectedModifier == null) "Buat modifier pilihan baru" else "Perbarui informasi modifier",
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                if (uiState.selectedModifier == null) "Tambah Modifier" else "Edit Modifier",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                RancakTextField(
-                    value         = uiState.formName,
-                    onValueChange = onNameChange,
-                    label         = "Nama Modifier",
-                    placeholder   = "Contoh: Pedas, Tanpa Bawang, Tambah Es"
-                )
-                RancakTextField(
-                    value           = uiState.formSortOrder.toString(),
-                    onValueChange   = { onSortOrderChange(it.toIntOrNull() ?: 0) },
-                    label           = "Urutan Tampil",
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier              = Modifier.fillMaxWidth()
-                ) {
-                    Text("Aktif", style = MaterialTheme.typography.bodyMedium)
-                    Switch(checked = uiState.formIsActive, onCheckedChange = onIsActiveChange)
-                }
-            }
-        },
-        confirmButton = {
-            RancakButton(
-                text      = if (uiState.isSaving) "Menyimpan..." else "Simpan",
-                onClick   = onSave,
-                enabled   = uiState.formName.isNotBlank() && !uiState.isSaving,
-                isLoading = uiState.isSaving
-            )
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Batal") }
+        confirmLabel     = "Simpan",
+        onConfirm        = onSave,
+        confirmEnabled   = uiState.formName.isNotBlank() && !uiState.isSaving,
+        isSubmitting     = uiState.isSaving
+    ) {
+        RancakTextField(
+            value         = uiState.formName,
+            onValueChange = onNameChange,
+            label         = "Nama Modifier",
+            placeholder   = "Contoh: Pedas, Tanpa Bawang, Tambah Es"
+        )
+        RancakTextField(
+            value           = uiState.formSortOrder.toString(),
+            onValueChange   = { onSortOrderChange(it.toIntOrNull() ?: 0) },
+            label           = "Urutan Tampil",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        Row(
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier              = Modifier.fillMaxWidth()
+        ) {
+            Text("Aktif", style = MaterialTheme.typography.bodyMedium)
+            Switch(checked = uiState.formIsActive, onCheckedChange = onIsActiveChange)
         }
-    )
+    }
 }
 

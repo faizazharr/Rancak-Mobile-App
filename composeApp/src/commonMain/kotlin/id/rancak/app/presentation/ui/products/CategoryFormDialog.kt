@@ -1,12 +1,14 @@
 package id.rancak.app.presentation.ui.products
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
+import id.rancak.app.presentation.components.RancakFormDialog
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
@@ -21,41 +23,34 @@ fun CategoryFormDialog(
 
     val canConfirm = !isSubmitting && name.isNotBlank()
 
-    AlertDialog(
-        onDismissRequest = { if (!isSubmitting) onDismiss() },
-        title = { Text(if (editingCategory == null) "Tambah Kategori" else "Edit Kategori") },
-        text  = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(
-                    value         = name,
-                    onValueChange = { name = it },
-                    label         = { Text("Nama Kategori *") },
-                    modifier      = Modifier.fillMaxWidth(),
-                    singleLine    = true,
-                    isError       = name.isBlank()
-                )
-                OutlinedTextField(
-                    value         = description,
-                    onValueChange = { description = it },
-                    label         = { Text("Deskripsi") },
-                    modifier      = Modifier.fillMaxWidth(),
-                    maxLines      = 3
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick  = { onConfirm(name.trim(), description.ifBlank { null }) },
-                enabled  = canConfirm
-            ) {
-                if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                else Text("Simpan")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Batal") }
-        }
-    )
+    RancakFormDialog(
+        icon             = Icons.Default.Category,
+        title            = if (editingCategory == null) "Tambah Kategori" else "Edit Kategori",
+        subtitle         = if (editingCategory == null) "Buat kategori produk baru" else "Perbarui informasi kategori",
+        onDismissRequest = onDismiss,
+        confirmLabel     = "Simpan",
+        onConfirm        = { onConfirm(name.trim(), description.ifBlank { null }) },
+        confirmEnabled   = canConfirm,
+        isSubmitting     = isSubmitting
+    ) {
+        OutlinedTextField(
+            value         = name,
+            onValueChange = { name = it },
+            label         = { Text("Nama Kategori *") },
+            modifier      = Modifier.fillMaxWidth(),
+            singleLine    = true,
+            isError       = name.isBlank(),
+            shape         = MaterialTheme.shapes.medium
+        )
+        OutlinedTextField(
+            value         = description,
+            onValueChange = { description = it },
+            label         = { Text("Deskripsi") },
+            modifier      = Modifier.fillMaxWidth(),
+            maxLines      = 3,
+            shape         = MaterialTheme.shapes.medium
+        )
+    }
 }
 
 // ── Preview ───────────────────────────────────────────────────────────────────

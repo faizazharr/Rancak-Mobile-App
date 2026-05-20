@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.ShoppingCart
+import id.rancak.app.presentation.components.RancakFormDialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -861,68 +862,60 @@ private fun AddPOItemDialog(
     val selectedProductName = uiState.products.find { it.uuid == uiState.formItemProductUuid }?.name
         ?: "Pilih Produk"
 
-    AlertDialog(
+    RancakFormDialog(
+        icon             = Icons.Default.ShoppingCart,
+        title            = "Tambah Item",
+        subtitle         = "Pilih produk dan tentukan jumlah",
         onDismissRequest = onDismiss,
-        title = { Text("Tambah Item") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                ExposedDropdownMenuBox(
-                    expanded         = productExpanded,
-                    onExpandedChange = { productExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value         = selectedProductName,
-                        onValueChange = {},
-                        readOnly      = true,
-                        label         = { Text("Produk") },
-                        trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(productExpanded) },
-                        shape         = MaterialTheme.shapes.medium,
-                        modifier      = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                    )
-                    ExposedDropdownMenu(
-                        expanded         = productExpanded,
-                        onDismissRequest = { productExpanded = false }
-                    ) {
-                        uiState.products.forEach { p ->
-                            DropdownMenuItem(
-                                text    = { Text(p.name) },
-                                onClick = { onProductChange(p.uuid); productExpanded = false }
-                            )
-                        }
-                    }
-                }
-                RancakTextField(
-                    value         = uiState.formItemQty,
-                    onValueChange = onQtyChange,
-                    label         = "Jumlah",
-                    singleLine    = true
-                )
-                RancakTextField(
-                    value         = uiState.formItemUnitCost,
-                    onValueChange = onUnitCostChange,
-                    label         = "Harga Satuan (Rp)",
-                    singleLine    = true
-                )
-                RancakTextField(
-                    value         = uiState.formItemNotes,
-                    onValueChange = onItemNotesChange,
-                    label         = "Catatan (opsional)",
-                    singleLine    = true
-                )
-            }
-        },
-        confirmButton = {
-            RancakButton(
-                text      = "Tambah",
-                onClick   = onConfirm,
-                enabled   = !uiState.isSaving && uiState.formItemProductUuid.isNotBlank() && uiState.formItemQty.isNotBlank(),
-                isLoading = uiState.isSaving
+        confirmLabel     = "Tambah",
+        onConfirm        = onConfirm,
+        confirmEnabled   = !uiState.isSaving && uiState.formItemProductUuid.isNotBlank() && uiState.formItemQty.isNotBlank(),
+        isSubmitting     = uiState.isSaving
+    ) {
+        ExposedDropdownMenuBox(
+            expanded         = productExpanded,
+            onExpandedChange = { productExpanded = it }
+        ) {
+            OutlinedTextField(
+                value         = selectedProductName,
+                onValueChange = {},
+                readOnly      = true,
+                label         = { Text("Produk") },
+                trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(productExpanded) },
+                shape         = MaterialTheme.shapes.medium,
+                modifier      = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
             )
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Batal") }
+            ExposedDropdownMenu(
+                expanded         = productExpanded,
+                onDismissRequest = { productExpanded = false }
+            ) {
+                uiState.products.forEach { p ->
+                    DropdownMenuItem(
+                        text    = { Text(p.name) },
+                        onClick = { onProductChange(p.uuid); productExpanded = false }
+                    )
+                }
+            }
         }
-    )
+        RancakTextField(
+            value         = uiState.formItemQty,
+            onValueChange = onQtyChange,
+            label         = "Jumlah",
+            singleLine    = true
+        )
+        RancakTextField(
+            value         = uiState.formItemUnitCost,
+            onValueChange = onUnitCostChange,
+            label         = "Harga Satuan (Rp)",
+            singleLine    = true
+        )
+        RancakTextField(
+            value         = uiState.formItemNotes,
+            onValueChange = onItemNotesChange,
+            label         = "Catatan (opsional)",
+            singleLine    = true
+        )
+    }
 }
 
 // ── Edit PO Item Dialog ───────────────────────────────────────────────────────
@@ -936,43 +929,35 @@ private fun EditPOItemDialog(
     onUnitCostChange: (String) -> Unit,
     onNotesChange: (String) -> Unit
 ) {
-    AlertDialog(
+    RancakFormDialog(
+        icon             = Icons.Default.Edit,
+        title            = "Edit Item",
+        subtitle         = uiState.editingItem?.productName.orEmpty(),
         onDismissRequest = onDismiss,
-        title = { Text("Edit Item: ${uiState.editingItem?.productName.orEmpty()}") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                RancakTextField(
-                    value         = uiState.formItemQty,
-                    onValueChange = onQtyChange,
-                    label         = "Jumlah",
-                    singleLine    = true
-                )
-                RancakTextField(
-                    value         = uiState.formItemUnitCost,
-                    onValueChange = onUnitCostChange,
-                    label         = "Harga Satuan (Rp)",
-                    singleLine    = true
-                )
-                RancakTextField(
-                    value         = uiState.formItemNotes,
-                    onValueChange = onNotesChange,
-                    label         = "Catatan (opsional)",
-                    singleLine    = true
-                )
-            }
-        },
-        confirmButton = {
-            RancakButton(
-                text      = "Simpan",
-                onClick   = onConfirm,
-                enabled   = !uiState.isSaving && uiState.formItemQty.isNotBlank(),
-                isLoading = uiState.isSaving
-            )
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Batal") }
-        }
-    )
+        confirmLabel     = "Simpan",
+        onConfirm        = onConfirm,
+        confirmEnabled   = !uiState.isSaving && uiState.formItemQty.isNotBlank(),
+        isSubmitting     = uiState.isSaving
+    ) {
+        RancakTextField(
+            value         = uiState.formItemQty,
+            onValueChange = onQtyChange,
+            label         = "Jumlah",
+            singleLine    = true
+        )
+        RancakTextField(
+            value         = uiState.formItemUnitCost,
+            onValueChange = onUnitCostChange,
+            label         = "Harga Satuan (Rp)",
+            singleLine    = true
+        )
+        RancakTextField(
+            value         = uiState.formItemNotes,
+            onValueChange = onNotesChange,
+            label         = "Catatan (opsional)",
+            singleLine    = true
+        )
+    }
 }
 
 // ── Receive PO Dialog ─────────────────────────────────────────────────────────

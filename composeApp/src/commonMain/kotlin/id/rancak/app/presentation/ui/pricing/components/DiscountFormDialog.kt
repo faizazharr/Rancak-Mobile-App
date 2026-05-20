@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.DiscountRule
 import id.rancak.app.presentation.components.RancakButton
+import id.rancak.app.presentation.components.RancakFormDialog
 import id.rancak.app.presentation.components.RancakOutlinedButton
 import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.designsystem.Primary
@@ -73,111 +74,106 @@ fun DiscountFormDialog(
         discountValue.isNotBlank() && discountError == null &&
         maxDiscountError == null
 
-    AlertDialog(
-        onDismissRequest = { if (!isSubmitting) onDismiss() },
-        title = { Text(if (editing == null) "Tambah Aturan Diskon" else "Edit Aturan Diskon") },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nama *") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Deskripsi") },
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 2
-                )
-
-                Text("Tipe Diskon", style = MaterialTheme.typography.labelMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("pct" to "Persen (%)", "flat" to "Nominal (Rp)").forEach { (value, label) ->
-                        FilterChip(
-                            selected = discountType == value,
-                            onClick  = { discountType = value },
-                            label    = { Text(label) }
-                        )
-                    }
-                }
-
-                OutlinedTextField(
-                    value = discountValue,
-                    onValueChange = { discountValue = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text(if (isPct) "Nilai Diskon (%) *" else "Nilai Diskon (Rp) *") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    isError = discountError != null,
-                    supportingText = discountError?.let { err -> { Text(err) } },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Text("Jenis Aturan", style = MaterialTheme.typography.labelMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("always" to "Selalu", "time_based" to "Berbasis Waktu").forEach { (value, label) ->
-                        FilterChip(
-                            selected = ruleType == value,
-                            onClick  = { ruleType = value },
-                            label    = { Text(label) }
-                        )
-                    }
-                }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = minPurchase,
-                        onValueChange = { minPurchase = it.filter { c -> c.isDigit() || c == '.' } },
-                        label = { Text("Min. Pembelian (Rp)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        supportingText = { Text("0 = tanpa minimum") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = maxDiscount,
-                        onValueChange = { maxDiscount = it.filter { c -> c.isDigit() || c == '.' } },
-                        label = { Text("Maks. Diskon (Rp)") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        isError = maxDiscountError != null,
-                        supportingText = maxDiscountError?.let { err -> { Text(err) } },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Aktif", style = MaterialTheme.typography.bodyMedium)
-                    Switch(checked = isActive, onCheckedChange = { isActive = it })
-                }
-            }
+    RancakFormDialog(
+        icon             = Icons.Default.LocalOffer,
+        title            = if (editing == null) "Tambah Aturan Diskon" else "Edit Aturan Diskon",
+        subtitle         = if (editing == null) "Buat aturan diskon baru" else "Perbarui aturan diskon",
+        onDismissRequest = onDismiss,
+        confirmLabel     = "Simpan",
+        onConfirm        = {
+            onConfirm(
+                name.trim(), discountValue.toDoubleOrNull() ?: 0.0, discountType,
+                ruleType, isActive, description.ifBlank { null },
+                maxDiscount.toDoubleOrNull(), minPurchase.toDoubleOrNull()
+            )
         },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onConfirm(
-                        name.trim(), discountValue.toDoubleOrNull() ?: 0.0, discountType,
-                        ruleType, isActive, description.ifBlank { null },
-                        maxDiscount.toDoubleOrNull(), minPurchase.toDoubleOrNull()
-                    )
-                },
-                enabled = canConfirm
-            ) {
-                if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                else Text("Simpan")
+        confirmEnabled   = canConfirm,
+        isSubmitting     = isSubmitting
+    ) {
+        OutlinedTextField(
+            value         = name,
+            onValueChange = { name = it },
+            label         = { Text("Nama *") },
+            modifier      = Modifier.fillMaxWidth(),
+            singleLine    = true,
+            shape         = MaterialTheme.shapes.medium
+        )
+        OutlinedTextField(
+            value         = description,
+            onValueChange = { description = it },
+            label         = { Text("Deskripsi") },
+            modifier      = Modifier.fillMaxWidth(),
+            maxLines      = 2,
+            shape         = MaterialTheme.shapes.medium
+        )
+
+        Text("Tipe Diskon", style = MaterialTheme.typography.labelMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("pct" to "Persen (%)", "flat" to "Nominal (Rp)").forEach { (value, label) ->
+                FilterChip(
+                    selected = discountType == value,
+                    onClick  = { discountType = value },
+                    label    = { Text(label) }
+                )
             }
-        },
-        dismissButton = { TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Batal") } }
-    )
+        }
+
+        OutlinedTextField(
+            value           = discountValue,
+            onValueChange   = { discountValue = it.filter { c -> c.isDigit() || c == '.' } },
+            label           = { Text(if (isPct) "Nilai Diskon (%) *" else "Nilai Diskon (Rp) *") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            isError         = discountError != null,
+            supportingText  = discountError?.let { err -> { Text(err) } },
+            modifier        = Modifier.fillMaxWidth(),
+            singleLine      = true,
+            shape           = MaterialTheme.shapes.medium
+        )
+
+        Text("Jenis Aturan", style = MaterialTheme.typography.labelMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("always" to "Selalu", "time_based" to "Berbasis Waktu").forEach { (value, label) ->
+                FilterChip(
+                    selected = ruleType == value,
+                    onClick  = { ruleType = value },
+                    label    = { Text(label) }
+                )
+            }
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value           = minPurchase,
+                onValueChange   = { minPurchase = it.filter { c -> c.isDigit() || c == '.' } },
+                label           = { Text("Min. Pembelian (Rp)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                supportingText  = { Text("0 = tanpa minimum") },
+                modifier        = Modifier.weight(1f),
+                singleLine      = true,
+                shape           = MaterialTheme.shapes.medium
+            )
+            OutlinedTextField(
+                value           = maxDiscount,
+                onValueChange   = { maxDiscount = it.filter { c -> c.isDigit() || c == '.' } },
+                label           = { Text("Maks. Diskon (Rp)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                isError         = maxDiscountError != null,
+                supportingText  = maxDiscountError?.let { err -> { Text(err) } },
+                modifier        = Modifier.weight(1f),
+                singleLine      = true,
+                shape           = MaterialTheme.shapes.medium
+            )
+        }
+
+        Row(
+            modifier              = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment     = Alignment.CenterVertically
+        ) {
+            Text("Aktif", style = MaterialTheme.typography.bodyMedium)
+            Switch(checked = isActive, onCheckedChange = { isActive = it })
+        }
+    }
 }
 
 // ── Inline panel — dipakai di tablet ─────────────────────────────────────────

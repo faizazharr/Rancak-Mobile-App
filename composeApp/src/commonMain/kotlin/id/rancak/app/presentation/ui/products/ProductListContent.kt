@@ -266,57 +266,9 @@ private fun TabletDashboard(
     onAdjustDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Which panel to show
-    val panelState = when {
-        uiState.showProductFormDialog -> TabletPanel.ProductForm
-        uiState.showAdjustDialog     -> TabletPanel.StockAdjust
-        else                          -> TabletPanel.Table
-    }
-
-    AnimatedContent(
-        targetState  = panelState,
-        transitionSpec = {
-            if (targetState != TabletPanel.Table) {
-                (slideInHorizontally { it / 3 } + fadeIn(tween(220))) togetherWith
-                        (slideOutHorizontally { -it / 6 } + fadeOut(tween(150)))
-            } else {
-                (slideInHorizontally { -it / 6 } + fadeIn(tween(220))) togetherWith
-                        (slideOutHorizontally { it / 3 } + fadeOut(tween(150)))
-            }
-        },
-        label    = "tablet_panel",
-        modifier = modifier
-    ) { panel ->
-        when (panel) {
-            TabletPanel.ProductForm -> {
-                ProductFormPanel(
-                    editingProduct      = uiState.actionProduct,
-                    initialCategoryUuid = uiState.selectedCategory?.uuid,
-                    categories          = uiState.categories.toImmutableList(),
-                    isSubmitting        = uiState.isSubmitting,
-                    onDismiss           = onFormDismiss,
-                    onConfirm           = onFormConfirm,
-                    modifier            = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface)
-                )
-            }
-            TabletPanel.StockAdjust -> {
-                val product = uiState.actionProduct
-                if (product != null) {
-                    StockAdjustPanel(
-                        product      = product,
-                        isSubmitting = uiState.isSubmitting,
-                        onDismiss    = onAdjustDismiss,
-                        onConfirm    = onAdjustConfirm,
-                        modifier     = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surface)
-                    )
-                }
-            }
-            TabletPanel.Table -> {
-                Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    // Edit produk & sesuaikan stok selalu ditampilkan sebagai dialog (popup),
+    // bukan inline panel — sehingga TabletDashboard selalu menampilkan tabel.
+    Column(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 
         // ── Metric summary row ────────────────────────────────────────────────
         MetricSummaryRow(uiState = uiState)
@@ -460,13 +412,8 @@ private fun TabletDashboard(
                 }
             }
         }
-        } // closes Column (tabel + metrik)
-            } // TabletPanel.Table
-        } // when(panel)
-    } // AnimatedContent panel
+    } // closes Column (tabel + metrik)
 }
-
-private enum class TabletPanel { Table, ProductForm, StockAdjust }
 
 // ── Metric summary ────────────────────────────────────────────────────────────
 
