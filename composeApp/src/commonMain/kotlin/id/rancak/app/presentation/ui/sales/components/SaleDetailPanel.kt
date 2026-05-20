@@ -209,19 +209,10 @@ private fun HeldOrderActions(
             onClick = onPay,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Bayar Sekarang") }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedButton(
-                onClick = onAddItems,
-                modifier = Modifier.weight(1f)
-            ) { Text("Tambah Item") }
-            OutlinedButton(
-                onClick = onSplit,
-                modifier = Modifier.weight(1f)
-            ) { Text("Pisah Tagihan") }
-        }
+        OutlinedButton(
+            onClick = onAddItems,
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Tambah Item") }
     }
 }
 
