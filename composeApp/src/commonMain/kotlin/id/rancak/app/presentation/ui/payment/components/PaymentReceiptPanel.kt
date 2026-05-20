@@ -178,12 +178,12 @@ internal fun PaymentReceiptPanel(
                     Spacer(Modifier.height(4.dp))
                 }
 
-                // ── Mode pembayaran toggle — selalu di bawah ─────────────────
-                PaymentModeToggle(
-                    isSplit   = isSplit,
-                    onToggle  = onToggleMode,
-                    modifier  = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
-                )
+                // ── Mode pembayaran toggle — sementara disembunyikan ──────────
+                // PaymentModeToggle(
+                //     isSplit   = isSplit,
+                //     onToggle  = onToggleMode,
+                //     modifier  = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                // )
             }
         }
     }

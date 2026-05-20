@@ -123,11 +123,11 @@ internal fun SplitItemColumn(
                     )
                 }
 
-                SplitModeToggle(
-                    isSplit  = isSplit,
-                    onToggle = onToggleMode,
-                    modifier = Modifier.padding(vertical = 10.dp)
-                )
+                // SplitModeToggle(
+                //     isSplit  = isSplit,
+                //     onToggle = onToggleMode,
+                //     modifier = Modifier.padding(vertical = 10.dp)
+                // )
             }
         }
     }
