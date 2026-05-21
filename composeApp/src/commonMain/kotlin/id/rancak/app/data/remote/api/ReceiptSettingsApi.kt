@@ -1,6 +1,7 @@
 package id.rancak.app.data.remote.api
 
 import id.rancak.app.data.remote.dto.ApiResponse
+import id.rancak.app.data.remote.dto.admin.UpdateReceiptSettingsRequest
 import id.rancak.app.data.remote.dto.receipt.ReceiptSettingsDto
 import id.rancak.app.data.remote.dto.receipt.UpdateReceiptSettingsDto
 import io.ktor.client.call.body
@@ -33,3 +34,34 @@ suspend fun RancakApiService.patchReceiptSettings(
         contentType(ContentType.Application.Json)
         setBody(body)
     }.body()
+
+/**
+ * Alias yang dipakai oleh [AdminRepositoryImpl].
+ * Memetakan [UpdateReceiptSettingsRequest] (admin DTO) ke [UpdateReceiptSettingsDto]
+ * lalu mendelegasikan ke [patchReceiptSettings].
+ */
+suspend fun RancakApiService.updateReceiptSettings(
+    tenantUuid: String,
+    body: UpdateReceiptSettingsRequest
+): ApiResponse<ReceiptSettingsDto> = patchReceiptSettings(
+    tenantUuid,
+    UpdateReceiptSettingsDto(
+        logoUrl = body.logoUrl,
+        email = body.email,
+        website = body.website,
+        npwp = body.npwp,
+        receiptHeader = body.receiptHeader,
+        receiptFooter = body.receiptFooter,
+        receiptFooter2 = body.receiptFooter2,
+        logoPosition = body.logoPosition,
+        logoSizePct = body.logoSizePct,
+        receiptNameSize = body.receiptNameSize,
+        separatorStyle = body.separatorStyle,
+        separatorCount = body.separatorCount,
+        footerPosition = body.footerPosition,
+        receiptInstagram = body.receiptInstagram,
+        receiptFacebook = body.receiptFacebook,
+        receiptWifiSsid = body.receiptWifiSsid,
+        receiptWifiPassword = body.receiptWifiPassword,
+    )
+)

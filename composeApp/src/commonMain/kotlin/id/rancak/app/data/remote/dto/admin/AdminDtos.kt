@@ -302,5 +302,7 @@ data class UpdateReceiptSettingsRequest(
     @SerialName("separator_count") val separatorCount: Int? = null,
     @SerialName("footer_position") val footerPosition: String? = null,
     @SerialName("receipt_instagram") val receiptInstagram: String? = null,
-    @SerialName("receipt_facebook") val receiptFacebook: String? = null
+    @SerialName("receipt_facebook") val receiptFacebook: String? = null,
+    @SerialName("receipt_wifi_ssid") val receiptWifiSsid: String? = null,
+    @SerialName("receipt_wifi_password") val receiptWifiPassword: String? = null
 )

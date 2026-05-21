@@ -26,7 +26,8 @@ internal fun LoginContent(
     onGoogleToken: (String) -> Unit,
     onGoogleError: (String) -> Unit,
     onShowEmailForm: () -> Unit,
-    onBackToOptions: () -> Unit
+    onBackToOptions: () -> Unit,
+    onForgotPassword: () -> Unit = {}
 ) {
     AnimatedContent(
         targetState = showEmailForm,
@@ -43,13 +44,14 @@ internal fun LoginContent(
     ) { isEmailForm ->
         if (isEmailForm) {
             EmailFormStep(
-                uiState          = uiState,
-                passwordVisible  = passwordVisible,
-                onPasswordToggle = onPasswordToggle,
-                onEmailChange    = onEmailChange,
-                onPasswordChange = onPasswordChange,
-                onLogin          = onLogin,
-                onBack           = onBackToOptions
+                uiState           = uiState,
+                passwordVisible   = passwordVisible,
+                onPasswordToggle  = onPasswordToggle,
+                onEmailChange     = onEmailChange,
+                onPasswordChange  = onPasswordChange,
+                onLogin           = onLogin,
+                onBack            = onBackToOptions,
+                onForgotPassword  = onForgotPassword
             )
         } else {
             LoginOptionsStep(

@@ -56,7 +56,8 @@ internal fun TabletLoginLayout(
     onGoogleToken: (String) -> Unit,
     onGoogleError: (String) -> Unit,
     onShowEmailForm: () -> Unit,
-    onBackToOptions: () -> Unit
+    onBackToOptions: () -> Unit,
+    onForgotPassword: () -> Unit = {}
 ) {
     val primary   = MaterialTheme.colorScheme.primary
     val onPrimary = MaterialTheme.colorScheme.onPrimary
@@ -185,7 +186,8 @@ internal fun TabletLoginLayout(
                     onGoogleToken    = onGoogleToken,
                     onGoogleError    = onGoogleError,
                     onShowEmailForm  = onShowEmailForm,
-                    onBackToOptions  = onBackToOptions
+                    onBackToOptions  = onBackToOptions,
+                    onForgotPassword = onForgotPassword
                 )
             }
         }

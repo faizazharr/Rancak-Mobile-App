@@ -44,6 +44,7 @@ import id.rancak.app.presentation.viewmodel.CartViewModel
 import id.rancak.app.presentation.viewmodel.CashExpenseViewModel
 import id.rancak.app.presentation.viewmodel.HoldOrderViewModel
 import id.rancak.app.presentation.viewmodel.KdsViewModel
+import id.rancak.app.presentation.viewmodel.ForgotPasswordViewModel
 import id.rancak.app.presentation.viewmodel.LoginViewModel
 import id.rancak.app.presentation.viewmodel.OpenBillViewModel
 import id.rancak.app.presentation.viewmodel.OrderBoardViewModel
@@ -128,6 +129,7 @@ val viewModelModule = module {
     single { SettingsStore() }
     single { OpenBillStore() }
     viewModelOf(::LoginViewModel)
+    viewModelOf(::ForgotPasswordViewModel)
     viewModelOf(::SplashViewModel)
     viewModelOf(::TenantPickerViewModel)
     viewModelOf(::PosViewModel)

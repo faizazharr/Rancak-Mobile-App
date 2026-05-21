@@ -9,6 +9,7 @@ import id.rancak.app.data.local.LocalOpenBill
 import id.rancak.app.domain.repository.AuthRepository
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import id.rancak.app.presentation.ui.auth.ForgotPasswordScreen
 import id.rancak.app.presentation.ui.auth.LoginScreen
 import id.rancak.app.presentation.ui.auth.TenantPickerScreen
 import id.rancak.app.presentation.ui.billing.BillingScreen
@@ -57,13 +58,22 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
 
     composable<Screen.Login> {
         LoginScreen(
-            onLoginSuccess = {
+            onLoginSuccess   = {
                 // Direct A→C: Login → TenantPicker, Login dihapus dari back stack.
                 // User tidak bisa kembali ke Login dengan tombol Back.
                 navController.navigate(Screen.TenantPicker()) {
                     popUpTo(Screen.Login) { inclusive = true }
                 }
+            },
+            onForgotPassword = {
+                navController.navigate(Screen.ForgotPassword)
             }
+        )
+    }
+
+    composable<Screen.ForgotPassword> {
+        ForgotPasswordScreen(
+            onBack = { navController.popBackStack() }
         )
     }
 
