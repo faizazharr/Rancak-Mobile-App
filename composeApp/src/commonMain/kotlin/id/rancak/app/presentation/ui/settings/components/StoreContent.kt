@@ -1,6 +1,5 @@
 package id.rancak.app.presentation.ui.settings.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -10,7 +9,6 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Tag
@@ -78,9 +76,6 @@ internal fun StoreContent(
     onReceiptFacebook: (String) -> Unit,
     onReceiptWifiSsid: (String) -> Unit,
     onReceiptWifiPassword: (String) -> Unit,
-    // QRIS statis
-    merchantQrisString: String,
-    onMerchantQrisString: (String) -> Unit,
 ) {
     SettingsCard {
         // ── Identitas Toko ───────────────────────────────────────────────────
@@ -343,55 +338,22 @@ internal fun StoreContent(
             )
         }
         Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = receiptWifiSsid, onValueChange = onReceiptWifiSsid,
-                label = { Text("WiFi SSID") },
-                placeholder = { Text("NamaJaringanWifi") },
-                singleLine = true,
-                leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
-            )
-            AnimatedVisibility(visible = receiptWifiSsid.isNotBlank()) {
-                OutlinedTextField(
-                    value = receiptWifiPassword, onValueChange = onReceiptWifiPassword,
-                    label = { Text("Password WiFi") },
-                    placeholder = { Text("password123") },
-                    singleLine = true,
-                    modifier = Modifier.weight(1f),
-                    textStyle = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-
-        Spacer(Modifier.height(14.dp))
-        HorizontalDivider()
-        Spacer(Modifier.height(10.dp))
-
-        // ── QRIS Statis ───────────────────────────────────────────────────────
-        Text(
-            "QRIS Statis Merchant",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            "Tempel string EMVCo QRIS merchant Anda. Dipakai untuk split bill " +
-            "QRIS \u2014 setiap pelanggan scan QR yang sama dan memasukkan " +
-            "nominal sesuai bagiannya.",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+        OutlinedTextField(
+            value = receiptWifiSsid, onValueChange = onReceiptWifiSsid,
+            label = { Text("WiFi SSID") },
+            placeholder = { Text("NamaJaringanWifi") },
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) },
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = MaterialTheme.typography.bodySmall
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
-            value = merchantQrisString,
-            onValueChange = onMerchantQrisString,
-            label = { Text("QRIS String") },
-            placeholder = { Text("00020101...") },
-            leadingIcon = { Icon(Icons.Default.QrCode2, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            minLines = 2,
-            maxLines = 4,
+            value = receiptWifiPassword, onValueChange = onReceiptWifiPassword,
+            label = { Text("Password WiFi") },
+            placeholder = { Text("Kosongkan jika tidak ada password") },
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) },
             modifier = Modifier.fillMaxWidth(),
             textStyle = MaterialTheme.typography.bodySmall
         )
@@ -410,7 +372,6 @@ private fun StoreContentPreview() {
                 footerText           = "Terima kasih!",
                 receiptHeader        = "",
                 receiptFooter2       = "",
-                merchantQrisString   = "",
                 showLogo             = false,
                 receiptNameSize      = "large",
                 separatorStyle       = "dashed",
@@ -428,7 +389,6 @@ private fun StoreContentPreview() {
                 onFooterText         = {},
                 onReceiptHeader      = {},
                 onReceiptFooter2     = {},
-                onMerchantQrisString = {},
                 onShowLogo           = {},
                 onReceiptNameSize    = {},
                 onSeparatorStyle     = {},
