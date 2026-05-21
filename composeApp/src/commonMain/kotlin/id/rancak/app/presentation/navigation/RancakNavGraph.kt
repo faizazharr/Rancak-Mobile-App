@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import id.rancak.app.presentation.ui.auth.ForgotPasswordScreen
 import id.rancak.app.presentation.ui.auth.LoginScreen
+import id.rancak.app.presentation.ui.auth.ResetPasswordScreen
 import id.rancak.app.presentation.ui.auth.TenantPickerScreen
 import id.rancak.app.presentation.ui.billing.BillingScreen
 import id.rancak.app.presentation.ui.cart.CartScreen
@@ -22,6 +23,7 @@ import id.rancak.app.presentation.ui.orderboard.OrderBoardScreen
 import id.rancak.app.presentation.ui.payment.PayHeldOrderScreen
 import id.rancak.app.presentation.ui.payment.PaymentScreen
 import id.rancak.app.presentation.ui.pos.PosScreen
+import id.rancak.app.presentation.ui.pricing.BundleManagementScreen
 import id.rancak.app.presentation.ui.pricing.PricingManagementScreen
 import id.rancak.app.presentation.ui.inventory.PurchaseOrderScreen
 import id.rancak.app.presentation.ui.reports.ReportScreen
@@ -73,7 +75,21 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
 
     composable<Screen.ForgotPassword> {
         ForgotPasswordScreen(
-            onBack = { navController.popBackStack() }
+            onBack = { navController.popBackStack() },
+            onNavigateToResetPassword = {
+                navController.navigate(Screen.ResetPassword)
+            }
+        )
+    }
+
+    composable<Screen.ResetPassword> {
+        ResetPasswordScreen(
+            onBack    = { navController.popBackStack() },
+            onSuccess = {
+                navController.navigate(Screen.Login) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
         )
     }
 
@@ -278,7 +294,13 @@ internal fun NavGraphBuilder.managementGraph(
     composable<Screen.ProductManagement>  { ProductManagementScreen(onBack = onMenuClick) }
     composable<Screen.StockOpname>        { StockOpnameScreen(onBack = onMenuClick) }
     composable<Screen.VoucherManagement>  { VoucherManagementScreen(onBack = onMenuClick) }
-    composable<Screen.PricingManagement>  { PricingManagementScreen(onBack = onMenuClick) }
+    composable<Screen.PricingManagement>  {
+        PricingManagementScreen(
+            onBack             = onMenuClick,
+            onBundleManagement = { navController.navigate(Screen.BundleManagement) }
+        )
+    }
+    composable<Screen.BundleManagement>   { BundleManagementScreen(onBack = { navController.popBackStack() }) }
     composable<Screen.ModifierManagement> { ModifierManagementScreen(onBack = onMenuClick) }
     composable<Screen.SupplierManagement> { SupplierScreen(onBack = onMenuClick) }
     composable<Screen.PurchaseOrders>     { PurchaseOrderScreen(onBack = onMenuClick) }

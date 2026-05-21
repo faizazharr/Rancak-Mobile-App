@@ -56,6 +56,7 @@ internal fun SaleDetailPanel(
     onSplitBill: (String) -> Unit = {},
     onAddItems: (String) -> Unit = {},
     onRefund: (Sale) -> Unit = {},
+    onReprint: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val printerManager: PrinterManager = koinInject()
@@ -71,7 +72,10 @@ internal fun SaleDetailPanel(
         outletName    = outletName,
         outletAddress = outletAddress,
         outletPhone   = outletPhone,
-        onRequestPrint = { showPrintDialog = true },
+        onRequestPrint = {
+            showPrintDialog = true
+            onReprint?.invoke()
+        },
         onPayHeldOrder = onPayHeldOrder,
         onSplitBill    = onSplitBill,
         onAddItems     = onAddItems,

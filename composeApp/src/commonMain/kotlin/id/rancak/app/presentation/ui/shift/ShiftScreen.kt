@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import id.rancak.app.domain.model.CashCount
 import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakButton
@@ -41,15 +43,22 @@ fun ShiftScreen(
         viewModel.loadCurrentShift()
     }
 
+    // Load cash counts when a shift is active
+    LaunchedEffect(uiState.currentShift?.uuid) {
+        uiState.currentShift?.uuid?.let { viewModel.loadCashCounts(it) }
+    }
+
     ShiftScreenContent(
-        uiState          = uiState,
-        onBack           = onBack,
+        uiState             = uiState,
+        onBack              = onBack,
         onOpeningCashChange = viewModel::onOpeningCashChange,
         onClosingCashChange = viewModel::onClosingCashChange,
         onClosingNoteChange = viewModel::onClosingNoteChange,
-        onOpenShift      = viewModel::openShift,
-        onCloseShift     = viewModel::closeShift,
-        onClearError     = viewModel::clearError
+        onOpenShift         = viewModel::openShift,
+        onCloseShift        = viewModel::closeShift,
+        onClearError        = viewModel::clearError,
+        onSubmitCashCount   = viewModel::submitCashCount,
+        onClearCashCountSuccess = viewModel::clearCashCountSuccess
     )
 }
 
@@ -62,7 +71,9 @@ fun ShiftScreenContent(
     onClosingNoteChange: (String) -> Unit = {},
     onOpenShift: () -> Unit = {},
     onCloseShift: () -> Unit = {},
-    onClearError: () -> Unit = {}
+    onClearError: () -> Unit = {},
+    onSubmitCashCount: (actualCash: Double, note: String?) -> Unit = { _, _ -> },
+    onClearCashCountSuccess: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -165,6 +176,18 @@ fun ShiftScreenContent(
                             onClick = onCloseShift,
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        Spacer(Modifier.height(32.dp))
+
+                        // ── Rekonsiliasi Kas (Cash Count) ──────────────────────────
+                        CashCountSection(
+                            cashCounts      = uiState.cashCounts,
+                            isSubmitting    = uiState.isCountSubmitting,
+                            submitError     = uiState.cashCountError,
+                            submitSuccess   = uiState.cashCountSuccess,
+                            onSubmit        = onSubmitCashCount,
+                            onClearSuccess  = onClearCashCountSuccess
+                        )
                     }
                 }
                 else -> {
@@ -214,6 +237,88 @@ fun ShiftScreenContent(
                 }
             } // end when
         } // end BoxWithConstraints
+    }
+}
+
+// ── Cash Count Section ─────────────────────────────────────────────────────────
+
+@Composable
+private fun CashCountSection(
+    cashCounts: List<CashCount>,
+    isSubmitting: Boolean,
+    submitError: String?,
+    submitSuccess: Boolean,
+    onSubmit: (actualCash: Double, note: String?) -> Unit,
+    onClearSuccess: () -> Unit
+) {
+    var actualCashInput by remember { mutableStateOf("") }
+    var noteInput by remember { mutableStateOf("") }
+
+    LaunchedEffect(submitSuccess) {
+        if (submitSuccess) {
+            actualCashInput = ""
+            noteInput = ""
+            onClearSuccess()
+        }
+    }
+
+    Card(
+        shape  = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "Rekonsiliasi Kas",
+                style      = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            if (submitError != null) {
+                Text(submitError, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            }
+
+            // Previous cash counts
+            if (cashCounts.isNotEmpty()) {
+                cashCounts.takeLast(3).forEach { count ->
+                    SummaryRow(
+                        "Hitung ${count.countedAt?.take(16)?.replace("T", " ") ?: "-"}",
+                        formatRupiah(count.actualCash.toLong())
+                    )
+                }
+                HorizontalDivider(Modifier.padding(vertical = 4.dp))
+            }
+
+            OutlinedTextField(
+                value         = actualCashInput,
+                onValueChange = { v -> actualCashInput = v.filter { it.isDigit() } },
+                label         = { Text("Jumlah Kas Aktual") },
+                prefix        = { Text("Rp ") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine    = true,
+                shape         = MaterialTheme.shapes.medium,
+                modifier      = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value         = noteInput,
+                onValueChange = { noteInput = it },
+                label         = { Text("Catatan (opsional)") },
+                shape         = MaterialTheme.shapes.medium,
+                modifier      = Modifier.fillMaxWidth()
+            )
+
+            RancakButton(
+                text      = "Simpan Rekonsiliasi",
+                onClick   = {
+                    val cash = actualCashInput.toDoubleOrNull() ?: return@RancakButton
+                    onSubmit(cash, noteInput.takeIf { it.isNotBlank() })
+                },
+                isLoading = isSubmitting,
+                enabled   = actualCashInput.isNotBlank() && actualCashInput.toDoubleOrNull() != null && !isSubmitting,
+                modifier  = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 

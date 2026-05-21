@@ -49,7 +49,8 @@ private val PricingGradientEnd = Color(0xFF0B7A60)
 
 @Composable
 fun PricingManagementScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onBundleManagement: () -> Unit = {}
 ) {
     val viewModel: PricingManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -66,6 +67,7 @@ fun PricingManagementScreen(
     PricingManagementContent(
         uiState    = uiState,
         onBack     = onBack,
+        onBundleManagement      = onBundleManagement,
         onAddSurcharge      = { viewModel.openSurchargeForm() },
         onAddTax            = { viewModel.openTaxForm() },
         onAddDiscount       = { viewModel.openDiscountForm() },
@@ -102,6 +104,7 @@ fun PricingManagementScreen(
 fun PricingManagementContent(
     uiState: PricingManagementUiState,
     onBack: () -> Unit,
+    onBundleManagement: () -> Unit = {},
     onAddSurcharge: () -> Unit,
     onAddTax: () -> Unit,
     onAddDiscount: () -> Unit,
@@ -190,6 +193,8 @@ fun PricingManagementContent(
                                 modifier   = Modifier.fillMaxWidth()
                             )
                         }
+                        // Bundle nav card
+                        BundleNavCard(onClick = onBundleManagement, modifier = Modifier.fillMaxWidth())
                     }
 
                     VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -258,6 +263,7 @@ fun PricingManagementContent(
                                 modifier   = Modifier.weight(1f)
                             )
                         }
+                        BundleNavCard(onClick = onBundleManagement, modifier = Modifier.weight(1f))
                     }
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -502,6 +508,61 @@ private fun SectionSummaryCard(
         }
     }
 }
+// ──────────────────────────────────────────────────────────────────────────────
+// Bundle nav card — navigates to BundleManagementScreen
+// ──────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun BundleNavCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Card(
+        onClick   = onClick,
+        modifier  = modifier,
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border    = BorderStroke(RancakDesign.sizes.borderThin, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = RancakDesign.elevation.none),
+        shape     = MaterialTheme.shapes.medium
+    ) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(Modifier.width(4.dp).fillMaxHeight().background(Color.Transparent))
+            Column(
+                modifier            = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Inventory2,
+                        contentDescription = null,
+                        tint     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "Bundle",
+                        style      = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = MaterialTheme.colorScheme.onSurface,
+                        maxLines   = 1
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Kelola",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Preview
 // ──────────────────────────────────────────────────────────────────────────────

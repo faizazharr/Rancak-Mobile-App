@@ -32,4 +32,6 @@ sealed class Screen {
     @Serializable data object SupplierManagement : Screen()
     @Serializable data object PurchaseOrders : Screen()
     @Serializable data object ForgotPassword : Screen()
+    @Serializable data object ResetPassword : Screen()
+    @Serializable data object BundleManagement : Screen()
 }

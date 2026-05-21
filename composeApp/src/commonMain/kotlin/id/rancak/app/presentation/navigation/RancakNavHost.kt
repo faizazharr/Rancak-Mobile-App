@@ -182,6 +182,7 @@ fun RancakNavHost() {
                 d.hasRoute(Screen.Splash::class) ||
                 d.hasRoute(Screen.Login::class) ||
                 d.hasRoute(Screen.ForgotPassword::class) ||
+                d.hasRoute(Screen.ResetPassword::class) ||
                 d.hasRoute(Screen.TenantPicker::class) ||
                 d.hasRoute(Screen.Billing::class)
             }
@@ -449,6 +450,7 @@ private fun NavigationContent(
                     val isExempt = currentDest.hasRoute(Screen.Splash::class) ||
                                    currentDest.hasRoute(Screen.Login::class) ||
                                    currentDest.hasRoute(Screen.ForgotPassword::class) ||
+                                   currentDest.hasRoute(Screen.ResetPassword::class) ||
                                    currentDest.hasRoute(Screen.TenantPicker::class) ||
                                    currentDest.hasRoute(Screen.Billing::class)
                     if (isExempt) return@launch
@@ -469,6 +471,7 @@ private fun NavigationContent(
                             val isNowExempt = destNow == null ||
                                 destNow.hasRoute(Screen.Splash::class) ||
                                 destNow.hasRoute(Screen.Login::class) ||
+                                destNow.hasRoute(Screen.ResetPassword::class) ||
                                 destNow.hasRoute(Screen.TenantPicker::class) ||
                                 destNow.hasRoute(Screen.Billing::class)
                             if (!isNowExempt) {
