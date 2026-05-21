@@ -50,7 +50,8 @@ data class SalesHistoryActions(
     val onPayHeldOrder: (String) -> Unit = {},
     val onSplitBill: (String) -> Unit = {},
     val onAddItems: (String) -> Unit = {},
-    val onRefund: (Sale) -> Unit = {}
+    val onRefund: (Sale) -> Unit = {},
+    val onReprint: (saleUuid: String) -> Unit = {}
 )
 
 /**
@@ -96,7 +97,8 @@ fun SalesHistoryScreen(
             onPayHeldOrder  = onPayHeldOrder,
             onSplitBill     = onSplitBill,
             onAddItems      = onAddItems,
-            onRefund        = { sale -> refundTarget = sale }
+            onRefund        = { sale -> refundTarget = sale },
+            onReprint       = viewModel::reprintSale
         )
     )
 
@@ -111,6 +113,15 @@ fun SalesHistoryScreen(
                 scope.launch { snackbarHostState.showSnackbar("Refund berhasil diproses") }
             }
         )
+    }
+
+    // Show reprint success/error snackbar
+    LaunchedEffect(uiState.reprintSuccess) {
+        val msg = uiState.reprintSuccess
+        if (msg != null) {
+            snackbarHostState.showSnackbar(msg)
+            viewModel.clearReprintSuccess()
+        }
     }
 }
 
@@ -185,6 +196,7 @@ private fun TabletLayout(
                     onSplitBill    = actions.onSplitBill,
                     onAddItems     = actions.onAddItems,
                     onRefund       = actions.onRefund,
+                    onReprint      = { actions.onReprint(selected.uuid) },
                     modifier       = Modifier.fillMaxSize()
                 )
             } else {
@@ -236,6 +248,7 @@ private fun PhoneLayout(
                     onSplitBill    = actions.onSplitBill,
                     onAddItems     = actions.onAddItems,
                     onRefund       = actions.onRefund,
+                    onReprint      = { actions.onReprint(sale.uuid) },
                     modifier       = Modifier.fillMaxWidth()
                 )
             },

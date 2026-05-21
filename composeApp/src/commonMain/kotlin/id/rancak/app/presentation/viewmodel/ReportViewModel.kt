@@ -12,6 +12,7 @@ import id.rancak.app.domain.model.MySalesReport
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.ShiftSummary
 import id.rancak.app.domain.model.StockAlert
+import id.rancak.app.domain.model.StockReport
 import id.rancak.app.domain.repository.FinanceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +36,7 @@ data class ReportUiState(
     val stockAlerts: List<StockAlert> = emptyList(),
     val lowStockItems: List<LowStock> = emptyList(),
     val expiringBatches: List<ExpiringBatch> = emptyList(),
+    val stockReport: List<StockReport> = emptyList(),
     val isStockLoading: Boolean = false,
     val stockError: String? = null
 )
@@ -100,6 +102,7 @@ class ReportViewModel(
             val alertsResult   = financeRepository.getStockAlerts()
             val lowStockResult = financeRepository.getLowStock()
             val expiringResult = financeRepository.getExpiringBatches(days = 30)
+            val stockRptResult = financeRepository.getStockReport()
 
             if (alertsResult is Resource.Success) {
                 _uiState.update { it.copy(stockAlerts = alertsResult.data) }
@@ -113,6 +116,10 @@ class ReportViewModel(
 
             if (expiringResult is Resource.Success) {
                 _uiState.update { it.copy(expiringBatches = expiringResult.data) }
+            }
+
+            if (stockRptResult is Resource.Success) {
+                _uiState.update { it.copy(stockReport = stockRptResult.data) }
             }
 
             _uiState.update { it.copy(isStockLoading = false) }

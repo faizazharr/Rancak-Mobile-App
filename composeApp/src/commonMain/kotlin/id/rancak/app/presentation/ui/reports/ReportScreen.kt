@@ -331,7 +331,8 @@ private fun StockAlertsBody(
 ) {
     val hasContent = uiState.stockAlerts.isNotEmpty() ||
                      uiState.lowStockItems.isNotEmpty() ||
-                     uiState.expiringBatches.isNotEmpty()
+                     uiState.expiringBatches.isNotEmpty() ||
+                     uiState.stockReport.isNotEmpty()
     if (!hasContent) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
@@ -348,6 +349,63 @@ private fun StockAlertsBody(
         contentPadding      = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // ── Stock Report (semua produk) ────────────────────────────────────────
+        if (uiState.stockReport.isNotEmpty()) {
+            item {
+                Text(
+                    "Laporan Stok Produk (${uiState.stockReport.size})",
+                    style      = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier   = Modifier.padding(top = 8.dp)
+                )
+            }
+            items(uiState.stockReport) { report ->
+                androidx.compose.material3.Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape    = MaterialTheme.shapes.medium
+                ) {
+                    Row(
+                        modifier              = Modifier.padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                report.name,
+                                style      = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            if (report.sku != null) {
+                                Text(
+                                    "SKU: ${report.sku}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            val threshold = report.stockAlertThreshold
+                            val isBelowThreshold = threshold != null && report.stock <= threshold
+                            Text(
+                                "${report.stock.toInt()}",
+                                style     = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isBelowThreshold) MaterialTheme.colorScheme.error
+                                        else MaterialTheme.colorScheme.onSurface
+                            )
+                            if (threshold != null) {
+                                Text(
+                                    "Min: ${threshold.toInt()}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // ── Unread alerts ─────────────────────────────────────────────────────
         if (uiState.stockAlerts.isNotEmpty()) {
             item {

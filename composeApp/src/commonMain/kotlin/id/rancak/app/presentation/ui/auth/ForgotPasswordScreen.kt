@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,17 +46,19 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ForgotPasswordScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToResetPassword: () -> Unit = {}
 ) {
     val viewModel: ForgotPasswordViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     ForgotPasswordContent(
-        uiState       = uiState,
-        onEmailChange = viewModel::onEmailChange,
-        onSend        = viewModel::sendResetLink,
-        onClearError  = viewModel::clearError,
-        onBack        = onBack
+        uiState                  = uiState,
+        onEmailChange            = viewModel::onEmailChange,
+        onSend                   = viewModel::sendResetLink,
+        onClearError             = viewModel::clearError,
+        onBack                   = onBack,
+        onNavigateToResetPassword = onNavigateToResetPassword
     )
 }
 
@@ -69,7 +72,8 @@ internal fun ForgotPasswordContent(
     onEmailChange: (String) -> Unit = {},
     onSend: () -> Unit = {},
     onClearError: () -> Unit = {},
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onNavigateToResetPassword: () -> Unit = {}
 ) {
     val emailError = when {
         uiState.email.isBlank() -> null
@@ -111,14 +115,15 @@ internal fun ForgotPasswordContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 if (uiState.isSuccess) {
-                    SuccessState(email = uiState.email, onBack = onBack)
+                    SuccessState(email = uiState.email, onBack = onBack, onNavigateToResetPassword = onNavigateToResetPassword)
                 } else {
                     FormState(
                         uiState      = uiState,
                         emailError   = emailError,
                         canSend      = canSend,
                         onEmailChange = onEmailChange,
-                        onSend       = onSend
+                        onSend       = onSend,
+                        onNavigateToResetPassword = onNavigateToResetPassword
                     )
                 }
             }
@@ -132,7 +137,8 @@ private fun FormState(
     emailError: String?,
     canSend: Boolean,
     onEmailChange: (String) -> Unit,
-    onSend: () -> Unit
+    onSend: () -> Unit,
+    onNavigateToResetPassword: () -> Unit = {}
 ) {
     Icon(
         imageVector        = Icons.Default.Email,
@@ -171,10 +177,18 @@ private fun FormState(
         enabled   = canSend,
         modifier  = Modifier.fillMaxWidth()
     )
+
+    TextButton(onClick = onNavigateToResetPassword) {
+        Text(
+            "Sudah punya kode reset? Reset sekarang",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
 }
 
 @Composable
-private fun SuccessState(email: String, onBack: () -> Unit) {
+private fun SuccessState(email: String, onBack: () -> Unit, onNavigateToResetPassword: () -> Unit = {}) {
     Icon(
         imageVector        = Icons.Default.MarkEmailRead,
         contentDescription = null,
@@ -201,6 +215,14 @@ private fun SuccessState(email: String, onBack: () -> Unit) {
         onClick  = onBack,
         modifier = Modifier.fillMaxWidth()
     )
+
+    TextButton(onClick = onNavigateToResetPassword) {
+        Text(
+            "Reset password dengan kode",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

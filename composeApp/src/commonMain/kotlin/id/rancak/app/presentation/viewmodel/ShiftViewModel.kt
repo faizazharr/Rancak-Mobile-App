@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import id.rancak.app.domain.model.CashCount
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Shift
 import id.rancak.app.domain.repository.OperationsRepository
@@ -22,7 +23,13 @@ data class ShiftUiState(
     val closingCash: String = "",
     val closingNote: String = "",
     val shiftJustOpened: Boolean = false,
-    val shiftJustClosed: Boolean = false
+    val shiftJustClosed: Boolean = false,
+    // ── Cash count (rekonsiliasi kas) ─────────────────────────────────────────
+    val cashCounts: List<CashCount> = emptyList(),
+    val isCountLoading: Boolean = false,
+    val isCountSubmitting: Boolean = false,
+    val cashCountError: String? = null,
+    val cashCountSuccess: Boolean = false
 )
 
 class ShiftViewModel(
@@ -108,4 +115,38 @@ class ShiftViewModel(
     }
 
     fun clearError() = _uiState.update { it.copy(error = null) }
+
+    fun clearCashCountError() = _uiState.update { it.copy(cashCountError = null) }
+    fun clearCashCountSuccess() = _uiState.update { it.copy(cashCountSuccess = false) }
+
+    fun loadCashCounts(shiftUuid: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCountLoading = true, cashCountError = null) }
+            when (val result = operationsRepository.getCashCounts(shiftUuid)) {
+                is Resource.Success -> _uiState.update { it.copy(cashCounts = result.data, isCountLoading = false) }
+                is Resource.Error   -> _uiState.update { it.copy(cashCountError = result.message, isCountLoading = false) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun submitCashCount(actualCash: Double, note: String? = null) {
+        val shiftUuid = _uiState.value.currentShift?.uuid ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCountSubmitting = true, cashCountError = null) }
+            when (val result = operationsRepository.submitCashCount(shiftUuid, actualCash, note = note)) {
+                is Resource.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            cashCounts = it.cashCounts + result.data,
+                            isCountSubmitting = false,
+                            cashCountSuccess = true
+                        )
+                    }
+                }
+                is Resource.Error   -> _uiState.update { it.copy(cashCountError = result.message, isCountSubmitting = false) }
+                is Resource.Loading -> {}
+            }
+        }
+    }
 }

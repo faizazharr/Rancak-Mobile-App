@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import id.rancak.app.domain.model.ReprintResult
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleStatus
@@ -49,7 +50,9 @@ data class SalesHistoryUiState(
     /** Tanggal mulai rentang kustom — format "YYYY-MM-DD" */
     val customDateFrom: String? = null,
     /** Tanggal akhir rentang kustom — format "YYYY-MM-DD" */
-    val customDateTo: String? = null
+    val customDateTo: String? = null,
+    /** Sukses cetak ulang — null jika tidak ada; di-clear setelah ditampilkan. */
+    val reprintSuccess: String? = null
 )
 
 class SalesHistoryViewModel(
@@ -64,31 +67,30 @@ class SalesHistoryViewModel(
     private val _dateFilter     = MutableStateFlow(DateFilter.ALL)
     private val _statusFilter   = MutableStateFlow<SaleStatus?>(null)
     private val _customDateRange = MutableStateFlow<Pair<String, String>?>(null)
+    private val _reprintSuccess = MutableStateFlow<String?>(null)
 
     private val _filterParams = combine(
         _searchQuery, _dateFilter, _statusFilter, _customDateRange
     ) { q, d, s, c -> FilterParams(q, d, s, c) }
 
     val uiState: StateFlow<SalesHistoryUiState> = combine(
-        _allSales,
-        _selectedSale,
-        _isLoading,
-        _error,
-        _filterParams
-    ) { allSales, selected, loading, error, filters ->
-        SalesHistoryUiState(
-            allSales       = allSales,
-            sales          = applyFilters(allSales, filters),
-            selectedSale   = selected,
-            isLoading      = loading,
-            error          = error,
-            searchQuery    = filters.query,
-            dateFilter     = filters.dateFilter,
-            statusFilter   = filters.statusFilter,
-            customDateFrom = filters.customDateRange?.first,
-            customDateTo   = filters.customDateRange?.second
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SalesHistoryUiState())
+        combine(_allSales, _selectedSale, _isLoading, _error, _filterParams) { allSales, selected, loading, error, filters ->
+            SalesHistoryUiState(
+                allSales       = allSales,
+                sales          = applyFilters(allSales, filters),
+                selectedSale   = selected,
+                isLoading      = loading,
+                error          = error,
+                searchQuery    = filters.query,
+                dateFilter     = filters.dateFilter,
+                statusFilter   = filters.statusFilter,
+                customDateFrom = filters.customDateRange?.first,
+                customDateTo   = filters.customDateRange?.second
+            )
+        },
+        _reprintSuccess
+    ) { state, reprintSuccess -> state.copy(reprintSuccess = reprintSuccess) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SalesHistoryUiState())
 
     fun selectSale(sale: Sale?)              { _selectedSale.value  = sale }
     fun setSearchQuery(query: String)        { _searchQuery.value   = query }
@@ -136,6 +138,50 @@ class SalesHistoryViewModel(
         _dateFilter.value     = DateFilter.ALL
         _statusFilter.value   = null
         _customDateRange.value = null
+    }
+
+    fun clearReprintSuccess() { _reprintSuccess.value = null }
+
+    fun reprintSale(saleUuid: String, printType: String = "receipt") {
+        viewModelScope.launch {
+            when (val result = saleRepository.reprintSale(saleUuid, printType = printType)) {
+                is Resource.Success -> _reprintSuccess.value = "Struk berhasil dicetak ulang"
+                is Resource.Error   -> _error.value = result.message
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /** Pindah meja untuk held order. Setelah sukses, reload list & update detail. */
+    fun moveTable(saleUuid: String, tableUuid: String) {
+        viewModelScope.launch {
+            when (val result = saleRepository.moveTable(saleUuid, tableUuid)) {
+                is Resource.Success -> {
+                    _allSales.value = _allSales.value.map { if (it.uuid == saleUuid) result.data else it }
+                    if (_selectedSale.value?.uuid == saleUuid) _selectedSale.value = result.data
+                    _reprintSuccess.value = "Meja berhasil dipindahkan"
+                }
+                is Resource.Error   -> _error.value = result.message
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    /** Gabung held order — semua item dari [sourceUuid] dipindah ke [targetUuid]. */
+    fun mergeSale(targetUuid: String, sourceUuid: String) {
+        viewModelScope.launch {
+            when (val result = saleRepository.mergeSale(targetUuid, sourceUuid)) {
+                is Resource.Success -> {
+                    _allSales.value = _allSales.value.map { if (it.uuid == targetUuid) result.data else it }
+                        .filter { it.uuid != sourceUuid }
+                    if (_selectedSale.value?.uuid == targetUuid) _selectedSale.value = result.data
+                    if (_selectedSale.value?.uuid == sourceUuid) _selectedSale.value = result.data
+                    _reprintSuccess.value = "Transaksi berhasil digabung"
+                }
+                is Resource.Error   -> _error.value = result.message
+                is Resource.Loading -> {}
+            }
+        }
     }
 
     fun loadSales() {

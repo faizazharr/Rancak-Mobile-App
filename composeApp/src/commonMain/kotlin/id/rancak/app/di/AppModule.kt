@@ -67,6 +67,8 @@ import id.rancak.app.presentation.viewmodel.VoucherManagementViewModel
 import id.rancak.app.presentation.viewmodel.ModifierManagementViewModel
 import id.rancak.app.presentation.viewmodel.SupplierViewModel
 import id.rancak.app.presentation.viewmodel.PurchaseOrderViewModel
+import id.rancak.app.presentation.viewmodel.ResetPasswordViewModel
+import id.rancak.app.presentation.viewmodel.BundleManagementViewModel
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
@@ -157,6 +159,8 @@ val viewModelModule = module {
     viewModelOf(::ModifierManagementViewModel)
     viewModelOf(::SupplierViewModel)
     viewModelOf(::PurchaseOrderViewModel)
+    viewModelOf(::ResetPasswordViewModel)
+    viewModelOf(::BundleManagementViewModel)
 }
 
 val appModules = listOf(
