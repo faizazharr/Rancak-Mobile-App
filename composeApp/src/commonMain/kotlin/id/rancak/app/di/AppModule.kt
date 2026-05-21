@@ -15,6 +15,7 @@ import id.rancak.app.data.repository.AuthRepositoryImpl
 import id.rancak.app.data.repository.BillingRepositoryImpl
 import id.rancak.app.data.repository.CartRepositoryImpl
 import id.rancak.app.data.repository.DeviceConfigRepositoryImpl
+import id.rancak.app.data.repository.ReceiptSettingsRepositoryImpl
 import id.rancak.app.data.repository.FinanceRepositoryImpl
 import id.rancak.app.data.repository.GroupsRepositoryImpl
 import id.rancak.app.data.repository.InventoryRepositoryImpl
@@ -27,6 +28,7 @@ import id.rancak.app.domain.repository.AuthRepository
 import id.rancak.app.domain.repository.BillingRepository
 import id.rancak.app.domain.repository.CartRepository
 import id.rancak.app.domain.repository.DeviceConfigRepository
+import id.rancak.app.domain.repository.ReceiptSettingsRepository
 import id.rancak.app.domain.repository.FinanceRepository
 import id.rancak.app.domain.repository.GroupsRepository
 import id.rancak.app.domain.repository.InventoryRepository
@@ -112,6 +114,7 @@ val repositoryModule = module {
     single<OperationsRepository> { OperationsRepositoryImpl(get(), get(), get(), get()) }
     singleOf(::FinanceRepositoryImpl) bind FinanceRepository::class
     singleOf(::DeviceConfigRepositoryImpl) bind DeviceConfigRepository::class
+    singleOf(::ReceiptSettingsRepositoryImpl) bind ReceiptSettingsRepository::class
     singleOf(::InventoryRepositoryImpl) bind InventoryRepository::class
     singleOf(::ReservationRepositoryImpl) bind ReservationRepository::class
     singleOf(::AdminRepositoryImpl) bind AdminRepository::class

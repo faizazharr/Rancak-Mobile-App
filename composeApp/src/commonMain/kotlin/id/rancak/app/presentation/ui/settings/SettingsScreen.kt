@@ -90,6 +90,19 @@ fun SettingsScreen(
         onPaperWidth           = viewModel::setPaperWidth,
         onReceiptCopies        = viewModel::setReceiptCopies,
         onAutoPrintQueue       = viewModel::setAutoPrintQueue,
+        onShowLogo             = viewModel::setShowLogo,
+        onReceiptHeader        = viewModel::setReceiptHeader,
+        onReceiptFooter2       = viewModel::setReceiptFooter2,
+        onSeparatorStyle       = viewModel::setSeparatorStyle,
+        onReceiptNameSize      = viewModel::setReceiptNameSize,
+        onFooterPosition       = viewModel::setFooterPosition,
+        onReceiptEmail         = viewModel::setReceiptEmail,
+        onReceiptWebsite       = viewModel::setReceiptWebsite,
+        onReceiptNpwp          = viewModel::setReceiptNpwp,
+        onReceiptInstagram     = viewModel::setReceiptInstagram,
+        onReceiptFacebook      = viewModel::setReceiptFacebook,
+        onReceiptWifiSsid      = viewModel::setReceiptWifiSsid,
+        onReceiptWifiPassword  = viewModel::setReceiptWifiPassword,
         onClearMessage         = viewModel::clearMessage
     )
 }
@@ -126,6 +139,19 @@ fun SettingsScreenContent(
     onPaperWidth: (Int) -> Unit = {},
     onReceiptCopies: (Int) -> Unit = {},
     onAutoPrintQueue: (Boolean) -> Unit = {},
+    onShowLogo: (Boolean) -> Unit = {},
+    onReceiptHeader: (String) -> Unit = {},
+    onReceiptFooter2: (String) -> Unit = {},
+    onSeparatorStyle: (String) -> Unit = {},
+    onReceiptNameSize: (String) -> Unit = {},
+    onFooterPosition: (String) -> Unit = {},
+    onReceiptEmail: (String) -> Unit = {},
+    onReceiptWebsite: (String) -> Unit = {},
+    onReceiptNpwp: (String) -> Unit = {},
+    onReceiptInstagram: (String) -> Unit = {},
+    onReceiptFacebook: (String) -> Unit = {},
+    onReceiptWifiSsid: (String) -> Unit = {},
+    onReceiptWifiPassword: (String) -> Unit = {},
     onClearMessage: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -177,7 +203,20 @@ fun SettingsScreenContent(
                     onAutoPrint            = onAutoPrint,
                     onPaperWidth           = onPaperWidth,
                     onReceiptCopies        = onReceiptCopies,
-                    onAutoPrintQueue       = onAutoPrintQueue
+                    onAutoPrintQueue       = onAutoPrintQueue,
+                    onShowLogo             = onShowLogo,
+                    onReceiptHeader        = onReceiptHeader,
+                    onReceiptFooter2       = onReceiptFooter2,
+                    onSeparatorStyle       = onSeparatorStyle,
+                    onReceiptNameSize      = onReceiptNameSize,
+                    onFooterPosition       = onFooterPosition,
+                    onReceiptEmail         = onReceiptEmail,
+                    onReceiptWebsite       = onReceiptWebsite,
+                    onReceiptNpwp          = onReceiptNpwp,
+                    onReceiptInstagram     = onReceiptInstagram,
+                    onReceiptFacebook      = onReceiptFacebook,
+                    onReceiptWifiSsid      = onReceiptWifiSsid,
+                    onReceiptWifiPassword  = onReceiptWifiPassword
                 )
             } else {
                 PhoneLayout(
@@ -205,7 +244,20 @@ fun SettingsScreenContent(
                     onAutoPrint            = onAutoPrint,
                     onPaperWidth           = onPaperWidth,
                     onReceiptCopies        = onReceiptCopies,
-                    onAutoPrintQueue       = onAutoPrintQueue
+                    onAutoPrintQueue       = onAutoPrintQueue,
+                    onShowLogo             = onShowLogo,
+                    onReceiptHeader        = onReceiptHeader,
+                    onReceiptFooter2       = onReceiptFooter2,
+                    onSeparatorStyle       = onSeparatorStyle,
+                    onReceiptNameSize      = onReceiptNameSize,
+                    onFooterPosition       = onFooterPosition,
+                    onReceiptEmail         = onReceiptEmail,
+                    onReceiptWebsite       = onReceiptWebsite,
+                    onReceiptNpwp          = onReceiptNpwp,
+                    onReceiptInstagram     = onReceiptInstagram,
+                    onReceiptFacebook      = onReceiptFacebook,
+                    onReceiptWifiSsid      = onReceiptWifiSsid,
+                    onReceiptWifiPassword  = onReceiptWifiPassword
                 )
             }
         }
@@ -242,7 +294,20 @@ private fun TabletLayout(
     onAutoPrint: (Boolean) -> Unit,
     onPaperWidth: (Int) -> Unit,
     onReceiptCopies: (Int) -> Unit,
-    onAutoPrintQueue: (Boolean) -> Unit
+    onAutoPrintQueue: (Boolean) -> Unit,
+    onShowLogo: (Boolean) -> Unit,
+    onReceiptHeader: (String) -> Unit,
+    onReceiptFooter2: (String) -> Unit,
+    onSeparatorStyle: (String) -> Unit,
+    onReceiptNameSize: (String) -> Unit,
+    onFooterPosition: (String) -> Unit,
+    onReceiptEmail: (String) -> Unit,
+    onReceiptWebsite: (String) -> Unit,
+    onReceiptNpwp: (String) -> Unit,
+    onReceiptInstagram: (String) -> Unit,
+    onReceiptFacebook: (String) -> Unit,
+    onReceiptWifiSsid: (String) -> Unit,
+    onReceiptWifiPassword: (String) -> Unit
 ) {
     var selected by remember { mutableStateOf(SettingsNav.PRINTER) }
 
@@ -373,12 +438,38 @@ private fun TabletLayout(
                     storeAddress         = uiState.storeAddress,
                     storePhone           = uiState.storePhone,
                     footerText           = uiState.footerText,
+                    receiptHeader        = uiState.receiptHeader,
+                    receiptFooter2       = uiState.receiptFooter2,
                     merchantQrisString   = uiState.merchantQrisString,
+                    showLogo             = uiState.showLogo,
+                    receiptNameSize      = uiState.receiptNameSize,
+                    separatorStyle       = uiState.separatorStyle,
+                    footerPosition       = uiState.footerPosition,
+                    receiptEmail         = uiState.receiptEmail,
+                    receiptWebsite       = uiState.receiptWebsite,
+                    receiptNpwp          = uiState.receiptNpwp,
+                    receiptInstagram     = uiState.receiptInstagram,
+                    receiptFacebook      = uiState.receiptFacebook,
+                    receiptWifiSsid      = uiState.receiptWifiSsid,
+                    receiptWifiPassword  = uiState.receiptWifiPassword,
                     onStoreName          = onStoreName,
                     onStoreAddress       = onStoreAddress,
                     onStorePhone         = onStorePhone,
                     onFooterText         = onFooterText,
-                    onMerchantQrisString = onMerchantQrisString
+                    onReceiptHeader      = onReceiptHeader,
+                    onReceiptFooter2     = onReceiptFooter2,
+                    onMerchantQrisString = onMerchantQrisString,
+                    onShowLogo           = onShowLogo,
+                    onReceiptNameSize    = onReceiptNameSize,
+                    onSeparatorStyle     = onSeparatorStyle,
+                    onFooterPosition     = onFooterPosition,
+                    onReceiptEmail       = onReceiptEmail,
+                    onReceiptWebsite     = onReceiptWebsite,
+                    onReceiptNpwp        = onReceiptNpwp,
+                    onReceiptInstagram   = onReceiptInstagram,
+                    onReceiptFacebook    = onReceiptFacebook,
+                    onReceiptWifiSsid    = onReceiptWifiSsid,
+                    onReceiptWifiPassword = onReceiptWifiPassword
                 )
                 SettingsNav.GENERAL -> GeneralContent(
                     autoPrint        = uiState.autoPrint,
@@ -391,11 +482,13 @@ private fun TabletLayout(
                     onAutoPrintQueue = onAutoPrintQueue
                 )
                 SettingsNav.PREVIEW -> ReceiptPreviewContent(
-                    storeName    = uiState.storeName,
-                    storeAddress = uiState.storeAddress,
-                    storePhone   = uiState.storePhone,
-                    footerText   = uiState.footerText,
-                    paperWidthMm = uiState.paperWidth
+                    storeName       = uiState.storeName,
+                    storeAddress    = uiState.storeAddress,
+                    storePhone      = uiState.storePhone,
+                    footerText      = uiState.footerText,
+                    paperWidthMm    = uiState.paperWidth,
+                    showLogo        = uiState.showLogo,
+                    receiptSettings = uiState.toReceiptSettingsConfig()
                 )
             }
         }
@@ -432,7 +525,20 @@ private fun PhoneLayout(
     onAutoPrint: (Boolean) -> Unit,
     onPaperWidth: (Int) -> Unit,
     onReceiptCopies: (Int) -> Unit,
-    onAutoPrintQueue: (Boolean) -> Unit
+    onAutoPrintQueue: (Boolean) -> Unit,
+    onShowLogo: (Boolean) -> Unit,
+    onReceiptHeader: (String) -> Unit,
+    onReceiptFooter2: (String) -> Unit,
+    onSeparatorStyle: (String) -> Unit,
+    onReceiptNameSize: (String) -> Unit,
+    onFooterPosition: (String) -> Unit,
+    onReceiptEmail: (String) -> Unit,
+    onReceiptWebsite: (String) -> Unit,
+    onReceiptNpwp: (String) -> Unit,
+    onReceiptInstagram: (String) -> Unit,
+    onReceiptFacebook: (String) -> Unit,
+    onReceiptWifiSsid: (String) -> Unit,
+    onReceiptWifiPassword: (String) -> Unit
 ) {
     LazyColumn(
         modifier            = Modifier.fillMaxSize(),
@@ -484,12 +590,38 @@ private fun PhoneLayout(
                 storeAddress         = uiState.storeAddress,
                 storePhone           = uiState.storePhone,
                 footerText           = uiState.footerText,
+                receiptHeader        = uiState.receiptHeader,
+                receiptFooter2       = uiState.receiptFooter2,
                 merchantQrisString   = uiState.merchantQrisString,
+                showLogo             = uiState.showLogo,
+                receiptNameSize      = uiState.receiptNameSize,
+                separatorStyle       = uiState.separatorStyle,
+                footerPosition       = uiState.footerPosition,
+                receiptEmail         = uiState.receiptEmail,
+                receiptWebsite       = uiState.receiptWebsite,
+                receiptNpwp          = uiState.receiptNpwp,
+                receiptInstagram     = uiState.receiptInstagram,
+                receiptFacebook      = uiState.receiptFacebook,
+                receiptWifiSsid      = uiState.receiptWifiSsid,
+                receiptWifiPassword  = uiState.receiptWifiPassword,
                 onStoreName          = onStoreName,
                 onStoreAddress       = onStoreAddress,
                 onStorePhone         = onStorePhone,
                 onFooterText         = onFooterText,
-                onMerchantQrisString = onMerchantQrisString
+                onReceiptHeader      = onReceiptHeader,
+                onReceiptFooter2     = onReceiptFooter2,
+                onMerchantQrisString = onMerchantQrisString,
+                onShowLogo           = onShowLogo,
+                onReceiptNameSize    = onReceiptNameSize,
+                onSeparatorStyle     = onSeparatorStyle,
+                onFooterPosition     = onFooterPosition,
+                onReceiptEmail       = onReceiptEmail,
+                onReceiptWebsite     = onReceiptWebsite,
+                onReceiptNpwp        = onReceiptNpwp,
+                onReceiptInstagram   = onReceiptInstagram,
+                onReceiptFacebook    = onReceiptFacebook,
+                onReceiptWifiSsid    = onReceiptWifiSsid,
+                onReceiptWifiPassword = onReceiptWifiPassword
             )
         }
         item {
@@ -510,11 +642,13 @@ private fun PhoneLayout(
             ContentSectionTitle(Icons.Default.Receipt, "Preview Struk", Color(0xFF0D9373))
             Spacer(Modifier.height(8.dp))
             ReceiptPreviewContent(
-                storeName    = uiState.storeName,
-                storeAddress = uiState.storeAddress,
-                storePhone   = uiState.storePhone,
-                footerText   = uiState.footerText,
-                paperWidthMm = uiState.paperWidth
+                storeName       = uiState.storeName,
+                storeAddress    = uiState.storeAddress,
+                storePhone      = uiState.storePhone,
+                footerText      = uiState.footerText,
+                paperWidthMm    = uiState.paperWidth,
+                showLogo        = uiState.showLogo,
+                receiptSettings = uiState.toReceiptSettingsConfig()
             )
         }
         item { Spacer(Modifier.height(16.dp)) }

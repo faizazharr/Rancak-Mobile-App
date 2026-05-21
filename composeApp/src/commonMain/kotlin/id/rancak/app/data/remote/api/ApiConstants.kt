@@ -46,6 +46,7 @@ object ApiConstants {
     const val SYNC_CATALOG = "/sync/catalog"
     const val SYNC_STATUS = "/sync/status"
     const val DEVICE_CONFIG = "/device-config"
+    const val RECEIPT_SETTINGS = "/receipt-settings"
 
     // Receipt endpoints (return raw ESC/POS bytes)
     fun qrPayment(saleUuid: String)   = "$SALES/$saleUuid/qr-payment"

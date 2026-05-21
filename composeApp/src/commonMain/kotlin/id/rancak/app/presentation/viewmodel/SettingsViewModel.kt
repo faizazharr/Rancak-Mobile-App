@@ -15,7 +15,9 @@ import id.rancak.app.data.printing.ReceiptData
 import id.rancak.app.data.printing.KitchenTicketData
 import id.rancak.app.data.printing.KitchenTicketItem
 import id.rancak.app.domain.model.Resource
+import id.rancak.app.domain.model.ReceiptSettingsConfig
 import id.rancak.app.domain.repository.DeviceConfigRepository
+import id.rancak.app.domain.repository.ReceiptSettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -64,19 +66,73 @@ data class SettingsUiState(
     /** Jumlah salinan struk per transaksi (1–3). */
     val receiptCopies: Int = 1,
     /** Auto-cetak tiket nomor antrian saat pesanan dibuat. */
-    val autoPrintQueue: Boolean = false
+    val autoPrintQueue: Boolean = false,
+    /** Tampilkan logo toko di bagian atas struk. */
+    val showLogo: Boolean = false,
+
+    // ── Receipt API settings (synced from /receipt-settings) ─────────────────
+    /** Teks bebas di bawah identitas toko (tagline, dll.). */
+    val receiptHeader: String = "",
+    /** Baris kedua footer struk (kebijakan retur, promo, dll.). */
+    val receiptFooter2: String = "",
+    /** Gaya pemisah antar seksi: "dashed" | "double" | "none" */
+    val separatorStyle: String = "dashed",
+    /** Jumlah baris pemisah: 1 | 2 */
+    val separatorCount: Int = 1,
+    /** Ukuran font nama toko: "normal" | "large" | "xlarge" */
+    val receiptNameSize: String = "large",
+    /** Posisi logo: "left" | "center" | "right" */
+    val logoPosition: String = "center",
+    /** Lebar logo sebagai % lebar kertas: 60 | 70 | 80 | 100 */
+    val logoSizePct: Int = 80,
+    /** Alignment footer: "left" | "center" | "right" */
+    val footerPosition: String = "center",
+    /** Username Instagram (tanpa @). */
+    val receiptInstagram: String = "",
+    /** URL/username Facebook. */
+    val receiptFacebook: String = "",
+    /** Nama SSID WiFi toko. */
+    val receiptWifiSsid: String = "",
+    /** Password WiFi (hanya ditampilkan jika wifiSsid juga diisi). */
+    val receiptWifiPassword: String = "",
+    /** Email toko — dicetak jika diisi. */
+    val receiptEmail: String = "",
+    /** Website toko — dicetak jika diisi. */
+    val receiptWebsite: String = "",
+    /** NPWP toko — dicetak jika diisi. */
+    val receiptNpwp: String = ""
 ) {
     val hasPrinter: Boolean
         get() = savedPrinterName.isNotBlank() && savedPrinterAddress.isNotBlank()
 
     val hasKitchenPrinter: Boolean
         get() = kitchenPrinterName.isNotBlank() && kitchenPrinterAddress.isNotBlank()
+
+    fun toReceiptSettingsConfig() = ReceiptSettingsConfig(
+        receiptHeader     = receiptHeader.takeIf { it.isNotBlank() },
+        receiptFooter     = footerText.takeIf { it.isNotBlank() },
+        receiptFooter2    = receiptFooter2.takeIf { it.isNotBlank() },
+        separatorStyle    = separatorStyle,
+        separatorCount    = separatorCount,
+        receiptNameSize   = receiptNameSize,
+        logoPosition      = logoPosition,
+        logoSizePct       = logoSizePct,
+        footerPosition    = footerPosition,
+        receiptInstagram  = receiptInstagram.takeIf { it.isNotBlank() },
+        receiptFacebook   = receiptFacebook.takeIf { it.isNotBlank() },
+        receiptWifiSsid   = receiptWifiSsid.takeIf { it.isNotBlank() },
+        receiptWifiPassword = receiptWifiPassword.takeIf { it.isNotBlank() },
+        email             = receiptEmail.takeIf { it.isNotBlank() },
+        website           = receiptWebsite.takeIf { it.isNotBlank() },
+        npwp              = receiptNpwp.takeIf { it.isNotBlank() }
+    )
 }
 
 class SettingsViewModel(
     private val settingsStore: SettingsStore,
     private val printerManager: PrinterManager,
-    private val deviceConfigRepository: DeviceConfigRepository
+    private val deviceConfigRepository: DeviceConfigRepository,
+    private val receiptSettingsRepository: ReceiptSettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -105,11 +161,28 @@ class SettingsViewModel(
             paperWidth = settingsStore.paperWidth,
             receiptCopies = settingsStore.receiptCopies,
             autoPrintQueue = settingsStore.autoPrintQueue,
+            showLogo = settingsStore.receiptShowLogo,
+            receiptHeader       = settingsStore.receiptHeader,
+            receiptFooter2      = settingsStore.receiptFooter2,
+            separatorStyle      = settingsStore.receiptSeparatorStyle,
+            separatorCount      = settingsStore.receiptSeparatorCount,
+            receiptNameSize     = settingsStore.receiptNameSize,
+            logoPosition        = settingsStore.receiptLogoPosition,
+            logoSizePct         = settingsStore.receiptLogoSizePct,
+            footerPosition      = settingsStore.receiptFooterPosition,
+            receiptInstagram    = settingsStore.receiptInstagram,
+            receiptFacebook     = settingsStore.receiptFacebook,
+            receiptWifiSsid     = settingsStore.receiptWifiSsid,
+            receiptWifiPassword = settingsStore.receiptWifiPassword,
+            receiptEmail        = settingsStore.receiptEmail,
+            receiptWebsite      = settingsStore.receiptWebsite,
+            receiptNpwp         = settingsStore.receiptNpwp,
             isBluetoothOn = try { printerManager.isBluetoothEnabled() } catch (_: Exception) { false }
         )
         // Tarik konfigurasi dari server (fire-and-forget) — override nilai lokal
         // kalau server punya nilai berbeda. Aman karena cuma key kecil & deterministik.
         loadAppConfigFromServer()
+        loadReceiptSettings()
     }
 
     /**
@@ -123,7 +196,7 @@ class SettingsViewModel(
                 is Resource.Success -> {
                     val map = result.data.associate { it.key to it.value }
                     map["paper_width_mm"]?.toIntOrNull()?.let { width ->
-                        if (width == 58 || width == 80) {
+                        if (width == 58 || width == 70 || width == 80) {
                             settingsStore.paperWidth = width
                             _uiState.update { it.copy(paperWidth = width) }
                         }
@@ -155,6 +228,89 @@ class SettingsViewModel(
             // Hasil sengaja diabaikan: bila gagal (offline / 4xx) tetap simpan
             // lokal supaya UX tidak ketahan.
             deviceConfigRepository.upsertAppConfig(key, value)
+        }
+    }
+
+    /**
+     * Tarik konfigurasi `/receipt-settings` dari server. Field relevan
+     * di-sync ke state lokal supaya seragam antar perangkat.
+     */
+    private fun loadReceiptSettings() {
+        viewModelScope.launch {
+            when (val result = receiptSettingsRepository.getReceiptSettings()) {
+                is Resource.Success -> {
+                    val s = result.data
+                    // Simpan ke local cache
+                    s.receiptFooter?.let { settingsStore.receiptFooter = it }
+                    s.receiptHeader?.let { settingsStore.receiptHeader = it } ?: run { settingsStore.receiptHeader = "" }
+                    s.receiptFooter2?.let { settingsStore.receiptFooter2 = it } ?: run { settingsStore.receiptFooter2 = "" }
+                    settingsStore.receiptSeparatorStyle = s.separatorStyle
+                    settingsStore.receiptSeparatorCount = s.separatorCount
+                    settingsStore.receiptNameSize = s.receiptNameSize
+                    settingsStore.receiptLogoPosition = s.logoPosition
+                    settingsStore.receiptLogoSizePct = s.logoSizePct
+                    settingsStore.receiptFooterPosition = s.footerPosition
+                    s.receiptInstagram?.let { settingsStore.receiptInstagram = it } ?: run { settingsStore.receiptInstagram = "" }
+                    s.receiptFacebook?.let { settingsStore.receiptFacebook = it } ?: run { settingsStore.receiptFacebook = "" }
+                    s.receiptWifiSsid?.let { settingsStore.receiptWifiSsid = it } ?: run { settingsStore.receiptWifiSsid = "" }
+                    s.receiptWifiPassword?.let { settingsStore.receiptWifiPassword = it } ?: run { settingsStore.receiptWifiPassword = "" }
+                    s.email?.let { settingsStore.receiptEmail = it } ?: run { settingsStore.receiptEmail = "" }
+                    s.website?.let { settingsStore.receiptWebsite = it } ?: run { settingsStore.receiptWebsite = "" }
+                    s.npwp?.let { settingsStore.receiptNpwp = it } ?: run { settingsStore.receiptNpwp = "" }
+                    // Update UI state
+                    _uiState.update { st ->
+                        st.copy(
+                            footerText          = s.receiptFooter ?: st.footerText,
+                            receiptHeader       = s.receiptHeader ?: "",
+                            receiptFooter2      = s.receiptFooter2 ?: "",
+                            separatorStyle      = s.separatorStyle,
+                            separatorCount      = s.separatorCount,
+                            receiptNameSize     = s.receiptNameSize,
+                            logoPosition        = s.logoPosition,
+                            logoSizePct         = s.logoSizePct,
+                            footerPosition      = s.footerPosition,
+                            receiptInstagram    = s.receiptInstagram ?: "",
+                            receiptFacebook     = s.receiptFacebook ?: "",
+                            receiptWifiSsid     = s.receiptWifiSsid ?: "",
+                            receiptWifiPassword = s.receiptWifiPassword ?: "",
+                            receiptEmail        = s.email ?: "",
+                            receiptWebsite      = s.website ?: "",
+                            receiptNpwp         = s.npwp ?: ""
+                        )
+                    }
+                }
+                else -> Unit // diam — fallback ke nilai lokal
+            }
+        }
+    }
+
+    /**
+     * Buat [ReceiptSettingsConfig] dari state saat ini dan push ke server
+     * (fire-and-forget — UX tidak diblokir).
+     */
+    private fun pushReceiptSettings() {
+        viewModelScope.launch {
+            val st = _uiState.value
+            receiptSettingsRepository.updateReceiptSettings(
+                id.rancak.app.domain.model.ReceiptSettingsConfig(
+                    receiptFooter     = st.footerText.ifBlank { null },
+                    receiptHeader     = st.receiptHeader.ifBlank { null },
+                    receiptFooter2    = st.receiptFooter2.ifBlank { null },
+                    separatorStyle    = st.separatorStyle,
+                    separatorCount    = st.separatorCount,
+                    receiptNameSize   = st.receiptNameSize,
+                    logoPosition      = st.logoPosition,
+                    logoSizePct       = st.logoSizePct,
+                    footerPosition    = st.footerPosition,
+                    receiptInstagram  = st.receiptInstagram.ifBlank { null },
+                    receiptFacebook   = st.receiptFacebook.ifBlank { null },
+                    receiptWifiSsid   = st.receiptWifiSsid.ifBlank { null },
+                    receiptWifiPassword = st.receiptWifiPassword.ifBlank { null },
+                    email             = st.receiptEmail.ifBlank { null },
+                    website           = st.receiptWebsite.ifBlank { null },
+                    npwp              = st.receiptNpwp.ifBlank { null }
+                )
+            )
         }
     }
 
@@ -472,6 +628,7 @@ class SettingsViewModel(
     fun setFooterText(value: String) {
         settingsStore.receiptFooter = value
         _uiState.update { it.copy(footerText = value) }
+        pushReceiptSettings()
     }
 
     fun setMerchantQrisString(value: String) {
@@ -504,6 +661,103 @@ class SettingsViewModel(
         settingsStore.autoPrintQueue = enabled
         _uiState.update { it.copy(autoPrintQueue = enabled) }
         pushAppConfig("auto_print_queue", if (enabled) "true" else "false")
+    }
+
+    fun setShowLogo(enabled: Boolean) {
+        settingsStore.receiptShowLogo = enabled
+        _uiState.update { it.copy(showLogo = enabled) }
+    }
+
+    // ── Receipt API settings ─────────────────────────────────────────────────
+
+    fun setReceiptHeader(value: String) {
+        settingsStore.receiptHeader = value
+        _uiState.update { it.copy(receiptHeader = value) }
+        pushReceiptSettings()
+    }
+
+    fun setReceiptFooter2(value: String) {
+        settingsStore.receiptFooter2 = value
+        _uiState.update { it.copy(receiptFooter2 = value) }
+        pushReceiptSettings()
+    }
+
+    fun setSeparatorStyle(value: String) {
+        settingsStore.receiptSeparatorStyle = value
+        _uiState.update { it.copy(separatorStyle = value) }
+        pushReceiptSettings()
+    }
+
+    fun setSeparatorCount(value: Int) {
+        settingsStore.receiptSeparatorCount = value
+        _uiState.update { it.copy(separatorCount = value) }
+        pushReceiptSettings()
+    }
+
+    fun setReceiptNameSize(value: String) {
+        settingsStore.receiptNameSize = value
+        _uiState.update { it.copy(receiptNameSize = value) }
+        pushReceiptSettings()
+    }
+
+    fun setLogoPosition(value: String) {
+        settingsStore.receiptLogoPosition = value
+        _uiState.update { it.copy(logoPosition = value) }
+        pushReceiptSettings()
+    }
+
+    fun setLogoSizePct(value: Int) {
+        settingsStore.receiptLogoSizePct = value
+        _uiState.update { it.copy(logoSizePct = value) }
+        pushReceiptSettings()
+    }
+
+    fun setFooterPosition(value: String) {
+        settingsStore.receiptFooterPosition = value
+        _uiState.update { it.copy(footerPosition = value) }
+        pushReceiptSettings()
+    }
+
+    fun setReceiptInstagram(value: String) {
+        settingsStore.receiptInstagram = value
+        _uiState.update { it.copy(receiptInstagram = value) }
+        pushReceiptSettings()
+    }
+
+    fun setReceiptFacebook(value: String) {
+        settingsStore.receiptFacebook = value
+        _uiState.update { it.copy(receiptFacebook = value) }
+        pushReceiptSettings()
+    }
+
+    fun setReceiptWifiSsid(value: String) {
+        settingsStore.receiptWifiSsid = value
+        _uiState.update { it.copy(receiptWifiSsid = value) }
+        pushReceiptSettings()
+    }
+
+    fun setReceiptWifiPassword(value: String) {
+        settingsStore.receiptWifiPassword = value
+        _uiState.update { it.copy(receiptWifiPassword = value) }
+        pushReceiptSettings()
+    }
+
+    fun setReceiptEmail(value: String) {
+        settingsStore.receiptEmail = value
+        _uiState.update { it.copy(receiptEmail = value) }
+        pushReceiptSettings()
+    }
+
+    fun setReceiptWebsite(value: String) {
+        settingsStore.receiptWebsite = value
+        _uiState.update { it.copy(receiptWebsite = value) }
+        pushReceiptSettings()
+    }
+
+    fun setReceiptNpwp(value: String) {
+        settingsStore.receiptNpwp = value
+        _uiState.update { it.copy(receiptNpwp = value) }
+        pushReceiptSettings()
     }
 
     fun clearMessage() {

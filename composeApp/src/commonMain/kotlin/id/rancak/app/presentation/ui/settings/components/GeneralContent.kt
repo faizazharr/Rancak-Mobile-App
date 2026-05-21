@@ -94,6 +94,12 @@ internal fun GeneralContent(
                 modifier = Modifier.weight(1f)
             )
             PrimaryFilterChip(
+                selected = paperWidth == 70,
+                onClick  = { onPaperWidth(70) },
+                label    = { Text("70 mm", style = MaterialTheme.typography.labelMedium) },
+                modifier = Modifier.weight(1f)
+            )
+            PrimaryFilterChip(
                 selected = paperWidth == 80,
                 onClick  = { onPaperWidth(80) },
                 label    = { Text("80 mm", style = MaterialTheme.typography.labelMedium) },

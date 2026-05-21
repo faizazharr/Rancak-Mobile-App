@@ -151,7 +151,7 @@ fun RancakNavHost() {
                     DrawerItem("Stok Opname",   Icons.Default.Inventory,     Screen.StockOpname),
                     DrawerItem("Voucher",        Icons.Default.LocalOffer,    Screen.VoucherManagement),
                     DrawerItem("Harga & Diskon", Icons.Default.Percent,       Screen.PricingManagement),
-                    DrawerItem("Modifier",        Icons.Default.Tune,          Screen.ModifierManagement),
+                    DrawerItem("Add-ons",        Icons.Default.Tune,          Screen.ModifierManagement),
                     DrawerItem("Supplier",        Icons.Default.LocalShipping, Screen.SupplierManagement),
                     DrawerItem("Purchase Order",  Icons.Default.ShoppingCart,  Screen.PurchaseOrders),
                     DrawerItem("Billing",        Icons.Default.CreditCard,    Screen.Billing()),  // fromSetup = false (drawer)

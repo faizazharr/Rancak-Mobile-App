@@ -6,6 +6,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.TrendingDown
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -19,12 +21,13 @@ import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.ui.finance.components.CashInList
 import id.rancak.app.presentation.ui.finance.components.CashInItemCard
-import id.rancak.app.presentation.ui.finance.components.CashInForm
+import id.rancak.app.presentation.ui.finance.components.CashInFormDialog
 import id.rancak.app.presentation.ui.finance.components.ExpenseList
 import id.rancak.app.presentation.ui.finance.components.ExpenseItemCard
-import id.rancak.app.presentation.ui.finance.components.ExpenseForm
+import id.rancak.app.presentation.ui.finance.components.ExpenseFormDialog
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseUiState
@@ -85,6 +88,9 @@ fun CashExpenseScreenContent(
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
+    CashInFormDialog(uiState, actions)
+    ExpenseFormDialog(uiState, actions)
+
     Scaffold(
         topBar = {
             RancakTopBar(
@@ -112,9 +118,92 @@ fun CashExpenseScreenContent(
             when {
                 uiState.isLoading -> LoadingScreen()
                 uiState.error != null -> ErrorScreen(uiState.error, onRetry = actions.onRetry)
-                isTablet -> TabletCashLayout(uiState, actions)
-                else -> PhoneCashLayout(uiState, selectedTab, { selectedTab = it }, actions)
+                isTablet -> Column(Modifier.fillMaxSize()) {
+                    FinanceSummaryRow(uiState.cashIns, uiState.expenses)
+                    HorizontalDivider()
+                    TabletCashLayout(uiState, actions, modifier = Modifier.weight(1f))
+                }
+                else -> Column(Modifier.fillMaxSize()) {
+                    FinanceSummaryRow(uiState.cashIns, uiState.expenses)
+                    PhoneCashLayout(uiState, selectedTab, { selectedTab = it }, actions)
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun FinanceSummaryRow(
+    cashIns: List<CashIn>,
+    expenses: List<Expense>
+) {
+    val semantic = RancakColors.semantic
+    val totalIn = cashIns.sumOf { it.amount }
+    val totalOut = expenses.sumOf { it.amount }
+    val balance = totalIn - totalOut
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        SummaryChip(
+            label = "Kas Masuk",
+            amount = totalIn,
+            icon = Icons.Default.TrendingUp,
+            iconTint = semantic.success,
+            amountColor = semantic.success,
+            modifier = Modifier.weight(1f)
+        )
+        SummaryChip(
+            label = "Pengeluaran",
+            amount = totalOut,
+            icon = Icons.Default.TrendingDown,
+            iconTint = MaterialTheme.colorScheme.error,
+            amountColor = MaterialTheme.colorScheme.error,
+            modifier = Modifier.weight(1f)
+        )
+        SummaryChip(
+            label = "Saldo",
+            amount = balance,
+            icon = Icons.Default.AccountBalance,
+            iconTint = if (balance >= 0) semantic.success else MaterialTheme.colorScheme.error,
+            amountColor = if (balance >= 0) semantic.success else MaterialTheme.colorScheme.error,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun SummaryChip(
+    label: String,
+    amount: Long,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: androidx.compose.ui.graphics.Color,
+    amountColor: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(14.dp))
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text(
+                text = formatRupiah(amount),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = amountColor
+            )
         }
     }
 }
@@ -122,9 +211,10 @@ fun CashExpenseScreenContent(
 @Composable
 private fun TabletCashLayout(
     uiState: CashExpenseUiState,
-    actions: CashExpenseActions
+    actions: CashExpenseActions,
+    modifier: Modifier = Modifier
 ) {
-    Row(Modifier.fillMaxSize()) {
+    Row(modifier.fillMaxWidth()) {
         // Kiri — Kas Masuk
         Column(
             modifier = Modifier
@@ -150,7 +240,6 @@ private fun TabletCashLayout(
                     Text("Tambah")
                 }
             }
-            if (uiState.showCashInForm) CashInForm(uiState, actions)
             if (uiState.cashIns.isEmpty()) {
                 EmptyScreen("Belum ada kas masuk")
             } else {
@@ -187,7 +276,6 @@ private fun TabletCashLayout(
                     Text("Tambah")
                 }
             }
-            if (uiState.showExpenseForm) ExpenseForm(uiState, actions)
             if (uiState.expenses.isEmpty()) {
                 EmptyScreen("Belum ada pengeluaran")
             } else {
@@ -212,10 +300,8 @@ private fun PhoneCashLayout(
             Tab(selected = selectedTab == 1, onClick = { onTabChange(1) }, text = { Text("Pengeluaran") })
         }
         if (selectedTab == 0) {
-            if (uiState.showCashInForm) CashInForm(uiState, actions)
             CashInList(uiState.cashIns.toImmutableList(), onDelete = actions.onDeleteCashIn)
         } else {
-            if (uiState.showExpenseForm) ExpenseForm(uiState, actions)
             ExpenseList(uiState.expenses.toImmutableList(), onDelete = actions.onDeleteExpense)
         }
     }

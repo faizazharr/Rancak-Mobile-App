@@ -32,7 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -159,8 +159,8 @@ fun ModifierManagementContent(
     if (uiState.showDeleteDialog) {
         AlertDialog(
             onDismissRequest = onCloseDelete,
-            title  = { Text("Hapus Modifier") },
-            text   = { Text("Yakin ingin menghapus modifier \"${uiState.selectedModifier?.name}\"?") },
+            title  = { Text("Hapus Add-ons") },
+            text   = { Text("Yakin ingin menghapus add-ons \"${uiState.selectedModifier?.name}\"?") },
             confirmButton = {
                 TextButton(onClick = onConfirmDelete) {
                     Text("Hapus", color = MaterialTheme.colorScheme.error)
@@ -191,7 +191,7 @@ fun ModifierManagementContent(
         Scaffold(
             topBar = {
                 RancakTopBar(
-                    title    = "Modifier",
+                    title    = "Add-ons",
                     icon     = Icons.Default.Tune,
                     subtitle = "${uiState.modifiers.size} global · ${uiState.productModifiers.size} per-produk",
                     onMenu   = onBack
@@ -201,7 +201,7 @@ fun ModifierManagementContent(
                 // FAB hanya di phone — tablet pakai inline button di panel kanan
                 if (!isTablet && canAdd) {
                     FloatingActionButton(onClick = onAddModifier) {
-                        Icon(Icons.Default.Add, contentDescription = "Tambah modifier")
+                        Icon(Icons.Default.Add, contentDescription = "Tambah add-ons")
                     }
                 }
             },
@@ -279,23 +279,47 @@ private fun TabletLayout(
                     onDelete        = onDeleteModifier,
                     emptyText       = if (uiState.activeTab == ModifierTab.PER_PRODUCT && uiState.selectedProduct == null)
                                           "Pilih produk terlebih dahulu"
-                                      else "Belum ada modifier",
+                                      else "Belum ada add-ons",
                     modifier        = Modifier.weight(1f)
                 )
             }
-            HorizontalDivider(modifier = Modifier
-            .fillMaxHeight()
-            .padding(0.dp)
-            .run { this })
-        // Panel kanan: tombol tambah (tablet — no FAB)
+            VerticalDivider(modifier = Modifier.fillMaxHeight())
+        // Panel kanan: ringkasan + tombol tambah (tablet — no FAB)
         Column(
-            modifier            = Modifier.weight(0.42f).fillMaxHeight().padding(16.dp),
-            verticalArrangement = Arrangement.Top,
+            modifier            = Modifier.weight(0.42f).fillMaxHeight().padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Ringkasan
+            Card(
+                modifier = Modifier.widthIn(max = 320.dp).fillMaxWidth(),
+                colors   = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Ringkasan Add-ons",
+                        style      = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Global", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("${uiState.modifiers.size} modifier", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                    }
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Per Produk", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("${uiState.productModifiers.size} modifier", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
             if (canAdd) {
                 RancakButton(
-                    text     = "Tambah Modifier",
+                    text     = "Tambah Add-ons",
                     onClick  = onAddModifier,
                     modifier = Modifier.widthIn(max = 320.dp).fillMaxWidth()
                 )
@@ -336,7 +360,7 @@ private fun PhoneLayout(
             onDelete   = onDeleteModifier,
             emptyText  = if (uiState.activeTab == ModifierTab.PER_PRODUCT && uiState.selectedProduct == null)
                              "Pilih produk terlebih dahulu"
-                         else "Belum ada modifier",
+                         else "Belum ada add-ons",
             modifier   = Modifier.weight(1f)
         )
     }
@@ -492,8 +516,8 @@ private fun ModifierFormDialog(
 ) {
     RancakFormDialog(
         icon             = Icons.Default.Tune,
-        title            = if (uiState.selectedModifier == null) "Tambah Modifier" else "Edit Modifier",
-        subtitle         = if (uiState.selectedModifier == null) "Buat modifier pilihan baru" else "Perbarui informasi modifier",
+        title            = if (uiState.selectedModifier == null) "Tambah Add-ons" else "Edit Add-ons",
+        subtitle         = if (uiState.selectedModifier == null) "Buat add-ons pilihan baru" else "Perbarui informasi add-ons",
         onDismissRequest = onDismiss,
         confirmLabel     = "Simpan",
         onConfirm        = onSave,
@@ -503,7 +527,7 @@ private fun ModifierFormDialog(
         RancakTextField(
             value         = uiState.formName,
             onValueChange = onNameChange,
-            label         = "Nama Modifier",
+            label         = "Nama Add-ons",
             placeholder   = "Contoh: Pedas, Tanpa Bawang, Tambah Es"
         )
         RancakTextField(
