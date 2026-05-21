@@ -87,6 +87,9 @@ internal fun BundleManagementContent(
     onDismissDelete: () -> Unit = {},
     onConfirmDelete: () -> Unit = {}
 ) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val isTablet = maxWidth >= 600.dp
+
     Scaffold(
         topBar = {
             RancakTopBar(
@@ -97,8 +100,11 @@ internal fun BundleManagementContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddBundle) {
-                Icon(Icons.Default.Add, "Tambah Bundle")
+            // FAB hanya di phone — tablet pakai inline button di header
+            if (!isTablet) {
+                FloatingActionButton(onClick = onAddBundle) {
+                    Icon(Icons.Default.Add, "Tambah Bundle")
+                }
             }
         }
     ) { padding ->
@@ -109,21 +115,43 @@ internal fun BundleManagementContent(
                 modifier  = Modifier.fillMaxWidth().align(Alignment.TopCenter).zIndex(10f)
             )
 
-            when {
-                uiState.isLoading -> LoadingScreen()
-                uiState.error != null && uiState.bundles.isEmpty() -> ErrorScreen(
-                    uiState.error, onRetry = onRetry
-                )
-                uiState.bundles.isEmpty() -> EmptyScreen(
-                    "Belum ada bundle. Tambahkan paket produk baru.",
-                    modifier = Modifier.fillMaxSize()
-                )
-                else -> BundleList(
-                    bundles        = uiState.bundles,
-                    onEdit         = onEditBundle,
-                    onDelete       = onDeleteBundle,
-                    onToggleActive = onToggleActive
-                )
+            Column(Modifier.fillMaxSize()) {
+                // Tablet: inline header row dengan tombol tambah
+                if (isTablet) {
+                    Row(
+                        modifier              = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "${uiState.bundles.size} bundle",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        FilledTonalButton(onClick = onAddBundle) {
+                            Icon(Icons.Default.Add, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Tambah Bundle")
+                        }
+                    }
+                }
+
+                when {
+                    uiState.isLoading -> LoadingScreen()
+                    uiState.error != null && uiState.bundles.isEmpty() -> ErrorScreen(
+                        uiState.error, onRetry = onRetry
+                    )
+                    uiState.bundles.isEmpty() -> EmptyScreen(
+                        "Belum ada bundle. Tambahkan paket produk baru.",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    else -> BundleList(
+                        bundles        = uiState.bundles,
+                        onEdit         = onEditBundle,
+                        onDelete       = onDeleteBundle,
+                        onToggleActive = onToggleActive
+                    )
+                }
             }
         }
 
@@ -155,7 +183,8 @@ internal fun BundleManagementContent(
                 dismissButton = { TextButton(onClick = onDismissDelete) { Text("Batal") } }
             )
         }
-    }
+    } // end Scaffold
+    } // end BoxWithConstraints
 }
 
 @Composable
