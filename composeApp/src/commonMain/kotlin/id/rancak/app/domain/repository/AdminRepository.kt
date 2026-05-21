@@ -8,7 +8,7 @@ import id.rancak.app.domain.model.DiscountRule
 import id.rancak.app.domain.model.Modifier
 import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.ProductBatch
-import id.rancak.app.domain.model.ReceiptSettings
+import id.rancak.app.domain.model.ReceiptSettingsConfig
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Surcharge
 import id.rancak.app.domain.model.Table
@@ -245,7 +245,7 @@ interface AdminRepository {
     suspend fun deleteCategory(categoryId: String): Resource<Unit>
 
     // ── Receipt settings ───────────────────────────────────────────────────────
-    suspend fun updateReceiptSettings(update: ReceiptSettingsUpdate): Resource<ReceiptSettings>
+    suspend fun updateReceiptSettings(update: ReceiptSettingsUpdate): Resource<ReceiptSettingsConfig>
 }
 
 // ── Support types ──────────────────────────────────────────────────────────────
@@ -320,5 +320,7 @@ data class ReceiptSettingsUpdate(
     val separatorCount: Int? = null,
     val footerPosition: String? = null,
     val receiptInstagram: String? = null,
-    val receiptFacebook: String? = null
+    val receiptFacebook: String? = null,
+    val receiptWifiSsid: String? = null,
+    val receiptWifiPassword: String? = null,
 )

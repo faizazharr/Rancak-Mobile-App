@@ -119,16 +119,20 @@ internal fun isNetworkError(e: Exception): Boolean {
            tokens.contains("CertPathValidatorException", ignoreCase = true)
 }
 
+/** Pesan error standar untuk status HTTP 402 — langganan berakhir. */
+internal const val ERROR_SUBSCRIPTION_EXPIRED =
+    "Langganan Anda telah berakhir. Perbarui paket untuk melanjutkan."
+
 internal suspend fun <T, R> safe(
     block: suspend () -> ApiResponse<T>,
     map: (T) -> R,
     errorMsg: String
 ): Resource<R> = try {
     val response = block()
-    if (response.isSuccess && response.data != null) {
-        Resource.Success(map(response.data))
-    } else {
-        Resource.Error(response.message ?: errorMsg)
+    when {
+        response.statusCode == 402 -> Resource.Error(ERROR_SUBSCRIPTION_EXPIRED)
+        response.isSuccess && response.data != null -> Resource.Success(map(response.data))
+        else -> Resource.Error(response.message ?: errorMsg)
     }
 } catch (e: Exception) {
     Resource.Error(e.toNetworkMessage())
@@ -140,11 +144,10 @@ internal suspend fun <T, R> safeList(
     map: (T) -> R
 ): Resource<List<R>> = try {
     val response = block()
-    if (response.isSuccess) {
-        // Backend kadang mengembalikan null (bukan []) untuk list kosong — perlakukan sebagai empty list
-        Resource.Success(response.data?.map(map) ?: emptyList())
-    } else {
-        Resource.Error(response.message ?: errorMsg)
+    when {
+        response.statusCode == 402 -> Resource.Error(ERROR_SUBSCRIPTION_EXPIRED)
+        response.isSuccess -> Resource.Success(response.data?.map(map) ?: emptyList())
+        else -> Resource.Error(response.message ?: errorMsg)
     }
 } catch (e: Exception) {
     Resource.Error(e.toNetworkMessage())
@@ -155,8 +158,11 @@ internal suspend fun safeUnit(
     errorMsg: String
 ): Resource<Unit> = try {
     val response = block()
-    if (response.isSuccess) Resource.Success(Unit)
-    else Resource.Error(response.message ?: errorMsg)
+    when {
+        response.statusCode == 402 -> Resource.Error(ERROR_SUBSCRIPTION_EXPIRED)
+        response.isSuccess -> Resource.Success(Unit)
+        else -> Resource.Error(response.message ?: errorMsg)
+    }
 } catch (e: Exception) {
     Resource.Error(e.toNetworkMessage())
 }

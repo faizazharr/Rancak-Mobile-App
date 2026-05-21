@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.MarkEmailRead
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -73,6 +76,7 @@ fun ReportScreen(
             }
         }
         viewModel.loadCashierShifts()
+        viewModel.loadStockAlerts()
     }
 
     ReportScreenContent(
@@ -87,8 +91,11 @@ fun ReportScreen(
                 }
             }
         },
-        onRetry              = viewModel::loadReport,
-        onLoadCashierShifts  = viewModel::loadCashierShifts
+        onRetry             = viewModel::loadReport,
+        onLoadCashierShifts = viewModel::loadCashierShifts,
+        onLoadStockAlerts   = viewModel::loadStockAlerts,
+        onMarkAlertRead     = viewModel::markAlertRead,
+        onMarkAllAlertsRead = viewModel::markAllAlertsRead
     )
 }
 
@@ -96,7 +103,7 @@ fun ReportScreen(
 // Pure UI body — responsive layout tablet/phone untuk kartu-kartu laporan.
 // ─────────────────────────────────────────────────────────────────────────────
 
-private val reportTabs = listOf("Ringkasan", "Per Kasir")
+private val reportTabs = listOf("Ringkasan", "Per Kasir", "Stok")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,7 +113,10 @@ internal fun ReportScreenContent(
     onBack: () -> Unit = {},
     onPeriodSelect: (ReportPeriod) -> Unit = {},
     onRetry: () -> Unit = {},
-    onLoadCashierShifts: (String?) -> Unit = {}
+    onLoadCashierShifts: (String?) -> Unit = {},
+    onLoadStockAlerts: () -> Unit = {},
+    onMarkAlertRead: (String) -> Unit = {},
+    onMarkAllAlertsRead: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -141,6 +151,7 @@ internal fun ReportScreenContent(
                         onClick  = {
                             selectedTab = index
                             if (index == 1) onLoadCashierShifts(null)
+                            if (index == 2) onLoadStockAlerts()
                         },
                         text = { Text(title) }
                     )
@@ -154,7 +165,14 @@ internal fun ReportScreenContent(
                 selectedTab == 0 && error != null     -> ErrorScreen(error, onRetry = onRetry, modifier = Modifier.weight(1f))
                 selectedTab == 0                      -> ReportBody(uiState = uiState, modifier = Modifier.weight(1f))
                 selectedTab == 1 && uiState.isCashierShiftsLoading -> LoadingScreen(Modifier.weight(1f))
-                else                                  -> CashierShiftsBody(uiState = uiState, modifier = Modifier.weight(1f))
+                selectedTab == 1                      -> CashierShiftsBody(uiState = uiState, modifier = Modifier.weight(1f))
+                selectedTab == 2 && uiState.isStockLoading -> LoadingScreen(Modifier.weight(1f))
+                else                                  -> StockAlertsBody(
+                    uiState             = uiState,
+                    onMarkRead          = onMarkAlertRead,
+                    onMarkAllRead       = onMarkAllAlertsRead,
+                    modifier            = Modifier.weight(1f)
+                )
             }
         }
     }
@@ -301,8 +319,166 @@ private fun CashierShiftsBody(uiState: ReportUiState, modifier: Modifier = Modif
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Preview — full screen: Scaffold + TopBar + PeriodSelector + body.
+// Tab: Stok — peringatan stok rendah + batch kedaluwarsa
 // ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun StockAlertsBody(
+    uiState: ReportUiState,
+    onMarkRead: (String) -> Unit,
+    onMarkAllRead: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val hasContent = uiState.stockAlerts.isNotEmpty() ||
+                     uiState.lowStockItems.isNotEmpty() ||
+                     uiState.expiringBatches.isNotEmpty()
+    if (!hasContent) {
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                "Tidak ada peringatan stok saat ini",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        return
+    }
+
+    LazyColumn(
+        modifier            = modifier.fillMaxSize(),
+        contentPadding      = PaddingValues(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // ── Unread alerts ─────────────────────────────────────────────────────
+        if (uiState.stockAlerts.isNotEmpty()) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Peringatan Stok (${uiState.stockAlerts.size})",
+                        style      = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    androidx.compose.material3.TextButton(onClick = onMarkAllRead) {
+                        Text("Tandai semua dibaca", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+            items(uiState.stockAlerts) { alert ->
+                androidx.compose.material3.Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape    = MaterialTheme.shapes.medium
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                alert.productName,
+                                style      = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                "Stok: ${alert.currentStock.toInt()} | Tipe: ${alert.alertType}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        androidx.compose.material3.IconButton(
+                            onClick = { onMarkRead(alert.productUuid) }
+                        ) {
+                            Icon(
+                                Icons.Default.MarkEmailRead,
+                                contentDescription = "Tandai dibaca",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Low stock items ────────────────────────────────────────────────────
+        if (uiState.lowStockItems.isNotEmpty()) {
+            item {
+                Text(
+                    "Stok Rendah (${uiState.lowStockItems.size})",
+                    style      = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier   = Modifier.padding(top = 8.dp)
+                )
+            }
+            items(uiState.lowStockItems) { item ->
+                androidx.compose.material3.Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape    = MaterialTheme.shapes.medium
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                item.productName,
+                                style      = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                "Stok: ${item.currentStock.toInt()} | Min: ${item.threshold.toInt()}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Expiring batches ───────────────────────────────────────────────────
+        if (uiState.expiringBatches.isNotEmpty()) {
+            item {
+                Text(
+                    "Mendekati Kedaluwarsa (${uiState.expiringBatches.size})",
+                    style      = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier   = Modifier.padding(top = 8.dp)
+                )
+            }
+            items(uiState.expiringBatches) { batch ->
+                val daysText = when (batch.daysUntilExpiry) {
+                    0    -> "Hari ini"
+                    1    -> "Besok"
+                    else -> "${batch.daysUntilExpiry} hari lagi"
+                }
+                androidx.compose.material3.Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape    = MaterialTheme.shapes.medium
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            batch.productName,
+                            style      = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            "Kedaluwarsa: ${batch.expiryDate} ($daysText) | Qty: ${batch.quantityRemaining.toInt()}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (batch.daysUntilExpiry <= 7) MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 
 private val previewSummary = ShiftSummary(
     uuid              = "shift-preview",

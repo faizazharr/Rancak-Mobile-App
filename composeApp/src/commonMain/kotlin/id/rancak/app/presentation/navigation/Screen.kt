@@ -31,4 +31,5 @@ sealed class Screen {
     @Serializable data object ModifierManagement : Screen()
     @Serializable data object SupplierManagement : Screen()
     @Serializable data object PurchaseOrders : Screen()
+    @Serializable data object ForgotPassword : Screen()
 }

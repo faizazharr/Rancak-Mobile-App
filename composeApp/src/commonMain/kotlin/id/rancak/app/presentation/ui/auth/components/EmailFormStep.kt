@@ -55,7 +55,8 @@ internal fun EmailFormStep(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onLogin: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onForgotPassword: () -> Unit = {}
 ) {
     // Validasi — hanya tampilkan error setelah user mulai mengetik
     val emailError = when {
@@ -145,7 +146,7 @@ internal fun EmailFormStep(
         Spacer(Modifier.height(6.dp))
 
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            TextButton(onClick = { /* forgot password */ }) {
+            TextButton(onClick = onForgotPassword) {
                 Text(
                     "Lupa Password?",
                     style = MaterialTheme.typography.bodySmall,

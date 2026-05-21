@@ -87,7 +87,7 @@ import id.rancak.app.domain.model.DiscountRule
 import id.rancak.app.domain.model.Modifier
 import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.ProductBatch
-import id.rancak.app.domain.model.ReceiptSettings
+import id.rancak.app.domain.model.ReceiptSettingsConfig
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Surcharge
 import id.rancak.app.domain.model.Table
@@ -480,8 +480,8 @@ class AdminRepositoryImpl(
 
     // ── Receipt settings ───────────────────────────────────────────────────────
 
-    override suspend fun updateReceiptSettings(update: ReceiptSettingsUpdate): Resource<ReceiptSettings> = safe(
-        block = { api.updateReceiptSettings(tenantUuid, UpdateReceiptSettingsRequest(update.logoUrl, update.email, update.website, update.npwp, update.receiptHeader, update.receiptFooter, update.receiptFooter2, update.logoPosition, update.logoSizePct, update.receiptNameSize, update.separatorStyle, update.separatorCount, update.footerPosition, update.receiptInstagram, update.receiptFacebook)) },
+    override suspend fun updateReceiptSettings(update: ReceiptSettingsUpdate): Resource<ReceiptSettingsConfig> = safe(
+        block = { api.updateReceiptSettings(tenantUuid, UpdateReceiptSettingsRequest(update.logoUrl, update.email, update.website, update.npwp, update.receiptHeader, update.receiptFooter, update.receiptFooter2, update.logoPosition, update.logoSizePct, update.receiptNameSize, update.separatorStyle, update.separatorCount, update.footerPosition, update.receiptInstagram, update.receiptFacebook, update.receiptWifiSsid, update.receiptWifiPassword)) },
         map = { it.toDomain() },
         errorMsg = "Gagal mengupdate pengaturan struk"
     )

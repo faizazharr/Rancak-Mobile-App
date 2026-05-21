@@ -46,7 +46,8 @@ internal fun PhoneLoginLayout(
     onGoogleToken: (String) -> Unit,
     onGoogleError: (String) -> Unit,
     onShowEmailForm: () -> Unit,
-    onBackToOptions: () -> Unit
+    onBackToOptions: () -> Unit,
+    onForgotPassword: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -118,7 +119,8 @@ internal fun PhoneLoginLayout(
             onGoogleToken    = onGoogleToken,
             onGoogleError    = onGoogleError,
             onShowEmailForm  = onShowEmailForm,
-            onBackToOptions  = onBackToOptions
+            onBackToOptions  = onBackToOptions,
+            onForgotPassword = onForgotPassword
         )
     }
 }

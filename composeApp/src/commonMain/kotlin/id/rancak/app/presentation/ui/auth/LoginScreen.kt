@@ -31,7 +31,8 @@ import org.koin.compose.viewmodel.koinViewModel
  */
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onForgotPassword: () -> Unit = {}
 ) {
     val viewModel: LoginViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -84,7 +85,8 @@ fun LoginScreen(
                 onGoogleToken    = viewModel::loginWithGoogle,
                 onGoogleError    = viewModel::setError,
                 onShowEmailForm  = { showEmailForm = true },
-                onBackToOptions  = { showEmailForm = false }
+                onBackToOptions  = { showEmailForm = false },
+                onForgotPassword = onForgotPassword
             )
         } else {
             PhoneLoginLayout(
@@ -98,7 +100,8 @@ fun LoginScreen(
                 onGoogleToken    = viewModel::loginWithGoogle,
                 onGoogleError    = viewModel::setError,
                 onShowEmailForm  = { showEmailForm = true },
-                onBackToOptions  = { showEmailForm = false }
+                onBackToOptions  = { showEmailForm = false },
+                onForgotPassword = onForgotPassword
             )
         }
     }

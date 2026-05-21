@@ -181,6 +181,7 @@ fun RancakNavHost() {
                 val d = entry.destination
                 d.hasRoute(Screen.Splash::class) ||
                 d.hasRoute(Screen.Login::class) ||
+                d.hasRoute(Screen.ForgotPassword::class) ||
                 d.hasRoute(Screen.TenantPicker::class) ||
                 d.hasRoute(Screen.Billing::class)
             }
@@ -447,6 +448,7 @@ private fun NavigationContent(
                         navController.currentBackStackEntry?.destination ?: return@launch
                     val isExempt = currentDest.hasRoute(Screen.Splash::class) ||
                                    currentDest.hasRoute(Screen.Login::class) ||
+                                   currentDest.hasRoute(Screen.ForgotPassword::class) ||
                                    currentDest.hasRoute(Screen.TenantPicker::class) ||
                                    currentDest.hasRoute(Screen.Billing::class)
                     if (isExempt) return@launch
