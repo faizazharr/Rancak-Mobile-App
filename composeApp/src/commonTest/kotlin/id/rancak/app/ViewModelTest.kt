@@ -56,15 +56,19 @@ class ViewModelTest {
         override suspend fun getMe() = Resource.Error("unused")
         override suspend fun getMyTenants() = tenants
         override suspend fun getTenantSettings() = Resource.Error("unused")
-        override suspend fun getReceiptSettings() = Resource.Error("unused")
         override suspend fun changePassword(currentPassword: String, newPassword: String) = Resource.Error("unused")
+        override suspend fun forgotPassword(email: String) = Resource.Error("unused")
+        override suspend fun resetPassword(token: String, newPassword: String) = Resource.Error("unused")
         override suspend fun getSessions() = Resource.Error("unused")
         override suspend fun revokeSession(sessionId: String) = Resource.Error("unused")
+        override suspend fun submitOutletApplication(outletName: String, phone: String, address: String, nib: String, businessType: String, googleMapsUrl: String?) = Resource.Error("unused")
+        override suspend fun getMyApplications() = Resource.Error("unused")
         override fun isLoggedIn() = true
         override fun getCurrentTenantUuid(): String? = null
         override fun getCurrentTenantName(): String? = null
         override fun setTenant(uuid: String, name: String) {}
         override fun setUserRole(role: String) {}
+        override fun getUserRole() = id.rancak.app.domain.model.UserRole.STAFF
     }
 
     private fun operationsRepo(

@@ -9,7 +9,6 @@ import id.rancak.app.data.remote.api.forgotPassword
 import id.rancak.app.data.remote.api.getMe
 import id.rancak.app.data.remote.api.getMyApplications
 import id.rancak.app.data.remote.api.getMyTenants
-import id.rancak.app.data.remote.api.getReceiptSettings
 import id.rancak.app.data.remote.api.getSessions
 import id.rancak.app.data.remote.api.getTenantSettings
 import id.rancak.app.data.remote.api.googleLogin
@@ -28,7 +27,6 @@ import id.rancak.app.data.util.safe
 import id.rancak.app.data.util.safeUnit
 import id.rancak.app.data.util.toNetworkMessage
 import id.rancak.app.domain.model.LoginResult
-import id.rancak.app.domain.model.ReceiptSettings
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Session
 import id.rancak.app.domain.model.Tenant
@@ -163,12 +161,6 @@ class AuthRepositoryImpl(
         block    = { api.getTenantSettings(tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")) },
         map      = { it.toDomain() },
         errorMsg = "Gagal mengambil pengaturan tenant"
-    )
-
-    override suspend fun getReceiptSettings(): Resource<ReceiptSettings> = safe(
-        block    = { api.getReceiptSettings(tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal mengambil pengaturan struk"
     )
 
     override suspend fun changePassword(currentPassword: String, newPassword: String): Resource<Unit> = safeUnit(

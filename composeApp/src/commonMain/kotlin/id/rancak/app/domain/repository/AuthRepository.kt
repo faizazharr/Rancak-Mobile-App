@@ -1,7 +1,6 @@
 package id.rancak.app.domain.repository
 
 import id.rancak.app.domain.model.LoginResult
-import id.rancak.app.domain.model.ReceiptSettings
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Session
 import id.rancak.app.domain.model.Tenant
@@ -23,7 +22,6 @@ interface AuthRepository : UserSessionProvider {
     suspend fun getMe(): Resource<User>
     suspend fun getMyTenants(): Resource<List<Tenant>>
     suspend fun getTenantSettings(): Resource<TenantSettings>
-    suspend fun getReceiptSettings(): Resource<ReceiptSettings>
     suspend fun changePassword(currentPassword: String, newPassword: String): Resource<Unit>
     /** Minta token reset password — selalu sukses (anti-enumeration). */
     suspend fun forgotPassword(email: String): Resource<Unit>
