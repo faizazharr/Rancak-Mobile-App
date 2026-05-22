@@ -14,17 +14,23 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Surcharge
 import id.rancak.app.domain.model.TaxConfig
 import id.rancak.app.domain.repository.CartRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @Immutable
 data class CartUiState(
-    val items: List<CartItem> = emptyList(),
+    val items: ImmutableList<CartItem> = persistentListOf(),
     val orderType: OrderType = OrderType.DINE_IN,
     val tableUuid: String? = null,
     val customerName: String = "",
@@ -57,63 +63,22 @@ data class CartUiState(
     val activeOpenBillSaleUuid: String? = null,
     // ── Auto-applied dari Pricing Settings ───────────────────────────────
     /** Daftar TaxConfig aktif yang otomatis dipakai (mis. PPN 11%). */
-    val activeTaxConfigs: List<TaxConfig> = emptyList(),
+    val activeTaxConfigs: ImmutableList<TaxConfig> = persistentListOf(),
     /** Daftar Surcharge aktif yang cocok dengan orderType saat ini. */
-    val activeSurcharges: List<Surcharge> = emptyList()
+    val activeSurcharges: ImmutableList<Surcharge> = persistentListOf(),
+    // ── Precomputed values ──
+    val subtotal: Long = 0,
+    val itemCount: Int = 0,
+    val discount: Long = 0,
+    val tax: Long = 0,
+    val autoTax: Long = 0,
+    val totalTax: Long = 0,
+    val adminFee: Long = 0,
+    val autoSurcharge: Long = 0,
+    val totalSurcharge: Long = 0,
+    val total: Long = 0
 ) {
-    val subtotal: Long get() = items.sumOf { it.subtotal }
-    val itemCount: Int get() = items.sumOf { it.qty }
     val isEmpty: Boolean get() = items.isEmpty()
-
-    /** Diskon nominal Rp aktual — computed dari discountInput + discountIsPercent. */
-    val discount: Long get() = if (discountIsPercent)
-        (subtotal * discountInput / 100L).coerceIn(0L, subtotal)
-    else discountInput
-
-    /** Pajak nominal Rp aktual — computed dari taxInput + taxIsPercent. */
-    val tax: Long get() = if (taxIsPercent)
-        ((subtotal - discount) * taxInput / 100L).coerceAtLeast(0L)
-    else taxInput
-
-    /**
-     * Pajak otomatis dari [activeTaxConfigs]. Untuk apply_to:
-     * - `subtotal`        → rate × subtotal
-     * - `after_discount`  → rate × (subtotal - discount + surcharge)
-     *
-     * Sesuai backend (openapi.yaml): basis after_discount = subtotal - diskon + surcharge.
-     * Surcharge dihitung lebih dulu lalu dimasukkan ke basis pajak.
-     */
-    val autoTax: Long get() = activeTaxConfigs.sumOf { cfg ->
-        val basis = if (cfg.applyTo == "subtotal") subtotal
-                    else (subtotal - discount + totalSurcharge).coerceAtLeast(0L)
-        ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
-    }
-
-    /** Total pajak yang akan dibayar = manual + otomatis. */
-    val totalTax: Long get() = tax + autoTax
-
-    /** Biaya admin nominal Rp aktual — computed dari adminFeeInput + adminFeeIsPercent. */
-    val adminFee: Long get() = if (adminFeeIsPercent)
-        ((subtotal - discount) * adminFeeInput / 100L).coerceAtLeast(0L)
-    else adminFeeInput
-
-    /**
-     * Surcharge otomatis dari [activeSurcharges]. Persentase dihitung dari
-     * (subtotal - diskon), dengan cap [Surcharge.maxAmount] bila diset.
-     */
-    val autoSurcharge: Long get() = activeSurcharges.sumOf { sc ->
-        val raw = if (sc.isPercentage) {
-            val basis = (subtotal - discount).coerceAtLeast(0L)
-            (basis * sc.amount / 100L).coerceAtLeast(0L)
-        } else sc.amount
-        sc.maxAmount?.let { cap -> raw.coerceAtMost(cap) } ?: raw
-    }
-
-    /** Total surcharge yang akan dibayar = manual + otomatis. */
-    val totalSurcharge: Long get() = adminFee + autoSurcharge
-
-    /** Total akhir yang harus dibayar pelanggan. */
-    val total: Long get() = subtotal - discount + totalTax + totalSurcharge + deliveryFee + tip
 }
 
 class CartViewModel(
@@ -165,15 +130,48 @@ class CartViewModel(
         pricingStore.surcharges
     ) { items, extras, taxConfigs, surcharges ->
         // Hanya konfigurasi yang `isActive` yang ikut diperhitungkan di kasir.
-        val activeTax = taxConfigs.filter { it.isActive }
+        val activeTax = taxConfigs.filter { it.isActive }.toImmutableList()
         val activeSurcharges = surcharges.filter { it.isActive }
         // Surcharge yang berlaku: yang orderType-nya null (semua), atau cocok dengan orderType saat ini.
         val orderTypeKey = extras.orderType.name.lowercase()
         val applicableSurcharges = activeSurcharges.filter { sc ->
             sc.orderType.isNullOrBlank() || sc.orderType.equals(orderTypeKey, ignoreCase = true)
+        }.toImmutableList()
+
+        val subtotal = items.sumOf { it.subtotal }
+        val itemCount = items.sumOf { it.qty }
+        val discount = if (extras.discountIsPercent)
+            (subtotal * extras.discountInput / 100L).coerceIn(0L, subtotal)
+        else extras.discountInput
+
+        val adminFee = if (extras.adminFeeIsPercent)
+            ((subtotal - discount) * extras.adminFeeInput / 100L).coerceAtLeast(0L)
+        else extras.adminFeeInput
+
+        val autoSurcharge = applicableSurcharges.sumOf { sc ->
+            val raw = if (sc.isPercentage) {
+                val basis = (subtotal - discount).coerceAtLeast(0L)
+                (basis * sc.amount / 100L).coerceAtLeast(0L)
+            } else sc.amount
+            sc.maxAmount?.let { cap -> raw.coerceAtMost(cap) } ?: raw
         }
+        val totalSurcharge = adminFee + autoSurcharge
+
+        val tax = if (extras.taxIsPercent)
+            ((subtotal - discount) * extras.taxInput / 100L).coerceAtLeast(0L)
+        else extras.taxInput
+
+        val autoTax = activeTax.sumOf { cfg ->
+            val basis = if (cfg.applyTo == "subtotal") subtotal
+            else (subtotal - discount + totalSurcharge).coerceAtLeast(0L)
+            ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
+        }
+        val totalTax = tax + autoTax
+
+        val total = subtotal - discount + totalTax + totalSurcharge + extras.deliveryFee + extras.tip
+
         CartUiState(
-            items = items,
+            items = items.toImmutableList(),
             orderType = extras.orderType,
             tableUuid = extras.tableUuid,
             customerName = extras.customerName,
@@ -192,9 +190,20 @@ class CartViewModel(
             activeOpenBillName     = extras.activeOpenBillName,
             activeOpenBillSaleUuid = extras.activeOpenBillSaleUuid,
             activeTaxConfigs       = activeTax,
-            activeSurcharges       = applicableSurcharges
+            activeSurcharges       = applicableSurcharges,
+            subtotal = subtotal,
+            itemCount = itemCount,
+            discount = discount,
+            tax = tax,
+            autoTax = autoTax,
+            totalTax = totalTax,
+            adminFee = adminFee,
+            autoSurcharge = autoSurcharge,
+            totalSurcharge = totalSurcharge,
+            total = total
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CartUiState())
+    }.flowOn(Dispatchers.Default)
+     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CartUiState())
 
     fun addProduct(product: Product, variantUuid: String? = null, variantName: String? = null) {
         viewModelScope.launch {

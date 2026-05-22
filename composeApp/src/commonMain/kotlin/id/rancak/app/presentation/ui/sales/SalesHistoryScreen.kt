@@ -33,6 +33,7 @@ import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.OrderType
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -347,14 +348,14 @@ private fun NoResultsBox(
 // Previews — memanggil SalesHistoryScreenContent langsung
 // ─────────────────────────────────────────────────────────────────────────────
 
-private val previewSales = listOf(
+private val previewSales = persistentListOf(
     Sale(
         uuid = "s1", invoiceNo = "INV-001", orderType = OrderType.DINE_IN,
         queueNumber = 1, status = SaleStatus.PAID, customerName = "Andi",
         subtotal = 50_000, discount = 0, surcharge = 0,
         tax = 5_000, total = 55_000, paymentMethod = PaymentMethod.CASH,
         paidAmount = 60_000, changeAmount = 5_000,
-        items = emptyList(), createdAt = "2026-01-01T10:00:00"
+        items = persistentListOf(), createdAt = "2026-01-01T10:00:00"
     ),
     Sale(
         uuid = "s2", invoiceNo = "INV-002", orderType = OrderType.TAKEAWAY,
@@ -362,7 +363,7 @@ private val previewSales = listOf(
         subtotal = 30_000, discount = 0, surcharge = 0,
         tax = 3_000, total = 33_000, paymentMethod = PaymentMethod.QRIS,
         paidAmount = 33_000, changeAmount = 0,
-        items = emptyList(), createdAt = "2026-01-01T11:00:00"
+        items = persistentListOf(), createdAt = "2026-01-01T11:00:00"
     )
 )
 
@@ -384,7 +385,10 @@ private fun SalesHistoryEmptyPreview() {
 private fun SalesHistoryPhonePreview() {
     RancakTheme {
         SalesHistoryScreenContent(
-            uiState = SalesHistoryUiState(allSales = previewSales, sales = previewSales),
+            uiState = SalesHistoryUiState(
+                allSales = previewSales,
+                sales = previewSales
+            ),
             onBack  = {},
             onRetry = {},
             actions = SalesHistoryActions()
@@ -397,7 +401,10 @@ private fun SalesHistoryPhonePreview() {
 private fun SalesHistoryTabletPreview() {
     RancakTheme {
         SalesHistoryScreenContent(
-            uiState = SalesHistoryUiState(allSales = previewSales, sales = previewSales),
+            uiState = SalesHistoryUiState(
+                allSales = previewSales,
+                sales = previewSales
+            ),
             onBack  = {},
             onRetry = {},
             actions = SalesHistoryActions()

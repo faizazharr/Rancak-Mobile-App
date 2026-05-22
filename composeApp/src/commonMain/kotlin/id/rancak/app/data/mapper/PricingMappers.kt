@@ -1,5 +1,6 @@
 package id.rancak.app.data.mapper
 
+import kotlinx.collections.immutable.toImmutableList
 import id.rancak.app.data.remote.dto.operations.AppliedRuleDto
 import id.rancak.app.data.remote.dto.operations.DiscountPreviewDto
 import id.rancak.app.data.remote.dto.operations.VoucherDto
@@ -48,7 +49,7 @@ fun DiscountRuleDto.toDomain() = DiscountRule(
     discountValue = discountValue?.toDoubleOrNull() ?: 0.0,
     startTime = startTime,
     endTime = endTime,
-    applicableDays = applicableDays,
+    applicableDays = applicableDays?.toImmutableList(),
     minPurchaseAmount = minPurchaseAmount?.toLongOrNull(),
     priority = priority,
     stackable = stackable,
@@ -92,7 +93,7 @@ fun VoucherValidationDto.toDomain() = VoucherValidation(
 )
 
 fun DiscountPreviewDto.toDomain() = DiscountPreview(
-    appliedRules = appliedRules.map { it.toDomain() },
+    appliedRules = appliedRules.map { it.toDomain() }.toImmutableList(),
     totalDiscount = totalDiscount,
     finalTotal = finalTotal
 )

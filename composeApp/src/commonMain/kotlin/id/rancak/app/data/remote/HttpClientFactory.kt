@@ -22,18 +22,12 @@ import kotlinx.serialization.json.Json
  * internal Ktor.  Keduanya harus didaftarkan bersama sehingga [RancakApiService]
  * dapat memanggil [clearBearerToken] saat logout.
  */
-fun createHttpClient(tokenManager: TokenManager): Pair<HttpClient, () -> Unit> {
+fun createHttpClient(tokenManager: TokenManager, json: Json): Pair<HttpClient, () -> Unit> {
     // Ditangkap dari AuthConfig.providers (public) setelah bearer{} dipanggil.
     var capturedBearerProvider: BearerAuthProvider? = null
     val client = HttpClient {
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-                encodeDefaults = true
-                prettyPrint = false
-                coerceInputValues = true
-            })
+            json(json)
         }
 
         install(Logging) {

@@ -1,10 +1,14 @@
 package id.rancak.app.data.local.db.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import id.rancak.app.domain.model.Category
 
-@Entity(tableName = "categories")
+@Entity(
+    tableName = "categories",
+    indices = [Index(value = ["name"])]
+)
 data class CategoryEntity(
     @PrimaryKey val uuid: String,
     val name: String,

@@ -12,6 +12,9 @@ import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.SaleRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +26,7 @@ import kotlin.time.Clock
 
 @Immutable
 data class OpenBillUiState(
-    val bills: List<LocalOpenBill> = emptyList(),
+    val bills: ImmutableList<LocalOpenBill> = persistentListOf(),
     /** True saat dialog nama open bill sedang ditampilkan. */
     val showNameDialog: Boolean = false,
     /** Nama awal yang diisi di dialog (kosong = buat baru). */
@@ -50,7 +53,7 @@ class OpenBillViewModel(
     private val saleRepository: SaleRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(OpenBillUiState(bills = store.getAll()))
+    private val _uiState = MutableStateFlow(OpenBillUiState(bills = store.getAll().toImmutableList()))
     val uiState: StateFlow<OpenBillUiState> = _uiState.asStateFlow()
 
     // ── Dialog ────────────────────────────────────────────────────────────────
@@ -156,7 +159,7 @@ class OpenBillViewModel(
                     remoteSaleUuid    = existingRemoteSaleUuid // tetap pakai UUID lama
                 )
                 store.save(bill)
-                _uiState.update { it.copy(isSyncing = false, bills = store.getAll(), showSuccessDialog = true) }
+                _uiState.update { it.copy(isSyncing = false, bills = store.getAll().toImmutableList(), showSuccessDialog = true) }
                 return@launch
             }
 
@@ -211,7 +214,7 @@ class OpenBillViewModel(
                 remoteSaleUuid    = remoteUuid
             )
             store.save(bill)
-            _uiState.update { it.copy(isSyncing = false, bills = store.getAll(), showSuccessDialog = true) }
+            _uiState.update { it.copy(isSyncing = false, bills = store.getAll().toImmutableList(), showSuccessDialog = true) }
         }
     }
 
@@ -236,6 +239,6 @@ class OpenBillViewModel(
     // ── private ───────────────────────────────────────────────────────────────
 
     private fun refreshList() {
-        _uiState.update { it.copy(bills = store.getAll()) }
+        _uiState.update { it.copy(bills = store.getAll().toImmutableList()) }
     }
 }

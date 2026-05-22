@@ -42,6 +42,7 @@ import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.koinInject
 
@@ -648,7 +649,7 @@ private fun previewSale(status: SaleStatus) = Sale(
     paymentMethod = if (status == SaleStatus.PAID) PaymentMethod.CASH else null,
     paidAmount    = if (status == SaleStatus.PAID) 40_000L else 0L,
     changeAmount  = if (status == SaleStatus.PAID) 2_000L else 0L,
-    items = listOf(
+    items = persistentListOf(
         SaleItem(
             uuid = "i1", productUuid = "p1", productName = "Kopi Susu Gula Aren",
             qty = "2", price = 18_000L, subtotal = 36_000L,

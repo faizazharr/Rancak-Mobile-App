@@ -14,9 +14,12 @@ import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SplitPaymentEntry
 import id.rancak.app.domain.model.User
 import id.rancak.app.domain.repository.SaleRepository
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,9 +79,9 @@ data class PaymentUiState(
     /** True berarti mode pembayaran terbagi aktif. */
     val isSplitPayment: Boolean = false,
     /** Semua item order yang dapat dibagi. */
-    val splitableItems: List<SplitableItem> = emptyList(),
+    val splitableItems: ImmutableList<SplitableItem> = persistentListOf(),
     /** Grup pelanggan yang sudah dikonfirmasi. */
-    val splitGroups: List<SplitGroup> = emptyList(),
+    val splitGroups: ImmutableList<SplitGroup> = persistentListOf(),
     /** Qty setiap item yang sedang dipilih untuk grup berikutnya (itemIndex → qty). */
     val currentSplitItemQtys: PersistentMap<Int, Int> = persistentMapOf(),
     /** Metode bayar untuk grup yang sedang dibuat. */
@@ -107,7 +110,8 @@ data class PaymentUiState(
      * menghapusnya dari daftar.
      */
     val saleAlreadyPaid: Boolean = false
-) {
+)
+{
     val paidAmountLong: Long get() = paidAmount.toLongOrNull() ?: 0L
 
     /** Total subtotal item yang dipilih untuk grup saat ini. */
@@ -465,8 +469,8 @@ class PaymentViewModel(
         _uiState.update { state ->
             state.copy(
                 isSplitPayment        = !state.isSplitPayment,
-                splitableItems        = emptyList(),
-                splitGroups           = emptyList(),
+                splitableItems        = persistentListOf(),
+                splitGroups           = persistentListOf(),
                 currentSplitItemQtys  = persistentMapOf(),
                 currentSplitMethod    = PaymentMethod.CASH,
                 currentSplitCashInput = "",
@@ -479,8 +483,8 @@ class PaymentViewModel(
     fun initSplitItems(items: List<SplitableItem>) {
         _uiState.update { state ->
             state.copy(
-                splitableItems        = items,
-                splitGroups           = emptyList(),
+                splitableItems        = items.toImmutableList(),
+                splitGroups           = persistentListOf(),
                 currentSplitItemQtys  = persistentMapOf(),
                 currentSplitMethod    = PaymentMethod.CASH,
                 currentSplitCashInput = "",
@@ -546,7 +550,7 @@ class PaymentViewModel(
         )
         _uiState.update {
             it.copy(
-                splitGroups           = it.splitGroups + newGroup,
+                splitGroups           = (it.splitGroups + newGroup).toImmutableList(),
                 currentSplitItemQtys  = persistentMapOf(),
                 currentSplitMethod    = PaymentMethod.CASH,
                 currentSplitCashInput = "",
@@ -558,7 +562,7 @@ class PaymentViewModel(
     /** Hapus grup dan kembalikan item-nya ke status belum dibagi. */
     fun removeSplitGroup(groupId: Int) {
         _uiState.update { state ->
-            state.copy(splitGroups = state.splitGroups.filter { it.id != groupId })
+            state.copy(splitGroups = state.splitGroups.filter { it.id != groupId }.toImmutableList())
         }
     }
 
@@ -731,9 +735,20 @@ class PaymentViewModel(
     /** Muat detail held sale berdasarkan [saleUuid] — hasilnya tersedia di [PaymentUiState.heldSale]. */
     fun loadHeldSale(saleUuid: String) {
         viewModelScope.launch {
+            // Langkah 1: Muat dari cache
+            val cachedResult = saleRepository.getSaleDetailFromCache(saleUuid)
+            if (cachedResult is Resource.Success) {
+                _uiState.update { it.copy(heldSale = cachedResult.data, heldSaleError = null) }
+            }
+
+            // Langkah 2: Refresh network
             when (val result = saleRepository.getSaleDetail(saleUuid)) {
                 is Resource.Success -> _uiState.update { it.copy(heldSale = result.data, heldSaleError = null) }
-                is Resource.Error   -> _uiState.update { it.copy(heldSaleError = result.message) }
+                is Resource.Error   -> {
+                    if (_uiState.value.heldSale == null) {
+                        _uiState.update { it.copy(heldSaleError = result.message) }
+                    }
+                }
                 is Resource.Loading -> {}
             }
         }

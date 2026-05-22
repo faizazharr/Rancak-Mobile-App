@@ -15,6 +15,7 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.CartUiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 
 /**
@@ -159,7 +160,7 @@ private fun OrderPanelPreview_WithItems() {
     RancakTheme {
         OrderPanel(
             cartState = CartUiState(
-                items = listOf(
+                items = persistentListOf(
                     CartItem(productUuid = "p1", productName = "Kopi Susu Gula Aren", qty = 2, price = 18_000L),
                     CartItem(productUuid = "p2", productName = "Croissant Cokelat",  qty = 1, price = 22_000L, note = "dihangatkan")
                 ),

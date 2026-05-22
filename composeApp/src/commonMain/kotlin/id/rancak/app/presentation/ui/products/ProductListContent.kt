@@ -37,7 +37,7 @@ import id.rancak.app.presentation.viewmodel.ProductManagementUiState
 import id.rancak.app.presentation.viewmodel.ProductSortField
 import id.rancak.app.presentation.viewmodel.StockFilter
 import id.rancak.app.presentation.viewmodel.PriceFilter
-import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Layout utama: tablet (sidebar kategori + list) / phone (chips + list)
@@ -1071,11 +1071,11 @@ private fun ShimmerProductCard(alpha: Float, shimmerColor: Color) {
 
 // ── Preview ───────────────────────────────────────────────────────────────────
 
-private val previewCategories = listOf(
+private val previewCategories = persistentListOf(
     Category("c1", "Makanan", null),
     Category("c2", "Minuman", null)
 )
-private val previewProducts = listOf(
+private val previewProducts = persistentListOf(
     Product("1", "NGS-4821", null, "Nasi Goreng Spesial", null, previewCategories[0], 25000L, 10.0, "porsi", null, true, false, null),
     Product("2", null, null, "Es Teh Manis", null, previewCategories[1], 5000L, 0.0, "gelas", null, true, false, null)
 )
@@ -1085,7 +1085,10 @@ private val previewProducts = listOf(
 private fun ProductListContentPhonePreview() {
     RancakTheme {
         ProductListContent(
-            uiState          = ProductManagementUiState(products = previewProducts, categories = previewCategories),
+            uiState          = ProductManagementUiState(
+                products = previewProducts,
+                categories = previewCategories
+            ),
             isTablet         = false,
             onAddProduct     = {},
             onSearchChange   = {},

@@ -8,23 +8,30 @@ import id.rancak.app.domain.model.KdsOrder
 import id.rancak.app.domain.model.KdsStatus
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.OperationsRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Immutable
 data class KdsUiState(
-    val activeOrders: List<KdsOrder> = emptyList(),
-    val completedOrders: List<KdsOrder> = emptyList(),
+    val activeOrders: ImmutableList<KdsOrder> = persistentListOf(),
+    val completedOrders: ImmutableList<KdsOrder> = persistentListOf(),
     val showCompleted: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
     // Precomputed agar tidak diulang di setiap rekomposisi.
-    val displayOrders: List<KdsOrder> = emptyList()
+    val displayOrders: ImmutableList<KdsOrder> = persistentListOf()
 ) {
-    fun recompute() = copy(displayOrders = if (showCompleted) completedOrders else activeOrders)
+    suspend fun recompute() = withContext(Dispatchers.Default) {
+        copy(displayOrders = if (showCompleted) completedOrders else activeOrders)
+    }
 }
 
 class KdsViewModel(
@@ -35,7 +42,9 @@ class KdsViewModel(
     val uiState: StateFlow<KdsUiState> = _uiState.asStateFlow()
 
     fun toggleTab(showCompleted: Boolean) {
-        _uiState.update { it.copy(showCompleted = showCompleted).recompute() }
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(showCompleted = showCompleted).recompute()
+        }
     }
 
     fun loadOrders() {
@@ -43,10 +52,11 @@ class KdsViewModel(
             _uiState.update { it.copy(isLoading = true) }
             when (val result = operationsRepository.getKdsOrders()) {
                 is Resource.Success -> {
-                    val active = result.data.filter { it.status != KdsStatus.DONE }
-                    val completed = result.data.filter { it.status == KdsStatus.DONE }
-                    _uiState.update {
-                        it.copy(
+                    val orders = result.data
+                    withContext(Dispatchers.Default) {
+                        val active = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
+                        val completed = orders.filter { it.status == KdsStatus.DONE }.toImmutableList()
+                        _uiState.value = _uiState.value.copy(
                             activeOrders = active,
                             completedOrders = completed,
                             isLoading = false

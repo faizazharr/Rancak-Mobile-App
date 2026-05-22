@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.collections.immutable.persistentListOf
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.presentation.designsystem.RancakTheme
@@ -167,7 +168,7 @@ private fun CartBarPreview() {
     RancakTheme {
         CartBar(
             cartState = CartUiState(
-                items = listOf(
+                items = persistentListOf(
                     CartItem(
                         productUuid = "p1",
                         productName = "Kopi Susu",

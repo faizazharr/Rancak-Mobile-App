@@ -1,11 +1,19 @@
 package id.rancak.app.data.local.db.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 
-@Entity(tableName = "products")
+@Entity(
+    tableName = "products",
+    indices = [
+        Index(value = ["name"]),
+        Index(value = ["sku"]),
+        Index(value = ["barcode"])
+    ]
+)
 data class ProductEntity(
     @PrimaryKey val uuid: String,
     val sku: String?,

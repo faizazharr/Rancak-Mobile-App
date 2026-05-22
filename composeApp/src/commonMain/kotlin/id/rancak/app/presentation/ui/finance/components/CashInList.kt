@@ -20,7 +20,7 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatDateFriendly
 import id.rancak.app.presentation.util.formatRupiah
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun CashInItemCard(
@@ -112,12 +112,12 @@ fun CashInList(
 private fun CashInListPreview() {
     RancakTheme {
         CashInList(
-            items = listOf(
+            items = persistentListOf(
                 CashIn(uuid = "1", amount = 500000, source = "Modal", description = "Kas Awal", note = null,
                     cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = "2026-04-29", createdAt = "2026-04-29T07:00:00Z"),
                 CashIn(uuid = "2", amount = 200000, source = "Pinjaman", description = "Tambahan Modal", note = "Dari owner",
                     cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = "2026-04-28T09:15:00Z")
-            ).toImmutableList(),
+            ),
             onDelete = {}
         )
     }

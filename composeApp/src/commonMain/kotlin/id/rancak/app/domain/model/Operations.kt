@@ -1,6 +1,7 @@
 package id.rancak.app.domain.model
 
 import androidx.compose.runtime.Immutable
+import kotlinx.collections.immutable.ImmutableList
 
 @Immutable
 data class Table(
@@ -62,7 +63,7 @@ data class KdsOrder(
     val customerName: String?,
     val note: String?,
     val status: KdsStatus,
-    val items: List<KdsItem>,
+    val items: ImmutableList<KdsItem>,
     val createdAt: String?
 )
 
@@ -132,7 +133,7 @@ data class DiscountRule(
     val discountValue: Double,
     val startTime: String?,
     val endTime: String?,
-    val applicableDays: List<Int>?,
+    val applicableDays: ImmutableList<Int>?,
     val minPurchaseAmount: Long?,
     val priority: Int,
     val stackable: Boolean,
@@ -165,7 +166,7 @@ data class Voucher(
 
 @Immutable
 data class DiscountPreview(
-    val appliedRules: List<AppliedRule>,
+    val appliedRules: ImmutableList<AppliedRule>,
     val totalDiscount: Long,
     val finalTotal: Long
 )
@@ -188,7 +189,7 @@ data class OrderBoardOrder(
     val status: SaleStatus,
     val createdAt: String?,
     val servedAt: String?,
-    val items: List<OrderBoardItem>
+    val items: ImmutableList<OrderBoardItem>
 )
 
 @Immutable

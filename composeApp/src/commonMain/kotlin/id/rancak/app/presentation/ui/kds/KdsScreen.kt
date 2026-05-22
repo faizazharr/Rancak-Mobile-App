@@ -36,6 +36,7 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.KdsUiState
 import id.rancak.app.presentation.ui.kds.components.KdsOrderCard
 import id.rancak.app.presentation.viewmodel.KdsViewModel
+import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -247,12 +248,12 @@ private fun KdsScreenEmptyPreview() {
 @Preview(name = "KDS – With Orders", widthDp = 1024, heightDp = 768)
 @Composable
 private fun KdsScreenWithOrdersPreview() {
-    val sample = listOf(
+    val sample = persistentListOf(
         KdsOrder(
             uuid = "1", invoiceNo = "ORD-001", orderType = OrderType.DINE_IN,
             tableName = "Meja 3", queueNumber = 1, customerName = "Andi",
             note = null, status = KdsStatus.NEW,
-            items = listOf(
+            items = persistentListOf(
                 KdsItem("i1", "Nasi Goreng", "2", null, null, KdsItemStatus.PENDING)
             ),
             createdAt = "2026-01-01T10:15:00"
@@ -261,7 +262,7 @@ private fun KdsScreenWithOrdersPreview() {
             uuid = "2", invoiceNo = "ORD-002", orderType = OrderType.TAKEAWAY,
             tableName = null, queueNumber = 2, customerName = "Budi",
             note = "Tidak pedas", status = KdsStatus.COOKING,
-            items = listOf(
+            items = persistentListOf(
                 KdsItem("i2", "Mie Ayam", "1", null, null, KdsItemStatus.COOKING)
             ),
             createdAt = "2026-01-01T10:20:00"
@@ -270,7 +271,7 @@ private fun KdsScreenWithOrdersPreview() {
             uuid = "3", invoiceNo = "ORD-003", orderType = OrderType.DINE_IN,
             tableName = "Meja 5", queueNumber = 3, customerName = null,
             note = null, status = KdsStatus.READY,
-            items = listOf(
+            items = persistentListOf(
                 KdsItem("i3", "Es Teh", "4", null, null, KdsItemStatus.READY)
             ),
             createdAt = "2026-01-01T10:25:00"

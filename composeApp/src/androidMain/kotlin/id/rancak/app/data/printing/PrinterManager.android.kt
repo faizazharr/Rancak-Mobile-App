@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.runtime.Stable
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.OutputStream
@@ -84,7 +85,7 @@ actual class PrinterManager actual constructor() {
             out.write(data)
             out.flush()
             // Beri jeda agar printer selesai menerima semua data sebelum close
-            Thread.sleep(BT_DRAIN_DELAY_MS)
+            delay(BT_DRAIN_DELAY_MS)
             out.close()
             socket.close()
 
@@ -157,7 +158,7 @@ actual class PrinterManager actual constructor() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun tryConnectAndPrint(device: BluetoothDevice, data: ByteArray): PrintResult {
+    private suspend fun tryConnectAndPrint(device: BluetoothDevice, data: ByteArray): PrintResult {
         // Strategy 1: Standard secure RFCOMM with SPP UUID
         try {
             val socket = device.createRfcommSocketToServiceRecord(SPP_UUID)
@@ -192,7 +193,7 @@ actual class PrinterManager actual constructor() {
         }
     }
 
-    private fun sendAndClose(socket: android.bluetooth.BluetoothSocket, data: ByteArray) {
+    private suspend fun sendAndClose(socket: android.bluetooth.BluetoothSocket, data: ByteArray) {
         val out: OutputStream = socket.outputStream
         // Kirim dalam chunk 512 byte — printer budget (XP-58, ECO-58) punya
         // buffer internal kecil (~4-8KB), mengirim sekaligus bisa overflow
@@ -203,9 +204,11 @@ actual class PrinterManager actual constructor() {
             out.write(data, offset, chunkEnd - offset)
             out.flush()
             offset = chunkEnd
+            // Yield if data is large to keep coroutine cooperative
+            if (offset % 2048 == 0) delay(5)
         }
         // Beri jeda agar printer selesai menerima data sebelum koneksi ditutup
-        Thread.sleep(BT_DRAIN_DELAY_MS)
+        delay(BT_DRAIN_DELAY_MS)
         out.close()
         socket.close()
     }

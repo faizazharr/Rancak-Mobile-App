@@ -1,5 +1,6 @@
 package id.rancak.app.data.mapper
 
+import kotlinx.collections.immutable.toImmutableList
 import id.rancak.app.data.remote.api.KdsItemDto
 import id.rancak.app.data.remote.api.KdsOrderDto
 import id.rancak.app.data.remote.dto.operations.OrderBoardItemDto
@@ -59,7 +60,7 @@ fun KdsOrderDto.toDomain() = KdsOrder(
     customerName = customerName,
     note = note,
     status = KdsStatus.from(status),
-    items = items.map { it.toDomain() },
+    items = items.map { it.toDomain() }.toImmutableList(),
     createdAt = createdAt
 )
 
@@ -81,7 +82,7 @@ fun OrderBoardOrderDto.toDomain() = OrderBoardOrder(
     status = SaleStatus.from(status),
     createdAt = createdAt,
     servedAt = servedAt,
-    items = items.map { it.toDomain() }
+    items = items.map { it.toDomain() }.toImmutableList()
 )
 
 fun OrderBoardItemDto.toDomain() = OrderBoardItem(

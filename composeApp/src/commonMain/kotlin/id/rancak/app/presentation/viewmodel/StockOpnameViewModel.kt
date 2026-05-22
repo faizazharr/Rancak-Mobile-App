@@ -11,6 +11,9 @@ import id.rancak.app.domain.model.StockOpname
 import id.rancak.app.domain.model.StockOpnameDetail
 import id.rancak.app.domain.repository.InventoryRepository
 import id.rancak.app.domain.repository.ProductRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,14 +22,14 @@ import kotlinx.coroutines.launch
 
 @Immutable
 data class StockOpnameUiState(
-    val opnames: List<StockOpname> = emptyList(),
+    val opnames: ImmutableList<StockOpname> = persistentListOf(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
     // Detail flow
     val detail: StockOpnameDetail? = null,
     val isLoadingDetail: Boolean = false,
-    val products: List<Product> = emptyList(),
+    val products: ImmutableList<Product> = persistentListOf(),
     val showCreateDialog: Boolean = false,
     val showFinalizeConfirm: Boolean = false,
     val isSubmitting: Boolean = false,
@@ -49,7 +52,7 @@ class StockOpnameViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = inventoryRepository.getStockOpnames(status)) {
-                is Resource.Success -> _uiState.update { it.copy(isLoading = false, opnames = result.data) }
+                is Resource.Success -> _uiState.update { it.copy(isLoading = false, opnames = result.data.toImmutableList()) }
                 is Resource.Error   -> _uiState.update { it.copy(isLoading = false, error = result.message) }
                 is Resource.Loading -> {}
             }
@@ -74,7 +77,7 @@ class StockOpnameViewModel(
                         state.copy(
                             isSubmitting = false,
                             showCreateDialog = false,
-                            opnames = listOf(newOpname) + state.opnames,
+                            opnames = (listOf(newOpname) + state.opnames).toImmutableList(),
                             successMessage = "Sesi opname #${newOpname.opnameNo} berhasil dibuat"
                         )
                     }
@@ -92,7 +95,7 @@ class StockOpnameViewModel(
             // Also load products for the item picker
             if (_uiState.value.products.isEmpty()) {
                 when (val p = productRepository.getProducts()) {
-                    is Resource.Success -> _uiState.update { it.copy(products = p.data) }
+                    is Resource.Success -> _uiState.update { it.copy(products = p.data.toImmutableList()) }
                     else -> {}
                 }
             }
@@ -147,7 +150,7 @@ class StockOpnameViewModel(
                 is Resource.Success -> {
                     _uiState.update { state ->
                         state.copy(
-                            opnames = state.opnames.filter { it.uuid != opname.uuid },
+                            opnames = state.opnames.filter { it.uuid != opname.uuid }.toImmutableList(),
                             detail  = if (state.detail?.opname?.uuid == opname.uuid) null else state.detail,
                             successMessage = "Opname #${opname.opnameNo} dihapus"
                         )

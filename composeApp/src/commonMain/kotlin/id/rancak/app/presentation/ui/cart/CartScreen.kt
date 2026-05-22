@@ -25,6 +25,7 @@ import id.rancak.app.presentation.navigation.LocalCartViewModel
 import id.rancak.app.presentation.viewmodel.CartUiState
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -227,7 +228,7 @@ private fun CartScreenWithItemsPreview() {
     RancakTheme {
         CartScreenContent(
             uiState = CartUiState(
-                items = listOf(
+                items = persistentListOf(
                     CartItem(
                         productUuid = "1",
                         productName = "Nasi Goreng Spesial",

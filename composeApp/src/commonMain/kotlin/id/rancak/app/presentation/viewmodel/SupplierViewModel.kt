@@ -8,6 +8,9 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Supplier
 import id.rancak.app.domain.model.SupplierInput
 import id.rancak.app.domain.repository.InventoryRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +19,7 @@ import kotlinx.coroutines.launch
 
 @Immutable
 data class SupplierUiState(
-    val suppliers: List<Supplier> = emptyList(),
+    val suppliers: ImmutableList<Supplier> = persistentListOf(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
@@ -49,7 +52,7 @@ class SupplierViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = inventoryRepository.getSuppliers()) {
-                is Resource.Success -> _uiState.update { it.copy(suppliers = result.data, isLoading = false) }
+                is Resource.Success -> _uiState.update { it.copy(suppliers = result.data.toImmutableList(), isLoading = false) }
                 is Resource.Error   -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Resource.Loading -> {}
             }

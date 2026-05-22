@@ -8,6 +8,10 @@ import id.rancak.app.domain.model.CashIn
 import id.rancak.app.domain.model.Expense
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.FinanceRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,8 +20,8 @@ import kotlinx.coroutines.launch
 
 @Immutable
 data class CashExpenseUiState(
-    val cashIns: List<CashIn> = emptyList(),
-    val expenses: List<Expense> = emptyList(),
+    val cashIns: ImmutableList<CashIn> = persistentListOf(),
+    val expenses: ImmutableList<Expense> = persistentListOf(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val showCashInForm: Boolean = false,
@@ -37,16 +41,25 @@ class CashExpenseViewModel(
 
     fun loadAll() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            when (val result = financeRepository.getCashIns()) {
-                is Resource.Success -> _uiState.update { it.copy(cashIns = result.data) }
-                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
-                is Resource.Loading -> {}
-            }
-            when (val result = financeRepository.getExpenses()) {
-                is Resource.Success -> _uiState.update { it.copy(expenses = result.data, isLoading = false) }
-                is Resource.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
-                is Resource.Loading -> {}
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            
+            val cashInsDeferred = async { financeRepository.getCashIns() }
+            val expensesDeferred = async { financeRepository.getExpenses() }
+
+            val cashInsRes = cashInsDeferred.await()
+            val expensesRes = expensesDeferred.await()
+
+            _uiState.update { state ->
+                state.copy(
+                    isLoading = false,
+                    cashIns = (cashInsRes as? Resource.Success)?.data?.toImmutableList() ?: state.cashIns,
+                    expenses = (expensesRes as? Resource.Success)?.data?.toImmutableList() ?: state.expenses,
+                    error = when {
+                        cashInsRes is Resource.Error -> cashInsRes.message
+                        expensesRes is Resource.Error -> expensesRes.message
+                        else -> null
+                    }
+                )
             }
         }
     }

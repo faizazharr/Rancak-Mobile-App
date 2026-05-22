@@ -1,13 +1,21 @@
 package id.rancak.app.data.local.db.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleStatus
+import kotlinx.collections.immutable.toImmutableList
 
-@Entity(tableName = "sales")
+@Entity(
+    tableName = "sales",
+    indices = [
+        Index(value = ["status"]),
+        Index(value = ["createdAt"])
+    ]
+)
 data class SaleEntity(
     @PrimaryKey val uuid: String,
     val invoiceNo: String?,
@@ -42,7 +50,7 @@ fun SaleEntity.toDomain(items: List<SaleItemEntity>) = Sale(
     paymentMethod = PaymentMethod.from(paymentMethod),
     paidAmount = paidAmount,
     changeAmount = changeAmount,
-    items = items.map { it.toDomain() },
+    items = items.map { it.toDomain() }.toImmutableList(),
     createdAt = createdAt
 )
 

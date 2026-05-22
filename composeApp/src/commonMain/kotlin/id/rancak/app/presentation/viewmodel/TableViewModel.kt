@@ -8,6 +8,9 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.repository.AdminRepository
 import id.rancak.app.domain.repository.OperationsRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +19,7 @@ import kotlinx.coroutines.launch
 
 @Immutable
 data class TableUiState(
-    val tables: List<Table> = emptyList(),
+    val tables: ImmutableList<Table> = persistentListOf(),
     val isLoading: Boolean = false,
     val error: String? = null,
     // ── Admin mode state ────────────────────────────────────────────────────
@@ -52,7 +55,7 @@ class TableViewModel(
                 is Resource.Success ->
                     _uiState.update {
                         it.copy(
-                            tables    = result.data.sortedBy { t -> t.sortOrder },
+                            tables    = result.data.sortedBy { t -> t.sortOrder }.toImmutableList(),
                             isLoading = false
                         )
                     }

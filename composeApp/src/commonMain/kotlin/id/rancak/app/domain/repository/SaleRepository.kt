@@ -55,7 +55,11 @@ interface SaleRepository {
     ): Resource<Sale>
 
     suspend fun getSales(dateFrom: String? = null, dateTo: String? = null): Resource<List<Sale>>
+    /** Muat dari Room cache secara instan tanpa network call. */
+    suspend fun getSalesFromCache(): Resource<List<Sale>>
     suspend fun getSaleDetail(saleUuid: String): Resource<Sale>
+    /** Muat detail dari Room cache secara instan. */
+    suspend fun getSaleDetailFromCache(saleUuid: String): Resource<Sale>
     suspend fun paySale(saleUuid: String, paymentMethod: PaymentMethod, paidAmount: Long): Resource<Sale>
 
     /** Bayar held order dengan split payment. */

@@ -217,34 +217,46 @@ class SaleRepositoryImpl(
     }
 
     override suspend fun getSales(dateFrom: String?, dateTo: String?): Resource<List<Sale>> {
+        val isFiltered = !dateFrom.isNullOrBlank() || !dateTo.isNullOrBlank()
         return try {
             val response = api.getSales(tenantUuid, dateFrom, dateTo)
             if (response.isSuccess && response.data != null) {
                 val sales = response.data.map { it.toDomain() }
-                // Cache to Room
-                val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
-                saleDao.upsertSalesWithItems(
-                    sales = sales.map { it.toEntity(now) },
-                    items = sales.flatMap { sale ->
-                        sale.items.map { it.toEntity(sale.uuid) }
-                    }
-                )
-                Resource.Success(sales)
-            } else {
-                Resource.Error(response.message ?: "Gagal memuat daftar penjualan")
-            }
-        } catch (e: Exception) {
-            // Fallback to cached sales
-            val cached = saleDao.getAll()
-            if (cached.isNotEmpty()) {
-                val sales = cached.map { entity ->
-                    entity.toDomain(saleDao.getItemsForSale(entity.uuid))
+                // Only cache unfiltered main list
+                if (!isFiltered) {
+                    val now = Clock.System.now().toEpochMilliseconds()
+                    saleDao.upsertSalesWithItems(
+                        sales = sales.map { it.toEntity(now) },
+                        items = sales.flatMap { sale ->
+                            sale.items.map { it.toEntity(sale.uuid) }
+                        }
+                    )
                 }
                 Resource.Success(sales)
             } else {
-                Resource.Error(e.toNetworkMessage())
+                serveCachedSales(response.message)
             }
+        } catch (e: Exception) {
+            serveCachedSales(e.message)
         }
+    }
+
+    private suspend fun serveCachedSales(errorMessage: String?): Resource<List<Sale>> {
+        val cached = saleDao.getAll()
+        return if (cached.isNotEmpty()) {
+            Resource.Success(cached.map { entity ->
+                entity.toDomain(saleDao.getItemsForSale(entity.uuid))
+            })
+        } else {
+            Resource.Error(errorMessage ?: "Tidak ada koneksi internet")
+        }
+    }
+
+    override suspend fun getSalesFromCache(): Resource<List<Sale>> {
+        val cached = saleDao.getAll()
+        return Resource.Success(cached.map { entity ->
+            entity.toDomain(saleDao.getItemsForSale(entity.uuid))
+        })
     }
 
     override suspend fun getSaleDetail(saleUuid: String): Resource<Sale> {
@@ -252,23 +264,35 @@ class SaleRepositoryImpl(
             val response = api.getSaleDetail(tenantUuid, saleUuid)
             if (response.isSuccess && response.data != null) {
                 val sale = response.data.toDomain()
-                // Cache to Room
-                val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
+                val now = Clock.System.now().toEpochMilliseconds()
                 saleDao.upsertSalesWithItems(
                     sales = listOf(sale.toEntity(now)),
                     items = sale.items.map { it.toEntity(sale.uuid) }
                 )
                 Resource.Success(sale)
             } else {
-                Resource.Error(response.message ?: "Penjualan tidak ditemukan")
+                serveCachedSaleDetail(saleUuid, response.message)
             }
         } catch (e: Exception) {
-            val cached = saleDao.findByUuid(saleUuid)
-            if (cached != null) {
-                Resource.Success(cached.toDomain(saleDao.getItemsForSale(saleUuid)))
-            } else {
-                Resource.Error(e.toNetworkMessage())
-            }
+            serveCachedSaleDetail(saleUuid, e.message)
+        }
+    }
+
+    private suspend fun serveCachedSaleDetail(saleUuid: String, errorMessage: String?): Resource<Sale> {
+        val cached = saleDao.findByUuid(saleUuid)
+        return if (cached != null) {
+            Resource.Success(cached.toDomain(saleDao.getItemsForSale(saleUuid)))
+        } else {
+            Resource.Error(errorMessage ?: "Tidak ada koneksi internet")
+        }
+    }
+
+    override suspend fun getSaleDetailFromCache(saleUuid: String): Resource<Sale> {
+        val cached = saleDao.findByUuid(saleUuid)
+        return if (cached != null) {
+            Resource.Success(cached.toDomain(saleDao.getItemsForSale(saleUuid)))
+        } else {
+            Resource.Error("Penjualan tidak ditemukan di cache")
         }
     }
 
@@ -278,65 +302,45 @@ class SaleRepositoryImpl(
         errorMsg = "Gagal menyajikan pesanan"
     )
 
-    override suspend fun paySale(saleUuid: String, paymentMethod: PaymentMethod, paidAmount: Long): Resource<Sale> {
-        return try {
-            val request = id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(
-                paymentMethod = paymentMethod.value,
-                paidAmount = paidAmount
+    override suspend fun paySale(saleUuid: String, paymentMethod: PaymentMethod, paidAmount: Long): Resource<Sale> = safe(
+        block = {
+            api.payHeldOrder(
+                tenantUuid, saleUuid,
+                id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(paymentMethod.value, paidAmount)
             )
-            val response = api.payHeldOrder(tenantUuid, saleUuid, request)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal membayar pesanan")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.toNetworkMessage())
-        }
-    }
+        },
+        map = { it.toDomain() },
+        errorMsg = "Gagal membayar pesanan"
+    )
 
     override suspend fun paySaleWithSplitPayment(
         saleUuid: String,
         payments: List<SplitPaymentEntry>
-    ): Resource<Sale> {
-        return try {
-            val request = id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(
-                payments = payments.map {
-                    id.rancak.app.data.remote.dto.sale.SplitPaymentRequest(
-                        method = it.method.value,
-                        amount = it.amount
-                    )
-                }
-            )
-            val response = api.payHeldOrder(tenantUuid, saleUuid, request)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(response.data.toDomain())
-            } else {
-                Resource.Error(response.message ?: "Gagal membayar pesanan dengan split payment")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.toNetworkMessage())
-        }
-    }
-
-    override suspend fun splitBill(saleUuid: String, itemIds: List<String>): Resource<SplitBillResult> {
-        return try {
-            val request = SplitBillRequest(itemIds = itemIds)
-            val response = api.splitBill(tenantUuid, saleUuid, request)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(
-                    SplitBillResult(
-                        original = response.data.original.toDomain(),
-                        newSale  = response.data.newSale.toDomain()
-                    )
+    ): Resource<Sale> = safe(
+        block = {
+            api.payHeldOrder(
+                tenantUuid, saleUuid,
+                id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(
+                    payments = payments.map {
+                        id.rancak.app.data.remote.dto.sale.SplitPaymentRequest(it.method.value, it.amount)
+                    }
                 )
-            } else {
-                Resource.Error(response.message ?: "Gagal memisahkan tagihan")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.toNetworkMessage())
-        }
-    }
+            )
+        },
+        map = { it.toDomain() },
+        errorMsg = "Gagal membayar pesanan dengan split payment"
+    )
+
+    override suspend fun splitBill(saleUuid: String, itemIds: List<String>): Resource<SplitBillResult> = safe(
+        block = { api.splitBill(tenantUuid, saleUuid, SplitBillRequest(itemIds)) },
+        map = {
+            SplitBillResult(
+                original = it.original.toDomain(),
+                newSale  = it.newSale.toDomain()
+            )
+        },
+        errorMsg = "Gagal memisahkan tagihan"
+    )
 
     override suspend fun addItemsToHeldOrder(
         saleUuid: String,
@@ -482,23 +486,16 @@ class SaleRepositoryImpl(
         saleUuid: String,
         printType: String,
         reason: String?
-    ): Resource<ReprintResult> {
-        return try {
-            val response = api.reprintSale(tenantUuid, saleUuid, reason, printType)
-            if (response.isSuccess && response.data != null) {
-                Resource.Success(
-                    ReprintResult(
-                        printType = response.data.printType,
-                        sale = response.data.sale.toDomain()
-                    )
-                )
-            } else {
-                Resource.Error(response.message ?: "Gagal cetak ulang struk")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.toNetworkMessage())
-        }
-    }
+    ): Resource<ReprintResult> = safe(
+        block = { api.reprintSale(tenantUuid, saleUuid, reason, printType) },
+        map = {
+            ReprintResult(
+                printType = it.printType,
+                sale = it.sale.toDomain()
+            )
+        },
+        errorMsg = "Gagal cetak ulang struk"
+    )
 
     override suspend fun openCashDrawer(): Resource<ByteArray> {
         return try {

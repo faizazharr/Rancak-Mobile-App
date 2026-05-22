@@ -129,11 +129,7 @@ internal suspend fun <T, R> safe(
     errorMsg: String
 ): Resource<R> = try {
     val response = block()
-    when {
-        response.statusCode == 402 -> Resource.Error(ERROR_SUBSCRIPTION_EXPIRED)
-        response.isSuccess && response.data != null -> Resource.Success(map(response.data))
-        else -> Resource.Error(response.message ?: errorMsg)
-    }
+    handleResponse(response, errorMsg) { Resource.Success(map(it)) }
 } catch (e: Exception) {
     Resource.Error(e.toNetworkMessage())
 }
@@ -144,10 +140,8 @@ internal suspend fun <T, R> safeList(
     map: (T) -> R
 ): Resource<List<R>> = try {
     val response = block()
-    when {
-        response.statusCode == 402 -> Resource.Error(ERROR_SUBSCRIPTION_EXPIRED)
-        response.isSuccess -> Resource.Success(response.data?.map(map) ?: emptyList())
-        else -> Resource.Error(response.message ?: errorMsg)
+    handleResponse(response, errorMsg) { data ->
+        Resource.Success(data.map(map))
     }
 } catch (e: Exception) {
     Resource.Error(e.toNetworkMessage())
@@ -158,11 +152,26 @@ internal suspend fun safeUnit(
     errorMsg: String
 ): Resource<Unit> = try {
     val response = block()
-    when {
-        response.statusCode == 402 -> Resource.Error(ERROR_SUBSCRIPTION_EXPIRED)
-        response.isSuccess -> Resource.Success(Unit)
-        else -> Resource.Error(response.message ?: errorMsg)
-    }
+    handleResponse(response, errorMsg) { Resource.Success(Unit) }
 } catch (e: Exception) {
     Resource.Error(e.toNetworkMessage())
+}
+
+private fun <T, R> handleResponse(
+    response: ApiResponse<T>,
+    fallbackMsg: String,
+    onSuccess: (T) -> Resource<R>
+): Resource<R> {
+    return when (response.statusCode) {
+        200, 201 -> if (response.data != null) onSuccess(response.data) else Resource.Error("Data tidak ditemukan")
+        400 -> Resource.Error(response.message ?: "Permintaan tidak valid")
+        401 -> Resource.Error("Sesi telah berakhir. Silakan login kembali.", 401)
+        402 -> Resource.Error(ERROR_SUBSCRIPTION_EXPIRED, 402)
+        403 -> Resource.Error("Anda tidak memiliki akses ke fitur ini.", 403)
+        404 -> Resource.Error(response.message ?: "Data tidak ditemukan", 404)
+        409 -> if (response.data != null) onSuccess(response.data) else Resource.Error(response.message ?: "Data sudah ada", 409)
+        422 -> Resource.Error(response.message ?: "Data tidak valid")
+        500, 502, 503, 504 -> Resource.Error("Server sedang bermasalah. Coba lagi nanti.")
+        else -> Resource.Error(response.message ?: fallbackMsg, response.statusCode)
+    }
 }

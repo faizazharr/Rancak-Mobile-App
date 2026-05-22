@@ -39,6 +39,7 @@ import id.rancak.app.presentation.ui.tables.components.TableSummaryCard
 import id.rancak.app.presentation.viewmodel.TableUiState
 import id.rancak.app.presentation.viewmodel.TableViewModel
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.koinInject
 import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
@@ -474,7 +475,7 @@ private fun TableCellOccupiedPreview() {
 @Preview(name = "Table Map – Full Screen", widthDp = 600, heightDp = 800)
 @Composable
 private fun TableMapScreenPreview() {
-    val tables = listOf(
+    val tables = persistentListOf(
         Table(uuid = "t1", name = "Meja 1", area = "Indoor", capacity = 4, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 1, activeSaleUuid = null),
         Table(uuid = "t2", name = "Meja 2", area = "Indoor", capacity = 2, status = TableStatus.OCCUPIED,  isActive = true, sortOrder = 2, activeSaleUuid = "sale-1"),
         Table(uuid = "t3", name = "Meja 3", area = "Indoor", capacity = 4, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 3, activeSaleUuid = null),

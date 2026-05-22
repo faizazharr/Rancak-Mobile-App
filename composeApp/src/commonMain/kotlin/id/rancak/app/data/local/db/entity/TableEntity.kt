@@ -1,11 +1,15 @@
 package id.rancak.app.data.local.db.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
 
-@Entity(tableName = "tables")
+@Entity(
+    tableName = "tables",
+    indices = [Index(value = ["sortOrder"])]
+)
 data class TableEntity(
     @PrimaryKey val uuid: String,
     val name: String,

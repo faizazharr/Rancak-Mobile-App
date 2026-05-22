@@ -35,6 +35,7 @@ import id.rancak.app.presentation.ui.pos.FeeInputDialog
 import id.rancak.app.presentation.ui.pos.feeFormatNumber
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartUiState
+import kotlinx.collections.immutable.persistentListOf
 
 private val GradientEnd = Color(0xFF0B7A60)
 
@@ -173,7 +174,7 @@ internal fun OrderSummaryActions(
                     label  = "${cfg.name} (${cfg.rate}%)",
                     amount = run {
                         val basis = if (cfg.applyTo == "subtotal") cartState.subtotal
-                                    else (cartState.subtotal - cartState.discount).coerceAtLeast(0L)
+                                    else (cartState.subtotal - cartState.discount + cartState.totalSurcharge).coerceAtLeast(0L)
                         ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
                     },
                     onSurfaceVariant = onSurfaceVariant,
@@ -710,7 +711,7 @@ private fun OrderSummaryActionsPreview_WithItems() {
     RancakTheme {
         OrderSummaryActions(
             cartState          = CartUiState(
-                items         = emptyList(),
+                items         = persistentListOf(),
                 discountInput = 5_000L,
                 taxInput      = 6_000L
             ),

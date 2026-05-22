@@ -47,8 +47,8 @@ import id.rancak.app.presentation.viewmodel.ShiftViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -167,8 +167,10 @@ fun PosScreen(
         return
     }
 
-    val cartQtyMap = remember(cartState.items) {
-        cartState.items.associate { it.productUuid to it.qty }.toImmutableMap()
+    val cartQtyMap by remember {
+        derivedStateOf {
+            cartState.items.associate { it.productUuid to it.qty }.toImmutableMap()
+        }
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -255,9 +257,7 @@ private fun PhoneLayout(
 ) {
     val hasCart = cartState.itemCount > 0
     val primary = MaterialTheme.colorScheme.primary
-    // Memoize: toImmutableList() mengalokasikan list baru setiap rekomposisi.
-    // Hanya buat ulang saat daftar kategori benar-benar berubah.
-    val immutableCategories = remember(uiState.categories) { uiState.categories.toImmutableList() }
+    val immutableCategories = uiState.categories
 
     Scaffold(
         topBar = {
@@ -349,8 +349,7 @@ private fun SplitLayout(
     modifierCache: ImmutableMap<String, ImmutableList<id.rancak.app.domain.model.Modifier>> = persistentMapOf(),
     onLoadModifiers: (String) -> Unit = {}
 ) {
-    // Memoize: toImmutableList() mengalokasikan list baru setiap rekomposisi.
-    val immutableCategories = remember(uiState.categories) { uiState.categories.toImmutableList() }
+    val immutableCategories = uiState.categories
 
     Row(Modifier.fillMaxSize()) {
         Column(
@@ -423,8 +422,9 @@ private fun SplitLayout(
 private val previewCategory = Category(
     uuid = "c1", name = "Makanan", description = null
 )
+private val previewCategoryList = persistentListOf(previewCategory)
 
-private val previewProducts = listOf(
+private val previewProducts = persistentListOf(
     Product(
         uuid = "p1", sku = "SKU-1", barcode = null, name = "Nasi Goreng",
         description = null, category = previewCategory, price = 25_000,
@@ -450,7 +450,10 @@ private val previewProducts = listOf(
 private fun PosScreenPhonePreview() {
     id.rancak.app.presentation.designsystem.RancakTheme {
         PhoneLayout(
-            uiState          = PosUiState(products = previewProducts, categories = listOf(previewCategory)),
+            uiState          = PosUiState(
+                products = previewProducts,
+                categories = previewCategoryList
+            ),
             cartState        = CartUiState(),
             cartQtyMap       = persistentMapOf(),
             outletName       = "Warung Rancak",
@@ -471,7 +474,10 @@ private fun PosScreenPhonePreview() {
 private fun PosScreenTabletPreview() {
     id.rancak.app.presentation.designsystem.RancakTheme {
         SplitLayout(
-            uiState          = PosUiState(products = previewProducts, categories = listOf(previewCategory)),
+            uiState          = PosUiState(
+                products = previewProducts,
+                categories = previewCategoryList
+            ),
             cartState        = CartUiState(),
             cartQtyMap       = persistentMapOf(),
             outletName       = "Warung Rancak",

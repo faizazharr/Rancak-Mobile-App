@@ -33,7 +33,7 @@ import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseUiState
 import id.rancak.app.presentation.viewmodel.CashExpenseViewModel
 import androidx.compose.ui.tooling.preview.Preview
-import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -134,8 +134,8 @@ fun CashExpenseScreenContent(
 
 @Composable
 private fun FinanceSummaryRow(
-    cashIns: List<CashIn>,
-    expenses: List<Expense>
+    cashIns: ImmutableList<CashIn>,
+    expenses: ImmutableList<Expense>
 ) {
     val semantic = RancakColors.semantic
     val totalIn = cashIns.sumOf { it.amount }
@@ -300,9 +300,9 @@ private fun PhoneCashLayout(
             Tab(selected = selectedTab == 1, onClick = { onTabChange(1) }, text = { Text("Pengeluaran") })
         }
         if (selectedTab == 0) {
-            CashInList(uiState.cashIns.toImmutableList(), onDelete = actions.onDeleteCashIn)
+            CashInList(uiState.cashIns, onDelete = actions.onDeleteCashIn)
         } else {
-            ExpenseList(uiState.expenses.toImmutableList(), onDelete = actions.onDeleteExpense)
+            ExpenseList(uiState.expenses, onDelete = actions.onDeleteExpense)
         }
     }
 }
@@ -315,10 +315,10 @@ private fun PhoneCashLayout(
 private fun CashInListPreview() {
     RancakTheme {
         CashInList(
-            items = listOf(
+            items = persistentListOf(
                 CashIn(uuid = "1", amount = 500000, source = "Modal", description = "Kas Awal", note = null, cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null),
                 CashIn(uuid = "2", amount = 200000, source = "Pinjaman", description = "Tambahan Modal", note = "Dari owner", cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null)
-            ).toImmutableList(),
+            ),
             onDelete = {}
         )
     }
@@ -329,10 +329,10 @@ private fun CashInListPreview() {
 private fun ExpenseListPreview() {
     RancakTheme {
         ExpenseList(
-            items = listOf(
+            items = persistentListOf(
                 Expense(uuid = "1", amount = 50000, description = "Beli Gas", note = "2 tabung", categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null),
                 Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null, categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null)
-            ).toImmutableList(),
+            ),
             onDelete = {}
         )
     }
@@ -344,7 +344,7 @@ private fun CashExpenseScreenPreview() {
     RancakTheme {
         CashExpenseScreenContent(
             uiState = CashExpenseUiState(
-                cashIns = listOf(
+                cashIns = persistentListOf(
                     CashIn(uuid = "1", amount = 500_000, source = "Modal",
                         description = "Kas Awal", note = null,
                         cashierUuid = null, cashierName = null, shiftUuid = null,

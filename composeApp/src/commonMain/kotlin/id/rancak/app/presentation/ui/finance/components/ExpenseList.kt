@@ -19,7 +19,7 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatDateFriendly
 import id.rancak.app.presentation.util.formatRupiah
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun ExpenseItemCard(
@@ -117,14 +117,14 @@ fun ExpenseList(
 private fun ExpenseListPreview() {
     RancakTheme {
         ExpenseList(
-            items = listOf(
+            items = persistentListOf(
                 Expense(uuid = "1", amount = 50000, description = "Beli Gas", note = "2 tabung",
                     categoryUuid = null, categoryName = "Operasional", cashierUuid = null, cashierName = null,
                     expenseDate = "2026-04-29", createdAt = "2026-04-29T10:00:00Z", updatedAt = null),
                 Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null,
                     categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null,
                     expenseDate = null, createdAt = "2026-04-28T08:30:00Z", updatedAt = null)
-            ).toImmutableList(),
+            ),
             onDelete = {}
         )
     }

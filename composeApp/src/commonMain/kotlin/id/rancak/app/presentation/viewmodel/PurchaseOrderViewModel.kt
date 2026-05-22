@@ -13,6 +13,13 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Supplier
 import id.rancak.app.domain.repository.InventoryRepository
 import id.rancak.app.domain.repository.ProductRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,9 +28,9 @@ import kotlinx.coroutines.launch
 
 @Immutable
 data class PurchaseOrderUiState(
-    val orders: List<PurchaseOrder> = emptyList(),
-    val suppliers: List<Supplier> = emptyList(),
-    val products: List<Product> = emptyList(),
+    val orders: ImmutableList<PurchaseOrder> = persistentListOf(),
+    val suppliers: ImmutableList<Supplier> = persistentListOf(),
+    val products: ImmutableList<Product> = persistentListOf(),
     val selectedOrder: PurchaseOrder? = null,
     val isLoading: Boolean = false,
     val isLoadingDetail: Boolean = false,
@@ -51,7 +58,7 @@ data class PurchaseOrderUiState(
     val formItemNotes: String = "",
     // Receive form
     val showReceiveDialog: Boolean = false,
-    val receiveEntries: Map<String, String> = emptyMap(),
+    val receiveEntries: PersistentMap<String, String> = persistentMapOf(),
     val formReceiveNotes: String = ""
 )
 
@@ -65,37 +72,28 @@ class PurchaseOrderViewModel(
 
     init {
         loadOrders()
-        loadSuppliers()
-        loadProducts()
     }
 
     fun loadOrders(status: String? = _uiState.value.statusFilter) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            when (val result = inventoryRepository.getPurchaseOrders(status = status)) {
-                is Resource.Success -> _uiState.update { it.copy(orders = result.data, isLoading = false) }
-                is Resource.Error   -> _uiState.update { it.copy(error = result.message, isLoading = false) }
-                is Resource.Loading -> {}
-            }
-        }
-    }
+            
+            val ordersDeferred = async { inventoryRepository.getPurchaseOrders(status = status) }
+            val suppliersDeferred = async { inventoryRepository.getSuppliers() }
+            val productsDeferred = async { productRepository.getProducts() }
 
-    private fun loadSuppliers() {
-        viewModelScope.launch {
-            when (val result = inventoryRepository.getSuppliers()) {
-                is Resource.Success -> _uiState.update { it.copy(suppliers = result.data) }
-                is Resource.Error   -> {}
-                is Resource.Loading -> {}
-            }
-        }
-    }
+            val ordersRes = ordersDeferred.await()
+            val suppliersRes = suppliersDeferred.await()
+            val productsRes = productsDeferred.await()
 
-    private fun loadProducts() {
-        viewModelScope.launch {
-            when (val result = productRepository.getProducts()) {
-                is Resource.Success -> _uiState.update { it.copy(products = result.data) }
-                is Resource.Error   -> {}
-                is Resource.Loading -> {}
+            _uiState.update { state ->
+                state.copy(
+                    isLoading = false,
+                    orders = (ordersRes as? Resource.Success)?.data?.toImmutableList() ?: state.orders,
+                    suppliers = (suppliersRes as? Resource.Success)?.data?.toImmutableList() ?: state.suppliers,
+                    products = (productsRes as? Resource.Success)?.data?.toImmutableList() ?: state.products,
+                    error = (ordersRes as? Resource.Error)?.message
+                )
             }
         }
     }
@@ -387,7 +385,7 @@ class PurchaseOrderViewModel(
         val items = _uiState.value.selectedOrder?.items ?: return
         _uiState.update { it.copy(
             showReceiveDialog  = true,
-            receiveEntries     = items.associate { item -> item.uuid to "" },
+            receiveEntries     = items.associate { item -> item.uuid to "" }.toPersistentMap(),
             formReceiveNotes   = ""
         ) }
     }
@@ -397,7 +395,7 @@ class PurchaseOrderViewModel(
     }
 
     fun onReceiveQtyChange(itemUuid: String, qty: String) {
-        _uiState.update { it.copy(receiveEntries = it.receiveEntries + (itemUuid to qty)) }
+        _uiState.update { it.copy(receiveEntries = it.receiveEntries.put(itemUuid, qty)) }
     }
 
     fun onReceiveNotesChange(notes: String) {
@@ -407,7 +405,7 @@ class PurchaseOrderViewModel(
     fun receiveOrder() {
         val state   = _uiState.value
         val poId    = state.selectedOrder?.uuid ?: return
-        val entries = state.receiveEntries.mapNotNull { (itemUuid, qtyStr) ->
+        val entries = state.receiveEntries.entries.mapNotNull { (itemUuid, qtyStr) ->
             val qty = qtyStr.toDoubleOrNull() ?: return@mapNotNull null
             if (qty <= 0) return@mapNotNull null
             ReceiveItemEntry(itemUuid = itemUuid, qtyReceived = qty)

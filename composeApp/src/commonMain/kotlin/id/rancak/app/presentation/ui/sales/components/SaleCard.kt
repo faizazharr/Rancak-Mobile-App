@@ -25,6 +25,7 @@ import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.persistentListOf
 
 /**
  * Compact sale summary card used in the left list. Left-edge strip is tinted
@@ -199,7 +200,7 @@ private fun previewSale(status: SaleStatus) = Sale(
     paymentMethod = null,
     paidAmount    = 0L,
     changeAmount  = 0L,
-    items = listOf(
+    items = persistentListOf(
         SaleItem(
             uuid = "i1", productUuid = "p1", productName = "Kopi Susu",
             qty = "2", price = 18_000L, subtotal = 36_000L,

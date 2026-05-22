@@ -14,15 +14,15 @@ import kotlinx.serialization.json.Json
  * Thread-safety note: operations are not concurrent-safe by themselves;
  * callers must run them on a single coroutine dispatcher (e.g. IO).
  */
-class OfflineSaleQueue(private val settings: Settings) {
+class OfflineSaleQueue(
+    private val settings: Settings,
+    private val json: Json
+) {
+
+    private var cachedQueue: List<PendingSale>? = null
 
     init {
         migrateFromLegacy()
-    }
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-        encodeDefaults = true
     }
 
     /** Add a sale to the back of the queue. */
@@ -33,9 +33,12 @@ class OfflineSaleQueue(private val settings: Settings) {
 
     /** Return all queued sales, oldest first. */
     fun getAll(): List<PendingSale> {
+        cachedQueue?.let { return it }
         val raw = settings.getStringOrNull(KEY_QUEUE) ?: return emptyList()
         return try {
-            json.decodeFromString(raw)
+            val decoded = json.decodeFromString<List<PendingSale>>(raw)
+            cachedQueue = decoded
+            decoded
         } catch (_: Exception) {
             emptyList()
         }
@@ -49,6 +52,7 @@ class OfflineSaleQueue(private val settings: Settings) {
     /** Remove all entries (e.g. after a full batch sync). */
     fun clear() {
         settings.remove(KEY_QUEUE)
+        cachedQueue = emptyList()
     }
 
     val isEmpty: Boolean get() = getAll().isEmpty()
@@ -57,6 +61,7 @@ class OfflineSaleQueue(private val settings: Settings) {
     // ── private ──
 
     private fun persist(sales: List<PendingSale>) {
+        cachedQueue = sales
         settings[KEY_QUEUE] = json.encodeToString(sales)
     }
 

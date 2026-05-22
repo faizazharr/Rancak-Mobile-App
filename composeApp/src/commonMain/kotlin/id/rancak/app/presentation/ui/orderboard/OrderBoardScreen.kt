@@ -35,6 +35,7 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.OrderBoardUiState
 import id.rancak.app.presentation.viewmodel.OrderBoardViewModel
 import id.rancak.app.presentation.ui.orderboard.components.OrderBoardCard
+import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
 private const val PAGE_SIZE = 6
@@ -231,20 +232,20 @@ private fun OrderBoardScreenEmptyPreview() {
 @Preview(name = "Order Board – With Orders", widthDp = 1024, heightDp = 768)
 @Composable
 private fun OrderBoardScreenWithOrdersPreview() {
-    val sample = listOf(
+    val sample = persistentListOf(
         OrderBoardOrder(
             uuid = "1", invoiceNo = "INV-001", queueNumber = 1,
             orderType = OrderType.DINE_IN, customerName = "Andi",
             status = SaleStatus.HELD, createdAt = "2026-01-01T10:15:00",
             servedAt = null,
-            items = listOf(OrderBoardItem("Nasi Goreng", 2, null))
+            items = persistentListOf(OrderBoardItem("Nasi Goreng", 2, null))
         ),
         OrderBoardOrder(
             uuid = "2", invoiceNo = "INV-002", queueNumber = 2,
             orderType = OrderType.TAKEAWAY, customerName = "Budi",
             status = SaleStatus.PAID, createdAt = "2026-01-01T10:20:00",
             servedAt = null,
-            items = listOf(OrderBoardItem("Mie Ayam", 1, "Tidak pedas"))
+            items = persistentListOf(OrderBoardItem("Mie Ayam", 1, "Tidak pedas"))
         )
     )
     RancakTheme {

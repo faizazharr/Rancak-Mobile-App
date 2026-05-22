@@ -69,6 +69,7 @@ import id.rancak.app.presentation.viewmodel.SupplierViewModel
 import id.rancak.app.presentation.viewmodel.PurchaseOrderViewModel
 import id.rancak.app.presentation.viewmodel.ResetPasswordViewModel
 import id.rancak.app.presentation.viewmodel.BundleManagementViewModel
+import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
@@ -85,6 +86,15 @@ val databaseModule = module {
 }
 
 val dataModule = module {
+    single {
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            encodeDefaults = true
+            prettyPrint = false
+            coerceInputValues = true
+        }
+    }
     // Secure settings (encrypted storage) — dipakai TokenManager untuk
     // menyimpan token auth + user info. Android: EncryptedSharedPreferences,
     // iOS: Keychain. Dua namespace terpisah supaya auth data & offline queue
@@ -97,12 +107,12 @@ val dataModule = module {
     }
     single { TokenManager(get(qualifier = org.koin.core.qualifier.named("secure-auth"))) }
     single {
-        val (httpClient, clearBearer) = createHttpClient(get())
+        val (httpClient, clearBearer) = createHttpClient(get(), get())
         RancakApiService(httpClient, clearBearer)
     }
     // Offline queue — disimpan di encrypted storage (berisi data transaksi
     // yang belum ter-sync; sensitif karena memuat item, harga, customer).
-    single { OfflineSaleQueue(get(qualifier = org.koin.core.qualifier.named("secure-queue"))) }
+    single { OfflineSaleQueue(get(qualifier = org.koin.core.qualifier.named("secure-queue")), get()) }
     // Expose SyncManager as SyncScheduler so SaleRepositoryImpl stays platform-agnostic
     single<SyncScheduler> { get<id.rancak.app.data.sync.SyncManager>() }
 }
@@ -129,7 +139,7 @@ val repositoryModule = module {
 
 val viewModelModule = module {
     single { SettingsStore() }
-    single { OpenBillStore() }
+    single { OpenBillStore(get()) }
     viewModelOf(::LoginViewModel)
     viewModelOf(::ForgotPasswordViewModel)
     viewModelOf(::SplashViewModel)

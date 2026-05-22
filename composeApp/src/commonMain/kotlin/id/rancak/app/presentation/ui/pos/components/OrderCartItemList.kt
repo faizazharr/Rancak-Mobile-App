@@ -44,7 +44,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.toImmutableList
 
 private val NoteGradientEnd = Color(0xFF0B7A60)
 
@@ -99,7 +98,7 @@ internal fun OrderCartItemList(
                 OrderItemRow(
                     item            = item,
                     primary         = primary,
-                    modifiers       = (modifierCache[item.productUuid] ?: emptyList()).toImmutableList(),
+                    modifiers       = modifierCache[item.productUuid] ?: persistentListOf(),
                     onLoadModifiers = { onLoadModifiers(item.productUuid) },
                     onIncrease      = { onUpdateQty(item, item.qty + 1) },
                     onDecrease      = { onUpdateQty(item, item.qty - 1) },
@@ -613,7 +612,7 @@ private fun OrderCartItemListPreview_WithItems() {
         OrderCartItemList(
             modifier = Modifier.fillMaxSize(),
             cartState = CartUiState(
-                items = listOf(
+                items = persistentListOf(
                     CartItem(productUuid = "p1", productName = "Kopi Susu", qty = 2, price = 18_000L),
                     CartItem(productUuid = "p2", productName = "Croissant", qty = 1, price = 22_000L, note = "dihangatkan")
                 )

@@ -8,23 +8,30 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.OrderBoardOrder
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.domain.repository.SaleRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Immutable
 data class OrderBoardUiState(
-    val activeOrders: List<OrderBoardOrder> = emptyList(),
-    val completedOrders: List<OrderBoardOrder> = emptyList(),
+    val activeOrders: ImmutableList<OrderBoardOrder> = persistentListOf(),
+    val completedOrders: ImmutableList<OrderBoardOrder> = persistentListOf(),
     val showCompleted: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
     // Precomputed agar tidak diulang di setiap rekomposisi.
-    val displayOrders: List<OrderBoardOrder> = emptyList()
+    val displayOrders: ImmutableList<OrderBoardOrder> = persistentListOf()
 ) {
-    fun recompute() = copy(displayOrders = if (showCompleted) completedOrders else activeOrders)
+    suspend fun recompute() = withContext(Dispatchers.Default) {
+        copy(displayOrders = if (showCompleted) completedOrders else activeOrders)
+    }
 }
 
 class OrderBoardViewModel(
@@ -35,7 +42,9 @@ class OrderBoardViewModel(
     val uiState: StateFlow<OrderBoardUiState> = _uiState.asStateFlow()
 
     fun toggleTab(showCompleted: Boolean) {
-        _uiState.update { it.copy(showCompleted = showCompleted).recompute() }
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(showCompleted = showCompleted).recompute()
+        }
     }
 
     fun loadOrders() {
@@ -43,10 +52,11 @@ class OrderBoardViewModel(
             _uiState.update { it.copy(isLoading = true) }
             when (val result = saleRepository.getOrderBoard(includeDone = true)) {
                 is Resource.Success -> {
-                    val active = result.data.filter { it.status == SaleStatus.HELD }
-                    val completed = result.data.filter { it.status == SaleStatus.PAID }
-                    _uiState.update {
-                        it.copy(
+                    val orders = result.data
+                    withContext(Dispatchers.Default) {
+                        val active = orders.filter { it.status == SaleStatus.HELD }.toImmutableList()
+                        val completed = orders.filter { it.status == SaleStatus.PAID }.toImmutableList()
+                        _uiState.value = _uiState.value.copy(
                             activeOrders = active,
                             completedOrders = completed,
                             isLoading = false

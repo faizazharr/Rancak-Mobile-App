@@ -1,6 +1,8 @@
 package id.rancak.app.domain.model
 
 import androidx.compose.runtime.Immutable
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Immutable
 data class Sale(
@@ -25,8 +27,8 @@ data class Sale(
     val paymentMethod: PaymentMethod?,
     val paidAmount: Long,
     val changeAmount: Long,
-    val items: List<SaleItem>,
-    val payments: List<SalePayment> = emptyList(),
+    val items: ImmutableList<SaleItem>,
+    val payments: ImmutableList<SalePayment> = persistentListOf(),
     val delivery: Delivery? = null,
     val createdAt: String?,
     val servedAt: String? = null
@@ -43,7 +45,7 @@ data class SaleItem(
     val subtotal: Long,
     val variantName: String?,
     val note: String?,
-    val addons: List<SaleItemAddon> = emptyList()
+    val addons: ImmutableList<SaleItemAddon> = persistentListOf()
 )
 
 @Immutable
@@ -141,7 +143,7 @@ data class Refund(
     val saleUuid: String,
     val refundAmount: Long,
     val reason: String?,
-    val items: List<RefundItem>,
+    val items: ImmutableList<RefundItem>,
     val createdAt: String?
 )
 

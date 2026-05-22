@@ -19,6 +19,7 @@ import id.rancak.app.domain.model.KdsOrder
 import id.rancak.app.domain.model.KdsStatus
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.presentation.designsystem.RancakTheme
+import kotlinx.collections.immutable.persistentListOf
 
 // ── Helpers (package-private) ─────────────────────────────────────────────────
 
@@ -149,7 +150,7 @@ private fun KdsOrderCardNewPreview() {
                 uuid = "1", invoiceNo = "ORD-001", orderType = OrderType.DINE_IN,
                 tableName = "Meja 3", queueNumber = 1, customerName = "Andi", note = null,
                 status = KdsStatus.NEW,
-                items = listOf(KdsItem("i1", "Nasi Goreng", "2", null, null, KdsItemStatus.PENDING)),
+                items = persistentListOf(KdsItem("i1", "Nasi Goreng", "2", null, null, KdsItemStatus.PENDING)),
                 createdAt = "2026-01-01T10:15:00"
             ),
             onAdvance = {}

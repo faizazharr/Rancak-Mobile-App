@@ -14,6 +14,10 @@ import id.rancak.app.domain.model.ShiftSummary
 import id.rancak.app.domain.model.StockAlert
 import id.rancak.app.domain.model.StockReport
 import id.rancak.app.domain.repository.FinanceRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,8 +28,8 @@ import kotlinx.coroutines.launch
 data class ReportUiState(
     val summary: ShiftSummary? = null,
     val mySalesToday: MySalesReport? = null,
-    val dailyByCategory: List<DailyCategoryReport> = emptyList(),
-    val cashierShifts: List<CashierShiftSummary> = emptyList(),
+    val dailyByCategory: ImmutableList<DailyCategoryReport> = persistentListOf(),
+    val cashierShifts: ImmutableList<CashierShiftSummary> = persistentListOf(),
     val isCashierShiftsLoading: Boolean = false,
     val cashierShiftDate: String = "",
     val isLoading: Boolean = false,
@@ -33,10 +37,10 @@ data class ReportUiState(
     val dateFrom: String = "",
     val dateTo: String = "",
     // Stock alerts
-    val stockAlerts: List<StockAlert> = emptyList(),
-    val lowStockItems: List<LowStock> = emptyList(),
-    val expiringBatches: List<ExpiringBatch> = emptyList(),
-    val stockReport: List<StockReport> = emptyList(),
+    val stockAlerts: ImmutableList<StockAlert> = persistentListOf(),
+    val lowStockItems: ImmutableList<LowStock> = persistentListOf(),
+    val expiringBatches: ImmutableList<ExpiringBatch> = persistentListOf(),
+    val stockReport: ImmutableList<StockReport> = persistentListOf(),
     val isStockLoading: Boolean = false,
     val stockError: String? = null
 )
@@ -57,23 +61,30 @@ class ReportViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            when (val result = financeRepository.getShiftSummary()) {
-                is Resource.Success -> _uiState.update { it.copy(summary = result.data) }
-                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
-                is Resource.Loading -> {}
-            }
-            when (val result = financeRepository.getMySalesToday()) {
-                is Resource.Success -> _uiState.update { it.copy(mySalesToday = result.data) }
-                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
-                is Resource.Loading -> {}
-            }
-            when (val result = financeRepository.getDailyByCategory()) {
-                is Resource.Success -> _uiState.update { it.copy(dailyByCategory = result.data) }
-                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
-                is Resource.Loading -> {}
-            }
+            val summaryDeferred   = async { financeRepository.getShiftSummary() }
+            val mySalesDeferred   = async { financeRepository.getMySalesToday() }
+            val dailyCatDeferred = async { financeRepository.getDailyByCategory() }
 
-            _uiState.update { it.copy(isLoading = false) }
+            val summaryRes  = summaryDeferred.await()
+            val mySalesRes  = mySalesDeferred.await()
+            val dailyCatRes = dailyCatDeferred.await()
+
+            _uiState.update { state ->
+                var s = state.copy(isLoading = false)
+                if (summaryRes is Resource.Success) s = s.copy(summary = summaryRes.data)
+                if (mySalesRes is Resource.Success) s = s.copy(mySalesToday = mySalesRes.data)
+                if (dailyCatRes is Resource.Success) s = s.copy(dailyByCategory = dailyCatRes.data.toImmutableList())
+                
+                // Show first error found, if any
+                s.copy(
+                    error = when {
+                        summaryRes is Resource.Error -> summaryRes.message
+                        mySalesRes is Resource.Error -> mySalesRes.message
+                        dailyCatRes is Resource.Error -> dailyCatRes.message
+                        else -> null
+                    }
+                )
+            }
         }
     }
 
@@ -82,7 +93,11 @@ class ReportViewModel(
             _uiState.update { it.copy(isCashierShiftsLoading = true) }
             when (val result = financeRepository.getShiftByCashier(date)) {
                 is Resource.Success -> _uiState.update {
-                    it.copy(cashierShifts = result.data, isCashierShiftsLoading = false, cashierShiftDate = date ?: "")
+                    it.copy(
+                        cashierShifts = result.data.toImmutableList(),
+                        isCashierShiftsLoading = false,
+                        cashierShiftDate = date ?: ""
+                    )
                 }
                 is Resource.Error -> _uiState.update {
                     it.copy(error = result.message, isCashierShiftsLoading = false)
@@ -99,30 +114,27 @@ class ReportViewModel(
     fun loadStockAlerts() {
         viewModelScope.launch {
             _uiState.update { it.copy(isStockLoading = true, stockError = null) }
-            val alertsResult   = financeRepository.getStockAlerts()
-            val lowStockResult = financeRepository.getLowStock()
-            val expiringResult = financeRepository.getExpiringBatches(days = 30)
-            val stockRptResult = financeRepository.getStockReport()
+            
+            val alertsDeferred   = async { financeRepository.getStockAlerts() }
+            val lowStockDeferred = async { financeRepository.getLowStock() }
+            val expiringDeferred = async { financeRepository.getExpiringBatches(days = 30) }
+            val stockRptDeferred = async { financeRepository.getStockReport() }
 
-            if (alertsResult is Resource.Success) {
-                _uiState.update { it.copy(stockAlerts = alertsResult.data) }
-            } else if (alertsResult is Resource.Error) {
-                _uiState.update { it.copy(stockError = alertsResult.message) }
+            val alertsRes   = alertsDeferred.await()
+            val lowStockRes = lowStockDeferred.await()
+            val expiringRes = expiringDeferred.await()
+            val stockRptRes = stockRptDeferred.await()
+
+            _uiState.update { state ->
+                state.copy(
+                    isStockLoading  = false,
+                    stockAlerts     = (alertsRes   as? Resource.Success)?.data?.toImmutableList() ?: state.stockAlerts,
+                    lowStockItems   = (lowStockRes as? Resource.Success)?.data?.toImmutableList() ?: state.lowStockItems,
+                    expiringBatches = (expiringRes as? Resource.Success)?.data?.toImmutableList() ?: state.expiringBatches,
+                    stockReport     = (stockRptRes as? Resource.Success)?.data?.toImmutableList() ?: state.stockReport,
+                    stockError      = (alertsRes as? Resource.Error)?.message
+                )
             }
-
-            if (lowStockResult is Resource.Success) {
-                _uiState.update { it.copy(lowStockItems = lowStockResult.data) }
-            }
-
-            if (expiringResult is Resource.Success) {
-                _uiState.update { it.copy(expiringBatches = expiringResult.data) }
-            }
-
-            if (stockRptResult is Resource.Success) {
-                _uiState.update { it.copy(stockReport = stockRptResult.data) }
-            }
-
-            _uiState.update { it.copy(isStockLoading = false) }
         }
     }
 
@@ -130,7 +142,7 @@ class ReportViewModel(
         viewModelScope.launch {
             financeRepository.markStockAlertRead(alertId)
             _uiState.update { state ->
-                state.copy(stockAlerts = state.stockAlerts.filterNot { it.productUuid == alertId })
+                state.copy(stockAlerts = state.stockAlerts.filterNot { it.productUuid == alertId }.toImmutableList())
             }
         }
     }
@@ -138,7 +150,7 @@ class ReportViewModel(
     fun markAllAlertsRead() {
         viewModelScope.launch {
             financeRepository.markAllStockAlertsRead()
-            _uiState.update { it.copy(stockAlerts = emptyList()) }
+            _uiState.update { it.copy(stockAlerts = persistentListOf()) }
         }
     }
 }

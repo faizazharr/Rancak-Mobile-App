@@ -19,6 +19,7 @@ import id.rancak.app.domain.model.OrderBoardOrder
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.designsystem.RancakTheme
+import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Clock
 
 // ── Helpers (package-private) ─────────────────────────────────────────────────
@@ -168,7 +169,7 @@ private fun OrderBoardCardHeldPreview() {
                 orderType = OrderType.DINE_IN, customerName = "Andi",
                 status = SaleStatus.HELD, createdAt = "2026-01-01T10:15:00",
                 servedAt = null,
-                items = listOf(OrderBoardItem("Nasi Goreng", 2, null))
+                items = persistentListOf(OrderBoardItem("Nasi Goreng", 2, null))
             ),
             onServe = {}
         )

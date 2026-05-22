@@ -21,6 +21,7 @@ import id.rancak.app.domain.model.SaleItemAddon
 import id.rancak.app.domain.model.SalePayment
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.domain.model.CartItem
+import kotlinx.collections.immutable.toImmutableList
 import id.rancak.app.data.remote.dto.sale.SaleItemRequest
 
 /**
@@ -50,8 +51,8 @@ fun SaleDto.toDomain() = Sale(
     paymentMethod = PaymentMethod.from(paymentMethod),
     paidAmount = paidAmount,
     changeAmount = changeAmount,
-    items = items.map { it.toDomain() },
-    payments = payments.map { it.toDomain() },
+    items = items.map { it.toDomain() }.toImmutableList(),
+    payments = payments.map { it.toDomain() }.toImmutableList(),
     delivery = delivery?.toDomain(),
     createdAt = createdAt,
     servedAt = servedAt
@@ -67,7 +68,7 @@ fun SaleItemDto.toDomain() = SaleItem(
     subtotal = subtotal,
     variantName = variantName,
     note = note,
-    addons = addons.map { it.toDomain() }
+    addons = addons.map { it.toDomain() }.toImmutableList()
 )
 
 fun SaleItemAddonDto.toDomain() = SaleItemAddon(
@@ -109,7 +110,7 @@ fun RefundResponseDto.toDomain() = Refund(
     saleUuid     = saleUuid,
     refundAmount = refundAmount,
     reason       = reason,
-    items        = items.map { it.toDomain() },
+    items        = items.map { it.toDomain() }.toImmutableList(),
     createdAt    = createdAt
 )
 

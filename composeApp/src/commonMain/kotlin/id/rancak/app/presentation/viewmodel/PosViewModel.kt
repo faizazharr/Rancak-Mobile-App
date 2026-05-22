@@ -16,6 +16,10 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,17 +29,17 @@ import kotlinx.coroutines.launch
 @Immutable
 data class PosUiState(
     val outletName: String = "",
-    val products: List<Product> = emptyList(),
-    val categories: List<Category> = emptyList(),
-    val favoriteProducts: List<FavoriteProduct> = emptyList(),
-    val products86: List<Product86> = emptyList(),
+    val products: ImmutableList<Product> = persistentListOf(),
+    val categories: ImmutableList<Category> = persistentListOf(),
+    val favoriteProducts: ImmutableList<FavoriteProduct> = persistentListOf(),
+    val products86: ImmutableList<Product86> = persistentListOf(),
     val selectedCategory: Category? = null,
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
     // Precomputed di ViewModel agar tidak mengulang filter di setiap rekomposisi.
     val products86Uuids: Set<String> = emptySet(),
-    val filteredProducts: List<Product> = emptyList(),
+    val filteredProducts: ImmutableList<Product> = persistentListOf(),
     /**
      * Cache modifier per produk: productUuid → list modifier (global + per-produk).
      * Di-load lazy saat pertama kali item di-tap di OrderPanel.
@@ -56,7 +60,7 @@ class PosViewModel(
     val uiState: StateFlow<PosUiState> = _uiState.asStateFlow()
 
     /** Recompute derived fields setiap kali data sumber berubah. */
-    private fun PosUiState.recompute(): PosUiState {
+    private suspend fun PosUiState.recompute(): PosUiState = withContext(Dispatchers.Default) {
         val set = products86.mapTo(mutableSetOf()) { it.productUuid }
         var filtered = products.filter { it.isActive }
         if (selectedCategory != null) {
@@ -70,7 +74,7 @@ class PosViewModel(
                 it.barcode?.contains(query) == true
             }
         }
-        return copy(products86Uuids = set, filteredProducts = filtered)
+        copy(products86Uuids = set, filteredProducts = filtered.toImmutableList())
     }
 
     fun loadProducts() {
@@ -78,7 +82,11 @@ class PosViewModel(
             _uiState.update { it.copy(isLoading = true) }
             when (val result = productRepository.getProducts()) {
                 is Resource.Success -> {
-                    _uiState.update { it.copy(products = result.data, isLoading = false).recompute() }
+                    val newState = _uiState.value.copy(
+                        products = result.data.toImmutableList(),
+                        isLoading = false
+                    ).recompute()
+                    _uiState.value = newState
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(error = result.message, isLoading = false) }
@@ -92,7 +100,7 @@ class PosViewModel(
         viewModelScope.launch {
             when (val result = productRepository.getCategories()) {
                 is Resource.Success -> {
-                    _uiState.update { it.copy(categories = result.data) }
+                    _uiState.update { it.copy(categories = result.data.toImmutableList()) }
                 }
                 is Resource.Error -> { /* silent fail for categories */ }
                 is Resource.Loading -> {}
@@ -101,12 +109,18 @@ class PosViewModel(
     }
 
     fun onSearchQueryChange(query: String) {
-        _uiState.update { it.copy(searchQuery = query).recompute() }
+        viewModelScope.launch {
+            val newState = _uiState.value.copy(searchQuery = query).recompute()
+            _uiState.value = newState
+        }
     }
 
     fun onCategorySelected(category: Category?) {
-        _uiState.update {
-            it.copy(selectedCategory = if (it.selectedCategory == category) null else category).recompute()
+        viewModelScope.launch {
+            val newState = _uiState.value.copy(
+                selectedCategory = if (_uiState.value.selectedCategory == category) null else category
+            ).recompute()
+            _uiState.value = newState
         }
     }
 
@@ -120,7 +134,7 @@ class PosViewModel(
     private fun loadFavorites() {
         viewModelScope.launch {
             when (val result = productRepository.getFavoriteProducts()) {
-                is Resource.Success -> _uiState.update { it.copy(favoriteProducts = result.data) }
+                is Resource.Success -> _uiState.update { it.copy(favoriteProducts = result.data.toImmutableList()) }
                 is Resource.Error -> { /* silent fail for favorites */ }
                 is Resource.Loading -> {}
             }
@@ -130,7 +144,12 @@ class PosViewModel(
     fun load86Products() {
         viewModelScope.launch {
             when (val result = productRepository.get86Products()) {
-                is Resource.Success -> _uiState.update { it.copy(products86 = result.data).recompute() }
+                is Resource.Success -> {
+                    val newState = _uiState.value.copy(
+                        products86 = result.data.toImmutableList()
+                    ).recompute()
+                    _uiState.value = newState
+                }
                 is Resource.Error -> { /* silent fail for 86 */ }
                 is Resource.Loading -> {}
             }

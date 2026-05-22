@@ -50,61 +50,38 @@ class AuthRepositoryImpl(
     private val openBillStore: OpenBillStore,
 ) : AuthRepository, UserSessionProvider {
 
-    override suspend fun login(email: String, password: String): Resource<LoginResult> {
-        return try {
-            val response = api.login(LoginRequest(email, password))
-            if (response.isSuccess && response.data != null) {
-                val result = response.data.toLoginResult()
-                tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
-                Resource.Success(result)
-            } else {
-                val msg = when (response.statusCode) {
-                    401 -> "Email atau password salah. Pastikan akun Anda sudah terdaftar di sistem."
-                    403 -> "Akun Anda tidak memiliki akses ke aplikasi ini."
-                    else -> response.message ?: "Login gagal. Coba lagi."
-                }
-                Resource.Error(msg, response.statusCode)
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.toNetworkMessage())
-        }
-    }
+    override suspend fun login(email: String, password: String): Resource<LoginResult> = safe(
+        block = { api.login(LoginRequest(email, password)) },
+        map = {
+            val res = it.toLoginResult()
+            tokenManager.saveTokens(res.tokens.accessToken, res.tokens.refreshToken)
+            res
+        },
+        errorMsg = "Login gagal. Coba lagi."
+    )
 
-    override suspend fun loginWithGoogle(idToken: String): Resource<LoginResult> {
-        return try {
-            val response = api.googleLogin(GoogleLoginRequest(idToken))
-            if (response.isSuccess && response.data != null) {
-                val result = response.data.toLoginResult()
-                tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
-                Resource.Success(result)
-            } else {
-                val msg = when (response.statusCode) {
-                    401 -> "Akun Google Anda belum terdaftar di sistem. Hubungi admin untuk mendaftarkan email Anda."
-                    403 -> "Akun Anda tidak memiliki akses ke aplikasi ini."
-                    else -> response.message ?: "Login dengan Google gagal. Coba lagi."
-                }
-                Resource.Error(msg, response.statusCode)
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.toNetworkMessage())
-        }
-    }
+    override suspend fun loginWithGoogle(idToken: String): Resource<LoginResult> = safe(
+        block = { api.googleLogin(GoogleLoginRequest(idToken)) },
+        map = {
+            val res = it.toLoginResult()
+            tokenManager.saveTokens(res.tokens.accessToken, res.tokens.refreshToken)
+            res
+        },
+        errorMsg = "Login dengan Google gagal. Coba lagi."
+    )
 
-    override suspend fun refreshToken(): Resource<LoginResult> {
-        val refreshToken = tokenManager.refreshToken ?: return Resource.Error("Tidak ada refresh token")
-        return try {
-            val response = api.refreshToken(RefreshTokenRequest(refreshToken))
-            if (response.isSuccess && response.data != null) {
-                val result = response.data.toLoginResult()
-                tokenManager.saveTokens(result.tokens.accessToken, result.tokens.refreshToken)
-                Resource.Success(result)
-            } else {
-                Resource.Error(response.message ?: "Refresh token gagal")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.toNetworkMessage())
-        }
-    }
+    override suspend fun refreshToken(): Resource<LoginResult> = safe(
+        block = {
+            val refresh = tokenManager.refreshToken ?: throw IllegalStateException("Tidak ada refresh token")
+            api.refreshToken(RefreshTokenRequest(refresh))
+        },
+        map = {
+            val res = it.toLoginResult()
+            tokenManager.saveTokens(res.tokens.accessToken, res.tokens.refreshToken)
+            res
+        },
+        errorMsg = "Refresh token gagal"
+    )
 
     override suspend fun logout(): Resource<Unit> {
         val refreshToken = tokenManager.refreshToken

@@ -31,6 +31,7 @@ import id.rancak.app.presentation.components.PrintDialog
 import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import kotlinx.collections.immutable.persistentListOf
 
 /**
  * Kartu sukses transaksi: header hijau + centang, total, kembalian (opsional),
@@ -305,7 +306,7 @@ private fun previewSale(): Sale = Sale(
     paymentMethod = PaymentMethod.CASH,
     paidAmount    = 100_000L,
     changeAmount  = 25_000L,
-    items = listOf(
+    items = persistentListOf(
         SaleItem(
             uuid = "i1", productUuid = "p1", productName = "Kopi",
             qty = "1", price = 75_000L, subtotal = 75_000L,

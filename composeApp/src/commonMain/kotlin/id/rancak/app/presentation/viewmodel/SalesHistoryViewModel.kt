@@ -11,12 +11,19 @@ import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.domain.repository.SaleRepository
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
@@ -39,8 +46,8 @@ private data class FilterParams(
 
 @Immutable
 data class SalesHistoryUiState(
-    val allSales: List<Sale> = emptyList(),
-    val sales: List<Sale> = emptyList(),
+    val allSales: ImmutableList<Sale> = persistentListOf(),
+    val sales: ImmutableList<Sale> = persistentListOf(),
     val selectedSale: Sale? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -59,43 +66,67 @@ class SalesHistoryViewModel(
     private val saleRepository: SaleRepository
 ) : ViewModel() {
 
-    private val _allSales       = MutableStateFlow<List<Sale>>(emptyList())
-    private val _selectedSale   = MutableStateFlow<Sale?>(null)
-    private val _isLoading      = MutableStateFlow(false)
-    private val _error          = MutableStateFlow<String?>(null)
-    private val _searchQuery    = MutableStateFlow("")
-    private val _dateFilter     = MutableStateFlow(DateFilter.ALL)
-    private val _statusFilter   = MutableStateFlow<SaleStatus?>(null)
-    private val _customDateRange = MutableStateFlow<Pair<String, String>?>(null)
-    private val _reprintSuccess = MutableStateFlow<String?>(null)
+    private val _uiState = MutableStateFlow(SalesHistoryUiState())
+    val uiState: StateFlow<SalesHistoryUiState> = _uiState.asStateFlow()
 
-    private val _filterParams = combine(
-        _searchQuery, _dateFilter, _statusFilter, _customDateRange
-    ) { q, d, s, c -> FilterParams(q, d, s, c) }
+    private suspend fun SalesHistoryUiState.recompute(): SalesHistoryUiState = withContext(Dispatchers.Default) {
+        val today        = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val todayStr     = today.toString()
+        val yesterdayStr = today.minus(DatePeriod(days = 1)).toString()
+        val weekStartStr = today.minus(DatePeriod(days = 6)).toString()
 
-    val uiState: StateFlow<SalesHistoryUiState> = combine(
-        combine(_allSales, _selectedSale, _isLoading, _error, _filterParams) { allSales, selected, loading, error, filters ->
-            SalesHistoryUiState(
-                allSales       = allSales,
-                sales          = applyFilters(allSales, filters),
-                selectedSale   = selected,
-                isLoading      = loading,
-                error          = error,
-                searchQuery    = filters.query,
-                dateFilter     = filters.dateFilter,
-                statusFilter   = filters.statusFilter,
-                customDateFrom = filters.customDateRange?.first,
-                customDateTo   = filters.customDateRange?.second
-            )
-        },
-        _reprintSuccess
-    ) { state, reprintSuccess -> state.copy(reprintSuccess = reprintSuccess) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SalesHistoryUiState())
+        val filtered = allSales
+            .filter { sale ->
+                if (searchQuery.isBlank()) true
+                else {
+                    val q = searchQuery.trim().lowercase()
+                    sale.invoiceNo?.lowercase()?.contains(q) == true ||
+                    sale.items.any { it.productName.lowercase().contains(q) }
+                }
+            }
+            .filter { sale ->
+                val d = sale.createdAt?.take(10)
+                    ?: return@filter dateFilter == DateFilter.ALL
+                when (dateFilter) {
+                    DateFilter.ALL       -> true
+                    DateFilter.TODAY     -> d == todayStr
+                    DateFilter.YESTERDAY -> d == yesterdayStr
+                    DateFilter.WEEK      -> d in weekStartStr..todayStr
+                    DateFilter.CUSTOM    -> {
+                        val from = customDateFrom ?: return@filter true
+                        val to   = customDateTo   ?: return@filter true
+                        d in from..to
+                    }
+                }
+            }
+            .filter { sale ->
+                statusFilter == null || sale.status == statusFilter
+            }
+        
+        copy(sales = filtered.toImmutableList())
+    }
 
-    fun selectSale(sale: Sale?)              { _selectedSale.value  = sale }
-    fun setSearchQuery(query: String)        { _searchQuery.value   = query }
-    fun setDateFilter(filter: DateFilter)    { _dateFilter.value    = filter }
-    fun setStatusFilter(status: SaleStatus?) { _statusFilter.value  = status }
+    fun selectSale(sale: Sale?) {
+        _uiState.update { it.copy(selectedSale = sale) }
+    }
+
+    fun setSearchQuery(query: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(searchQuery = query).recompute()
+        }
+    }
+
+    fun setDateFilter(filter: DateFilter) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(dateFilter = filter).recompute()
+        }
+    }
+
+    fun setStatusFilter(status: SaleStatus?) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(statusFilter = status).recompute()
+        }
+    }
 
     /**
      * Select a sale and immediately fetch its full detail (with items).
@@ -103,17 +134,32 @@ class SalesHistoryViewModel(
      */
     fun selectSaleAndFetchDetail(sale: Sale) {
         // Show the sale immediately (even without items) so the panel opens instantly
-        _selectedSale.value = sale
+        _uiState.update { it.copy(selectedSale = sale) }
         viewModelScope.launch {
+            // Langkah 1: Sajikan dari cache jika ada detail item tersimpan
+            val cachedResult = saleRepository.getSaleDetailFromCache(sale.uuid)
+            if (cachedResult is Resource.Success && cachedResult.data.items.isNotEmpty()) {
+                val cachedSale = cachedResult.data
+                _uiState.value = _uiState.value.copy(
+                    selectedSale = cachedSale,
+                    allSales = _uiState.value.allSales.map {
+                        if (it.uuid == sale.uuid) cachedSale else it
+                    }.toImmutableList()
+                ).recompute()
+            }
+
+            // Langkah 2: Refresh dari network
             when (val result = saleRepository.getSaleDetail(sale.uuid)) {
                 is Resource.Success -> {
-                    _selectedSale.value = result.data
-                    // Update item count in the list so SaleCard shows correct "N item"
-                    _allSales.value = _allSales.value.map {
-                        if (it.uuid == sale.uuid) result.data else it
-                    }
+                    val updatedSale = result.data
+                    _uiState.value = _uiState.value.copy(
+                        selectedSale = updatedSale,
+                        allSales = _uiState.value.allSales.map {
+                            if (it.uuid == sale.uuid) updatedSale else it
+                        }.toImmutableList()
+                    ).recompute()
                 }
-                is Resource.Error   -> { /* keep showing partial data, error handled elsewhere */ }
+                is Resource.Error   -> { /* keep showing partial data */ }
                 is Resource.Loading -> {}
             }
         }
@@ -129,24 +175,34 @@ class SalesHistoryViewModel(
             .toLocalDateTime(TimeZone.UTC).date.toString()
         val to = Instant.fromEpochMilliseconds(toMillis)
             .toLocalDateTime(TimeZone.UTC).date.toString()
-        _customDateRange.value = from to to
-        _dateFilter.value = DateFilter.CUSTOM
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                customDateFrom = from,
+                customDateTo = to,
+                dateFilter = DateFilter.CUSTOM
+            ).recompute()
+        }
     }
 
     fun clearFilters() {
-        _searchQuery.value    = ""
-        _dateFilter.value     = DateFilter.ALL
-        _statusFilter.value   = null
-        _customDateRange.value = null
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                searchQuery = "",
+                dateFilter = DateFilter.ALL,
+                statusFilter = null,
+                customDateFrom = null,
+                customDateTo = null
+            ).recompute()
+        }
     }
 
-    fun clearReprintSuccess() { _reprintSuccess.value = null }
+    fun clearReprintSuccess() { _uiState.update { it.copy(reprintSuccess = null) } }
 
     fun reprintSale(saleUuid: String, printType: String = "receipt") {
         viewModelScope.launch {
             when (val result = saleRepository.reprintSale(saleUuid, printType = printType)) {
-                is Resource.Success -> _reprintSuccess.value = "Struk berhasil dicetak ulang"
-                is Resource.Error   -> _error.value = result.message
+                is Resource.Success -> _uiState.update { it.copy(reprintSuccess = "Struk berhasil dicetak ulang") }
+                is Resource.Error   -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -157,11 +213,16 @@ class SalesHistoryViewModel(
         viewModelScope.launch {
             when (val result = saleRepository.moveTable(saleUuid, tableUuid)) {
                 is Resource.Success -> {
-                    _allSales.value = _allSales.value.map { if (it.uuid == saleUuid) result.data else it }
-                    if (_selectedSale.value?.uuid == saleUuid) _selectedSale.value = result.data
-                    _reprintSuccess.value = "Meja berhasil dipindahkan"
+                    val updatedSale = result.data
+                    _uiState.value = _uiState.value.copy(
+                        allSales = _uiState.value.allSales.map {
+                            if (it.uuid == saleUuid) updatedSale else it
+                        }.toImmutableList(),
+                        selectedSale = if (_uiState.value.selectedSale?.uuid == saleUuid) updatedSale else _uiState.value.selectedSale,
+                        reprintSuccess = "Meja berhasil dipindahkan"
+                    ).recompute()
                 }
-                is Resource.Error   -> _error.value = result.message
+                is Resource.Error   -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -172,13 +233,19 @@ class SalesHistoryViewModel(
         viewModelScope.launch {
             when (val result = saleRepository.mergeSale(targetUuid, sourceUuid)) {
                 is Resource.Success -> {
-                    _allSales.value = _allSales.value.map { if (it.uuid == targetUuid) result.data else it }
-                        .filter { it.uuid != sourceUuid }
-                    if (_selectedSale.value?.uuid == targetUuid) _selectedSale.value = result.data
-                    if (_selectedSale.value?.uuid == sourceUuid) _selectedSale.value = result.data
-                    _reprintSuccess.value = "Transaksi berhasil digabung"
+                    val mergedSale = result.data
+                    _uiState.value = _uiState.value.copy(
+                        allSales = _uiState.value.allSales.map {
+                            if (it.uuid == targetUuid) mergedSale else it
+                        }.filter { it.uuid != sourceUuid }.toImmutableList(),
+                        selectedSale = when (_uiState.value.selectedSale?.uuid) {
+                            targetUuid, sourceUuid -> mergedSale
+                            else -> _uiState.value.selectedSale
+                        },
+                        reprintSuccess = "Transaksi berhasil digabung"
+                    ).recompute()
                 }
-                is Resource.Error   -> _error.value = result.message
+                is Resource.Error   -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -186,53 +253,33 @@ class SalesHistoryViewModel(
 
     fun loadSales() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value     = null
+            // Langkah 1: Muat dari cache untuk instant UI
+            val cachedResult = saleRepository.getSalesFromCache()
+            val hasCachedData = (cachedResult as? Resource.Success)?.data?.isNotEmpty() == true
+            if (hasCachedData) {
+                _uiState.value = _uiState.value.copy(
+                    allSales = (cachedResult as Resource.Success).data.toImmutableList(),
+                    isLoading = false
+                ).recompute()
+            } else {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+            }
+
+            // Langkah 2: Refresh dari network
             when (val result = saleRepository.getSales()) {
                 is Resource.Success -> {
-                    _allSales.value  = result.data
-                    _isLoading.value = false
+                    _uiState.value = _uiState.value.copy(
+                        allSales = result.data.toImmutableList(),
+                        isLoading = false
+                    ).recompute()
                 }
                 is Resource.Error -> {
-                    _error.value     = result.message
-                    _isLoading.value = false
+                    if (!hasCachedData) {
+                        _uiState.update { it.copy(error = result.message, isLoading = false) }
+                    }
                 }
                 is Resource.Loading -> {}
             }
         }
-    }
-
-    private fun applyFilters(sales: List<Sale>, filters: FilterParams): List<Sale> {
-        val today        = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        val todayStr     = today.toString()
-        val yesterdayStr = today.minus(DatePeriod(days = 1)).toString()
-        val weekStartStr = today.minus(DatePeriod(days = 6)).toString()
-
-        return sales
-            .filter { sale ->
-                if (filters.query.isBlank()) true
-                else {
-                    val q = filters.query.trim().lowercase()
-                    sale.invoiceNo?.lowercase()?.contains(q) == true ||
-                    sale.items.any { it.productName.lowercase().contains(q) }
-                }
-            }
-            .filter { sale ->
-                val d = sale.createdAt?.take(10)
-                    ?: return@filter filters.dateFilter == DateFilter.ALL
-                when (filters.dateFilter) {
-                    DateFilter.ALL       -> true
-                    DateFilter.TODAY     -> d == todayStr
-                    DateFilter.YESTERDAY -> d == yesterdayStr
-                    DateFilter.WEEK      -> d in weekStartStr..todayStr
-                    DateFilter.CUSTOM    -> {
-                        val (from, to) = filters.customDateRange ?: return@filter true
-                        d in from..to
-                    }
-                }
-            }
-            .filter { sale ->
-                filters.statusFilter == null || sale.status == filters.statusFilter
-            }
     }
 }

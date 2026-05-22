@@ -310,7 +310,7 @@ private fun previewSales(): List<Sale> {
         customerName = null, subtotal = total, discount = 0L, surcharge = 0L,
         tax = 0L, total = total, paymentMethod = pm,
         paidAmount = total, changeAmount = 0L,
-        items = listOf(
+        items = persistentListOf(
             SaleItem(
                 uuid = "i", productUuid = "p", productName = "Menu",
                 qty = "1", price = total, subtotal = total,

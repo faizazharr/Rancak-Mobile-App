@@ -8,6 +8,9 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Voucher
 import id.rancak.app.domain.repository.AdminRepository
 import id.rancak.app.domain.repository.VoucherUpdate
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +19,7 @@ import kotlinx.coroutines.launch
 
 @Immutable
 data class VoucherManagementUiState(
-    val vouchers: List<Voucher> = emptyList(),
+    val vouchers: ImmutableList<Voucher> = persistentListOf(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
@@ -40,7 +43,7 @@ class VoucherManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val r = adminRepository.getVouchers(isActive)) {
-                is Resource.Success -> _uiState.update { it.copy(isLoading = false, vouchers = r.data) }
+                is Resource.Success -> _uiState.update { it.copy(isLoading = false, vouchers = r.data.toImmutableList()) }
                 is Resource.Error   -> _uiState.update { it.copy(isLoading = false, error = r.message) }
                 is Resource.Loading -> {}
             }
@@ -76,7 +79,7 @@ class VoucherManagementViewModel(
                     _uiState.update { state ->
                         val updated = if (existing == null) state.vouchers + saved
                                       else state.vouchers.map { if (it.uuid == saved.uuid) saved else it }
-                        state.copy(isSubmitting = false, showFormDialog = false, editingVoucher = null, vouchers = updated,
+                        state.copy(isSubmitting = false, showFormDialog = false, editingVoucher = null, vouchers = updated.toImmutableList(),
                             successMessage = if (existing == null) "Voucher \"${saved.code}\" berhasil ditambahkan"
                                              else "Voucher \"${saved.code}\" berhasil diperbarui")
                     }
@@ -94,7 +97,7 @@ class VoucherManagementViewModel(
             when (val r = adminRepository.deleteVoucher(voucher.uuid)) {
                 is Resource.Success -> _uiState.update { state ->
                     state.copy(isSubmitting = false, showDeleteConfirm = false, editingVoucher = null,
-                        vouchers = state.vouchers.filter { it.uuid != voucher.uuid },
+                        vouchers = state.vouchers.filter { it.uuid != voucher.uuid }.toImmutableList(),
                         successMessage = "Voucher \"${voucher.code}\" berhasil dihapus")
                 }
                 is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = r.message) }

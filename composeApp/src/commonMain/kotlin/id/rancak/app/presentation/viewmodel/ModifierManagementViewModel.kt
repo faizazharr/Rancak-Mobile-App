@@ -9,6 +9,9 @@ import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.AdminRepository
 import id.rancak.app.domain.repository.ProductRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +22,7 @@ enum class ModifierTab { GLOBAL, PER_PRODUCT }
 
 @Immutable
 data class ModifierManagementUiState(
-    val modifiers: List<Modifier> = emptyList(),
+    val modifiers: ImmutableList<Modifier> = persistentListOf(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
@@ -35,12 +38,12 @@ data class ModifierManagementUiState(
     // ── Tab & per-produk ──────────────────────────────────────────────────
     val activeTab: ModifierTab = ModifierTab.GLOBAL,
     /** Daftar semua produk untuk picker di tab Per Produk. */
-    val products: List<Product> = emptyList(),
+    val products: ImmutableList<Product> = persistentListOf(),
     val isLoadingProducts: Boolean = false,
     /** Produk yang dipilih di tab Per Produk. */
     val selectedProduct: Product? = null,
     /** Modifier per-produk yang sedang ditampilkan. */
-    val productModifiers: List<Modifier> = emptyList(),
+    val productModifiers: ImmutableList<Modifier> = persistentListOf(),
     val isLoadingProductModifiers: Boolean = false
 )
 
@@ -69,7 +72,7 @@ class ModifierManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = adminRepository.getModifiers()) {
-                is Resource.Success -> _uiState.update { it.copy(modifiers = result.data, isLoading = false) }
+                is Resource.Success -> _uiState.update { it.copy(modifiers = result.data.toImmutableList(), isLoading = false) }
                 is Resource.Error   -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Resource.Loading -> {}
             }
@@ -82,7 +85,7 @@ class ModifierManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingProducts = true) }
             when (val result = productRepository.getProducts()) {
-                is Resource.Success -> _uiState.update { it.copy(products = result.data, isLoadingProducts = false) }
+                is Resource.Success -> _uiState.update { it.copy(products = result.data.toImmutableList(), isLoadingProducts = false) }
                 is Resource.Error   -> _uiState.update { it.copy(isLoadingProducts = false) }
                 is Resource.Loading -> {}
             }
@@ -90,7 +93,7 @@ class ModifierManagementViewModel(
     }
 
     fun selectProduct(product: Product?) {
-        _uiState.update { it.copy(selectedProduct = product, productModifiers = emptyList()) }
+        _uiState.update { it.copy(selectedProduct = product, productModifiers = persistentListOf()) }
         if (product != null) loadProductModifiers(product.uuid)
     }
 
@@ -98,7 +101,7 @@ class ModifierManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingProductModifiers = true) }
             when (val result = productRepository.getModifiers(productUuid)) {
-                is Resource.Success -> _uiState.update { it.copy(productModifiers = result.data, isLoadingProductModifiers = false) }
+                is Resource.Success -> _uiState.update { it.copy(productModifiers = result.data.toImmutableList(), isLoadingProductModifiers = false) }
                 is Resource.Error   -> _uiState.update { it.copy(error = result.message, isLoadingProductModifiers = false) }
                 is Resource.Loading -> {}
             }

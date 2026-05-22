@@ -11,14 +11,11 @@ import kotlinx.serialization.json.Json
  * Menggunakan [Settings] (SharedPreferences / NSUserDefaults) — tidak ada koneksi
  * internet yang dibutuhkan. Setiap perubahan langsung diserialisasi ke JSON.
  */
-class OpenBillStore {
+class OpenBillStore(private val json: Json) {
 
     private val settings = Settings()
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-        encodeDefaults = true
-    }
+    private var cachedBills: List<LocalOpenBill>? = null
 
     /** Simpan atau perbarui open bill (berdasarkan [LocalOpenBill.id]). */
     fun save(bill: LocalOpenBill) {
@@ -30,8 +27,15 @@ class OpenBillStore {
 
     /** Kembalikan semua open bill yang tersimpan, dari yang terlama ke terbaru. */
     fun getAll(): List<LocalOpenBill> {
+        cachedBills?.let { return it }
         val raw = settings.getStringOrNull(KEY) ?: return emptyList()
-        return try { json.decodeFromString(raw) } catch (_: Exception) { emptyList() }
+        return try {
+            val decoded = json.decodeFromString<List<LocalOpenBill>>(raw)
+            cachedBills = decoded
+            decoded
+        } catch (_: Exception) {
+            emptyList()
+        }
     }
 
     /** Cari satu open bill berdasarkan ID. */
@@ -43,13 +47,17 @@ class OpenBillStore {
     }
 
     /** Hapus semua open bill. */
-    fun clear() = settings.remove(KEY)
+    fun clear() {
+        settings.remove(KEY)
+        cachedBills = emptyList()
+    }
 
     val count: Int get() = getAll().size
 
     // ── private ──────────────────────────────────────────────────────────────
 
     private fun persist(bills: List<LocalOpenBill>) {
+        cachedBills = bills
         settings[KEY] = json.encodeToString(bills)
     }
 
