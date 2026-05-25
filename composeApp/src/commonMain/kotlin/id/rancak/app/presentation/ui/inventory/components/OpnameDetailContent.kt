@@ -30,6 +30,7 @@ import id.rancak.app.domain.model.StockOpnameDetail
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import kotlinx.collections.immutable.ImmutableList
@@ -37,7 +38,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 
-private val OpnameGradientEnd = Color(0xFF0B7A60)
 
 @Composable
 fun OpnameDetailContent(
@@ -390,7 +390,7 @@ fun OpnameDetailTabletPanel(
                             onClick  = onFinalizeClick,
                             enabled  = !isSubmitting && detail.items.isNotEmpty(),
                             colors   = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
+                                containerColor = MaterialTheme.colorScheme.onPrimary,
                                 contentColor   = Primary
                             )
                         ) {

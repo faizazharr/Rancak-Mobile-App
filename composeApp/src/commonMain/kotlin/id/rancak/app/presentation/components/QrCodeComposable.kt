@@ -2,7 +2,7 @@ package id.rancak.app.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -49,7 +49,7 @@ fun QrisQrCode(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .background(Color.White, RoundedCornerShape(12.dp))
+            .background(Color.White, MaterialTheme.shapes.extraLarge)
             .padding(16.dp)
     ) {
         Image(
@@ -85,7 +85,7 @@ fun QrisPaymentPanel(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+            .background(Color.White, MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)

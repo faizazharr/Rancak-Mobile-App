@@ -133,7 +133,7 @@ private fun SaleDetailBody(
             modifier = Modifier
                 .widthIn(max = 520.dp)
                 .fillMaxWidth(),
-            shape     = RoundedCornerShape(12.dp),
+            shape  = MaterialTheme.shapes.extraLarge,
             colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
@@ -337,7 +337,7 @@ private fun ReceiptInvoiceHeader(sale: Sale, statusColor: Color, statusLabel: St
             }
         }
         Surface(
-            shape  = RoundedCornerShape(6.dp),
+            shape  = MaterialTheme.shapes.medium,
             color  = statusColor.copy(alpha = 0.12f),
             border = BorderStroke(1.dp, statusColor.copy(alpha = 0.4f))
         ) {
@@ -456,7 +456,7 @@ private fun ReceiptPricingSummary(sale: Sale) {
 @Composable
 private fun ReceiptTotalRow(sale: Sale) {
     Surface(
-        shape  = RoundedCornerShape(8.dp),
+        shape  = MaterialTheme.shapes.large,
         color  = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
         modifier = Modifier.fillMaxWidth()

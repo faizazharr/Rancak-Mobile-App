@@ -85,7 +85,7 @@ internal fun OrderPanelHeader(
                         "$itemCount",
                         style      = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color      = Color.White
+                        color      = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }

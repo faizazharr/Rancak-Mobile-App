@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.WifiOff
@@ -34,7 +33,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.RancakTheme
@@ -100,8 +98,8 @@ internal fun ProductGridContent(
                 start  = 8.dp, end = 8.dp,
                 top    = 4.dp, bottom = bottomPad
             ),
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
-            verticalArrangement   = Arrangement.spacedBy(7.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement   = Arrangement.spacedBy(8.dp)
         ) {
             items(uiState.filteredProducts, key = { it.uuid }) { product ->
                 val qty = cartQtyMap[product.uuid] ?: 0
@@ -148,12 +146,12 @@ internal fun PosProductCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(MaterialTheme.shapes.extraLarge)
             .background(cardBg)
             .border(
                 width  = if (inCart) 2.dp else 1.dp,
                 color  = borderColor,
-                shape  = RoundedCornerShape(10.dp)
+                shape  = MaterialTheme.shapes.extraLarge
             )
             .clickable(enabled = !unavailable, onClick = onAdd)
             .padding(horizontal = 10.dp, vertical = 10.dp)
@@ -166,13 +164,11 @@ internal fun PosProductCard(
             ) {
                 Text(
                     product.name,
-                    style      = MaterialTheme.typography.bodySmall,
+                    style      = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize   = 13.sp,
                     color      = if (!unavailable) onSurface else onSurfaceVariant.copy(0.4f),
                     maxLines   = 3,
                     overflow   = TextOverflow.Ellipsis,
-                    lineHeight = 17.sp,
                     modifier   = Modifier
                         .weight(1f)
                         .heightIn(min = 44.dp)
@@ -195,9 +191,8 @@ internal fun PosProductCard(
                         Text(
                             "$qty",
                             style      = MaterialTheme.typography.labelSmall,
-                            fontSize   = 10.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color      = Color.White
+                            color      = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -212,9 +207,8 @@ internal fun PosProductCard(
             ) {
                 Text(
                     formatRupiah(product.price),
-                    style      = MaterialTheme.typography.labelSmall,
+                    style      = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    fontSize   = 11.sp,
                     color      = if (!unavailable) (if (inCart) inCartColor else accent).copy(0.85f)
                                  else onSurfaceVariant.copy(0.3f),
                     maxLines   = 1
@@ -223,14 +217,13 @@ internal fun PosProductCard(
                 if (is86) {
                     Box(
                         Modifier
-                            .clip(RoundedCornerShape(4.dp))
+                            .clip(MaterialTheme.shapes.small)
                             .background(MaterialTheme.colorScheme.errorContainer)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             "86",
                             style    = MaterialTheme.typography.labelSmall,
-                            fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
                             color    = MaterialTheme.colorScheme.error
                         )
@@ -238,14 +231,13 @@ internal fun PosProductCard(
                 } else if (!product.isActive) {
                     Box(
                         Modifier
-                            .clip(RoundedCornerShape(4.dp))
+                            .clip(MaterialTheme.shapes.small)
                             .background(surfaceVariant)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             "Habis",
                             style    = MaterialTheme.typography.labelSmall,
-                            fontSize = 9.sp,
                             color    = onSurfaceVariant.copy(0.5f)
                         )
                     }

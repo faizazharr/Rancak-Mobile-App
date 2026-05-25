@@ -5,7 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -154,9 +154,9 @@ private fun EmptyOutletState(
             Box(
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(RoundedCornerShape(22.dp))
+                    .clip(MaterialTheme.shapes.extraLarge)
                     .background(Color.White.copy(alpha = 0.18f))
-                    .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(22.dp)),
+                    .border(1.dp, Color.White.copy(alpha = 0.35f), MaterialTheme.shapes.extraLarge),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -190,9 +190,9 @@ private fun EmptyOutletState(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(MaterialTheme.shapes.extraLarge)
                     .background(Color.White.copy(alpha = 0.12f))
-                    .border(1.dp, Color.White.copy(alpha = 0.20f), RoundedCornerShape(18.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.20f), MaterialTheme.shapes.extraLarge)
                     .padding(horizontal = 20.dp, vertical = 18.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
@@ -217,7 +217,7 @@ private fun EmptyOutletState(
                     .height(48.dp),
                 shape  = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor   = MaterialTheme.colorScheme.primary
                 )
             ) {
@@ -341,9 +341,9 @@ private fun SubmissionForm(
                 Box(
                     modifier = Modifier
                         .size(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(MaterialTheme.shapes.extraLarge)
                         .background(Color.White.copy(alpha = 0.18f))
-                        .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(12.dp)),
+                        .border(1.dp, Color.White.copy(alpha = 0.35f), MaterialTheme.shapes.extraLarge),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Default.Storefront, null, Modifier.size(22.dp), tint = Color.White)
@@ -355,7 +355,7 @@ private fun SubmissionForm(
             // ── White sheet ───────────────────────────────────────────────────
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                shape    = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                shape    = MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)),
                 color    = MaterialTheme.colorScheme.background,
                 tonalElevation = 0.dp
             ) {
@@ -371,7 +371,7 @@ private fun SubmissionForm(
                     Row(
                         modifier              = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(MaterialTheme.shapes.extraLarge)
                             .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.40f))
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment     = Alignment.CenterVertically,
@@ -462,7 +462,7 @@ private fun SubmissionForm(
                     // Error
                     if (state.error != null) {
                         Surface(
-                            shape    = RoundedCornerShape(12.dp),
+                            shape    = MaterialTheme.shapes.extraLarge,
                             color    = MaterialTheme.colorScheme.errorContainer,
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -525,8 +525,8 @@ private fun FormSection(
     content:    @Composable ColumnScope.() -> Unit
 ) {
     val (primary, dark) = gradientColors()
-    val cardShape = RoundedCornerShape(18.dp)
-    val bannerShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
+    val cardShape = MaterialTheme.shapes.extraLarge
+    val bannerShape = MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp))
 
     Surface(
         modifier        = Modifier.fillMaxWidth(),
@@ -561,9 +561,9 @@ private fun FormSection(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(MaterialTheme.shapes.extraLarge)
                             .background(Color.White.copy(alpha = 0.18f))
-                            .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(12.dp)),
+                            .border(1.dp, Color.White.copy(alpha = 0.30f), MaterialTheme.shapes.extraLarge),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -586,9 +586,9 @@ private fun FormSection(
                     // Step badge pill
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(MaterialTheme.shapes.extraLarge)
                             .background(Color.White.copy(alpha = 0.20f))
-                            .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                            .border(1.dp, Color.White.copy(alpha = 0.35f), MaterialTheme.shapes.extraLarge)
                             .padding(horizontal = 10.dp, vertical = 4.dp),
                         contentAlignment = Alignment.Center
                     ) {

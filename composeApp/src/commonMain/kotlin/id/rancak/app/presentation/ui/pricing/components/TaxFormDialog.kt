@@ -28,9 +28,9 @@ import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.RancakOutlinedButton
 import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakTheme
 
-private val TaxGradientEnd = Color(0xFF0B7A60)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

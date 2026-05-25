@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
@@ -91,7 +90,7 @@ internal fun TabletLoginLayout(
                 Box(
                     modifier = Modifier
                         .size(68.dp)
-                        .clip(RoundedCornerShape(20.dp))
+                        .clip(MaterialTheme.shapes.extraLarge)
                         .background(onPrimary.copy(alpha = 0.17f)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -139,7 +138,7 @@ internal fun TabletLoginLayout(
                     painter            = painterResource(Res.drawable.tias_logo),
                     contentDescription = "TIAS",
                     contentScale       = ContentScale.FillHeight,
-                    modifier           = Modifier.height(18.dp).clip(RoundedCornerShape(4.dp))
+                    modifier           = Modifier.height(18.dp).clip(MaterialTheme.shapes.small)
                 )
             }
         }

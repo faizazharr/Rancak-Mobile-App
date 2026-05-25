@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.CartUiState
 
@@ -51,9 +49,8 @@ internal fun OrderCustomerRow(
             value         = cartState.customerName,
             onValueChange = onCustomerName,
             singleLine    = true,
-            textStyle     = MaterialTheme.typography.bodySmall.copy(
-                color    = onSurface,
-                fontSize = 13.sp
+            textStyle     = MaterialTheme.typography.bodyMedium.copy(
+                color    = onSurface
             ),
             cursorBrush = SolidColor(primary),
             modifier    = Modifier.weight(1f),
@@ -61,12 +58,12 @@ internal fun OrderCustomerRow(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(MaterialTheme.shapes.large)
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
                         .border(
                             1.dp,
                             MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
-                            RoundedCornerShape(8.dp)
+                            MaterialTheme.shapes.large
                         )
                         .padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalAlignment     = Alignment.CenterVertically,
@@ -77,8 +74,7 @@ internal fun OrderCustomerRow(
                         if (cartState.customerName.isEmpty()) {
                             Text(
                                 "Nama customer",
-                                style    = MaterialTheme.typography.bodySmall,
-                                fontSize = 13.sp,
+                                style    = MaterialTheme.typography.bodyMedium,
                                 color    = onSurfaceVariant.copy(0.5f)
                             )
                         }
@@ -91,12 +87,12 @@ internal fun OrderCustomerRow(
         // ── Pax stepper ──────────────────────────────────────────────────
         Row(
             modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
+                .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
                 .border(
                     1.dp,
                     MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
-                    RoundedCornerShape(8.dp)
+                    MaterialTheme.shapes.large
                 )
                 .padding(horizontal = 6.dp, vertical = 6.dp),
             verticalAlignment     = Alignment.CenterVertically,
@@ -131,9 +127,8 @@ internal fun OrderCustomerRow(
                 )
                 Text(
                     "tamu",
-                    style    = MaterialTheme.typography.labelSmall,
-                    fontSize = 9.sp,
-                    color    = onSurfaceVariant.copy(0.6f)
+                    style = MaterialTheme.typography.labelSmall,
+                    color = onSurfaceVariant.copy(0.6f)
                 )
             }
 
@@ -145,7 +140,7 @@ internal fun OrderCustomerRow(
                     .clickable { onPax(cartState.pax + 1) },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = Color.White)
+                Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }

@@ -89,6 +89,10 @@ data class SemanticColors(
     val statusOccupied: Color,
     val statusReserved: Color,
     val statusMaintenance: Color,
+    /** Indikator kecil hijau — shift buka / koneksi online. */
+    val statusOnline: Color,
+    /** Indikator kecil merah — shift tutup / koneksi offline. */
+    val statusOffline: Color,
     val paymentCash: Color,
     val paymentCard: Color,
     val paymentQris: Color,
@@ -103,6 +107,8 @@ private val LightSemanticColors = SemanticColors(
     statusOccupied    = StatusOccupied,
     statusReserved    = StatusReserved,
     statusMaintenance = StatusMaintenance,
+    statusOnline      = StatusOnline,
+    statusOffline     = StatusOffline,
     paymentCash       = PaymentCash,
     paymentCard       = PaymentCard,
     paymentQris       = PaymentQris,
@@ -117,6 +123,8 @@ private val DarkSemanticColors = SemanticColors(
     statusOccupied    = DarkStatusOccupied,
     statusReserved    = DarkStatusReserved,
     statusMaintenance = DarkStatusMaintenance,
+    statusOnline      = DarkStatusOnline,
+    statusOffline     = DarkStatusOffline,
     paymentCash       = DarkPaymentCash,
     paymentCard       = DarkPaymentCard,
     paymentQris       = DarkPaymentQris,

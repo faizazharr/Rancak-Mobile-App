@@ -19,7 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -71,13 +71,13 @@ import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.components.StatusChip
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.viewmodel.SupplierFormField
 import id.rancak.app.presentation.viewmodel.SupplierUiState
 import id.rancak.app.presentation.viewmodel.SupplierViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-private val SupplierGradientEnd = Color(0xFF0B7A60)
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Screen (stateful)

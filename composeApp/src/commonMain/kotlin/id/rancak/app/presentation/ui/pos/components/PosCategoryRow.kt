@@ -35,8 +35,8 @@ internal fun PosCategoryRow(
 ) {
     if (categories.isEmpty()) return
     LazyRow(
-        contentPadding        = PaddingValues(horizontal = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        contentPadding        = PaddingValues(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier              = Modifier.padding(bottom = 8.dp)
     ) {
         item { PosChip("Semua", selected == null) { onSelect(null) } }
@@ -69,7 +69,7 @@ internal fun PosChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
             label,
             style      = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color      = if (isSelected) Color.White
+            color      = if (isSelected) MaterialTheme.colorScheme.onPrimary
                          else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }

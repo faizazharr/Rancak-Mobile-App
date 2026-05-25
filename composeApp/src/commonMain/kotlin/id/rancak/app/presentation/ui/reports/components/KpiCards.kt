@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.BarChart
@@ -28,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.ShiftSummary
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 
@@ -37,6 +37,9 @@ internal fun KpiCardsGrid(summary: ShiftSummary) {
     val avgPerTx = if (summary.totalTransactions > 0)
         summary.totalSales / summary.totalTransactions else 0L
 
+    val sem = RancakColors.semantic
+    val primaryColor = MaterialTheme.colorScheme.primary
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             KpiCard(
@@ -44,14 +47,14 @@ internal fun KpiCardsGrid(summary: ShiftSummary) {
                 label     = "Total Penjualan",
                 value     = formatRupiah(summary.totalSales),
                 icon      = Icons.Default.BarChart,
-                iconColor = MaterialTheme.colorScheme.primary
+                iconColor = primaryColor
             )
             KpiCard(
                 modifier  = Modifier.weight(1f),
                 label     = "Transaksi",
                 value     = "${summary.totalTransactions}x",
                 icon      = Icons.Default.ShoppingCart,
-                iconColor = Color(0xFF2196F3)
+                iconColor = sem.info
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -60,14 +63,14 @@ internal fun KpiCardsGrid(summary: ShiftSummary) {
                 label     = "Total Pengeluaran",
                 value     = formatRupiah(summary.totalExpenses),
                 icon      = Icons.Default.Star,
-                iconColor = Color(0xFF4CAF50)
+                iconColor = sem.statusAvailable
             )
             KpiCard(
                 modifier  = Modifier.weight(1f),
                 label     = "Rata-rata/Transaksi",
                 value     = formatRupiah(avgPerTx),
                 icon      = Icons.AutoMirrored.Filled.TrendingUp,
-                iconColor = Color(0xFF00ACC1)
+                iconColor = primaryColor
             )
         }
     }
@@ -89,12 +92,12 @@ internal fun KpiCard(
     ) {
         Column(
             Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(iconColor.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+                    .background(iconColor.copy(alpha = 0.12f), MaterialTheme.shapes.large),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(17.dp))

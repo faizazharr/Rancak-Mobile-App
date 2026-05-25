@@ -56,7 +56,7 @@ internal fun BrandingBullet(icon: ImageVector, label: String) {
 private fun BrandingBulletPreview() {
     RancakTheme {
         // Wrap in primary-tinted background so bullet is readable.
-        Box(Modifier.background(Color(0xFF0D9373)).padding(24.dp)) {
+        Box(Modifier.background(MaterialTheme.colorScheme.primary).padding(24.dp)) {
             BrandingBullet(Icons.Default.Receipt, "Kasir multi-device, satu dashboard")
         }
     }

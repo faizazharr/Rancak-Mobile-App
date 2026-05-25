@@ -25,12 +25,12 @@ import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.Voucher
 import id.rancak.app.presentation.components.DatePickerField
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 
-private val GradientEnd = Color(0xFF0B7A60)
 
 // ── Shared type selector button ───────────────────────────────────────────────
 

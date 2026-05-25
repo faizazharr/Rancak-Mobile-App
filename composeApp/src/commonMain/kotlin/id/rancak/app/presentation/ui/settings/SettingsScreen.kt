@@ -33,6 +33,10 @@ import id.rancak.app.data.printing.PrintMode
 import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.components.rememberRequestBluetoothPermission
+import id.rancak.app.presentation.designsystem.SettingsAccentKitchen
+import id.rancak.app.presentation.designsystem.SettingsAccentNeutral
+import id.rancak.app.presentation.designsystem.SettingsAccentStore
+import id.rancak.app.presentation.designsystem.SettingsAccentTune
 import id.rancak.app.presentation.ui.settings.components.ContentSectionTitle
 import id.rancak.app.presentation.ui.settings.components.GeneralContent
 import id.rancak.app.presentation.ui.settings.components.KitchenContent
@@ -339,7 +343,7 @@ private fun TabletLayout(
             )
             SettingsNavItem(
                 icon     = Icons.Default.Tune,
-                iconBg   = Color(0xFF6750A4),
+                iconBg   = SettingsAccentTune,
                 title    = "Mode Cetak",
                 subtitle = when (uiState.printMode) {
                     PrintMode.RECEIPT_ONLY         -> "Struk kasir saja"
@@ -353,7 +357,7 @@ private fun TabletLayout(
             if (uiState.printMode != PrintMode.RECEIPT_ONLY) {
                 SettingsNavItem(
                     icon     = Icons.Default.Restaurant,
-                    iconBg   = Color(0xFFB5340A),
+                    iconBg   = SettingsAccentKitchen,
                     title    = "Printer Dapur",
                     subtitle = if (uiState.hasKitchenPrinter)
                         uiState.kitchenPrinterName.ifBlank { uiState.kitchenPrinterAddress }
@@ -366,7 +370,7 @@ private fun TabletLayout(
             }
             SettingsNavItem(
                 icon     = Icons.Default.Store,
-                iconBg   = Color(0xFF1A6B3C),
+                iconBg   = SettingsAccentStore,
                 title    = "Informasi Toko",
                 subtitle = uiState.storeName.ifBlank { "Belum diisi" },
                 selected = selected == SettingsNav.STORE,
@@ -374,7 +378,7 @@ private fun TabletLayout(
             )
             SettingsNavItem(
                 icon     = Icons.Default.Settings,
-                iconBg   = Color(0xFF555555),
+                iconBg   = SettingsAccentNeutral,
                 title    = "Umum",
                 subtitle = if (uiState.autoPrint) "Auto print aktif" else "Auto print mati",
                 selected = selected == SettingsNav.GENERAL,
@@ -382,7 +386,7 @@ private fun TabletLayout(
             )
             SettingsNavItem(
                 icon     = Icons.Default.Receipt,
-                iconBg   = Color(0xFF0D9373),
+                iconBg   = MaterialTheme.colorScheme.primary,
                 title    = "Preview Struk",
                 subtitle = "${uiState.paperWidth} mm",
                 selected = selected == SettingsNav.PREVIEW,
@@ -538,7 +542,7 @@ private fun PhoneLayout(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            ContentSectionTitle(Icons.Default.Print, "Printer Kasir", Color(0xFF1A6B3C))
+            ContentSectionTitle(Icons.Default.Print, "Printer Kasir", SettingsAccentStore)
             Spacer(Modifier.height(8.dp))
             PrinterContent(
                 uiState         = uiState,
@@ -553,13 +557,13 @@ private fun PhoneLayout(
             )
         }
         item {
-            ContentSectionTitle(Icons.Default.Tune, "Mode Cetak", Color(0xFF6750A4))
+            ContentSectionTitle(Icons.Default.Tune, "Mode Cetak", SettingsAccentTune)
             Spacer(Modifier.height(8.dp))
             PrintModeContent(uiState.printMode, onPrintMode)
         }
         if (uiState.printMode != PrintMode.RECEIPT_ONLY) {
             item {
-                ContentSectionTitle(Icons.Default.Restaurant, "Printer Dapur", Color(0xFFB5340A))
+                ContentSectionTitle(Icons.Default.Restaurant, "Printer Dapur", SettingsAccentKitchen)
                 Spacer(Modifier.height(8.dp))
                 KitchenContent(
                     uiState                = uiState,
@@ -575,7 +579,7 @@ private fun PhoneLayout(
             }
         }
         item {
-            ContentSectionTitle(Icons.Default.Store, "Informasi Toko", Color(0xFF1A6B3C))
+            ContentSectionTitle(Icons.Default.Store, "Informasi Toko", SettingsAccentStore)
             Spacer(Modifier.height(8.dp))
             StoreContent(
                 storeName            = uiState.storeName,
@@ -615,7 +619,7 @@ private fun PhoneLayout(
             )
         }
         item {
-            ContentSectionTitle(Icons.Default.Settings, "Umum", Color(0xFF555555))
+            ContentSectionTitle(Icons.Default.Settings, "Umum", SettingsAccentNeutral)
             Spacer(Modifier.height(8.dp))
             GeneralContent(
                 autoPrint        = uiState.autoPrint,
@@ -629,7 +633,7 @@ private fun PhoneLayout(
             )
         }
         item {
-            ContentSectionTitle(Icons.Default.Receipt, "Preview Struk", Color(0xFF0D9373))
+            ContentSectionTitle(Icons.Default.Receipt, "Preview Struk", MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(8.dp))
             ReceiptPreviewContent(
                 storeName       = uiState.storeName,

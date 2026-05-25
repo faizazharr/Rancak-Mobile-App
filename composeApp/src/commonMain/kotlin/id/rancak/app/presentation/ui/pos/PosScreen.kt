@@ -8,7 +8,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material3.AlertDialog
@@ -23,7 +22,6 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Category
@@ -31,6 +29,7 @@ import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.presentation.barcode.BarcodeScannerView
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.ui.pos.components.CartBar
 import id.rancak.app.presentation.ui.pos.components.OpenBillNameDialog
 import id.rancak.app.presentation.ui.pos.components.OrderPanel
@@ -121,7 +120,7 @@ fun PosScreen(
                 Icon(
                     imageVector        = Icons.Default.Bookmark,
                     contentDescription = null,
-                    tint               = Color(0xFFF59E0B)
+                    tint               = RancakColors.semantic.warning
                 )
             },
             title = {
@@ -138,7 +137,7 @@ fun PosScreen(
                     Text("Oke")
                 }
             },
-            shape = RoundedCornerShape(16.dp)
+            shape = MaterialTheme.shapes.extraLarge
         )
     }
 

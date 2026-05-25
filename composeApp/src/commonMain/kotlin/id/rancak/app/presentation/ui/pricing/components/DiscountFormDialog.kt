@@ -29,9 +29,9 @@ import id.rancak.app.presentation.components.RancakFormDialog
 import id.rancak.app.presentation.components.RancakOutlinedButton
 import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakTheme
 
-private val DiscountGradientEnd = Color(0xFF0B7A60)
 
 @Composable
 fun DiscountFormDialog(

@@ -2,7 +2,7 @@ package id.rancak.app.presentation.ui.billing.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -40,7 +40,7 @@ fun SubscriptionCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(MaterialTheme.shapes.extraLarge)
             .background(Brush.linearGradientBrush(listOf(gradientStart, gradientEnd)))
             .padding(horizontal = if (isTablet) 20.dp else 16.dp, vertical = if (isTablet) 18.dp else 14.dp)
     ) {
@@ -103,7 +103,7 @@ fun SubscriptionCard(
 
 @Composable
 private fun SubStatusPill(label: String) {
-    Surface(shape = RoundedCornerShape(50), color = Color.White.copy(alpha = 0.2f)) {
+    Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.2f)) {
         Text(
             label,
             style = MaterialTheme.typography.labelSmall,

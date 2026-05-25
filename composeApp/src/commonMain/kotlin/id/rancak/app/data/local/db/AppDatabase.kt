@@ -1,3 +1,4 @@
+@file:Suppress("NO_ACTUAL_FOR_EXPECT", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 package id.rancak.app.data.local.db
 
 import androidx.room.ConstructedBy
@@ -28,7 +29,7 @@ import id.rancak.app.data.local.db.entity.TableEntity
         ShiftEntity::class,
         TableEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @ConstructedBy(AppDatabaseConstructor::class)
@@ -44,5 +45,6 @@ abstract class AppDatabase : RoomDatabase() {
 // KSP fills in the initialize() body for each platform target.
 // @Suppress is required because the actual is generated at KSP build time,
 // not from a source file — the compiler never sees a declared actual.
-@Suppress("NO_ACTUAL_FOR_EXPECT")
-expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase>
+expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
+    override fun initialize(): AppDatabase
+}

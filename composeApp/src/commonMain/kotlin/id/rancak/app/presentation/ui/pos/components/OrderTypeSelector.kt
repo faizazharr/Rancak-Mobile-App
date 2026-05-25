@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeliveryDining
 import androidx.compose.material.icons.filled.Restaurant
@@ -20,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.presentation.designsystem.RancakTheme
 
@@ -49,12 +47,12 @@ internal fun OrderTypeSelector(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(MaterialTheme.shapes.large)
                     .background(if (isSelected) primary else surface)
                     .border(
                         1.dp,
                         if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
-                        RoundedCornerShape(8.dp)
+                        MaterialTheme.shapes.large
                     )
                     .clickable { onSelect(type) }
                     .padding(vertical = 7.dp),
@@ -67,14 +65,13 @@ internal fun OrderTypeSelector(
                     Icon(
                         icon, null,
                         Modifier.size(16.dp),
-                        tint = if (isSelected) Color.White else onSurfaceVariant
+                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant
                     )
                     Text(
                         label,
                         style      = MaterialTheme.typography.labelSmall,
-                        fontSize   = 10.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color      = if (isSelected) Color.White else onSurfaceVariant
+                        color      = if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant
                     )
                 }
             }

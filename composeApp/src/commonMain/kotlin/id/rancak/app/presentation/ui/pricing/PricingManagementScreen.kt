@@ -5,7 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakDesign
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.pricing.components.DiscountFormDialog
@@ -41,7 +42,6 @@ import kotlinx.coroutines.launch
 import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
-private val PricingGradientEnd = Color(0xFF0B7A60)
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Screen (stateful)
@@ -357,7 +357,7 @@ private fun SectionDetailHeader(activeSection: PricingSection, onAdd: (() -> Uni
         Box(
             Modifier
                 .size(34.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(MaterialTheme.shapes.large)
                 .background(Primary.copy(0.12f)),
             contentAlignment = Alignment.Center
         ) {
@@ -378,7 +378,7 @@ private fun SectionDetailHeader(activeSection: PricingSection, onAdd: (() -> Uni
         // Active count pill
         val hasActive = activeSection.activeCount > 0
         Surface(
-            shape = RoundedCornerShape(50.dp),
+            shape = CircleShape,
             color = if (hasActive) Primary.copy(0.12f) else MaterialTheme.colorScheme.surfaceVariant
         ) {
             Text(
@@ -494,7 +494,7 @@ private fun SectionSummaryCard(
                     color      = labelColor
                 )
                 Surface(
-                    shape = RoundedCornerShape(50.dp),
+                    shape = CircleShape,
                     color = if (isSelected) Primary.copy(0.15f) else MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Text(

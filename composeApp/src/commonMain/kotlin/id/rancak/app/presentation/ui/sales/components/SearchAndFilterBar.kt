@@ -9,7 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
@@ -345,7 +345,7 @@ private fun StatusPill(
                 Box(
                     modifier = Modifier
                         .size(6.dp)
-                        .clip(RoundedCornerShape(50))
+                        .clip(CircleShape)
                         .background(dotColor)
                 )
             }

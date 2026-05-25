@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CallSplit
 import androidx.compose.material.icons.filled.*
@@ -67,7 +66,7 @@ internal fun SplitItemColumn(
     Box(modifier = modifier, contentAlignment = Alignment.TopCenter) {
         Card(
             modifier  = Modifier.widthIn(max = 480.dp).fillMaxWidth().fillMaxHeight(),
-            shape     = RoundedCornerShape(12.dp),
+            shape     = MaterialTheme.shapes.extraLarge,
             colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
@@ -153,7 +152,7 @@ private fun SplitBrandHeader() {
 @Composable
 private fun SplitTotalSurface(total: Long) {
     Surface(
-        shape    = RoundedCornerShape(8.dp),
+        shape    = MaterialTheme.shapes.large,
         color    = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
         border   = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
         modifier = Modifier.fillMaxWidth()

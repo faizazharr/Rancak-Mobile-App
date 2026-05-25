@@ -2,7 +2,8 @@ package id.rancak.app.presentation.ui.billing.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
@@ -29,7 +30,7 @@ fun PlanCard(
     onSubscribe: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = MaterialTheme.shapes.extraLarge
 
     if (isCurrentPlan) {
         Card(
@@ -45,7 +46,7 @@ fun PlanCard(
                         .fillMaxWidth()
                         .background(
                             Brush.linearGradientBrush(listOf(Primary, Color(0xFF1DB88A))),
-                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp))
                         )
                         .padding(horizontal = 14.dp, vertical = 12.dp)
                 ) {
@@ -65,13 +66,13 @@ fun PlanCard(
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             if (plan.isTrial) {
-                                Surface(shape = RoundedCornerShape(50), color = Color.White.copy(alpha = 0.22f)) {
+                                Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.22f)) {
                                     Text("TRIAL", style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold, color = Color.White,
                                         modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp))
                                 }
                             }
-                            Surface(shape = RoundedCornerShape(50), color = Color.White.copy(alpha = 0.22f)) {
+                            Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.22f)) {
                                 Text("AKTIF", style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold, color = Color.White,
                                     modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp))
@@ -146,7 +147,7 @@ fun PlanCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Button(onClick = onSubscribe, shape = RoundedCornerShape(10.dp),
+                    Button(onClick = onSubscribe, shape = MaterialTheme.shapes.extraLarge,
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Primary)) {
                         Text(if (plan.isTrial) "Coba" else "Langganan",
