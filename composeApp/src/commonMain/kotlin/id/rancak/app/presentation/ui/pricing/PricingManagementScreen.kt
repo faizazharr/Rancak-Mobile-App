@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakDesign
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.pricing.components.DiscountFormDialog
@@ -41,7 +42,6 @@ import kotlinx.coroutines.launch
 import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
-private val PricingGradientEnd = Color(0xFF0B7A60)
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Screen (stateful)

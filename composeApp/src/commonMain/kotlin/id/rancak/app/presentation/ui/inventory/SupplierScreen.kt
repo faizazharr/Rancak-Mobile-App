@@ -71,13 +71,13 @@ import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.components.StatusChip
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.viewmodel.SupplierFormField
 import id.rancak.app.presentation.viewmodel.SupplierUiState
 import id.rancak.app.presentation.viewmodel.SupplierViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-private val SupplierGradientEnd = Color(0xFF0B7A60)
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Screen (stateful)

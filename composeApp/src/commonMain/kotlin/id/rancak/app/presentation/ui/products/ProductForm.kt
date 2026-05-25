@@ -26,12 +26,11 @@ import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryPrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.components.RancakFormDialog
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-
-private val GradientEnd = Color(0xFF0B7A60)
 
 // ── Shared form field groups ──────────────────────────────────────────────────
 
@@ -310,7 +309,7 @@ private fun GradientSaveButton(canConfirm: Boolean, isSubmitting: Boolean, modif
             .height(44.dp)
             .clip(MaterialTheme.shapes.medium)
             .background(
-                if (canConfirm) Brush.horizontalGradient(listOf(Primary, GradientEnd))
+                if (canConfirm) Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd))
                 else Brush.horizontalGradient(listOf(
                     MaterialTheme.colorScheme.surfaceVariant,
                     MaterialTheme.colorScheme.surfaceVariant
@@ -391,7 +390,7 @@ fun ProductFormPanel(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(Primary, GradientEnd)))
+                .background(Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd)))
         ) {
             Row(
                 modifier          = Modifier
