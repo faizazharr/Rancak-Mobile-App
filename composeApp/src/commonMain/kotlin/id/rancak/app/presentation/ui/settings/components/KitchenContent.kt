@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,9 +21,8 @@ import id.rancak.app.data.local.SettingsStore
 import id.rancak.app.data.printing.PrinterConnectionType
 import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.designsystem.SettingsAccentKitchen
 import id.rancak.app.presentation.viewmodel.SettingsUiState
-
-private val KitchenAccent = Color(0xFFB5340A)
 
 /**
  * Panel pengaturan printer dapur (KOT). Mirip [PrinterContent] namun dengan
@@ -88,7 +86,7 @@ private fun SavedKitchenPrinterCard(
                 if (uiState.kitchenPrinterType == SettingsStore.TYPE_BLUETOOTH) Icons.Default.Bluetooth
                 else Icons.Default.Wifi,
                 contentDescription = null,
-                tint     = KitchenAccent,
+                tint     = SettingsAccentKitchen,
                 modifier = Modifier.size(20.dp)
             )
             Column(modifier = Modifier.weight(1f)) {
@@ -104,15 +102,15 @@ private fun SavedKitchenPrinterCard(
                 )
             }
             Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = KitchenAccent.copy(alpha = 0.12f)
+                shape = MaterialTheme.shapes.medium,
+                color = SettingsAccentKitchen.copy(alpha = 0.12f)
             ) {
                 Text(
                     "Printer Dapur",
                     modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                     style      = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color      = KitchenAccent
+                    color      = SettingsAccentKitchen
                 )
             }
         }

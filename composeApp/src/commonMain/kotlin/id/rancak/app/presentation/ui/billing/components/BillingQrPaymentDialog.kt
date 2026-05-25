@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
@@ -100,7 +100,7 @@ fun BillingQrPaymentDialog(
             ) {
                 // ── Jumlah ───────────────────────────────────────────────────
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
+                    shape = MaterialTheme.shapes.extraLarge,
                     color = Primary.copy(alpha = 0.08f),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -127,7 +127,7 @@ fun BillingQrPaymentDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Surface(
-                                shape = RoundedCornerShape(4.dp),
+                                shape = MaterialTheme.shapes.small,
                                 color = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Text(

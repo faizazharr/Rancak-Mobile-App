@@ -7,7 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
@@ -23,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 /**
@@ -55,9 +53,9 @@ internal fun GlassOutletCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(MaterialTheme.shapes.extraLarge)
             .background(glassAlpha)
-            .border(if (isSelected) 1.5.dp else 1.dp, borderAlpha, RoundedCornerShape(16.dp))
+            .border(if (isSelected) 1.5.dp else 1.dp, borderAlpha, MaterialTheme.shapes.extraLarge)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
@@ -92,16 +90,15 @@ internal fun GlassOutletCard(
                     Spacer(Modifier.height(4.dp))
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
+                            .clip(MaterialTheme.shapes.small)
                             .background(statusColor.copy(alpha = 0.22f))
-                            .border(0.5.dp, statusColor.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
+                            .border(0.5.dp, statusColor.copy(alpha = 0.55f), MaterialTheme.shapes.small)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             statusLabel,
-                            style    = MaterialTheme.typography.labelSmall,
-                            fontSize = 10.sp,
-                            color    = statusColor,
+                            style      = MaterialTheme.typography.labelSmall,
+                            color      = statusColor,
                             fontWeight = FontWeight.SemiBold
                         )
                     }

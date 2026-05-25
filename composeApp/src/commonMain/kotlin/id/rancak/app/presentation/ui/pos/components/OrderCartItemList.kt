@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
@@ -36,6 +35,7 @@ import androidx.compose.ui.window.DialogProperties
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.Modifier as DomainModifier
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.pos.FeeInputDialog
 import id.rancak.app.presentation.util.formatRupiah
@@ -45,7 +45,7 @@ import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 
-private val NoteGradientEnd = Color(0xFF0B7A60)
+private val NoteGradientEnd = PrimaryGradientEnd
 
 // ── CartItemList ──────────────────────────────────────────────────────────────
 
@@ -183,9 +183,9 @@ private fun OrderItemRow(
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(MaterialTheme.shapes.extraLarge)
                     .background(accent.copy(0.14f))
-                    .border(1.dp, accent.copy(0.28f), RoundedCornerShape(10.dp)),
+                    .border(1.dp, accent.copy(0.28f), MaterialTheme.shapes.extraLarge),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -246,7 +246,7 @@ private fun OrderItemRow(
             Box(
                 modifier = Modifier
                     .size(28.dp)
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(MaterialTheme.shapes.medium)
                     .background(
                         if (item.note.isNullOrBlank()) MaterialTheme.colorScheme.surfaceVariant.copy(0.5f)
                         else primary.copy(0.1f)
@@ -283,8 +283,7 @@ private fun OrderItemRow(
                     color     = onSurfaceVariant.copy(0.65f),
                     fontStyle = FontStyle.Italic,
                     maxLines  = 1,
-                    overflow  = TextOverflow.Ellipsis,
-                    fontSize  = 10.sp
+                    overflow  = TextOverflow.Ellipsis
                 )
             }
         }
@@ -338,7 +337,7 @@ private fun ItemNoteDialog(
         properties       = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
-            shape  = RoundedCornerShape(20.dp),
+            shape  = MaterialTheme.shapes.extraLarge,
             color  = surfaceColor,
             tonalElevation = 3.dp,
             modifier = Modifier
@@ -347,13 +346,15 @@ private fun ItemNoteDialog(
                 .wrapContentHeight()
         ) {
             Column {
-                // ── Teal header ─────────────────────────────────────────────
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
                             Brush.horizontalGradient(listOf(Primary, NoteGradientEnd)),
-                            RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                            MaterialTheme.shapes.extraLarge.copy(
+                                bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp),
+                                bottomEnd   = androidx.compose.foundation.shape.CornerSize(0.dp)
+                            )
                         )
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
@@ -364,26 +365,26 @@ private fun ItemNoteDialog(
                         Box(
                             Modifier
                                 .size(38.dp)
-                                .background(Color.White.copy(0.18f), RoundedCornerShape(10.dp)),
+                                .background(MaterialTheme.colorScheme.onPrimary.copy(0.18f), MaterialTheme.shapes.extraLarge),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.NoteAdd, null,
                                 Modifier.size(20.dp),
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                         Column {
                             Text(
                                 "Catatan",
                                 style      = MaterialTheme.typography.labelSmall,
-                                color      = Color.White.copy(0.75f),
+                                color      = MaterialTheme.colorScheme.onPrimary.copy(0.75f),
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
                                 productName,
                                 style      = MaterialTheme.typography.titleSmall,
-                                color      = Color.White,
+                                color      = MaterialTheme.colorScheme.onPrimary,
                                 fontWeight = FontWeight.Bold,
                                 maxLines   = 1,
                                 overflow   = TextOverflow.Ellipsis
@@ -431,14 +432,14 @@ private fun ItemNoteDialog(
                                                 tween(200), label = "ChipBorder_${mod.name}"
                                             )
                                             val chipText by animateColorAsState(
-                                                if (isSelected) Color.White else onSurfaceVariant,
+                                                if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant,
                                                 tween(200), label = "ChipText_${mod.name}"
                                             )
                                             Row(
                                                 modifier = Modifier
-                                                    .clip(RoundedCornerShape(50.dp))
+                                                    .clip(CircleShape)
                                                     .background(chipBg)
-                                                    .border(1.dp, chipBorder, RoundedCornerShape(50.dp))
+                                                    .border(1.dp, chipBorder, CircleShape)
                                                     .clickable {
                                                         val updated = if (isSelected) selectedNames - mod.name
                                                                       else selectedNames + mod.name
@@ -449,7 +450,7 @@ private fun ItemNoteDialog(
                                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                                             ) {
                                                 if (isSelected) {
-                                                    Icon(Icons.Default.Check, null, Modifier.size(11.dp), tint = Color.White)
+                                                    Icon(Icons.Default.Check, null, Modifier.size(11.dp), tint = MaterialTheme.colorScheme.onPrimary)
                                                 }
                                                 Text(
                                                     mod.name,
@@ -503,9 +504,9 @@ private fun ItemNoteDialog(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(MaterialTheme.shapes.extraLarge)
                                 .background(fieldBg)
-                                .border(1.dp, fieldBorder, RoundedCornerShape(12.dp))
+                                .border(1.dp, fieldBorder, MaterialTheme.shapes.extraLarge)
                                 .padding(12.dp)
                         ) {
                             if (noteText.isEmpty()) {
@@ -556,13 +557,13 @@ private fun ItemNoteDialog(
                             tween(220), label = "SaveGradEnd"
                         )
                         val saveTextColor by animateColorAsState(
-                            if (canSave) Color.White else onSurfaceVariant.copy(0.5f),
+                            if (canSave) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant.copy(0.5f),
                             tween(200), label = "SaveTextColor"
                         )
                         Box(
                             modifier = Modifier
                                 .weight(1.6f)
-                                .clip(RoundedCornerShape(10.dp))
+                                .clip(MaterialTheme.shapes.extraLarge)
                                 .background(Brush.horizontalGradient(listOf(saveStart, saveEnd)))
                                 .clickable(enabled = canSave) { onSave(noteText.trim()) }
                                 .padding(vertical = 12.dp),

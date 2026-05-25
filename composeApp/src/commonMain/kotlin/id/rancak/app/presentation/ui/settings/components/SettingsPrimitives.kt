@@ -3,7 +3,6 @@ package id.rancak.app.presentation.ui.settings.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.CheckCircle
@@ -21,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.data.printing.PrinterConnectionType
 import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.designsystem.SettingsAccentNeutral
+import id.rancak.app.presentation.designsystem.SettingsAccentStore
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Small building blocks shared by all Settings content panels.
@@ -82,10 +83,10 @@ internal fun ContentSectionTitle(icon: ImageVector, title: String, color: Color)
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Box(
-            modifier = Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)).background(color),
+            modifier = Modifier.size(28.dp).clip(MaterialTheme.shapes.medium).background(color),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
         }
         Text(
             title,
@@ -127,11 +128,11 @@ internal fun SettingsNavItem(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(MaterialTheme.shapes.large)
                     .background(iconBg),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -148,7 +149,7 @@ internal fun SettingsNavItem(
             }
             if (badge != null) {
                 Surface(
-                    shape = RoundedCornerShape(4.dp),
+                    shape = MaterialTheme.shapes.small,
                     color = if (badgeOk) MaterialTheme.colorScheme.primaryContainer
                             else MaterialTheme.colorScheme.errorContainer
                 ) {
@@ -245,7 +246,7 @@ private fun SettingsNavItemPreview() {
             )
             SettingsNavItem(
                 icon     = Icons.Default.Print,
-                iconBg   = Color(0xFF555555),
+                iconBg   = SettingsAccentNeutral,
                 title    = "Umum",
                 subtitle = "Auto print mati",
                 selected = false,
@@ -287,7 +288,7 @@ private fun ContentSectionTitlePreview() {
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            ContentSectionTitle(Icons.Default.Print, "Printer Kasir", Color(0xFF1A6B3C))
+            ContentSectionTitle(Icons.Default.Print, "Printer Kasir", SettingsAccentStore)
         }
     }
 }

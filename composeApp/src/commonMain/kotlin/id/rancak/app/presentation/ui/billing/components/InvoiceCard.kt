@@ -1,7 +1,7 @@
 package id.rancak.app.presentation.ui.billing.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -38,7 +38,7 @@ fun InvoiceCard(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -51,7 +51,7 @@ fun InvoiceCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Surface(shape = RoundedCornerShape(8.dp), color = statusColor.copy(alpha = 0.12f),
+                Surface(shape = MaterialTheme.shapes.large, color = statusColor.copy(alpha = 0.12f),
                     modifier = Modifier.size(36.dp)) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(statusIcon, null, tint = statusColor, modifier = Modifier.size(18.dp))
@@ -74,7 +74,7 @@ fun InvoiceCard(
                 verticalAlignment = Alignment.Bottom
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                    Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceVariant) {
                         Text("${invoice.durationDays} hari", style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -98,7 +98,7 @@ fun InvoiceCard(
             }
 
             if (invoice.status == "pending" && invoice.qrString != null) {
-                Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceVariant) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -123,7 +123,7 @@ fun InvoiceCard(
                         Button(
                             onClick = onShowQr,
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp),
+                            shape = MaterialTheme.shapes.extraLarge,
                             contentPadding = PaddingValues(vertical = 8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Primary)
                         ) {
@@ -135,7 +135,7 @@ fun InvoiceCard(
                     OutlinedButton(
                         onClick = onCancel,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(10.dp),
+                        shape = MaterialTheme.shapes.extraLarge,
                         contentPadding = PaddingValues(vertical = 8.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
                         border = androidx.compose.foundation.BorderStroke(1.dp, Error.copy(alpha = 0.4f))

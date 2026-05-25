@@ -8,7 +8,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Check
@@ -17,12 +16,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -76,10 +73,10 @@ fun FeeInputDialog(
         properties       = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
-            modifier      = Modifier.width(300.dp),
-            shape         = RoundedCornerShape(24.dp),
-            color         = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp,
+            modifier        = Modifier.width(300.dp),
+            shape           = MaterialTheme.shapes.extraLarge,
+            color           = MaterialTheme.colorScheme.surface,
+            tonalElevation  = 6.dp,
             shadowElevation = 12.dp
         ) {
             Column(
@@ -117,7 +114,7 @@ fun FeeInputDialog(
                     Row(
                         modifier              = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(MaterialTheme.shapes.extraLarge)
                             .background(MaterialTheme.colorScheme.surfaceVariant),
                         horizontalArrangement = Arrangement.Center
                     ) {
@@ -127,7 +124,7 @@ fun FeeInputDialog(
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(3.dp)
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(MaterialTheme.shapes.large)
                                     .background(
                                         if (selected) primary
                                         else          MaterialTheme.colorScheme.surfaceVariant
@@ -156,7 +153,7 @@ fun FeeInputDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(MaterialTheme.shapes.extraLarge)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(horizontal = 18.dp, vertical = 14.dp),
                     contentAlignment = Alignment.CenterEnd
@@ -165,17 +162,15 @@ fun FeeInputDialog(
                         if (isNegative && hasValue) {
                             Text(
                                 if (isPercent) "− (Diskon Persen)" else "− (Pengurangan)",
-                                style    = MaterialTheme.typography.labelSmall,
-                                color    = error.copy(alpha = 0.65f),
-                                fontSize = 10.sp
+                                style = MaterialTheme.typography.labelSmall,
+                                color = error.copy(alpha = 0.65f)
                             )
                         }
                         Text(
                             displayText,
-                            style      = MaterialTheme.typography.headlineSmall,
+                            style      = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.ExtraBold,
-                            color      = valueColor,
-                            fontSize   = 26.sp
+                            color      = valueColor
                         )
                     }
                 }
@@ -232,14 +227,14 @@ fun FeeInputDialog(
                     OutlinedButton(
                         onClick  = onDismiss,
                         modifier = Modifier.weight(1f),
-                        shape    = RoundedCornerShape(12.dp)
+                        shape    = MaterialTheme.shapes.extraLarge
                     ) {
                         Text("Batal")
                     }
                     Button(
                         onClick  = { onConfirm(raw.toLongOrNull() ?: 0L, isPercent) },
                         modifier = Modifier.weight(1f),
-                        shape    = RoundedCornerShape(12.dp),
+                        shape    = MaterialTheme.shapes.extraLarge,
                         colors   = ButtonDefaults.buttonColors(
                             containerColor = if (isNegative && hasValue) error else primary
                         )
@@ -282,7 +277,7 @@ private fun NumpadKey(
     Box(
         modifier = modifier
             .height(54.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(MaterialTheme.shapes.extraLarge)
             .background(bgColor)
             .clickable(
                 interactionSource = interactionSource,

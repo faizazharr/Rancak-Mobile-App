@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 /**
@@ -103,16 +102,14 @@ internal fun GlassOutletCardLight(
                     Spacer(Modifier.height(4.dp))
                     Box(
                         modifier = Modifier
-                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                            .clip(MaterialTheme.shapes.small)
                             .background(statusColor.copy(alpha = 0.12f))
-                            .border(0.5.dp, statusColor.copy(alpha = 0.45f),
-                                androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                            .border(0.5.dp, statusColor.copy(alpha = 0.45f), MaterialTheme.shapes.small)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             statusLabel,
                             style      = MaterialTheme.typography.labelSmall,
-                            fontSize   = 10.sp,
                             color      = statusColor,
                             fontWeight = FontWeight.SemiBold
                         )

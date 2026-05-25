@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Menu
@@ -28,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import kotlinx.coroutines.delay
 import kotlinx.datetime.TimeZone
@@ -68,7 +68,7 @@ internal fun PosTopBar(
         title = { PosTopBarTitle(outletName) },
         navigationIcon = {
             IconButton(onClick = onMenuClick) {
-                Icon(Icons.Default.Menu, contentDescription = null, tint = Color.White)
+                Icon(Icons.Default.Menu, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
             }
         },
         actions = {
@@ -81,7 +81,7 @@ internal fun PosTopBar(
                     currentTime,
                     style      = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color      = Color.White
+                    color      = MaterialTheme.colorScheme.onPrimary
                 )
             }
             if (showCart) {
@@ -105,19 +105,19 @@ private fun PosTopBarTitle(outletName: String) {
                 "Kasir",
                 style     = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.ExtraBold,
-                color     = Color.White
+                color     = MaterialTheme.colorScheme.onPrimary
             )
             if (outletName.isNotBlank()) {
                 Box(
                     Modifier
                         .size(3.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(0.45f))
+                        .background(MaterialTheme.colorScheme.onPrimary.copy(0.45f))
                 )
                 Text(
                     outletName,
                     style    = MaterialTheme.typography.bodySmall,
-                    color    = Color.White.copy(0.78f),
+                    color    = MaterialTheme.colorScheme.onPrimary.copy(0.78f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -128,27 +128,28 @@ private fun PosTopBarTitle(outletName: String) {
 
 @Composable
 private fun ShiftStatusChip(hasOpenShift: Boolean) {
+    val sem = RancakColors.semantic
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White.copy(if (hasOpenShift) 0.16f else 0.28f))
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.onPrimary.copy(if (hasOpenShift) 0.16f else 0.28f))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Box(
                 Modifier
                     .size(7.dp)
                     .clip(CircleShape)
-                    .background(if (hasOpenShift) Color(0xFF4ADE80) else Color(0xFFFF4444))
+                    .background(if (hasOpenShift) sem.statusOnline else sem.statusOffline)
             )
             Text(
                 if (hasOpenShift) "Shift Buka" else "Shift Tutup",
                 style      = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
-                color      = Color.White
+                color      = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
@@ -156,11 +157,12 @@ private fun ShiftStatusChip(hasOpenShift: Boolean) {
 
 @Composable
 private fun OpenBillChip(onClick: () -> Unit) {
+    val warningColor = RancakColors.semantic.warning
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFFF59E0B).copy(alpha = 0.18f))
-            .border(1.dp, Color(0xFFF59E0B).copy(alpha = 0.55f), RoundedCornerShape(20.dp))
+            .clip(CircleShape)
+            .background(warningColor.copy(alpha = 0.18f))
+            .border(1.dp, warningColor.copy(alpha = 0.55f), CircleShape)
             .clickable(onClick = onClick)
             .padding(horizontal = 9.dp, vertical = 5.dp)
     ) {
@@ -172,13 +174,13 @@ private fun OpenBillChip(onClick: () -> Unit) {
                 Icons.Default.BookmarkBorder,
                 contentDescription = "Open Bill",
                 modifier = Modifier.size(13.dp),
-                tint     = Color(0xFFFBBF24)
+                tint     = warningColor
             )
             Text(
                 "Open Bill",
                 style      = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color      = Color(0xFFFBBF24)
+                color      = warningColor
             )
         }
     }
@@ -194,7 +196,7 @@ private fun CartActionButton(
     BadgedBox(
         badge = {
             if (hasCart) Badge(
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.onPrimary,
                 contentColor   = primary
             ) {
                 Text(
@@ -206,7 +208,7 @@ private fun CartActionButton(
         }
     ) {
         IconButton(onClick = onCartClick) {
-            Icon(Icons.Default.ShoppingCart, null, tint = Color.White)
+            Icon(Icons.Default.ShoppingCart, null, tint = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }

@@ -19,14 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.designsystem.RancakColors
@@ -100,8 +98,9 @@ fun TableCell(
             ) {
                 // Nama meja
                 Text(
-                    text      = table.name,
-                    style     = MaterialTheme.typography.titleSmall.copy(fontSize = if (size >= 120.dp) 14.sp else 12.sp),
+                    text       = table.name,
+                    style      = if (size >= 120.dp) MaterialTheme.typography.titleSmall
+                                 else MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color     = if (isInactive)
                                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
@@ -118,7 +117,7 @@ fun TableCell(
                 ) {
                     Text(
                         text  = statusLabel(table.status),
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        style = MaterialTheme.typography.labelSmall,
                         color = statusColor.copy(alpha = if (isInactive) 0.5f else 1f),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                         maxLines = 1
@@ -139,7 +138,7 @@ fun TableCell(
                         )
                         Text(
                             text  = "$cap",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = if (isInactive) 0.4f else 1f)
                         )
                     }

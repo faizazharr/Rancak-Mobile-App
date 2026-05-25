@@ -12,22 +12,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.KdsItem
 import id.rancak.app.domain.model.KdsItemStatus
 import id.rancak.app.domain.model.KdsOrder
 import id.rancak.app.domain.model.KdsStatus
 import id.rancak.app.domain.model.OrderType
+import id.rancak.app.presentation.designsystem.KdsColorCooking
+import id.rancak.app.presentation.designsystem.KdsColorNew
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.designsystem.StatusMaintenance
+import id.rancak.app.presentation.designsystem.Success
 import kotlinx.collections.immutable.persistentListOf
 
 // ── Helpers (package-private) ─────────────────────────────────────────────────
 
 internal fun headerColorForStatus(status: KdsStatus): Color = when (status) {
-    KdsStatus.NEW     -> Color(0xFF1565C0)
-    KdsStatus.COOKING -> Color(0xFFE65100)
-    KdsStatus.READY   -> Color(0xFF2E7D32)
-    KdsStatus.DONE    -> Color(0xFF757575)
+    KdsStatus.NEW     -> KdsColorNew
+    KdsStatus.COOKING -> KdsColorCooking
+    KdsStatus.READY   -> Success
+    KdsStatus.DONE    -> StatusMaintenance
 }
 
 internal fun orderTime(createdAt: String?): String {
@@ -65,7 +68,7 @@ fun KdsOrderCard(
             if (nextStatus != null) Modifier.clickable { onAdvance(nextStatus) } else Modifier
         ),
         shape  = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
             Box(
@@ -75,19 +78,21 @@ fun KdsOrderCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("#${order.queueNumber ?: "-"}", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("#${order.queueNumber ?: "-"}", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
                         if (!order.invoiceNo.isNullOrBlank()) {
-                            Text(order.invoiceNo, color = Color.White.copy(alpha = 0.8f), fontSize = 10.sp,
+                            Text(order.invoiceNo, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                                style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         Text("$orderTypeLabel${order.tableName?.let { " · $it" } ?: ""}",
-                            color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                            style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                         if (!order.customerName.isNullOrBlank()) {
                             Text(
                                 "a/n ${order.customerName}",
-                                color = Color.White.copy(alpha = 0.95f),
-                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.95f),
+                                style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -96,13 +101,13 @@ fun KdsOrderCard(
                     }
                     if (time.isNotBlank()) {
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(time, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(time, color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                             Text(when (order.status) {
                                 KdsStatus.NEW     -> "BARU"
                                 KdsStatus.COOKING -> "MASAK"
                                 KdsStatus.READY   -> "SIAP"
                                 KdsStatus.DONE    -> "SELESAI"
-                            }, color = Color.White.copy(alpha = 0.9f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -112,12 +117,12 @@ fun KdsOrderCard(
                 verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 order.items.forEach { item ->
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(item.qty, fontSize = 16.sp, fontWeight = FontWeight.Bold,
-                            color = Color.Black, modifier = Modifier.width(28.dp))
+                        Text(item.qty, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.width(28.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(item.productName, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
-                            item.variantName?.let { Text("- $it", fontSize = 14.sp, color = Color.DarkGray) }
-                            item.note?.let { Text("- $it", fontSize = 14.sp, color = Color.DarkGray) }
+                            Text(item.productName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                            item.variantName?.let { Text("- $it", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            item.note?.let { Text("- $it", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }
                     }
                 }
@@ -130,7 +135,7 @@ fun KdsOrderCard(
                             KdsStatus.DONE    -> "Ketuk untuk selesaikan ✓✓"
                             else              -> ""
                         },
-                        fontSize = 12.sp, color = headerColor, fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodySmall, color = headerColor, fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
                     )
                 }

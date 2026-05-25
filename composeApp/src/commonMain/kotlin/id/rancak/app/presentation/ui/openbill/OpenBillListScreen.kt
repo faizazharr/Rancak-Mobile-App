@@ -4,7 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddShoppingCart
@@ -26,12 +27,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.data.local.LocalOpenBill
+import id.rancak.app.presentation.designsystem.KdsColorReady
+import id.rancak.app.presentation.designsystem.RancakColors
+import id.rancak.app.presentation.designsystem.WarningGradientEnd
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.OpenBillViewModel
 import kotlinx.collections.immutable.ImmutableList
@@ -62,8 +65,8 @@ fun OpenBillListScreen(
 ) {
     val viewModel: OpenBillViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val amber  = Color(0xFFF59E0B)
-    val amber2 = Color(0xFFFBBF24)
+    val amber  = RancakColors.semantic.warning
+    val amber2 = WarningGradientEnd
 
     // Refresh setiap kali layar di-resume (termasuk kembali dari AddItemsToHeldOrder)
     // sehingga item count selalu mencerminkan data terbaru di store.
@@ -92,7 +95,7 @@ fun OpenBillListScreen(
                         )
                         if (state.bills.isNotEmpty()) {
                             Surface(
-                                shape = RoundedCornerShape(20.dp),
+                                shape = CircleShape,
                                 color = amber.copy(alpha = 0.15f)
                             ) {
                                 Text(
@@ -173,7 +176,7 @@ private fun SummaryBanner(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(MaterialTheme.shapes.extraLarge)
             .background(
                 Brush.horizontalGradient(listOf(amber, amber2))
             )
@@ -206,7 +209,7 @@ private fun SummaryBanner(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(MaterialTheme.shapes.extraLarge)
                     .background(Color.White.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -237,7 +240,7 @@ private fun OpenBillCard(
     val surface          = MaterialTheme.colorScheme.surface
     val onSurface        = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val kdsGreen         = Color(0xFF2E7D32)
+    val kdsGreen         = KdsColorReady
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -260,18 +263,18 @@ private fun OpenBillCard(
                 Button(
                     onClick = { showDeleteDialog = false; onDelete() },
                     colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                    shape   = RoundedCornerShape(8.dp)
+                shape   = MaterialTheme.shapes.large,
                 ) { Text(if (isSynced) "Batalkan Pesanan" else "Hapus") }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) { Text("Kembali") }
             },
-            shape = RoundedCornerShape(16.dp)
+            shape = MaterialTheme.shapes.extraLarge
         )
     }
 
     Surface(
-        shape           = RoundedCornerShape(14.dp),
+        shape           = MaterialTheme.shapes.extraLarge,
         color           = surface,
         shadowElevation = 3.dp,
         modifier        = Modifier.fillMaxWidth()
@@ -286,7 +289,10 @@ private fun OpenBillCard(
                         Brush.verticalGradient(
                             listOf(amber, amber.copy(alpha = 0.4f))
                         ),
-                        shape = RoundedCornerShape(topStart = 14.dp, bottomStart = 14.dp)
+                        shape = MaterialTheme.shapes.extraLarge.copy(
+                                    topEnd     = CornerSize(0.dp),
+                                    bottomEnd  = CornerSize(0.dp)
+                                )
                     )
             )
 
@@ -306,7 +312,7 @@ private fun OpenBillCard(
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
-                                .clip(RoundedCornerShape(10.dp))
+                                .clip(MaterialTheme.shapes.extraLarge)
                                 .background(if (isSynced) kdsGreen.copy(alpha = 0.12f) else amber.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
@@ -332,13 +338,13 @@ private fun OpenBillCard(
                                 )
                                 if (isSynced) {
                                     Surface(
-                                        shape = RoundedCornerShape(4.dp),
+                                        shape = MaterialTheme.shapes.small,
                                         color = kdsGreen.copy(alpha = 0.12f)
                                     ) {
                                         Text(
                                             "KDS",
                                             modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                                            fontSize   = 9.sp,
+                                            style      = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color      = kdsGreen
                                         )
@@ -363,7 +369,7 @@ private fun OpenBillCard(
                         val timeStr = formatCreatedAt(bill.createdAt)
                         if (timeStr.isNotEmpty()) {
                             Surface(
-                                shape = RoundedCornerShape(20.dp),
+                                shape = CircleShape,
                                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
                             ) {
                                 Text(
@@ -379,7 +385,7 @@ private fun OpenBillCard(
                         val lastAddedStr = bill.lastAddedAt?.let { formatCreatedAt(it) }
                         if (!lastAddedStr.isNullOrEmpty()) {
                             Surface(
-                                shape = RoundedCornerShape(20.dp),
+                                shape = CircleShape,
                                 color = kdsGreen.copy(alpha = 0.10f)
                             ) {
                                 Text(
@@ -400,7 +406,7 @@ private fun OpenBillCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(MaterialTheme.shapes.large)
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                         .padding(horizontal = 10.dp, vertical = 8.dp)
                 ) {
@@ -416,7 +422,7 @@ private fun OpenBillCard(
                                     modifier              = Modifier.weight(1f)
                                 ) {
                                     Surface(
-                                        shape = RoundedCornerShape(4.dp),
+                                        shape = MaterialTheme.shapes.small,
                                         color = amber.copy(alpha = 0.15f)
                                     ) {
                                         Text(
@@ -479,7 +485,7 @@ private fun OpenBillCard(
                         // Hapus / Batalkan
                         OutlinedButton(
                             onClick       = { showDeleteDialog = true },
-                            shape         = RoundedCornerShape(8.dp),
+                            shape         = MaterialTheme.shapes.large,
                             colors        = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             ),
@@ -495,7 +501,7 @@ private fun OpenBillCard(
                             // ── Bill sudah di KDS: Tambah Item + Bayar ───────
                             OutlinedButton(
                                 onClick        = { onAddItems?.invoke() },
-                                shape          = RoundedCornerShape(8.dp),
+                                shape          = MaterialTheme.shapes.large,
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
                                 Icon(Icons.Default.AddShoppingCart, null, modifier = Modifier.size(14.dp))
@@ -508,7 +514,7 @@ private fun OpenBillCard(
                             }
                             Button(
                                 onClick        = { onPay?.invoke() },
-                                shape          = RoundedCornerShape(8.dp),
+                                shape          = MaterialTheme.shapes.large,
                                 colors         = ButtonDefaults.buttonColors(
                                     containerColor = kdsGreen,
                                     contentColor   = Color.White
@@ -527,7 +533,7 @@ private fun OpenBillCard(
                             // ── Bill lokal: Lanjutkan ke kasir ───────────────
                             Button(
                                 onClick        = onResume,
-                                shape          = RoundedCornerShape(8.dp),
+                                shape          = MaterialTheme.shapes.large,
                                 colors         = ButtonDefaults.buttonColors(
                                     containerColor = amber,
                                     contentColor   = Color.White
@@ -552,7 +558,7 @@ private fun OpenBillCard(
 
 @Composable
 private fun EmptyOpenBillState(modifier: Modifier = Modifier) {
-    val amber = Color(0xFFF59E0B)
+    val amber = RancakColors.semantic.warning
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -562,7 +568,7 @@ private fun EmptyOpenBillState(modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(MaterialTheme.shapes.extraLarge)
                     .background(amber.copy(alpha = 0.10f)),
                 contentAlignment = Alignment.Center
             ) {

@@ -7,7 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,9 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.pos.FeeInputDialog
 import id.rancak.app.presentation.ui.pos.feeFormatNumber
@@ -37,7 +36,7 @@ import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartUiState
 import kotlinx.collections.immutable.persistentListOf
 
-private val GradientEnd = Color(0xFF0B7A60)
+private val GradientEnd = PrimaryGradientEnd
 
 // ── SummaryAndActions ─────────────────────────────────────────────────────────
 
@@ -102,7 +101,7 @@ internal fun OrderSummaryActions(
 
             // ── Fee grid 2×2 ─────────────────────────────────────────────────
             val gridBorder = MaterialTheme.colorScheme.outlineVariant.copy(0.45f)
-            val gridShape  = RoundedCornerShape(10.dp)
+            val gridShape  = MaterialTheme.shapes.extraLarge
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -217,7 +216,7 @@ internal fun OrderSummaryActions(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(MaterialTheme.shapes.large)
                             .background(MaterialTheme.colorScheme.errorContainer)
                             .clickable(onClick = onHoldErrorDismiss)
                             .padding(horizontal = 10.dp, vertical = 7.dp)
@@ -321,11 +320,11 @@ internal fun OrderSummaryActions(
                         tween(250), label = "PayGradEnd"
                     )
                     val payIconTint by animateColorAsState(
-                        when { !hasItems -> onSurfaceVariant; !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer; else -> Color.White },
+                        when { !hasItems -> onSurfaceVariant; !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer; else -> MaterialTheme.colorScheme.onPrimary },
                         tween(200), label = "PayIconTint"
                     )
                     val payTextColor by animateColorAsState(
-                        when { !hasItems -> onSurfaceVariant; !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer; else -> Color.White },
+                        when { !hasItems -> onSurfaceVariant; !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer; else -> MaterialTheme.colorScheme.onPrimary },
                         tween(200), label = "PayTextColor"
                     )
 
@@ -428,8 +427,7 @@ private fun FeeCellItem(
                 label.uppercase(),
                 style      = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
-                color      = labelColor,
-                fontSize   = 10.sp
+                color      = labelColor
             )
         }
         Spacer(Modifier.height(4.dp))
@@ -514,7 +512,7 @@ private fun FeeInputRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(MaterialTheme.shapes.large)
             .clickable { showDialog = true }
             .padding(vertical = 5.dp, horizontal = 2.dp),
         verticalAlignment     = Alignment.CenterVertically,
@@ -653,7 +651,7 @@ private fun VoucherInputRow(
         val btnText by animateColorAsState(
             when {
                 applied          -> MaterialTheme.colorScheme.onErrorContainer
-                text.isNotBlank() -> Color.White
+                text.isNotBlank() -> MaterialTheme.colorScheme.onPrimary
                 else              -> MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f)
             },
             tween(220), label = "VoucherBtnText"

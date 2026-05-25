@@ -11,7 +11,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -1001,8 +1001,8 @@ private fun ShimmerTableRow(alpha: Float, shimmerColor: Color) {
             modifier            = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            Box(Modifier.fillMaxWidth(0.52f).height(13.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha).background(shimmerColor))
-            Box(Modifier.fillMaxWidth(0.33f).height(10.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha * 0.6f).background(shimmerColor))
+            Box(Modifier.fillMaxWidth(0.52f).height(13.dp).clip(MaterialTheme.shapes.extraSmall).alpha(alpha).background(shimmerColor))
+            Box(Modifier.fillMaxWidth(0.33f).height(10.dp).clip(MaterialTheme.shapes.extraSmall).alpha(alpha * 0.6f).background(shimmerColor))
         }
         Row(
             modifier              = Modifier.width(110.dp),
@@ -1010,9 +1010,9 @@ private fun ShimmerTableRow(alpha: Float, shimmerColor: Color) {
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Box(Modifier.size(9.dp).clip(CircleShape).alpha(alpha).background(shimmerColor))
-            Box(Modifier.width(38.dp).height(11.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha).background(shimmerColor))
+            Box(Modifier.width(38.dp).height(11.dp).clip(MaterialTheme.shapes.extraSmall).alpha(alpha).background(shimmerColor))
         }
-        Box(Modifier.width(68.dp).height(13.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha).background(shimmerColor))
+        Box(Modifier.width(68.dp).height(13.dp).clip(MaterialTheme.shapes.extraSmall).alpha(alpha).background(shimmerColor))
         Spacer(Modifier.width(40.dp))
     }
 }
@@ -1046,14 +1046,14 @@ private fun ShimmerProductCard(alpha: Float, shimmerColor: Color) {
                 verticalAlignment     = Alignment.Top
             ) {
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(Modifier.fillMaxWidth(0.6f).height(16.dp).clip(RoundedCornerShape(4.dp)).alpha(alpha).background(shimmerColor))
-                    Box(Modifier.fillMaxWidth(0.4f).height(11.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha * 0.6f).background(shimmerColor))
-                    Box(Modifier.fillMaxWidth(0.28f).height(11.dp).clip(RoundedCornerShape(3.dp)).alpha(alpha * 0.6f).background(shimmerColor))
+                    Box(Modifier.fillMaxWidth(0.6f).height(16.dp).clip(MaterialTheme.shapes.small).alpha(alpha).background(shimmerColor))
+                    Box(Modifier.fillMaxWidth(0.4f).height(11.dp).clip(MaterialTheme.shapes.extraSmall).alpha(alpha * 0.6f).background(shimmerColor))
+                    Box(Modifier.fillMaxWidth(0.28f).height(11.dp).clip(MaterialTheme.shapes.extraSmall).alpha(alpha * 0.6f).background(shimmerColor))
                     Spacer(Modifier.height(2.dp))
-                    Box(Modifier.width(80.dp).height(22.dp).clip(RoundedCornerShape(11.dp)).alpha(alpha).background(shimmerColor))
+                    Box(Modifier.width(80.dp).height(22.dp).clip(MaterialTheme.shapes.extraLarge).alpha(alpha).background(shimmerColor))
                 }
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(Modifier.width(72.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).alpha(alpha).background(shimmerColor))
+                    Box(Modifier.width(72.dp).height(16.dp).clip(MaterialTheme.shapes.small).alpha(alpha).background(shimmerColor))
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Box(Modifier.size(36.dp).clip(CircleShape).alpha(alpha).background(shimmerColor))
                         Box(Modifier.size(36.dp).clip(CircleShape).alpha(alpha).background(shimmerColor))
@@ -1062,8 +1062,8 @@ private fun ShimmerProductCard(alpha: Float, shimmerColor: Color) {
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box(Modifier.weight(1f).height(36.dp).clip(RoundedCornerShape(4.dp)).alpha(alpha * 0.55f).background(shimmerColor))
-                Box(Modifier.weight(1f).height(36.dp).clip(RoundedCornerShape(4.dp)).alpha(alpha * 0.55f).background(shimmerColor))
+                Box(Modifier.weight(1f).height(36.dp).clip(MaterialTheme.shapes.small).alpha(alpha * 0.55f).background(shimmerColor))
+                Box(Modifier.weight(1f).height(36.dp).clip(MaterialTheme.shapes.small).alpha(alpha * 0.55f).background(shimmerColor))
             }
         }
     }

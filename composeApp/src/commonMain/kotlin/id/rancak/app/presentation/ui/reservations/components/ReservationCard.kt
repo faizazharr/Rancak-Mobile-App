@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+
 import id.rancak.app.domain.model.Reservation
 import id.rancak.app.presentation.designsystem.Info
 import id.rancak.app.presentation.designsystem.RancakTheme
@@ -96,7 +96,7 @@ fun ReservationCard(
                     ) {
                         Text(
                             text  = initials,
-                            style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp),
+                            style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = statusColor
                         )

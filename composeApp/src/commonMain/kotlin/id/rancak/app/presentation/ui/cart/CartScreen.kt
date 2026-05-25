@@ -19,6 +19,7 @@ import id.rancak.app.presentation.ui.cart.components.CartItemCard
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.RancakElevation
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.navigation.LocalCartViewModel
@@ -109,7 +110,7 @@ fun CartScreenContent(
         bottomBar = {
             if (!uiState.isEmpty) {
                 Surface(
-                    shadowElevation = 4.dp,
+                    shadowElevation = RancakElevation.current.raised,
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     Row(

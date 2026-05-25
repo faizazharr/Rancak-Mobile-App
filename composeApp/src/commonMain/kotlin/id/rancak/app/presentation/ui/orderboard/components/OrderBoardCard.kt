@@ -13,21 +13,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.OrderBoardItem
 import id.rancak.app.domain.model.OrderBoardOrder
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.designsystem.SaleColorHeld
+import id.rancak.app.presentation.designsystem.StatusMaintenance
+import id.rancak.app.presentation.designsystem.Success
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Clock
 
 // ── Helpers (package-private) ─────────────────────────────────────────────────
 
 internal fun headerColorForStatus(status: SaleStatus): Color = when (status) {
-    SaleStatus.HELD -> Color(0xFFF57C00)
-    SaleStatus.PAID -> Color(0xFF2E7D32)
-    else            -> Color(0xFF757575)
+    SaleStatus.HELD -> SaleColorHeld
+    SaleStatus.PAID -> Success
+    else            -> StatusMaintenance
 }
 
 @Composable
@@ -90,7 +92,7 @@ fun OrderBoardCard(
             if (order.status == SaleStatus.HELD) Modifier.clickable(onClick = onServe) else Modifier
         ),
         shape  = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
             Box(
@@ -100,27 +102,25 @@ fun OrderBoardCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("#${order.queueNumber ?: "-"}", color = Color.White,
-                            fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                        Text(orderTypeLabel, color = Color.White.copy(alpha = 0.9f),
-                            fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                        Text("#${order.queueNumber ?: "-"}", color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                        Text(orderTypeLabel, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                            style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (elapsed.isNotBlank()) {
-                        // Pill background agar timer kontras & mudah dibaca,
-                        // walau header berwarna terang.
                         Box(
                             modifier = Modifier
                                 .background(
-                                    color = Color.Black.copy(alpha = 0.22f),
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
                                     shape = MaterialTheme.shapes.small
                                 )
                                 .padding(horizontal = 10.dp, vertical = 4.dp)
                         ) {
                             Text(
                                 elapsed,
-                                color = Color.White,
-                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.ExtraBold,
                                 maxLines = 1
                             )
@@ -133,11 +133,11 @@ fun OrderBoardCard(
                 verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 order.items.forEach { item ->
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(item.qty.toString(), fontSize = 16.sp, fontWeight = FontWeight.Bold,
-                            color = Color.Black, modifier = Modifier.width(28.dp))
+                        Text(item.qty.toString(), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.width(28.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(item.productName, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.Black)
-                            item.note?.let { Text("- $it", fontSize = 14.sp, color = Color.DarkGray) }
+                            Text(item.productName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                            item.note?.let { Text("- $it", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }
                     }
                 }
@@ -146,9 +146,9 @@ fun OrderBoardCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically) {
                     Text(order.customerName ?: order.invoiceNo ?: "",
-                        fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     if (order.status == SaleStatus.HELD) {
-                        Text("Ketuk untuk antar ✓", fontSize = 12.sp,
+                        Text("Ketuk untuk antar ✓", style = MaterialTheme.typography.bodySmall,
                             color = headerColor, fontWeight = FontWeight.SemiBold)
                     }
                 }

@@ -390,7 +390,7 @@ fun OpnameDetailTabletPanel(
                             onClick  = onFinalizeClick,
                             enabled  = !isSubmitting && detail.items.isNotEmpty(),
                             colors   = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
+                                containerColor = MaterialTheme.colorScheme.onPrimary,
                                 contentColor   = Primary
                             )
                         ) {

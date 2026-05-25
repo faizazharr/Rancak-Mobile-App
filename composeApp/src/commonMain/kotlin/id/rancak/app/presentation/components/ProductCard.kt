@@ -38,7 +38,7 @@ fun ProductCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp)
+                .padding(12.dp)
         ) {
             // Category label — small uppercase, muted
             if (category != null) {

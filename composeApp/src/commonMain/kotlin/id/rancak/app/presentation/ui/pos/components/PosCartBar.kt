@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.BookmarkBorder
@@ -27,10 +26,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.persistentListOf
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.CartItem
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CartUiState
@@ -51,7 +50,7 @@ internal fun CartBar(
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(horizontal = 10.dp, vertical = 8.dp),
-        shape           = RoundedCornerShape(16.dp),
+        shape           = MaterialTheme.shapes.extraLarge,
         shadowElevation = 12.dp,
         color           = primary
     ) {
@@ -60,7 +59,7 @@ internal fun CartBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF59E0B).copy(alpha = 0.18f))
+                    .background(RancakColors.semantic.warning.copy(alpha = 0.18f))
                     .clickable(onClick = onOpenBillClick)
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment     = Alignment.CenterVertically,
@@ -73,13 +72,13 @@ internal fun CartBar(
                     Icon(
                         Icons.Default.BookmarkBorder, null,
                         Modifier.size(13.dp),
-                        tint = Color(0xFFFBBF24)
+                        tint = RancakColors.semantic.warning
                     )
                     Text(
                         "Open Bill",
                         style      = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color      = Color(0xFFFBBF24)
+                        color      = RancakColors.semantic.warning
                     )
                 }
                 Row(
@@ -89,12 +88,12 @@ internal fun CartBar(
                     Text(
                         "Lihat semua",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFFFBBF24).copy(alpha = 0.82f)
+                        color = RancakColors.semantic.warning.copy(alpha = 0.82f)
                     )
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowForward, null,
                         Modifier.size(11.dp),
-                        tint = Color(0xFFFBBF24).copy(alpha = 0.82f)
+                        tint = RancakColors.semantic.warning.copy(alpha = 0.82f)
                     )
                 }
             }
@@ -116,28 +115,27 @@ internal fun CartBar(
                         Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(0.22f)),
+                            .background(MaterialTheme.colorScheme.onPrimary.copy(0.22f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             "${cartState.itemCount}",
                             style      = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.ExtraBold,
-                            color      = Color.White
+                            color      = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                     Column {
                         Text(
                             "${cartState.itemCount} item",
                             style      = MaterialTheme.typography.labelSmall,
-                            color      = Color.White.copy(0.72f),
-                            lineHeight = 14.sp
+                            color      = MaterialTheme.colorScheme.onPrimary.copy(0.72f)
                         )
                         Text(
                             formatRupiah(cartState.subtotal),
                             style      = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.ExtraBold,
-                            color      = Color.White
+                            color      = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -149,12 +147,12 @@ internal fun CartBar(
                         "Keranjang",
                         style      = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color      = Color.White
+                        color      = MaterialTheme.colorScheme.onPrimary
                     )
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowForward, null,
                         Modifier.size(16.dp),
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }

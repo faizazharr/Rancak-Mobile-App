@@ -1,7 +1,7 @@
 package id.rancak.app.presentation.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,7 +19,7 @@ fun StatusChip(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
+        shape = CircleShape,
         color = color.copy(alpha = 0.12f)
     ) {
         Text(

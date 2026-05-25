@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -85,9 +84,9 @@ internal fun TenantPickerPortrait(
                 Box(
                     modifier = Modifier
                         .size(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(MaterialTheme.shapes.extraLarge)
                         .background(Color.White.copy(alpha = 0.18f))
-                        .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(14.dp)),
+                        .border(1.dp, Color.White.copy(alpha = 0.35f), MaterialTheme.shapes.extraLarge),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Default.Store, null, Modifier.size(28.dp), tint = Color.White)

@@ -2,7 +2,7 @@ package id.rancak.app.presentation.ui.settings.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bluetooth
@@ -106,7 +106,7 @@ private fun SavedPrinterCard(
                 )
             }
             Surface(
-                shape = RoundedCornerShape(6.dp),
+                shape = MaterialTheme.shapes.medium,
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
             ) {
                 Text(

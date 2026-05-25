@@ -6,7 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -58,7 +58,7 @@ internal fun GoogleSignInButtonContent(
         onClick = onClick,
         enabled = enabled && !isLoading,
         modifier = modifier.height(52.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         color = Color.White,
         border = BorderStroke(
             width = 1.5.dp,

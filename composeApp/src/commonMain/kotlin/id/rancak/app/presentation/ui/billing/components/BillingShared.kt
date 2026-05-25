@@ -1,7 +1,7 @@
 package id.rancak.app.presentation.ui.billing.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,7 +14,7 @@ import id.rancak.app.presentation.designsystem.Primary
 
 @Composable
 fun SmallBadge(label: String, color: Color) {
-    Surface(shape = RoundedCornerShape(50), color = color.copy(alpha = 0.12f)) {
+    Surface(shape = CircleShape, color = color.copy(alpha = 0.12f)) {
         Text(
             label,
             style = MaterialTheme.typography.labelSmall,

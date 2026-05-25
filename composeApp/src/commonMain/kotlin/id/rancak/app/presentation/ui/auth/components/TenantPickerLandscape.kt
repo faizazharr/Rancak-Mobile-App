@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -76,9 +75,9 @@ internal fun TenantPickerLandscape(
                 Box(
                     modifier = Modifier
                         .size(72.dp)
-                        .clip(RoundedCornerShape(20.dp))
+                        .clip(MaterialTheme.shapes.extraLarge)
                         .background(Color.White.copy(alpha = 0.18f))
-                        .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(20.dp)),
+                        .border(1.dp, Color.White.copy(alpha = 0.35f), MaterialTheme.shapes.extraLarge),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Default.Store, null, Modifier.size(38.dp), tint = Color.White)
@@ -103,9 +102,9 @@ internal fun TenantPickerLandscape(
                 // Badge jumlah outlet
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(MaterialTheme.shapes.extraLarge)
                         .background(Color.White.copy(alpha = 0.18f))
-                        .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(12.dp))
+                        .border(1.dp, Color.White.copy(alpha = 0.30f), MaterialTheme.shapes.extraLarge)
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(
