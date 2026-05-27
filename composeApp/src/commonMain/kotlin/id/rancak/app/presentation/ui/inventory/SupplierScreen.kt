@@ -435,7 +435,7 @@ private fun SupplierFormContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.horizontalGradient(listOf(Primary, SupplierGradientEnd))
+                    Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd))
                 )
         ) {
             Row(

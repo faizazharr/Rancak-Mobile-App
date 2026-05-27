@@ -201,7 +201,7 @@ private fun StockTypeButton(
 @Composable
 private fun GradientSaveButton(canConfirm: Boolean, isSubmitting: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val gradStart by animateColorAsState(if (canConfirm) Primary      else MaterialTheme.colorScheme.surfaceVariant, tween(250), label = "GradSaveStart")
-    val gradEnd   by animateColorAsState(if (canConfirm) GradientEnd  else MaterialTheme.colorScheme.surfaceVariant, tween(250), label = "GradSaveEnd")
+    val gradEnd   by animateColorAsState(if (canConfirm) PrimaryGradientEnd  else MaterialTheme.colorScheme.surfaceVariant, tween(250), label = "GradSaveEnd")
     val textColor by animateColorAsState(if (canConfirm) Color.White  else MaterialTheme.colorScheme.onSurfaceVariant, tween(250), label = "GradSaveText")
     Box(
         modifier = modifier
@@ -299,7 +299,7 @@ fun StockAdjustPanel(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(Primary, GradientEnd)))
+                .background(Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd)))
         ) {
             Row(
                 modifier              = Modifier

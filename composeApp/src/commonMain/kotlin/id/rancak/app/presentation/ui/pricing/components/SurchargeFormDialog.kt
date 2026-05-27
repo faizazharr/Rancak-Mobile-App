@@ -185,7 +185,7 @@ private fun SurchargeGradSaveButton(
     modifier: Modifier = Modifier, onClick: () -> Unit
 ) {
     val gradStart by animateColorAsState(if (canConfirm) Primary else MaterialTheme.colorScheme.surfaceVariant, tween(250), "SurGradS")
-    val gradEnd   by animateColorAsState(if (canConfirm) SurchargeGradientEnd else MaterialTheme.colorScheme.surfaceVariant, tween(250), "SurGradE")
+    val gradEnd   by animateColorAsState(if (canConfirm) PrimaryGradientEnd else MaterialTheme.colorScheme.surfaceVariant, tween(250), "SurGradE")
     val textColor by animateColorAsState(if (canConfirm) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, tween(250), "SurText")
     Box(
         modifier = modifier.height(44.dp).clip(MaterialTheme.shapes.medium)
@@ -244,7 +244,7 @@ fun SurchargeFormPanel(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(Primary, SurchargeGradientEnd)))
+                .background(Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd)))
         ) {
             Icon(
                 Icons.Default.AddCircle, null,

@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.designsystem.Primary
-import id.rancak.app.presentation.designsystem.PrimaryPrimaryGradientEnd
+import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.components.RancakFormDialog
 import kotlinx.collections.immutable.ImmutableList

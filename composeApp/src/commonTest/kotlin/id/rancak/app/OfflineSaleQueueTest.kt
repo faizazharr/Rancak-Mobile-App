@@ -23,7 +23,7 @@ class OfflineSaleQueueTest {
 
     @BeforeTest
     fun setUp() {
-        queue = OfflineSaleQueue(MapSettings())
+        queue = OfflineSaleQueue(MapSettings(), kotlinx.serialization.json.Json { ignoreUnknownKeys = true })
     }
 
     private var saleCounter = 0
@@ -77,10 +77,11 @@ class OfflineSaleQueueTest {
     @Test
     fun `enqueue persists data across queue instances (same settings)`() {
         val settings = MapSettings()
-        val q1 = OfflineSaleQueue(settings)
+        val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+        val q1 = OfflineSaleQueue(settings, json)
         q1.enqueue(fakeSale("persisted-key"))
-
-        val q2 = OfflineSaleQueue(settings)
+ 
+        val q2 = OfflineSaleQueue(settings, json)
         assertEquals(1, q2.size)
         assertEquals("persisted-key", q2.getAll()[0].idempotencyKey)
     }

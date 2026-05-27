@@ -106,7 +106,7 @@ fun RancakFormDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
-                                Brush.horizontalGradient(listOf(Primary, FormDialogGradientEnd))
+                                Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd))
                             )
                             .padding(horizontal = 20.dp, vertical = 18.dp)
                     ) {
@@ -177,7 +177,7 @@ fun RancakFormDialog(
                                 .clip(MaterialTheme.shapes.medium)
                                 .background(
                                     if (confirmEnabled)
-                                        Brush.horizontalGradient(listOf(Primary, FormDialogGradientEnd))
+                                        Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd))
                                     else
                                         Brush.horizontalGradient(
                                             listOf(

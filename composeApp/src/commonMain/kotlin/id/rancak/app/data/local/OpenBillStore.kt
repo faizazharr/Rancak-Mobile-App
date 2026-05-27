@@ -11,9 +11,7 @@ import kotlinx.serialization.json.Json
  * Menggunakan [Settings] (SharedPreferences / NSUserDefaults) — tidak ada koneksi
  * internet yang dibutuhkan. Setiap perubahan langsung diserialisasi ke JSON.
  */
-class OpenBillStore(private val json: Json) {
-
-    private val settings = Settings()
+class OpenBillStore(private val settings: Settings, private val json: Json) {
 
     private var cachedBills: List<LocalOpenBill>? = null
 

@@ -139,7 +139,7 @@ val repositoryModule = module {
 
 val viewModelModule = module {
     single { SettingsStore() }
-    single { OpenBillStore(get()) }
+    single { OpenBillStore(Settings(), get()) }
     viewModelOf(::LoginViewModel)
     viewModelOf(::ForgotPasswordViewModel)
     viewModelOf(::SplashViewModel)

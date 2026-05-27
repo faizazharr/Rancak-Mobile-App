@@ -158,7 +158,7 @@ private fun TaxGradSaveButton(
     modifier: Modifier = Modifier, onClick: () -> Unit
 ) {
     val gradStart by animateColorAsState(if (canConfirm) Primary else MaterialTheme.colorScheme.surfaceVariant, tween(250), "TaxGradS")
-    val gradEnd   by animateColorAsState(if (canConfirm) TaxGradientEnd else MaterialTheme.colorScheme.surfaceVariant, tween(250), "TaxGradE")
+    val gradEnd   by animateColorAsState(if (canConfirm) PrimaryGradientEnd else MaterialTheme.colorScheme.surfaceVariant, tween(250), "TaxGradE")
     val textColor by animateColorAsState(if (canConfirm) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, tween(250), "TaxText")
     Box(
         modifier = modifier.height(44.dp).clip(MaterialTheme.shapes.medium)
@@ -208,7 +208,7 @@ fun TaxFormPanel(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(Primary, TaxGradientEnd)))
+                .background(Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd)))
         ) {
             Icon(
                 Icons.Default.Percent, null,

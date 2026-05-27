@@ -90,6 +90,10 @@ class ViewModelTest {
         override suspend fun syncCatalog(updatedAfter: String?) = Resource.Error("unused")
         override suspend fun syncStatus() = Resource.Error("unused")
         override suspend fun getShiftSummaryById(shiftUuid: String) = Resource.Error("unused")
+        override suspend fun getCashCounts(shiftUuid: String): Resource<List<CashCount>> = Resource.Error("unused")
+        override suspend fun submitCashCount(shiftUuid: String, actualCash: Double, denominations: Map<String, Int>?, note: String?): Resource<CashCount> = Resource.Error("unused")
+        override suspend fun getKdsDetail(kdsUuid: String): Resource<KdsOrder> = Resource.Error("unused")
+        override suspend fun updateKdsItemStatus(kdsUuid: String, itemUuid: String, status: String): Resource<Unit> = Resource.Error("unused")
     }
 
     private fun fakeShift(uuid: String = "shift-1") = Shift(

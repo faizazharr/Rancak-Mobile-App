@@ -211,7 +211,7 @@ private fun DiscountGradSaveButton(
     modifier: Modifier = Modifier, onClick: () -> Unit
 ) {
     val gradStart by animateColorAsState(if (canConfirm) Primary else MaterialTheme.colorScheme.surfaceVariant, tween(250), "DiscGradS")
-    val gradEnd   by animateColorAsState(if (canConfirm) DiscountGradientEnd else MaterialTheme.colorScheme.surfaceVariant, tween(250), "DiscGradE")
+    val gradEnd   by animateColorAsState(if (canConfirm) PrimaryGradientEnd else MaterialTheme.colorScheme.surfaceVariant, tween(250), "DiscGradE")
     val textColor by animateColorAsState(if (canConfirm) Color.White else MaterialTheme.colorScheme.onSurfaceVariant, tween(250), "DiscText")
     Box(
         modifier = modifier.height(44.dp).clip(MaterialTheme.shapes.medium)
@@ -274,7 +274,7 @@ fun DiscountFormPanel(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(Primary, DiscountGradientEnd)))
+                .background(Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd)))
         ) {
             Icon(
                 Icons.Default.LocalOffer, null,

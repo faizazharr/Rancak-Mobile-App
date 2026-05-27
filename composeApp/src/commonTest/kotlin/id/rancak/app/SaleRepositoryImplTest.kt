@@ -7,9 +7,10 @@ import id.rancak.app.data.repository.SaleRepositoryImpl
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.PaymentMethod
 import id.rancak.app.domain.model.Resource
-import id.rancak.app.domain.repository.CartItem
+import id.rancak.app.domain.model.CartItem
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -98,7 +99,7 @@ class SaleRepositoryImplTest {
     private fun makeRepo(
         responseBody: String,
         tokenManager: TokenManager = testTokenManager(),
-        queue: OfflineSaleQueue = OfflineSaleQueue(MapSettings()),
+        queue: OfflineSaleQueue = OfflineSaleQueue(MapSettings(), Json { ignoreUnknownKeys = true }),
         syncScheduler: FakeSyncScheduler = FakeSyncScheduler(),
         saleDao: FakeSaleDao = FakeSaleDao()
     ) = SaleRepositoryImpl(
@@ -156,7 +157,7 @@ class SaleRepositoryImplTest {
 
     @Test
     fun `createSale - network error enqueues offline and returns error message`() = kotlinx.coroutines.test.runTest {
-        val queue = OfflineSaleQueue(MapSettings())
+        val queue = OfflineSaleQueue(MapSettings(), Json { ignoreUnknownKeys = true })
         val sync  = FakeSyncScheduler()
         val api   = mockApiService { throw Exception("UnknownHostException: Unable to resolve host") }
         val repo  = SaleRepositoryImpl(api, testTokenManager(), queue, sync, FakeSaleDao())
@@ -172,7 +173,7 @@ class SaleRepositoryImplTest {
 
     @Test
     fun `createSale - network error with QRIS is NOT queued offline`() = kotlinx.coroutines.test.runTest {
-        val queue = OfflineSaleQueue(MapSettings())
+        val queue = OfflineSaleQueue(MapSettings(), Json { ignoreUnknownKeys = true })
         val api   = mockApiService { throw Exception("UnknownHostException: No network") }
         val repo  = SaleRepositoryImpl(api, testTokenManager(), queue, FakeSyncScheduler(), FakeSaleDao())
 
@@ -187,7 +188,7 @@ class SaleRepositoryImplTest {
 
     @Test
     fun `createSale - non-network exception is not queued`() = kotlinx.coroutines.test.runTest {
-        val queue = OfflineSaleQueue(MapSettings())
+        val queue = OfflineSaleQueue(MapSettings(), Json { ignoreUnknownKeys = true })
         val api   = mockApiService { throw Exception("Serialization error or unexpected server response") }
         val repo  = SaleRepositoryImpl(api, testTokenManager(), queue, FakeSyncScheduler(), FakeSaleDao())
 
@@ -208,7 +209,7 @@ class SaleRepositoryImplTest {
                 headers = io.ktor.http.headersOf(io.ktor.http.HttpHeaders.ContentType, "application/json")
             )
         }
-        val repo = SaleRepositoryImpl(api, testTokenManager(), OfflineSaleQueue(MapSettings()), FakeSyncScheduler(), FakeSaleDao())
+        val repo = SaleRepositoryImpl(api, testTokenManager(), OfflineSaleQueue(MapSettings(), Json { ignoreUnknownKeys = true }), FakeSyncScheduler(), FakeSaleDao())
 
         repo.createTestSale()
 
@@ -241,7 +242,7 @@ class SaleRepositoryImplTest {
     @Test
     fun `getSales - network exception returns Resource_Error`() = kotlinx.coroutines.test.runTest {
         val api  = mockApiService { throw Exception("Network error") }
-        val repo = SaleRepositoryImpl(api, testTokenManager(), OfflineSaleQueue(MapSettings()), FakeSyncScheduler(), FakeSaleDao())
+        val repo = SaleRepositoryImpl(api, testTokenManager(), OfflineSaleQueue(MapSettings(), Json { ignoreUnknownKeys = true }), FakeSyncScheduler(), FakeSaleDao())
 
         val result = repo.getSales()
 
@@ -254,7 +255,7 @@ class SaleRepositoryImplTest {
         val repo = SaleRepositoryImpl(
             mockApiService(salesListJson),
             testTokenManager(),
-            OfflineSaleQueue(MapSettings()),
+            OfflineSaleQueue(MapSettings(), Json { ignoreUnknownKeys = true }),
             FakeSyncScheduler(),
             saleDao
         )

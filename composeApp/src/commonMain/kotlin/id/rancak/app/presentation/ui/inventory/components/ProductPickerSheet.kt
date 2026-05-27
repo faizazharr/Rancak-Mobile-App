@@ -116,7 +116,7 @@ private fun GradientConfirmButton(selectedCount: Int, modifier: Modifier = Modif
             .height(46.dp)
             .clip(MaterialTheme.shapes.medium)
             .background(
-                if (isEnabled) Brush.horizontalGradient(listOf(Primary, GradientEnd))
+                if (isEnabled) Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd))
                 else Brush.horizontalGradient(listOf(surfaceVariant, surfaceVariant))
             )
             .clickable(
@@ -189,7 +189,7 @@ fun ProductPickerSheet(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Brush.horizontalGradient(listOf(Primary, GradientEnd)))
+                            .background(Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd)))
                             .padding(horizontal = 20.dp, vertical = 16.dp)
                     ) {
                         Row(

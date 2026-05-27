@@ -347,7 +347,7 @@ fun OpnameDetailTabletPanel(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(Primary, OpnameGradientEnd)))
+                .background(Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd)))
         ) {
             Row(
                 modifier            = Modifier
