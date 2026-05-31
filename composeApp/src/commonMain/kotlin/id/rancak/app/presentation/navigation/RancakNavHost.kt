@@ -155,6 +155,8 @@ fun RancakNavHost() {
                     DrawerItem("Supplier",        Icons.Default.LocalShipping, Screen.SupplierManagement),
                     DrawerItem("Purchase Order",  Icons.Default.ShoppingCart,  Screen.PurchaseOrders),
                     DrawerItem("Billing",        Icons.Default.CreditCard,    Screen.Billing()),  // fromSetup = false (drawer)
+                    DrawerItem("Sesi Aktif",      Icons.Default.DevicesOther,   Screen.SessionManagement),
+                    DrawerItem("Multi-Outlet",    Icons.Default.Store,          Screen.GroupDashboard),
                     DrawerItem("Pengaturan",     Icons.Default.Settings,      Screen.Settings),
                 )
             ),

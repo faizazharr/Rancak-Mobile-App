@@ -45,6 +45,7 @@ import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.reports.components.CashierShiftCard
 import id.rancak.app.presentation.ui.reports.components.DailyCategoryCard
+import id.rancak.app.presentation.ui.reports.components.RevenueCategoryChartCard
 import id.rancak.app.presentation.ui.reports.components.EmptySummaryPlaceholder
 import id.rancak.app.presentation.ui.reports.components.FinancialBreakdownCard
 import id.rancak.app.presentation.ui.reports.components.KpiCardsGrid
@@ -240,6 +241,7 @@ private fun TabletLayout(uiState: ReportUiState) {
                     item { MySalesTodayCard(mySales) }
                 }
                 if (uiState.dailyByCategory.isNotEmpty()) {
+                    item { RevenueCategoryChartCard(uiState.dailyByCategory.toImmutableList()) }
                     item { DailyCategoryCard(uiState.dailyByCategory.toImmutableList()) }
                 }
             } else {
@@ -285,6 +287,7 @@ private fun PhoneLayout(uiState: ReportUiState) {
                 item { MySalesTodayCard(mySales) }
             }
             if (uiState.dailyByCategory.isNotEmpty()) {
+                item { RevenueCategoryChartCard(uiState.dailyByCategory.toImmutableList()) }
                 item { DailyCategoryCard(uiState.dailyByCategory.toImmutableList()) }
             }
         }

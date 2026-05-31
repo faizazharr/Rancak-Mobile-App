@@ -37,6 +37,7 @@ import id.rancak.app.presentation.viewmodel.KdsUiState
 import id.rancak.app.presentation.ui.kds.components.KdsOrderCard
 import id.rancak.app.presentation.viewmodel.KdsViewModel
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,7 +53,7 @@ fun KdsScreen(
 ) {
     val viewModel: KdsViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) { viewModel.loadOrders() }
+    // Polling dimulai otomatis di ViewModel.init() — tidak perlu LaunchedEffect manual.
 
     KdsScreenContent(
         uiState       = uiState,
@@ -79,14 +80,35 @@ fun KdsScreenContent(
 
     val orders = uiState.displayOrders
 
+    // Hitung "X detik lalu" secara reaktif setiap detik
+    val nowMs by produceState(System.currentTimeMillis()) {
+        while (true) {
+            delay(1_000)
+            value = System.currentTimeMillis()
+        }
+    }
+    val lastUpdatedText = remember(uiState.lastUpdatedMs, nowMs) {
+        val ms = uiState.lastUpdatedMs
+        if (ms == null) "Memuat..."
+        else {
+            val diffSec = ((nowMs - ms) / 1000).coerceAtLeast(0)
+            when {
+                diffSec < 5   -> "Baru diperbarui"
+                diffSec < 60  -> "$diffSec detik lalu"
+                diffSec < 120 -> "1 menit lalu"
+                else          -> "${diffSec / 60} menit lalu"
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             RancakTopBar(
-                title = "Kitchen Display",
-                icon = Icons.Default.Restaurant,
-                subtitle = "Antrian pesanan dapur",
-                onMenu = onBack,
-                actions = {
+                title    = "Kitchen Display",
+                icon     = Icons.Default.Restaurant,
+                subtitle = lastUpdatedText,
+                onMenu   = onBack,
+                actions  = {
                     IconButton(onClick = onReload) {
                         Icon(Icons.Default.Refresh, "Refresh")
                     }

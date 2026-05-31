@@ -12,12 +12,16 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+private const val KDS_POLL_INTERVAL_MS = 15_000L
 
 @Immutable
 data class KdsUiState(
@@ -26,6 +30,8 @@ data class KdsUiState(
     val showCompleted: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
+    /** Epoch-ms dari polling terakhir berhasil; null jika belum pernah load. */
+    val lastUpdatedMs: Long? = null,
     // Precomputed agar tidak diulang di setiap rekomposisi.
     val displayOrders: ImmutableList<KdsOrder> = persistentListOf()
 ) {
@@ -41,12 +47,49 @@ class KdsViewModel(
     private val _uiState = MutableStateFlow(KdsUiState())
     val uiState: StateFlow<KdsUiState> = _uiState.asStateFlow()
 
+    init {
+        startPolling()
+    }
+
+    /** Polling loop: auto-refresh setiap [KDS_POLL_INTERVAL_MS] ms selama ViewModel hidup. */
+    private fun startPolling() {
+        viewModelScope.launch {
+            while (isActive) {
+                loadOrdersSilently()
+                delay(KDS_POLL_INTERVAL_MS)
+            }
+        }
+    }
+
+    /** Refresh tanpa menampilkan full loading indicator — hanya dipakai polling. */
+    private fun loadOrdersSilently() {
+        viewModelScope.launch {
+            when (val result = operationsRepository.getKdsOrders()) {
+                is Resource.Success -> {
+                    val orders = result.data
+                    withContext(Dispatchers.Default) {
+                        val active    = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
+                        val completed = orders.filter { it.status == KdsStatus.DONE }.toImmutableList()
+                        _uiState.value = _uiState.value.copy(
+                            activeOrders    = active,
+                            completedOrders = completed,
+                            lastUpdatedMs   = System.currentTimeMillis()
+                        ).recompute()
+                    }
+                }
+                is Resource.Error -> { /* silent — preserve stale data */ }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
     fun toggleTab(showCompleted: Boolean) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(showCompleted = showCompleted).recompute()
         }
     }
 
+    /** Manual reload (tombol refresh) — tampilkan loading indicator. */
     fun loadOrders() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -54,12 +97,13 @@ class KdsViewModel(
                 is Resource.Success -> {
                     val orders = result.data
                     withContext(Dispatchers.Default) {
-                        val active = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
+                        val active    = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
                         val completed = orders.filter { it.status == KdsStatus.DONE }.toImmutableList()
                         _uiState.value = _uiState.value.copy(
-                            activeOrders = active,
+                            activeOrders    = active,
                             completedOrders = completed,
-                            isLoading = false
+                            isLoading       = false,
+                            lastUpdatedMs   = System.currentTimeMillis()
                         ).recompute()
                     }
                 }

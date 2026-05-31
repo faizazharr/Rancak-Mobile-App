@@ -69,6 +69,8 @@ import id.rancak.app.presentation.viewmodel.SupplierViewModel
 import id.rancak.app.presentation.viewmodel.PurchaseOrderViewModel
 import id.rancak.app.presentation.viewmodel.ResetPasswordViewModel
 import id.rancak.app.presentation.viewmodel.BundleManagementViewModel
+import id.rancak.app.presentation.viewmodel.SessionManagementViewModel
+import id.rancak.app.presentation.viewmodel.GroupDashboardViewModel
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -171,6 +173,8 @@ val viewModelModule = module {
     viewModelOf(::PurchaseOrderViewModel)
     viewModelOf(::ResetPasswordViewModel)
     viewModelOf(::BundleManagementViewModel)
+    viewModelOf(::SessionManagementViewModel)
+    viewModelOf(::GroupDashboardViewModel)
 }
 
 val appModules = listOf(

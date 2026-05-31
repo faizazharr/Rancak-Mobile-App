@@ -34,4 +34,6 @@ sealed class Screen {
     @Serializable data object ForgotPassword : Screen()
     @Serializable data object ResetPassword : Screen()
     @Serializable data object BundleManagement : Screen()
+    @Serializable data object SessionManagement : Screen()
+    @Serializable data object GroupDashboard : Screen()
 }

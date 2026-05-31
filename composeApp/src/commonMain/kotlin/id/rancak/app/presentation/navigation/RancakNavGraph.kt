@@ -24,6 +24,8 @@ import id.rancak.app.presentation.ui.payment.PayHeldOrderScreen
 import id.rancak.app.presentation.ui.payment.PaymentScreen
 import id.rancak.app.presentation.ui.pos.PosScreen
 import id.rancak.app.presentation.ui.pricing.BundleManagementScreen
+import id.rancak.app.presentation.ui.sessions.SessionManagementScreen
+import id.rancak.app.presentation.ui.groups.GroupDashboardScreen
 import id.rancak.app.presentation.ui.pricing.PricingManagementScreen
 import id.rancak.app.presentation.ui.inventory.PurchaseOrderScreen
 import id.rancak.app.presentation.ui.reports.ReportScreen
@@ -305,6 +307,8 @@ internal fun NavGraphBuilder.managementGraph(
     composable<Screen.SupplierManagement> { SupplierScreen(onBack = onMenuClick) }
     composable<Screen.PurchaseOrders>     { PurchaseOrderScreen(onBack = onMenuClick) }
     composable<Screen.Settings>           { SettingsScreen(onBack = onMenuClick) }
+    composable<Screen.SessionManagement>  { SessionManagementScreen(onBack = onMenuClick) }
+    composable<Screen.GroupDashboard>     { GroupDashboardScreen(onBack = onMenuClick) }
 
     // TODO(role-gating): wrap dengan RoleGatedScreen(UserRole.OWNER) setelah
     // backend menyediakan field `role` di respons tenant/login.
