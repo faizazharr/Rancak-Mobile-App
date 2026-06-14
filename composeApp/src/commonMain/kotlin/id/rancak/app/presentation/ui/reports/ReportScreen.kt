@@ -15,10 +15,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.MarkEmailRead
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -66,7 +70,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ReportScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onViewTransactions: () -> Unit = {},
+    onStockOpname: () -> Unit = {}
 ) {
     val viewModel: ReportViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -94,11 +100,13 @@ fun ReportScreen(
                 }
             }
         },
-        onRetry             = viewModel::loadReport,
-        onLoadCashierShifts = viewModel::loadCashierShifts,
-        onLoadStockAlerts   = viewModel::loadStockAlerts,
-        onMarkAlertRead     = viewModel::markAlertRead,
-        onMarkAllAlertsRead = viewModel::markAllAlertsRead
+        onRetry              = viewModel::loadReport,
+        onViewTransactions   = onViewTransactions,
+        onStockOpname        = onStockOpname,
+        onLoadCashierShifts  = viewModel::loadCashierShifts,
+        onLoadStockAlerts    = viewModel::loadStockAlerts,
+        onMarkAlertRead      = viewModel::markAlertRead,
+        onMarkAllAlertsRead  = viewModel::markAllAlertsRead
     )
 }
 
@@ -114,6 +122,8 @@ internal fun ReportScreenContent(
     uiState: ReportUiState,
     selectedPeriod: ReportPeriod = ReportPeriod.THIS_MONTH,
     onBack: () -> Unit = {},
+    onViewTransactions: () -> Unit = {},
+    onStockOpname: () -> Unit = {},
     onPeriodSelect: (ReportPeriod) -> Unit = {},
     onRetry: () -> Unit = {},
     onLoadCashierShifts: (String?) -> Unit = {},
@@ -132,8 +142,22 @@ internal fun ReportScreenContent(
                 subtitle = if (uiState.dateFrom.isNotBlank())
                     "${uiState.dateFrom}  –  ${uiState.dateTo}"
                 else "Statistik penjualan",
-                onMenu = onBack
+                onMenu   = onBack,
+                actions  = {
+                    IconButton(onClick = onViewTransactions) {
+                        Icon(Icons.Default.Receipt, contentDescription = "Riwayat Transaksi")
+                    }
+                }
             )
+        },
+        floatingActionButton = {
+            if (selectedTab == 2) {
+                ExtendedFloatingActionButton(
+                    onClick = onStockOpname,
+                    icon    = { Icon(Icons.Default.Inventory, contentDescription = null) },
+                    text    = { Text("Stok Opname") }
+                )
+            }
         }
     ) { padding ->
         Column(

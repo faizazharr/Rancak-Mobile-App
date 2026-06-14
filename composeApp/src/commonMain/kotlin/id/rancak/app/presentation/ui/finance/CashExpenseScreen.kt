@@ -6,6 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
@@ -54,15 +55,17 @@ data class CashExpenseActions(
 
 @Composable
 fun CashExpenseScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onViewReports: () -> Unit = {}
 ) {
     val viewModel: CashExpenseViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.loadAll() }
 
     CashExpenseScreenContent(
-        uiState = uiState,
-        onBack  = onBack,
+        uiState       = uiState,
+        onBack        = onBack,
+        onViewReports = onViewReports,
         actions = CashExpenseActions(
             onRetry              = viewModel::loadAll,
             onToggleCashInForm   = viewModel::toggleCashInForm,
@@ -84,6 +87,7 @@ fun CashExpenseScreen(
 fun CashExpenseScreenContent(
     uiState: CashExpenseUiState,
     onBack: () -> Unit,
+    onViewReports: () -> Unit = {},
     actions: CashExpenseActions
 ) {
     var selectedTab by remember { mutableStateOf(0) }
@@ -97,7 +101,12 @@ fun CashExpenseScreenContent(
                 title = "Kas & Pengeluaran",
                 icon = Icons.Default.AccountBalance,
                 subtitle = "Kelola arus kas",
-                onMenu = onBack
+                onMenu = onBack,
+                actions = {
+                    IconButton(onClick = onViewReports) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Laporan")
+                    }
+                }
             )
         },
         floatingActionButton = {

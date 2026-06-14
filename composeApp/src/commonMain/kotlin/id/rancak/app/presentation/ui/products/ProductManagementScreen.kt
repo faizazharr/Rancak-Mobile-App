@@ -3,6 +3,8 @@ package id.rancak.app.presentation.ui.products
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,7 +23,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ProductManagementScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onStockOpname: () -> Unit = {},
+    onModifierManagement: () -> Unit = {}
 ) {
     val viewModel: ProductManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -53,7 +57,15 @@ fun ProductManagementScreen(
                     title    = "Manajemen Produk",
                     icon     = Icons.Default.Inventory2,
                     onMenu   = onBack,
-                    subtitle = "${uiState.filteredProducts.size} produk"
+                    subtitle = "${uiState.filteredProducts.size} produk",
+                    actions  = {
+                        IconButton(onClick = onStockOpname) {
+                            Icon(Icons.Default.Inventory, contentDescription = "Stok Opname")
+                        }
+                        IconButton(onClick = onModifierManagement) {
+                            Icon(Icons.Default.Extension, contentDescription = "Add-ons")
+                        }
+                    }
                 )
             },
             floatingActionButton = {

@@ -94,7 +94,8 @@ private val statusLabels = mapOf(
 
 @Composable
 fun PurchaseOrderScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSupplier: () -> Unit = {}
 ) {
     val viewModel: PurchaseOrderViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -117,6 +118,7 @@ fun PurchaseOrderScreen(
     PurchaseOrderContent(
         uiState              = uiState,
         onBack               = onBack,
+        onSupplier           = onSupplier,
         onAdd                = viewModel::openCreateDialog,
         onSelectOrder        = viewModel::selectOrder,
         onCloseDetail        = viewModel::closeDetail,
@@ -166,6 +168,7 @@ fun PurchaseOrderScreen(
 fun PurchaseOrderContent(
     uiState: PurchaseOrderUiState,
     onBack: () -> Unit = {},
+    onSupplier: () -> Unit = {},
     onAdd: () -> Unit = {},
     onSelectOrder: (PurchaseOrder) -> Unit = {},
     onCloseDetail: () -> Unit = {},
@@ -261,7 +264,12 @@ fun PurchaseOrderContent(
                     title    = "Purchase Order",
                     icon     = Icons.Default.ShoppingCart,
                     subtitle = "${uiState.orders.size} PO",
-                    onMenu   = onBack
+                    onMenu   = onBack,
+                    actions  = {
+                        IconButton(onClick = onSupplier) {
+                            Icon(Icons.Default.LocalShipping, contentDescription = "Supplier")
+                        }
+                    }
                 )
             },
             floatingActionButton = {

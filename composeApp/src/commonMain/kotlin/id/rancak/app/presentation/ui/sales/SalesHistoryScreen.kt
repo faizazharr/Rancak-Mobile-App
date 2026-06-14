@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.SearchOff
@@ -67,6 +68,7 @@ data class SalesHistoryActions(
 @Composable
 fun SalesHistoryScreen(
     onBack: () -> Unit,
+    onViewReports: () -> Unit = {},
     onPayHeldOrder: (String) -> Unit = {},
     onSplitBill: (String) -> Unit = {},
     onAddItems: (String) -> Unit = {},
@@ -84,9 +86,10 @@ fun SalesHistoryScreen(
     }
 
     SalesHistoryScreenContent(
-        uiState   = uiState,
-        onBack    = onBack,
-        onRetry   = viewModel::loadSales,
+        uiState       = uiState,
+        onBack        = onBack,
+        onViewReports = onViewReports,
+        onRetry       = viewModel::loadSales,
         snackbarHostState = snackbarHostState,
         actions   = SalesHistoryActions(
             onSearch        = viewModel::setSearchQuery,
@@ -132,6 +135,7 @@ fun SalesHistoryScreen(
 fun SalesHistoryScreenContent(
     uiState: SalesHistoryUiState,
     onBack: () -> Unit,
+    onViewReports: () -> Unit = {},
     onRetry: () -> Unit,
     actions: SalesHistoryActions,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
@@ -142,7 +146,12 @@ fun SalesHistoryScreenContent(
                 title    = "Riwayat Penjualan",
                 icon     = Icons.Default.Receipt,
                 subtitle = "Catatan seluruh transaksi",
-                onMenu   = onBack
+                onMenu   = onBack,
+                actions  = {
+                    IconButton(onClick = onViewReports) {
+                        Icon(Icons.Default.BarChart, contentDescription = "Laporan")
+                    }
+                }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }

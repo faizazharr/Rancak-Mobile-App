@@ -25,7 +25,8 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun VoucherManagementScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onPricing: () -> Unit = {}
 ) {
     val viewModel: VoucherManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -67,7 +68,12 @@ fun VoucherManagementScreen(
                     title    = "Voucher",
                     icon     = Icons.Default.LocalOffer,
                     onMenu   = onBack,
-                    subtitle = "${uiState.vouchers.size} voucher"
+                    subtitle = "${uiState.vouchers.size} voucher",
+                    actions  = {
+                        IconButton(onClick = onPricing) {
+                            Icon(Icons.Default.Sell, contentDescription = "Harga & Diskon")
+                        }
+                    }
                 )
             },
             floatingActionButton = {

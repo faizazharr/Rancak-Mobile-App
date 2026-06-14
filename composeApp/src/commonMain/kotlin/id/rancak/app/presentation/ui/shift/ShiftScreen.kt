@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,7 +35,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShiftScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onViewReport: () -> Unit = {}
 ) {
     val viewModel: ShiftViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -51,6 +53,7 @@ fun ShiftScreen(
     ShiftScreenContent(
         uiState             = uiState,
         onBack              = onBack,
+        onViewReport        = onViewReport,
         onOpeningCashChange = viewModel::onOpeningCashChange,
         onClosingCashChange = viewModel::onClosingCashChange,
         onClosingNoteChange = viewModel::onClosingNoteChange,
@@ -66,6 +69,7 @@ fun ShiftScreen(
 fun ShiftScreenContent(
     uiState: ShiftUiState,
     onBack: () -> Unit = {},
+    onViewReport: () -> Unit = {},
     onOpeningCashChange: (String) -> Unit = {},
     onClosingCashChange: (String) -> Unit = {},
     onClosingNoteChange: (String) -> Unit = {},
@@ -233,6 +237,15 @@ fun ShiftScreenContent(
                             enabled = uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() != null,
                             modifier = Modifier.fillMaxWidth()
                         )
+                        Spacer(Modifier.height(8.dp))
+                        TextButton(
+                            onClick = onViewReport,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.BarChart, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Lihat Laporan Shift")
+                        }
                     }
                 }
             } // end when

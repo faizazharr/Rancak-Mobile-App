@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
@@ -49,7 +50,8 @@ private const val PAGE_SIZE_TABLET = 12
 
 @Composable
 fun KdsScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onOrderBoard: () -> Unit = {}
 ) {
     val viewModel: KdsViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -58,6 +60,7 @@ fun KdsScreen(
     KdsScreenContent(
         uiState       = uiState,
         onBack        = onBack,
+        onOrderBoard  = onOrderBoard,
         onReload      = viewModel::loadOrders,
         onToggleTab   = viewModel::toggleTab,
         onAdvance     = { uuid, next -> viewModel.updateOrderStatus(uuid, next) }
@@ -69,6 +72,7 @@ fun KdsScreen(
 fun KdsScreenContent(
     uiState: KdsUiState,
     onBack: () -> Unit,
+    onOrderBoard: () -> Unit = {},
     onReload: () -> Unit,
     onToggleTab: (Boolean) -> Unit,
     onAdvance: (String, KdsStatus) -> Unit
@@ -109,6 +113,9 @@ fun KdsScreenContent(
                 subtitle = lastUpdatedText,
                 onMenu   = onBack,
                 actions  = {
+                    IconButton(onClick = onOrderBoard) {
+                        Icon(Icons.Default.Dashboard, contentDescription = "Order Board")
+                    }
                     IconButton(onClick = onReload) {
                         Icon(Icons.Default.Refresh, "Refresh")
                     }

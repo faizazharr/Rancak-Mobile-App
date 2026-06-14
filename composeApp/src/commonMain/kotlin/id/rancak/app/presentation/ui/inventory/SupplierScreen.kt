@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -85,7 +86,8 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SupplierScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onPurchaseOrders: () -> Unit = {}
 ) {
     val viewModel: SupplierViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -108,6 +110,7 @@ fun SupplierScreen(
     SupplierContent(
         uiState           = uiState,
         onBack            = onBack,
+        onPurchaseOrders  = onPurchaseOrders,
         onAdd             = viewModel::openCreateForm,
         onEdit            = viewModel::openEditForm,
         onDelete          = viewModel::openDeleteDialog,
@@ -129,6 +132,7 @@ fun SupplierScreen(
 fun SupplierContent(
     uiState: SupplierUiState,
     onBack: () -> Unit = {},
+    onPurchaseOrders: () -> Unit = {},
     onAdd: () -> Unit = {},
     onEdit: (Supplier) -> Unit = {},
     onDelete: (Supplier) -> Unit = {},
@@ -174,7 +178,12 @@ fun SupplierContent(
                     title    = "Supplier",
                     icon     = Icons.Default.LocalShipping,
                     subtitle = "${uiState.suppliers.size} supplier",
-                    onMenu   = onBack
+                    onMenu   = onBack,
+                    actions  = {
+                        IconButton(onClick = onPurchaseOrders) {
+                            Icon(Icons.Default.ShoppingCart, contentDescription = "Purchase Order")
+                        }
+                    }
                 )
             },
             floatingActionButton = {

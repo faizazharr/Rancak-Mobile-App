@@ -215,11 +215,36 @@ internal fun NavGraphBuilder.operationsGraph(
     navController: NavHostController,
     onMenuClick: () -> Unit
 ) {
-    composable<Screen.Shift>        { ShiftScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.Tables>       { TableMapScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.Reservations> { ReservationScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.Kds>          { KdsScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.OrderBoard>   { OrderBoardScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.Shift> {
+        ShiftScreen(
+            onBack       = smartBack(navController, onMenuClick),
+            onViewReport = { navController.navigate(Screen.Reports) { launchSingleTop = true } }
+        )
+    }
+    composable<Screen.Tables> {
+        TableMapScreen(
+            onBack      = smartBack(navController, onMenuClick),
+            onReservasi = { navController.navigate(Screen.Reservations) { launchSingleTop = true } }
+        )
+    }
+    composable<Screen.Reservations> {
+        ReservationScreen(
+            onBack = smartBack(navController, onMenuClick),
+            onMeja = { navController.navigate(Screen.Tables) { launchSingleTop = true } }
+        )
+    }
+    composable<Screen.Kds> {
+        KdsScreen(
+            onBack       = smartBack(navController, onMenuClick),
+            onOrderBoard = { navController.navigate(Screen.OrderBoard) { launchSingleTop = true } }
+        )
+    }
+    composable<Screen.OrderBoard> {
+        OrderBoardScreen(
+            onBack = smartBack(navController, onMenuClick),
+            onKds  = { navController.navigate(Screen.Kds) { launchSingleTop = true } }
+        )
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -233,6 +258,7 @@ internal fun NavGraphBuilder.salesGraph(
     composable<Screen.SalesHistory> {
         SalesHistoryScreen(
             onBack         = smartBack(navController, onMenuClick),
+            onViewReports  = { navController.navigate(Screen.Reports) { launchSingleTop = true } },
             onPayHeldOrder = { saleUuid -> navController.navigate(Screen.PayHeldOrder(saleUuid)) },
             onSplitBill    = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) },
             onAddItems     = { saleUuid -> navController.navigate(Screen.AddItemsToHeldOrder(saleUuid)) }
@@ -295,8 +321,19 @@ internal fun NavGraphBuilder.financeGraph(
     navController: NavHostController,
     onMenuClick: () -> Unit
 ) {
-    composable<Screen.CashExpense> { CashExpenseScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.Reports>     { ReportScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.CashExpense> {
+        CashExpenseScreen(
+            onBack        = smartBack(navController, onMenuClick),
+            onViewReports = { navController.navigate(Screen.Reports) { launchSingleTop = true } }
+        )
+    }
+    composable<Screen.Reports> {
+        ReportScreen(
+            onBack             = smartBack(navController, onMenuClick),
+            onViewTransactions = { navController.navigate(Screen.SalesHistory) { launchSingleTop = true } },
+            onStockOpname      = { navController.navigate(Screen.StockOpname) { launchSingleTop = true } }
+        )
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -308,9 +345,20 @@ internal fun NavGraphBuilder.managementGraph(
     navController: NavHostController,
     onMenuClick: () -> Unit
 ) {
-    composable<Screen.ProductManagement>  { ProductManagementScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.ProductManagement> {
+        ProductManagementScreen(
+            onBack               = smartBack(navController, onMenuClick),
+            onStockOpname        = { navController.navigate(Screen.StockOpname) { launchSingleTop = true } },
+            onModifierManagement = { navController.navigate(Screen.ModifierManagement) { launchSingleTop = true } }
+        )
+    }
     composable<Screen.StockOpname>        { StockOpnameScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.VoucherManagement>  { VoucherManagementScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.VoucherManagement> {
+        VoucherManagementScreen(
+            onBack    = smartBack(navController, onMenuClick),
+            onPricing = { navController.navigate(Screen.PricingManagement) { launchSingleTop = true } }
+        )
+    }
     composable<Screen.PricingManagement>  {
         PricingManagementScreen(
             onBack             = smartBack(navController, onMenuClick),
@@ -319,8 +367,18 @@ internal fun NavGraphBuilder.managementGraph(
     }
     composable<Screen.BundleManagement>   { BundleManagementScreen(onBack = { navController.popBackStack() }) }
     composable<Screen.ModifierManagement> { ModifierManagementScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.SupplierManagement> { SupplierScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.PurchaseOrders>     { PurchaseOrderScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.SupplierManagement> {
+        SupplierScreen(
+            onBack           = smartBack(navController, onMenuClick),
+            onPurchaseOrders = { navController.navigate(Screen.PurchaseOrders) { launchSingleTop = true } }
+        )
+    }
+    composable<Screen.PurchaseOrders> {
+        PurchaseOrderScreen(
+            onBack     = smartBack(navController, onMenuClick),
+            onSupplier = { navController.navigate(Screen.SupplierManagement) { launchSingleTop = true } }
+        )
+    }
     composable<Screen.Settings>           { SettingsScreen(onBack = smartBack(navController, onMenuClick)) }
     composable<Screen.SessionManagement>  { SessionManagementScreen(onBack = smartBack(navController, onMenuClick)) }
     composable<Screen.GroupDashboard>     { GroupDashboardScreen(onBack = smartBack(navController, onMenuClick)) }

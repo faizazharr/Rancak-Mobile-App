@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -47,7 +48,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun TableMapScreen(
     onBack: () -> Unit,
-    onTableSelect: ((String) -> Unit)? = null
+    onTableSelect: ((String) -> Unit)? = null,
+    onReservasi: () -> Unit = {}
 ) {
     val viewModel: TableViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,6 +63,7 @@ fun TableMapScreen(
         onBack          = onBack,
         onRetry         = viewModel::loadTables,
         onTableSelect   = onTableSelect,
+        onReservasi     = onReservasi,
         onToggleAdmin   = { viewModel.setAdminMode(!uiState.adminMode) },
         onAddTable      = viewModel::openCreateDialog,
         onEditTable     = viewModel::openEditDialog,
@@ -81,6 +84,7 @@ fun TableMapScreenContent(
     onBack: () -> Unit,
     onRetry: () -> Unit,
     onTableSelect: ((String) -> Unit)? = null,
+    onReservasi: () -> Unit = {},
     onToggleAdmin: () -> Unit = {},
     onAddTable: () -> Unit = {},
     onEditTable: (Table) -> Unit = {},
@@ -108,6 +112,9 @@ fun TableMapScreenContent(
                 subtitle = if (uiState.adminMode) "Mode Kelola Meja" else "Manajemen meja",
                 onMenu   = onBack,
                 actions  = {
+                    IconButton(onClick = onReservasi) {
+                        Icon(Icons.Default.EventSeat, contentDescription = "Reservasi")
+                    }
                     if (canManage) {
                         FilterChip(
                             selected = uiState.adminMode,

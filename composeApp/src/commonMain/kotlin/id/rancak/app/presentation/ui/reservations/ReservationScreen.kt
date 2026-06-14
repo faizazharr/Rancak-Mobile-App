@@ -37,7 +37,8 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ReservationScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onMeja: () -> Unit = {}
 ) {
     val viewModel: ReservationViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -46,6 +47,7 @@ fun ReservationScreen(
     ReservationScreenContent(
         uiState           = uiState,
         onBack            = onBack,
+        onMeja            = onMeja,
         onRetry           = viewModel::loadReservations,
         onFilterChange    = viewModel::setStatusFilter,
         onAdd             = viewModel::openCreateDialog,
@@ -68,6 +70,7 @@ fun ReservationScreen(
 fun ReservationScreenContent(
     uiState: ReservationUiState,
     onBack: () -> Unit,
+    onMeja: () -> Unit = {},
     onRetry: () -> Unit,
     onFilterChange: (ReservationStatusFilter) -> Unit,
     onAdd: () -> Unit,
@@ -116,6 +119,9 @@ fun ReservationScreenContent(
                     subtitle = "Manajemen reservasi meja",
                     onMenu   = onBack,
                     actions  = {
+                        IconButton(onClick = onMeja) {
+                            Icon(Icons.Default.TableBar, contentDescription = "Denah Meja")
+                        }
                         IconButton(onClick = onAdd) {
                             Icon(
                                 Icons.Default.Add,
