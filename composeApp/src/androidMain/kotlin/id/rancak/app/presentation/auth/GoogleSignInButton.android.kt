@@ -25,13 +25,6 @@ private inline fun dlog(message: () -> String) {
     if (BuildConfig.DEBUG) Log.d(TAG, message())
 }
 
-/**
- * Web Client ID (tipe "Web application") dari Google Cloud Console.
- * BUKAN Android/iOS client ID — harus Web client ID agar backend bisa verifikasi token.
- */
-private const val GOOGLE_WEB_CLIENT_ID =
-    "222680436513-jmpqs7vrht86n168nrmhemg3neenvqdu.apps.googleusercontent.com"
-
 @Composable
 actual fun GoogleSignInButton(
     modifier: Modifier,
@@ -53,7 +46,7 @@ actual fun GoogleSignInButton(
                 dlog { "Tombol Google Sign-In ditekan" }
                 try {
                     val signInOption = GetSignInWithGoogleOption
-                        .Builder(GOOGLE_WEB_CLIENT_ID)
+                        .Builder(BuildConfig.GOOGLE_WEB_CLIENT_ID)
                         .build()
 
                     val request = GetCredentialRequest.Builder()

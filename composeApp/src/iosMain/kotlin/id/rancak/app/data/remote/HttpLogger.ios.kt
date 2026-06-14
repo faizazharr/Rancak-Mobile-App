@@ -1,11 +1,12 @@
 package id.rancak.app.data.remote
 
 import io.ktor.client.plugins.logging.Logger
+import platform.Foundation.NSLog
 import platform.Foundation.NSProcessInfo
 
 actual fun platformHttpLogger(): Logger = object : Logger {
     override fun log(message: String) {
-        println("[Ktor] $message")
+        NSLog("%@", "[Ktor] $message")
     }
 }
 

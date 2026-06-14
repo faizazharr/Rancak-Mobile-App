@@ -144,6 +144,8 @@ android {
     }
     val rancakApiKey: String = localProps.getProperty("RANCAK_API_KEY")
         ?: error("RANCAK_API_KEY is missing from local.properties")
+    val googleWebClientId: String = localProps.getProperty("GOOGLE_WEB_CLIENT_ID")
+        ?: error("GOOGLE_WEB_CLIENT_ID is missing from local.properties")
 
     defaultConfig {
         applicationId = "id.rancak.app"
@@ -153,6 +155,7 @@ android {
         versionName = "1.0"
 
         buildConfigField("String", "RANCAK_API_KEY", "\"$rancakApiKey\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
     buildFeatures {
         buildConfig = true

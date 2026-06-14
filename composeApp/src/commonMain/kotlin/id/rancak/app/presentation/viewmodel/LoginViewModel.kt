@@ -53,7 +53,8 @@ class LoginViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            tenants = result.data.user.tenants,
+                            password  = "",
+                            tenants   = result.data.user.tenants,
                             isLoggedIn = true
                         )
                     }
