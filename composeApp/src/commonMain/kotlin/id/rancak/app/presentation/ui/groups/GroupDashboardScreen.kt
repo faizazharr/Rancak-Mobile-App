@@ -17,6 +17,7 @@ import id.rancak.app.domain.model.Group
 import id.rancak.app.domain.model.GroupOverview
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.viewmodel.GroupDashboardViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -36,7 +37,8 @@ fun GroupDashboardScreen(onBack: () -> Unit) {
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
+        val sizes = LocalSizes.current
+        val isTablet = maxWidth >= sizes.tabletBreakpoint
 
         Scaffold(
             topBar = {

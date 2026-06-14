@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import id.rancak.app.data.security.DeviceIntegrity
 import id.rancak.app.presentation.components.ErrorBanner
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.components.DeviceIntegrityWarningDialog
 import id.rancak.app.presentation.ui.auth.components.PhoneLoginLayout
 import id.rancak.app.presentation.ui.auth.components.TabletLoginLayout
@@ -58,7 +59,8 @@ fun LoginScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        val isTablet = maxWidth >= 600.dp
+        val sizes = LocalSizes.current
+        val isTablet = maxWidth >= sizes.tabletBreakpoint
 
         Box(
             modifier = Modifier

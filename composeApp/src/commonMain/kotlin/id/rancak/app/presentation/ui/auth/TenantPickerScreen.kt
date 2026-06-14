@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Tenant
 import id.rancak.app.presentation.components.ErrorScreen
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.ui.auth.components.BillingIssueContent
 import id.rancak.app.presentation.ui.auth.components.OutletSubmissionContent
@@ -119,7 +120,8 @@ fun TenantPickerScreen(
                     modifier             = Modifier.fillMaxSize()
                 )
                 else -> BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    val isWide = maxWidth > maxHeight || maxWidth >= 600.dp
+                    val sizes = LocalSizes.current
+                    val isWide = maxWidth > maxHeight || maxWidth >= sizes.tabletBreakpoint
                     if (isWide) {
                         TenantPickerLandscape(
                             tenants        = uiState.tenants.toImmutableList(),

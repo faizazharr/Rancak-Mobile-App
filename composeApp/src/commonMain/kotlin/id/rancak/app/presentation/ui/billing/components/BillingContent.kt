@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Invoice
 import id.rancak.app.domain.model.Plan
 import id.rancak.app.domain.model.SubscriptionState
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -41,7 +42,8 @@ fun BillingContent(
         modifier = modifier.fillMaxSize()
     ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
+        val sizes = LocalSizes.current
+        val isTablet = maxWidth >= sizes.tabletBreakpoint
         val leftPaneWidth = maxOf(360.dp, minOf(460.dp, maxWidth * 0.44f))
 
         if (isTablet) {

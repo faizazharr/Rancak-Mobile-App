@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import id.rancak.app.data.printing.PrintMode
 import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.components.rememberRequestBluetoothPermission
 import id.rancak.app.presentation.designsystem.SettingsAccentKitchen
 import id.rancak.app.presentation.designsystem.SettingsAccentNeutral
@@ -179,7 +180,8 @@ fun SettingsScreenContent(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (maxWidth >= 600.dp) {
+            val sizes = LocalSizes.current
+            if (maxWidth >= sizes.tabletBreakpoint) {
                 TabletLayout(
                     uiState                = uiState,
                     onScan                 = requestBluetoothPermission,
