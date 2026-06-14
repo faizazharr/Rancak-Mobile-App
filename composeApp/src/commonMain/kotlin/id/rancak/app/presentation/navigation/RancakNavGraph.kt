@@ -362,7 +362,8 @@ internal fun NavGraphBuilder.managementGraph(
     composable<Screen.PricingManagement>  {
         PricingManagementScreen(
             onBack             = smartBack(navController, onMenuClick),
-            onBundleManagement = { navController.navigate(Screen.BundleManagement) }
+            onBundleManagement = { navController.navigate(Screen.BundleManagement) },
+            onVoucher          = { navController.navigate(Screen.VoucherManagement) { launchSingleTop = true } }
         )
     }
     composable<Screen.BundleManagement>   { BundleManagementScreen(onBack = { navController.popBackStack() }) }

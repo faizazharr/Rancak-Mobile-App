@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -60,6 +61,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import id.rancak.app.presentation.components.LocalNavigateToHome
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import id.rancak.app.domain.model.Resource
@@ -424,9 +426,9 @@ private fun DrawerAccordionGroup(
                     label = { Text(item.label) },
                     selected = isSelected(item),
                     onClick = { onItemClick(item) },
-                    modifier = Modifier.padding(
-                        start = 24.dp, end = 12.dp, bottom = 2.dp
-                    )
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .padding(start = 24.dp, end = 12.dp, bottom = 2.dp)
                 )
             }
             Spacer(Modifier.height(4.dp))
@@ -507,7 +509,10 @@ private fun NavigationContent(
     // Surface dengan warna background tema mencegah “white flash” saat
     // Compose Navigation berpindah destinasi (frame kosong di antara dispose
     // composable lama dan compose pertama composable baru).
-    CompositionLocalProvider(LocalCartViewModel provides cartViewModel) {
+    CompositionLocalProvider(
+        LocalCartViewModel provides cartViewModel,
+        LocalNavigateToHome provides { navController.navigate(Screen.Pos) { launchSingleTop = true } }
+    ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background

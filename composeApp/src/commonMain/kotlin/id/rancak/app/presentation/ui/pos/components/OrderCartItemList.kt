@@ -183,9 +183,9 @@ private fun OrderItemRow(
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(MaterialTheme.shapes.extraLarge)
+                    .clip(MaterialTheme.shapes.medium)
                     .background(accent.copy(0.14f))
-                    .border(1.dp, accent.copy(0.28f), MaterialTheme.shapes.extraLarge),
+                    .border(1.dp, accent.copy(0.28f), MaterialTheme.shapes.medium),
                 contentAlignment = Alignment.Center
             ) {
                 Text(

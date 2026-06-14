@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.Primary
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakDesign
 import id.rancak.app.presentation.designsystem.RancakTheme
@@ -50,7 +51,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun PricingManagementScreen(
     onBack: () -> Unit,
-    onBundleManagement: () -> Unit = {}
+    onBundleManagement: () -> Unit = {},
+    onVoucher: () -> Unit = {}
 ) {
     val viewModel: PricingManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -68,6 +70,7 @@ fun PricingManagementScreen(
         uiState    = uiState,
         onBack     = onBack,
         onBundleManagement      = onBundleManagement,
+        onVoucher               = onVoucher,
         onAddSurcharge      = { viewModel.openSurchargeForm() },
         onAddTax            = { viewModel.openTaxForm() },
         onAddDiscount       = { viewModel.openDiscountForm() },
@@ -105,6 +108,7 @@ fun PricingManagementContent(
     uiState: PricingManagementUiState,
     onBack: () -> Unit,
     onBundleManagement: () -> Unit = {},
+    onVoucher: () -> Unit = {},
     onAddSurcharge: () -> Unit,
     onAddTax: () -> Unit,
     onAddDiscount: () -> Unit,
@@ -131,6 +135,7 @@ fun PricingManagementContent(
     onToggleDiscountActive: (id.rancak.app.domain.model.DiscountRule, Boolean) -> Unit = { _, _ -> },
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
+    val sizes = LocalSizes.current
     var selectedTab by remember { mutableIntStateOf(0) }
     val closeAllForms: () -> Unit = {
         onCloseSurchargeForm()
@@ -153,11 +158,24 @@ fun PricingManagementContent(
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
+        val isTablet = maxWidth >= sizes.tabletBreakpoint
 
     Scaffold(
         topBar = {
-            RancakTopBar(title = "Harga & Diskon", icon = Icons.Default.LocalOffer, onMenu = onBack)
+            RancakTopBar(
+                title   = "Harga & Diskon",
+                icon    = Icons.Default.LocalOffer,
+                onMenu  = onBack,
+                actions = {
+                    IconButton(onClick = onVoucher) {
+                        Icon(
+                            Icons.Default.ConfirmationNumber,
+                            contentDescription = "Voucher",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            )
         },
         floatingActionButton = {
             // FAB hanya di phone — tablet pakai inline button di SectionDetailHeader
@@ -173,7 +191,7 @@ fun PricingManagementContent(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
-            val isTabletInner = maxWidth >= 600.dp
+            val isTabletInner = maxWidth >= sizes.tabletBreakpoint
             if (isTabletInner) {
                 // ── Tablet: master-detail (sidebar kiri + list kanan) ─────────
                 Row(Modifier.fillMaxSize()) {

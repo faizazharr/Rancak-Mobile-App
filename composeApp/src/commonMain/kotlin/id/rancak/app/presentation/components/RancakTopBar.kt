@@ -3,6 +3,7 @@ package id.rancak.app.presentation.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ fun RancakTopBar(
     onBack: (() -> Unit)? = null,
     onMenu: (() -> Unit)? = null,
     subtitle: String? = null,
+    onHomeClick: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     Surface(
@@ -104,10 +106,19 @@ fun RancakTopBar(
             }
 
             // ── Action slot (opsional) ────────────────────────────────────────
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                content = actions
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val effectiveHomeClick = onHomeClick ?: LocalNavigateToHome.current
+                effectiveHomeClick?.let {
+                    IconButton(onClick = it) {
+                        Icon(
+                            Icons.Default.Home,
+                            contentDescription = "Ke Kasir",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+                actions()
+            }
 
             // ── Ikon dekoratif background (kanan) ────────────────────────────
             Icon(
