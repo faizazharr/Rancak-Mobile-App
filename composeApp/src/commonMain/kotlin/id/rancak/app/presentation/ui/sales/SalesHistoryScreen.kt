@@ -19,6 +19,7 @@ import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.sales.components.RefundBottomSheet
 import id.rancak.app.presentation.ui.sales.components.SaleCard
@@ -168,7 +169,8 @@ fun SalesHistoryScreenContent(
                 Modifier.padding(padding)
             )
             else -> BoxWithConstraints(modifier = Modifier.padding(padding).fillMaxSize()) {
-                val isTablet = maxWidth >= 600.dp
+                val sizes = LocalSizes.current
+                val isTablet = maxWidth >= sizes.tabletBreakpoint
                 if (isTablet) TabletLayout(uiState, actions)
                 else          PhoneLayout(uiState, actions)
             }

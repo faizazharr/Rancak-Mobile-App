@@ -32,6 +32,7 @@ import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.OrderBoardUiState
 import id.rancak.app.presentation.viewmodel.OrderBoardViewModel
@@ -102,7 +103,8 @@ fun OrderBoardScreenContent(
                 .padding(padding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            val isTablet = maxWidth >= 600.dp
+            val sizes = LocalSizes.current
+            val isTablet = maxWidth >= sizes.tabletBreakpoint
             val pageSize = if (isTablet) PAGE_SIZE_TABLET else PAGE_SIZE
             val totalPages  = ((orders.size + pageSize - 1) / pageSize).coerceAtLeast(1)
             val pagedOrders = orders.drop(page * pageSize).take(pageSize)

@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.Primary
 import id.rancak.app.presentation.ui.inventory.components.CreateOpnameDialog
 import id.rancak.app.presentation.ui.inventory.components.OpnameCard
@@ -50,7 +51,8 @@ fun StockOpnameScreen(
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
+        val sizes = LocalSizes.current
+        val isTablet = maxWidth >= sizes.tabletBreakpoint
         val detail = uiState.detail
         var inlineNote by remember { mutableStateOf("") }
 

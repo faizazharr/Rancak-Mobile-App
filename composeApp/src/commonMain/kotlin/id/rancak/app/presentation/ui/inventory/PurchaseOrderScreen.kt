@@ -73,6 +73,7 @@ import id.rancak.app.presentation.components.RancakOutlinedButton
 import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.components.StatusChip
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.PurchaseOrderUiState
@@ -256,7 +257,8 @@ fun PurchaseOrderContent(
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
+        val sizes = LocalSizes.current
+        val isTablet = maxWidth >= sizes.tabletBreakpoint
 
         Scaffold(
             topBar = {

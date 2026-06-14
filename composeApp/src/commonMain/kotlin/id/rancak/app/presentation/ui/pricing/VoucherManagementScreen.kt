@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.domain.model.Voucher
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.ui.pricing.components.VoucherCard
 import id.rancak.app.presentation.ui.pricing.components.VoucherFormContent
 import id.rancak.app.presentation.ui.pricing.components.VoucherFormPanel
@@ -47,7 +48,8 @@ fun VoucherManagementScreen(
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
+        val sizes = LocalSizes.current
+        val isTablet = maxWidth >= sizes.tabletBreakpoint
 
         // Phone only: form opens full-screen, replacing this entire screen
         if (!isTablet && uiState.showFormDialog) {

@@ -24,6 +24,7 @@ import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.ui.reservations.components.ReservationCard
 import id.rancak.app.presentation.ui.reservations.components.ReservationFormContent
@@ -97,7 +98,8 @@ fun ReservationScreenContent(
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
+        val sizes = LocalSizes.current
+        val isTablet = maxWidth >= sizes.tabletBreakpoint
 
         // ── Phone: form opens full-screen (early return) ──────────────────
         if (!isTablet && uiState.showFormDialog) {

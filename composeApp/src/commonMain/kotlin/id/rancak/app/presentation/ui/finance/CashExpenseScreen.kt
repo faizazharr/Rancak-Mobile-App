@@ -22,6 +22,7 @@ import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.ui.finance.components.CashInList
 import id.rancak.app.presentation.ui.finance.components.CashInItemCard
@@ -111,7 +112,8 @@ fun CashExpenseScreenContent(
         },
         floatingActionButton = {
             BoxWithConstraints {
-                val isTablet = maxWidth >= 600.dp
+                val sizes = LocalSizes.current
+                val isTablet = maxWidth >= sizes.tabletBreakpoint
                 if (!isTablet) {
                     FloatingActionButton(onClick = {
                         if (selectedTab == 0) actions.onToggleCashInForm() else actions.onToggleExpenseForm()
@@ -123,7 +125,8 @@ fun CashExpenseScreenContent(
         }
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
-            val isTablet = maxWidth >= 600.dp
+            val sizes = LocalSizes.current
+            val isTablet = maxWidth >= sizes.tabletBreakpoint
             when {
                 uiState.isLoading -> LoadingScreen()
                 uiState.error != null -> ErrorScreen(uiState.error, onRetry = actions.onRetry)

@@ -33,6 +33,7 @@ import id.rancak.app.domain.model.OrderType
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.KdsUiState
 import id.rancak.app.presentation.ui.kds.components.KdsOrderCard
@@ -129,7 +130,8 @@ fun KdsScreenContent(
                 .padding(padding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            val isTablet = maxWidth >= 600.dp
+            val sizes = LocalSizes.current
+            val isTablet = maxWidth >= sizes.tabletBreakpoint
             val pageSize = if (isTablet) PAGE_SIZE_TABLET else PAGE_SIZE
             // Memoize: hanya hitung ulang bila orders atau pageSize berubah.
             // Tanpa ini, drop()+take() mengalokasikan list baru setiap rekomposisi.

@@ -24,6 +24,7 @@ import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.components.SummaryRow
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.ShiftUiState
@@ -90,7 +91,8 @@ fun ShiftScreenContent(
         }
     ) { padding ->
         BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
-            val isTablet = maxWidth >= 600.dp
+            val sizes = LocalSizes.current
+            val isTablet = maxWidth >= sizes.tabletBreakpoint
             val contentModifier = if (isTablet) {
                 Modifier.widthIn(max = 560.dp).align(Alignment.Center).verticalScroll(rememberScrollState())
             } else {

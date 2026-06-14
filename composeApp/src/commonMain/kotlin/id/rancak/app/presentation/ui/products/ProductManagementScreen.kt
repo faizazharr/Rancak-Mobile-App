@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.ProductManagementUiState
 import id.rancak.app.presentation.viewmodel.ProductManagementViewModel
@@ -49,7 +50,8 @@ fun ProductManagementScreen(
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
+        val sizes = LocalSizes.current
+        val isTablet = maxWidth >= sizes.tabletBreakpoint
 
         Scaffold(
             topBar = {
