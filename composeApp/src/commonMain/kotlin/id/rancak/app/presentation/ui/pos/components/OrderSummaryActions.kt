@@ -284,7 +284,7 @@ internal fun OrderSummaryActions(
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                             .border(1.dp, billBorderColor, MaterialTheme.shapes.medium)
                             .clickable(enabled = billActive, onClick = onSaveClick)
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         if (isHolding) {
@@ -333,7 +333,7 @@ internal fun OrderSummaryActions(
                             .clip(MaterialTheme.shapes.medium)
                             .background(Brush.horizontalGradient(listOf(gradStart, gradEnd2)))
                             .clickable(enabled = canPay, onClick = onCheckoutClick)
-                            .padding(horizontal = 22.dp, vertical = 10.dp),
+                            .padding(horizontal = 22.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(
@@ -416,7 +416,7 @@ private fun FeeCellItem(
         modifier = modifier
             .background(cellBg)
             .clickable { showDialog = true }
-            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Row(
             verticalAlignment     = Alignment.CenterVertically,
@@ -425,7 +425,7 @@ private fun FeeCellItem(
             Icon(icon, null, Modifier.size(14.dp), tint = iconTint)
             Text(
                 label.uppercase(),
-                style      = MaterialTheme.typography.labelSmall,
+                style      = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 color      = labelColor
             )
@@ -440,7 +440,7 @@ private fun FeeCellItem(
                 if (valueIsPercent) {
                     Text(
                         "${value}%  ·  Rp ${feeFormatNumber(computedAmount)}",
-                        style      = MaterialTheme.typography.labelSmall,
+                        style      = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                         color      = valueColor
                     )
@@ -451,7 +451,7 @@ private fun FeeCellItem(
                     ) {
                         if (isNegative) Text(
                             "−",
-                            style      = MaterialTheme.typography.labelSmall,
+                            style      = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color      = error
                         )
@@ -664,7 +664,7 @@ private fun VoucherInputRow(
                     if (applied) { text = ""; onApply("") }
                     else { onApply(text); keyboard?.hide() }
                 }
-                .padding(horizontal = 12.dp, vertical = 9.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             AnimatedContent(
                 targetState  = if (applied) "Hapus" else "Pakai",
@@ -673,7 +673,7 @@ private fun VoucherInputRow(
             ) { label ->
                 Text(
                     label,
-                    style      = MaterialTheme.typography.labelSmall,
+                    style      = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color      = btnText
                 )

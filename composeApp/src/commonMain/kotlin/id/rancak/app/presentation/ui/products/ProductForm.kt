@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.Product
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.Primary
 import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakTheme
@@ -419,11 +420,13 @@ fun ProductFormPanel(
         }
 
         // ── Form fields ───────────────────────────────────────────────────
+        val sizes = LocalSizes.current
         Column(
             modifier = Modifier
                 .weight(1f)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
-                .widthIn(max = 560.dp)
+                .widthIn(max = sizes.formMaxWidth)
                 .align(Alignment.CenterHorizontally)
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)

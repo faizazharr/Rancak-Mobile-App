@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.ui.products
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -47,6 +48,28 @@ fun ProductManagementScreen(
             scope.launch { snackbarHostState.showSnackbar("⚠ $it") }
             viewModel.clearError()
         }
+    }
+
+    var showLeaveFormDialog by remember { mutableStateOf(false) }
+    BackHandler(enabled = uiState.showProductFormDialog) {
+        showLeaveFormDialog = true
+    }
+
+    if (showLeaveFormDialog) {
+        AlertDialog(
+            onDismissRequest = { showLeaveFormDialog = false },
+            title            = { Text("Tinggalkan perubahan?") },
+            text             = { Text("Perubahan yang belum disimpan akan hilang.") },
+            confirmButton    = {
+                TextButton(onClick = {
+                    showLeaveFormDialog = false
+                    viewModel.closeProductForm()
+                }) { Text("Tinggalkan") }
+            },
+            dismissButton    = {
+                TextButton(onClick = { showLeaveFormDialog = false }) { Text("Batalkan") }
+            }
+        )
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {

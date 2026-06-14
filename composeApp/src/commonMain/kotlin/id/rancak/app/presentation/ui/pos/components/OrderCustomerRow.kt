@@ -65,7 +65,7 @@ internal fun OrderCustomerRow(
                             MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
                             MaterialTheme.shapes.large
                         )
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
                     verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
