@@ -135,29 +135,43 @@ fun RancakNavHost() {
             DrawerGroup(
                 label = "Keuangan",
                 icon = Icons.Default.AccountBalance,
-                expandedByDefault = false,
+                expandedByDefault = true,
                 items = listOf(
+                    DrawerItem("Laporan",     Icons.Default.BarChart,       Screen.Reports),
                     DrawerItem("Riwayat",     Icons.Default.Receipt,        Screen.SalesHistory),
                     DrawerItem("Kas & Biaya", Icons.Default.AccountBalance, Screen.CashExpense),
-                    DrawerItem("Laporan",     Icons.Default.BarChart,       Screen.Reports),
                 )
             ),
             DrawerGroup(
-                label = "Manajemen",
-                icon = Icons.Default.ManageAccounts,
+                label = "Produk & Stok",
+                icon = Icons.Default.Inventory2,
+                expandedByDefault = true,
+                items = listOf(
+                    DrawerItem("Produk",        Icons.Default.Inventory2,  Screen.ProductManagement),
+                    DrawerItem("Stok Opname",   Icons.Default.Inventory,   Screen.StockOpname),
+                    DrawerItem("Add-ons",        Icons.Default.Tune,        Screen.ModifierManagement),
+                    DrawerItem("Voucher",        Icons.Default.LocalOffer,  Screen.VoucherManagement),
+                    DrawerItem("Harga & Diskon", Icons.Default.Percent,     Screen.PricingManagement),
+                )
+            ),
+            DrawerGroup(
+                label = "Pengadaan",
+                icon = Icons.Default.LocalShipping,
                 expandedByDefault = false,
                 items = listOf(
-                    DrawerItem("Produk",        Icons.Default.Inventory2,    Screen.ProductManagement),
-                    DrawerItem("Stok Opname",   Icons.Default.Inventory,     Screen.StockOpname),
-                    DrawerItem("Voucher",        Icons.Default.LocalOffer,    Screen.VoucherManagement),
-                    DrawerItem("Harga & Diskon", Icons.Default.Percent,       Screen.PricingManagement),
-                    DrawerItem("Add-ons",        Icons.Default.Tune,          Screen.ModifierManagement),
-                    DrawerItem("Supplier",        Icons.Default.LocalShipping, Screen.SupplierManagement),
-                    DrawerItem("Purchase Order",  Icons.Default.ShoppingCart,  Screen.PurchaseOrders),
-                    DrawerItem("Billing",        Icons.Default.CreditCard,    Screen.Billing()),  // fromSetup = false (drawer)
-                    DrawerItem("Sesi Aktif",      Icons.Default.DevicesOther,   Screen.SessionManagement),
-                    DrawerItem("Multi-Outlet",    Icons.Default.Store,          Screen.GroupDashboard),
-                    DrawerItem("Pengaturan",     Icons.Default.Settings,      Screen.Settings),
+                    DrawerItem("Supplier",       Icons.Default.LocalShipping, Screen.SupplierManagement),
+                    DrawerItem("Purchase Order", Icons.Default.ShoppingCart,  Screen.PurchaseOrders),
+                )
+            ),
+            DrawerGroup(
+                label = "Sistem",
+                icon = Icons.Default.Settings,
+                expandedByDefault = false,
+                items = listOf(
+                    DrawerItem("Pengaturan",  Icons.Default.Settings,    Screen.Settings),
+                    DrawerItem("Billing",     Icons.Default.CreditCard,  Screen.Billing()),  // fromSetup = false (drawer)
+                    DrawerItem("Sesi Aktif",  Icons.Default.DevicesOther, Screen.SessionManagement),
+                    DrawerItem("Multi-Outlet", Icons.Default.Store,       Screen.GroupDashboard),
                 )
             ),
         )
@@ -546,7 +560,7 @@ private fun NavigationContent(
                 kasirGraph(navController, onMenuClick)
                 operationsGraph(navController, onMenuClick)
                 salesGraph(navController, onMenuClick)
-                financeGraph(onMenuClick)
+                financeGraph(navController, onMenuClick)
                 managementGraph(navController, onMenuClick)
             }
         }

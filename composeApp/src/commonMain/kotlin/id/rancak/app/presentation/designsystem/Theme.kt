@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.designsystem
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -137,16 +138,20 @@ val LocalSemanticColors = staticCompositionLocalOf { LightSemanticColors }
 
 @Composable
 fun RancakTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
+    val colorScheme    = if (darkTheme) DarkColorScheme    else LightColorScheme
+    val semanticColors = if (darkTheme) DarkSemanticColors else LightSemanticColors
+
     CompositionLocalProvider(
         LocalSpacing provides Spacing(),
         LocalElevation provides Elevation(),
         LocalSizes provides Sizes(),
-        LocalSemanticColors provides LightSemanticColors
+        LocalSemanticColors provides semanticColors
     ) {
         MaterialTheme(
-            colorScheme = LightColorScheme,
+            colorScheme = colorScheme,
             typography  = RancakTypography,
             shapes      = RancakShapes,
             content     = content

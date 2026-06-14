@@ -43,6 +43,17 @@ import id.rancak.app.presentation.ui.products.ProductManagementScreen
 import id.rancak.app.presentation.ui.splash.SplashScreen
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Helper: pop back if possible, otherwise open drawer
+// ─────────────────────────────────────────────────────────────────────────────
+
+private fun smartBack(
+    nav: NavHostController,
+    onMenu: () -> Unit
+): () -> Unit = {
+    if (!nav.popBackStack()) onMenu()
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Auth graph — Splash, Login, TenantPicker
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -147,7 +158,8 @@ internal fun NavGraphBuilder.kasirGraph(
             },
             onMenuClick     = onMenuClick,
             onHoldSuccess   = { navController.navigate(Screen.OpenBillList()) },
-            onOpenBillClick = { navController.navigate(Screen.OpenBillList()) }
+            onOpenBillClick = { navController.navigate(Screen.OpenBillList()) },
+            onShiftClick    = { navController.navigate(Screen.Shift) { launchSingleTop = true } }
         )
     }
 
@@ -203,11 +215,11 @@ internal fun NavGraphBuilder.operationsGraph(
     navController: NavHostController,
     onMenuClick: () -> Unit
 ) {
-    composable<Screen.Shift>        { ShiftScreen(onBack = onMenuClick) }
-    composable<Screen.Tables>       { TableMapScreen(onBack = onMenuClick) }
-    composable<Screen.Reservations> { ReservationScreen(onBack = onMenuClick) }
-    composable<Screen.Kds>          { KdsScreen(onBack = onMenuClick) }
-    composable<Screen.OrderBoard>   { OrderBoardScreen(onBack = onMenuClick) }
+    composable<Screen.Shift>        { ShiftScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.Tables>       { TableMapScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.Reservations> { ReservationScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.Kds>          { KdsScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.OrderBoard>   { OrderBoardScreen(onBack = smartBack(navController, onMenuClick)) }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -220,7 +232,7 @@ internal fun NavGraphBuilder.salesGraph(
 ) {
     composable<Screen.SalesHistory> {
         SalesHistoryScreen(
-            onBack         = onMenuClick,
+            onBack         = smartBack(navController, onMenuClick),
             onPayHeldOrder = { saleUuid -> navController.navigate(Screen.PayHeldOrder(saleUuid)) },
             onSplitBill    = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) },
             onAddItems     = { saleUuid -> navController.navigate(Screen.AddItemsToHeldOrder(saleUuid)) }
@@ -279,9 +291,12 @@ internal fun NavGraphBuilder.salesGraph(
 // Finance graph — Cash Expense, Reports
 // ─────────────────────────────────────────────────────────────────────────────
 
-internal fun NavGraphBuilder.financeGraph(onMenuClick: () -> Unit) {
-    composable<Screen.CashExpense> { CashExpenseScreen(onBack = onMenuClick) }
-    composable<Screen.Reports>     { ReportScreen(onBack = onMenuClick) }
+internal fun NavGraphBuilder.financeGraph(
+    navController: NavHostController,
+    onMenuClick: () -> Unit
+) {
+    composable<Screen.CashExpense> { CashExpenseScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.Reports>     { ReportScreen(onBack = smartBack(navController, onMenuClick)) }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -293,22 +308,22 @@ internal fun NavGraphBuilder.managementGraph(
     navController: NavHostController,
     onMenuClick: () -> Unit
 ) {
-    composable<Screen.ProductManagement>  { ProductManagementScreen(onBack = onMenuClick) }
-    composable<Screen.StockOpname>        { StockOpnameScreen(onBack = onMenuClick) }
-    composable<Screen.VoucherManagement>  { VoucherManagementScreen(onBack = onMenuClick) }
+    composable<Screen.ProductManagement>  { ProductManagementScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.StockOpname>        { StockOpnameScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.VoucherManagement>  { VoucherManagementScreen(onBack = smartBack(navController, onMenuClick)) }
     composable<Screen.PricingManagement>  {
         PricingManagementScreen(
-            onBack             = onMenuClick,
+            onBack             = smartBack(navController, onMenuClick),
             onBundleManagement = { navController.navigate(Screen.BundleManagement) }
         )
     }
     composable<Screen.BundleManagement>   { BundleManagementScreen(onBack = { navController.popBackStack() }) }
-    composable<Screen.ModifierManagement> { ModifierManagementScreen(onBack = onMenuClick) }
-    composable<Screen.SupplierManagement> { SupplierScreen(onBack = onMenuClick) }
-    composable<Screen.PurchaseOrders>     { PurchaseOrderScreen(onBack = onMenuClick) }
-    composable<Screen.Settings>           { SettingsScreen(onBack = onMenuClick) }
-    composable<Screen.SessionManagement>  { SessionManagementScreen(onBack = onMenuClick) }
-    composable<Screen.GroupDashboard>     { GroupDashboardScreen(onBack = onMenuClick) }
+    composable<Screen.ModifierManagement> { ModifierManagementScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.SupplierManagement> { SupplierScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.PurchaseOrders>     { PurchaseOrderScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.Settings>           { SettingsScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.SessionManagement>  { SessionManagementScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.GroupDashboard>     { GroupDashboardScreen(onBack = smartBack(navController, onMenuClick)) }
 
     // TODO(role-gating): wrap dengan RoleGatedScreen(UserRole.OWNER) setelah
     // backend menyediakan field `role` di respons tenant/login.

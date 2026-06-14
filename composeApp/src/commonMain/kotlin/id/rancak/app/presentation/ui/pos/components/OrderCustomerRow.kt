@@ -40,7 +40,7 @@ internal fun OrderCustomerRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(surface)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment     = Alignment.CenterVertically
     ) {
@@ -69,7 +69,7 @@ internal fun OrderCustomerRow(
                     verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(Icons.Default.Person, null, Modifier.size(14.dp), tint = onSurfaceVariant)
+                    Icon(Icons.Default.Person, null, Modifier.size(16.dp), tint = onSurfaceVariant)
                     Box(Modifier.weight(1f)) {
                         if (cartState.customerName.isEmpty()) {
                             Text(
@@ -100,7 +100,7 @@ internal fun OrderCustomerRow(
         ) {
             Box(
                 Modifier
-                    .size(22.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(
                         if (cartState.pax > 1) MaterialTheme.colorScheme.outlineVariant.copy(0.35f)
@@ -111,7 +111,7 @@ internal fun OrderCustomerRow(
             ) {
                 Icon(
                     Icons.Default.Remove, null,
-                    Modifier.size(12.dp),
+                    Modifier.size(20.dp),
                     tint = if (cartState.pax > 1) onSurface else onSurfaceVariant.copy(0.3f)
                 )
             }
@@ -127,20 +127,20 @@ internal fun OrderCustomerRow(
                 )
                 Text(
                     "tamu",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     color = onSurfaceVariant.copy(0.6f)
                 )
             }
 
             Box(
                 Modifier
-                    .size(22.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(primary)
                     .clickable { onPax(cartState.pax + 1) },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Add, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(Icons.Default.Add, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }

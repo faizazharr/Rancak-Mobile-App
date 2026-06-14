@@ -48,6 +48,7 @@ internal fun PosTopBar(
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
     onOpenBillClick: () -> Unit = {},
+    onShiftClick: () -> Unit = {},
     showCart: Boolean = true
 ) {
     val primary = MaterialTheme.colorScheme.primary
@@ -72,7 +73,7 @@ internal fun PosTopBar(
             }
         },
         actions = {
-            ShiftStatusChip(hasOpenShift)
+            ShiftStatusChip(hasOpenShift, onClick = onShiftClick)
             Spacer(Modifier.width(4.dp))
             OpenBillChip(onOpenBillClick)
             Spacer(Modifier.width(4.dp))
@@ -127,12 +128,13 @@ private fun PosTopBarTitle(outletName: String) {
 }
 
 @Composable
-private fun ShiftStatusChip(hasOpenShift: Boolean) {
+private fun ShiftStatusChip(hasOpenShift: Boolean, onClick: () -> Unit = {}) {
     val sem = RancakColors.semantic
     Box(
         modifier = Modifier
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.onPrimary.copy(if (hasOpenShift) 0.16f else 0.28f))
+            .clickable(onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Row(

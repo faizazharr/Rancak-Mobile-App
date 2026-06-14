@@ -2,6 +2,7 @@ package id.rancak.app.presentation.ui.pos.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +61,7 @@ internal fun OrderPanel(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surface)
             .systemBarsPadding()
+            .imePadding()
     ) {
         OrderPanelHeader(
             hasItems    = hasItems,

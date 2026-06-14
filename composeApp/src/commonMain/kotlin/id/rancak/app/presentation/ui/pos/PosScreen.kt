@@ -29,6 +29,7 @@ import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Product
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.presentation.barcode.BarcodeScannerView
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.ui.pos.components.CartBar
 import id.rancak.app.presentation.ui.pos.components.OpenBillNameDialog
@@ -65,7 +66,8 @@ fun PosScreen(
     onMenuClick: () -> Unit,
     /** Dipanggil setelah open bill berhasil dibuat — gunakan untuk navigasi ke daftar open bill. */
     onHoldSuccess: () -> Unit = {},
-    onOpenBillClick: () -> Unit = {}
+    onOpenBillClick: () -> Unit = {},
+    onShiftClick: () -> Unit = {}
 ) {
     val posViewModel: PosViewModel       = koinViewModel()
     val cartViewModel                    = LocalCartViewModel.current
@@ -172,8 +174,9 @@ fun PosScreen(
         }
     }
 
+    val sizes = LocalSizes.current
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val isWide = maxWidth >= 600.dp || maxWidth > maxHeight
+        val isWide = maxWidth >= sizes.tabletBreakpoint || maxWidth > maxHeight
 
         if (isWide) {
             SplitLayout(
@@ -192,6 +195,7 @@ fun PosScreen(
                 },
                 onOpenBillClick  = onOpenBillClick,
                 hasOpenShift     = hasOpenShift,
+                onShiftClick     = onShiftClick,
                 onSearchChange   = posViewModel::onSearchQueryChange,
                 onCategorySelect = posViewModel::onCategorySelected,
                 onRefresh        = posViewModel::refresh,
@@ -226,6 +230,7 @@ fun PosScreen(
                 onMenuClick      = onMenuClick,
                 onCartClick      = onCartClick,
                 onOpenBillClick  = onOpenBillClick,
+                onShiftClick     = onShiftClick,
                 onSearchChange   = posViewModel::onSearchQueryChange,
                 onCategorySelect = posViewModel::onCategorySelected,
                 onRefresh        = posViewModel::refresh,
@@ -248,6 +253,7 @@ private fun PhoneLayout(
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit,
     onOpenBillClick: () -> Unit = {},
+    onShiftClick: () -> Unit = {},
     onSearchChange: (String) -> Unit,
     onCategorySelect: (Category?) -> Unit,
     onRefresh: () -> Unit,
@@ -268,6 +274,7 @@ private fun PhoneLayout(
                 onMenuClick  = onMenuClick,
                 onCartClick  = onCartClick,
                 onOpenBillClick = onOpenBillClick,
+                onShiftClick = onShiftClick,
                 showCart     = true
             )
         },
@@ -328,6 +335,7 @@ private fun SplitLayout(
     onCheckoutClick: () -> Unit,
     onSaveClick: () -> Unit,
     onOpenBillClick: () -> Unit = {},
+    onShiftClick: () -> Unit = {},
     onSearchChange: (String) -> Unit,
     onCategorySelect: (Category?) -> Unit,
     onRefresh: () -> Unit,
@@ -365,6 +373,7 @@ private fun SplitLayout(
                 onMenuClick  = onMenuClick,
                 onCartClick  = onCartClick,
                 onOpenBillClick = onOpenBillClick,
+                onShiftClick = onShiftClick,
                 showCart     = false
             )
             PosSearchBar(

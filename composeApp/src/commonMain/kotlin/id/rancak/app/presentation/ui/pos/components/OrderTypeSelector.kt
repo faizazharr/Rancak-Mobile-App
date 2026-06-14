@@ -34,7 +34,7 @@ internal fun OrderTypeSelector(
         modifier = Modifier
             .fillMaxWidth()
             .background(surface)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         OrderType.entries.forEach { type ->
@@ -47,6 +47,7 @@ internal fun OrderTypeSelector(
             Box(
                 modifier = Modifier
                     .weight(1f)
+                    .heightIn(min = 48.dp)
                     .clip(MaterialTheme.shapes.large)
                     .background(if (isSelected) primary else surface)
                     .border(
@@ -54,8 +55,7 @@ internal fun OrderTypeSelector(
                         if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
                         MaterialTheme.shapes.large
                     )
-                    .clickable { onSelect(type) }
-                    .padding(vertical = 7.dp),
+                    .clickable { onSelect(type) },
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -64,12 +64,12 @@ internal fun OrderTypeSelector(
                 ) {
                     Icon(
                         icon, null,
-                        Modifier.size(16.dp),
+                        Modifier.size(20.dp),
                         tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant
                     )
                     Text(
                         label,
-                        style      = MaterialTheme.typography.labelSmall,
+                        style      = MaterialTheme.typography.labelMedium,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                         color      = if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant
                     )

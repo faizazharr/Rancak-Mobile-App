@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -33,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import id.rancak.app.presentation.designsystem.LocalSizes
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -184,8 +186,14 @@ private fun ReportBody(
     uiState: ReportUiState,
     modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        if (maxWidth >= 600.dp) {
+    val sizes = LocalSizes.current
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .widthIn(max = sizes.readableMaxWidth),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        if (maxWidth >= sizes.tabletBreakpoint) {
             TabletLayout(uiState)
         } else {
             PhoneLayout(uiState)

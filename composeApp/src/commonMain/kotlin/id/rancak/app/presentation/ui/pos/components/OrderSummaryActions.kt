@@ -69,7 +69,7 @@ internal fun OrderSummaryActions(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             // ── Subtotal row ─────────────────────────────────────────────────
             Row(
@@ -204,7 +204,7 @@ internal fun OrderSummaryActions(
 
             Spacer(Modifier.height(4.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.5f))
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
 
             // Hold error chip
             AnimatedVisibility(
@@ -422,7 +422,7 @@ private fun FeeCellItem(
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Icon(icon, null, Modifier.size(11.dp), tint = iconTint)
+            Icon(icon, null, Modifier.size(14.dp), tint = iconTint)
             Text(
                 label.uppercase(),
                 style      = MaterialTheme.typography.labelSmall,

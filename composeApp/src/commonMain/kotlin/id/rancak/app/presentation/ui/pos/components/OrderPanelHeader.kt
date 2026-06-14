@@ -59,7 +59,7 @@ internal fun OrderPanelHeader(
         modifier = Modifier
             .fillMaxWidth()
             .background(surface)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -94,7 +94,7 @@ internal fun OrderPanelHeader(
         if (hasItems) {
             IconButton(
                 onClick  = { showClearConfirm = true },
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(48.dp)
             ) {
                 Icon(
                     Icons.Default.DeleteOutline,

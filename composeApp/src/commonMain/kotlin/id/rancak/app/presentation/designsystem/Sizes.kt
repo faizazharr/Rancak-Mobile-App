@@ -42,7 +42,7 @@ data class Sizes(
     /** Lebar maksimum konten yang dibaca (settings, detail). */
     val readableMaxWidth: Dp = 720.dp,
     /** Breakpoint phone vs tablet. */
-    val tabletBreakpoint: Dp = 600.dp,
+    val tabletBreakpoint: Dp = 720.dp,
 
     // ── Border / divider ──────────────────────────────────────────────────
     val borderThin: Dp = 1.dp,
