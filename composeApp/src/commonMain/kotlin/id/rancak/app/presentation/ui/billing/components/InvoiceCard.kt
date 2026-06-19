@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.ui.billing.components
 
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -26,42 +25,54 @@ fun InvoiceCard(
     invoice: Invoice,
     onCancel: () -> Unit,
     onShowQr: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val (statusColor, statusLabel, statusIcon) = when (invoice.status) {
-        "paid"      -> Triple(Success,           "Lunas",       Icons.Default.CheckCircle)
-        "pending"   -> Triple(Warning,           "Menunggu",    Icons.Default.HourglassTop)
-        "cancelled" -> Triple(Color(0xFF9E9E9E), "Dibatalkan",  Icons.Default.Cancel)
-        "expired"   -> Triple(Error,             "Kedaluwarsa", Icons.Default.ErrorOutline)
-        else        -> Triple(Color(0xFF9E9E9E), invoice.status, Icons.Default.Info)
-    }
+    val (statusColor, statusLabel, statusIcon) =
+        when (invoice.status) {
+            "paid" -> Triple(Success, "Lunas", Icons.Default.CheckCircle)
+            "pending" -> Triple(Warning, "Menunggu", Icons.Default.HourglassTop)
+            "cancelled" -> Triple(Color(0xFF9E9E9E), "Dibatalkan", Icons.Default.Cancel)
+            "expired" -> Triple(Error, "Kedaluwarsa", Icons.Default.ErrorOutline)
+            else -> Triple(Color(0xFF9E9E9E), invoice.status, Icons.Default.Info)
+        }
 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Surface(shape = MaterialTheme.shapes.large, color = statusColor.copy(alpha = 0.12f),
-                    modifier = Modifier.size(36.dp)) {
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    color = statusColor.copy(alpha = 0.12f),
+                    modifier = Modifier.size(36.dp),
+                ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(statusIcon, null, tint = statusColor, modifier = Modifier.size(18.dp))
                     }
                 }
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                    Text(invoice.invoiceNo, style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(invoice.planName, style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        invoice.invoiceNo,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        invoice.planName,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 SmallBadge(statusLabel, statusColor)
             }
@@ -71,29 +82,44 @@ fun InvoiceCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+                verticalAlignment = Alignment.Bottom,
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceVariant) {
-                        Text("${invoice.durationDays} hari", style = MaterialTheme.typography.labelSmall,
+                        Text(
+                            "${invoice.durationDays} hari",
+                            style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                     if (invoice.issuedAt != null) {
-                        Text("Terbit: ${invoice.issuedAt.take(10)}",
+                        Text(
+                            "Terbit: ${invoice.issuedAt.take(10)}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                     if (invoice.dueAt != null) {
-                        Text("Jatuh tempo: ${invoice.dueAt.take(10)}",
+                        Text(
+                            "Jatuh tempo: ${invoice.dueAt.take(10)}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (invoice.status == "pending") Warning
-                                    else MaterialTheme.colorScheme.onSurfaceVariant)
+                            color =
+                                if (invoice.status == "pending") {
+                                    Warning
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                        )
                     }
                 }
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(formatPlanPrice(invoice.totalAmount), style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.ExtraBold, color = Primary)
+                    Text(
+                        formatPlanPrice(invoice.totalAmount),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Primary,
+                    )
                 }
             }
 
@@ -102,14 +128,20 @@ fun InvoiceCard(
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Icon(Icons.Default.QrCode, null, modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("QRIS tersedia — selesaikan pembayaran via e-wallet",
+                        Icon(
+                            Icons.Default.QrCode,
+                            null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            "QRIS tersedia — selesaikan pembayaran via e-wallet",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(1f))
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                 }
             }
@@ -117,7 +149,7 @@ fun InvoiceCard(
             if (invoice.status == "pending") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     if (invoice.qrString != null && onShowQr != null) {
                         Button(
@@ -125,7 +157,7 @@ fun InvoiceCard(
                             modifier = Modifier.weight(1f),
                             shape = MaterialTheme.shapes.extraLarge,
                             contentPadding = PaddingValues(vertical = 8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                            colors = ButtonDefaults.buttonColors(containerColor = Primary),
                         ) {
                             Icon(Icons.Default.QrCode, null, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(6.dp))
@@ -138,7 +170,7 @@ fun InvoiceCard(
                         shape = MaterialTheme.shapes.extraLarge,
                         contentPadding = PaddingValues(vertical = 8.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Error.copy(alpha = 0.4f))
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Error.copy(alpha = 0.4f)),
                     ) {
                         Icon(Icons.Default.Cancel, null, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(6.dp))
@@ -157,9 +189,12 @@ fun InvoiceCard(
 private fun InvoiceCardPendingPreview() {
     RancakTheme {
         InvoiceCard(
-            invoice = Invoice("1", "INV-001", "pro", "Pro Plan", 30, 100000.0, 0.11, 11000.0, 111000.0,
-                "pending", "2024-01-01", "2024-01-08", null, null, null, null, null, null, null, false),
-            onCancel = {}
+            invoice =
+                Invoice(
+                    "1", "INV-001", "pro", "Pro Plan", 30, 100000.0, 0.11, 11000.0, 111000.0,
+                    "pending", "2024-01-01", "2024-01-08", null, null, null, null, null, null, null, false,
+                ),
+            onCancel = {},
         )
     }
 }
@@ -169,9 +204,12 @@ private fun InvoiceCardPendingPreview() {
 private fun InvoiceCardPaidPreview() {
     RancakTheme {
         InvoiceCard(
-            invoice = Invoice("2", "INV-002", "pro", "Pro Plan", 30, 100000.0, 0.11, 11000.0, 111000.0,
-                "paid", "2024-01-01", "2024-01-08", "2024-01-03", null, null, null, null, null, null, false),
-            onCancel = {}
+            invoice =
+                Invoice(
+                    "2", "INV-002", "pro", "Pro Plan", 30, 100000.0, 0.11, 11000.0, 111000.0,
+                    "paid", "2024-01-01", "2024-01-08", "2024-01-03", null, null, null, null, null, null, false,
+                ),
+            onCancel = {},
         )
     }
 }

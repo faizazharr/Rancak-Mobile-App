@@ -49,7 +49,7 @@ internal fun PosTopBar(
     onCartClick: () -> Unit,
     onOpenBillClick: () -> Unit = {},
     onShiftClick: () -> Unit = {},
-    showCart: Boolean = true
+    showCart: Boolean = true,
 ) {
     val primary = MaterialTheme.colorScheme.primary
 
@@ -80,9 +80,9 @@ internal fun PosTopBar(
             if (currentTime.isNotEmpty()) {
                 Text(
                     currentTime,
-                    style      = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
             }
             if (showCart) {
@@ -91,7 +91,7 @@ internal fun PosTopBar(
                 Spacer(Modifier.width(4.dp))
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = primary)
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = primary),
     )
 }
 
@@ -100,27 +100,27 @@ private fun PosTopBarTitle(outletName: String) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 "Kasir",
-                style     = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.ExtraBold,
-                color     = MaterialTheme.colorScheme.onPrimary
+                color = MaterialTheme.colorScheme.onPrimary,
             )
             if (outletName.isNotBlank()) {
                 Box(
                     Modifier
                         .size(3.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onPrimary.copy(0.45f))
+                        .background(MaterialTheme.colorScheme.onPrimary.copy(0.45f)),
                 )
                 Text(
                     outletName,
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = MaterialTheme.colorScheme.onPrimary.copy(0.78f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(0.78f),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -128,30 +128,34 @@ private fun PosTopBarTitle(outletName: String) {
 }
 
 @Composable
-private fun ShiftStatusChip(hasOpenShift: Boolean, onClick: () -> Unit = {}) {
+private fun ShiftStatusChip(
+    hasOpenShift: Boolean,
+    onClick: () -> Unit = {},
+) {
     val sem = RancakColors.semantic
     Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.onPrimary.copy(if (hasOpenShift) 0.16f else 0.28f))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.onPrimary.copy(if (hasOpenShift) 0.16f else 0.28f))
+                .clickable(onClick = onClick)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Box(
                 Modifier
                     .size(7.dp)
                     .clip(CircleShape)
-                    .background(if (hasOpenShift) sem.statusOnline else sem.statusOffline)
+                    .background(if (hasOpenShift) sem.statusOnline else sem.statusOffline),
             )
             Text(
                 if (hasOpenShift) "Shift Buka" else "Shift Tutup",
-                style      = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.onPrimary
+                color = MaterialTheme.colorScheme.onPrimary,
             )
         }
     }
@@ -161,28 +165,29 @@ private fun ShiftStatusChip(hasOpenShift: Boolean, onClick: () -> Unit = {}) {
 private fun OpenBillChip(onClick: () -> Unit) {
     val warningColor = RancakColors.semantic.warning
     Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(warningColor.copy(alpha = 0.18f))
-            .border(1.dp, warningColor.copy(alpha = 0.55f), CircleShape)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 9.dp, vertical = 5.dp)
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .background(warningColor.copy(alpha = 0.18f))
+                .border(1.dp, warningColor.copy(alpha = 0.55f), CircleShape)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 9.dp, vertical = 5.dp),
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 Icons.Default.BookmarkBorder,
                 contentDescription = "Open Bill",
                 modifier = Modifier.size(13.dp),
-                tint     = warningColor
+                tint = warningColor,
             )
             Text(
                 "Open Bill",
-                style      = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color      = warningColor
+                color = warningColor,
             )
         }
     }
@@ -193,21 +198,23 @@ private fun CartActionButton(
     hasCart: Boolean,
     itemCount: Int,
     primary: Color,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
 ) {
     BadgedBox(
         badge = {
-            if (hasCart) Badge(
-                containerColor = MaterialTheme.colorScheme.onPrimary,
-                contentColor   = primary
-            ) {
-                Text(
-                    "$itemCount",
-                    style      = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold
-                )
+            if (hasCart) {
+                Badge(
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
+                    contentColor = primary,
+                ) {
+                    Text(
+                        "$itemCount",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
-        }
+        },
     ) {
         IconButton(onClick = onCartClick) {
             Icon(Icons.Default.ShoppingCart, null, tint = MaterialTheme.colorScheme.onPrimary)
@@ -220,13 +227,13 @@ private fun CartActionButton(
 private fun PosTopBarPreview_OpenShift() {
     RancakTheme {
         PosTopBar(
-            outletName   = "Warung Kopi Sinar",
-            hasCart      = true,
-            itemCount    = 3,
+            outletName = "Warung Kopi Sinar",
+            hasCart = true,
+            itemCount = 3,
             hasOpenShift = true,
-            onMenuClick  = {},
-            onCartClick  = {},
-            showCart     = true
+            onMenuClick = {},
+            onCartClick = {},
+            showCart = true,
         )
     }
 }
@@ -236,13 +243,13 @@ private fun PosTopBarPreview_OpenShift() {
 private fun PosTopBarPreview_ClosedShift() {
     RancakTheme {
         PosTopBar(
-            outletName   = "Warung Kopi Sinar",
-            hasCart      = false,
-            itemCount    = 0,
+            outletName = "Warung Kopi Sinar",
+            hasCart = false,
+            itemCount = 0,
             hasOpenShift = false,
-            onMenuClick  = {},
-            onCartClick  = {},
-            showCart     = false
+            onMenuClick = {},
+            onCartClick = {},
+            showCart = false,
         )
     }
 }

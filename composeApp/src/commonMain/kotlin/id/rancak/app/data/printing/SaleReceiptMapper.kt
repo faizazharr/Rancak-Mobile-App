@@ -19,37 +19,39 @@ fun Sale.toReceiptData(
     storePhone: String? = null,
     cashierName: String? = null,
     tableName: String? = null,
-    footerText: String? = null
-): ReceiptData = ReceiptData(
-    storeName     = storeName,
-    storeAddress  = storeAddress,
-    storePhone    = storePhone,
-    invoiceNo     = invoiceNo ?: uuid.take(8).uppercase(),
-    orderType     = orderType.value,
-    tableName     = tableName,
-    cashierName   = cashierName,
-    createdAt     = createdAt.orEmpty(),
-    items         = items.map { item ->
-        ReceiptItem(
-            name        = item.productName,
-            variantName = item.variantName,
-            qty         = item.qty.toIntOrNull() ?: 1,
-            price       = item.price,
-            subtotal    = item.subtotal,
-            note        = item.note
-        )
-    },
-    subtotal      = subtotal,
-    discount      = discount,
-    surcharge     = surcharge,
-    tax           = tax,
-    total         = total,
-    paymentMethod = paymentMethod?.value,
-    paidAmount    = paidAmount,
-    changeAmount  = changeAmount,
-    footerText    = footerText,
-    isVoided      = status == SaleStatus.VOID || status == SaleStatus.CANCELLED
-)
+    footerText: String? = null,
+): ReceiptData =
+    ReceiptData(
+        storeName = storeName,
+        storeAddress = storeAddress,
+        storePhone = storePhone,
+        invoiceNo = invoiceNo ?: uuid.take(8).uppercase(),
+        orderType = orderType.value,
+        tableName = tableName,
+        cashierName = cashierName,
+        createdAt = createdAt.orEmpty(),
+        items =
+            items.map { item ->
+                ReceiptItem(
+                    name = item.productName,
+                    variantName = item.variantName,
+                    qty = item.qty.toIntOrNull() ?: 1,
+                    price = item.price,
+                    subtotal = item.subtotal,
+                    note = item.note,
+                )
+            },
+        subtotal = subtotal,
+        discount = discount,
+        surcharge = surcharge,
+        tax = tax,
+        total = total,
+        paymentMethod = paymentMethod?.value,
+        paidAmount = paidAmount,
+        changeAmount = changeAmount,
+        footerText = footerText,
+        isVoided = status == SaleStatus.VOID || status == SaleStatus.CANCELLED,
+    )
 
 /**
  * Maps a [Sale] domain model to [KitchenTicketData] for KOT printing.
@@ -61,23 +63,28 @@ fun Sale.toKitchenTicketData(
     storeName: String = "Rancak",
     cashierName: String? = null,
     tableName: String? = null,
-    customerName: String? = null
-): KitchenTicketData = KitchenTicketData(
-    storeName     = storeName,
-    invoiceNo     = invoiceNo ?: uuid.take(8).uppercase(),
-    orderType     = orderType.value,
-    tableName     = tableName,
-    queueNumber   = queueNumber,
-    customerName  = customerName,
-    cashierName   = cashierName,
-    createdAt     = createdAt.orEmpty(),
-    items         = items.map { item ->
-        KitchenTicketItem(
-            name = if (!item.variantName.isNullOrBlank())
-                "${item.productName} (${item.variantName})"
-            else item.productName,
-            qty  = item.qty.toIntOrNull() ?: 1,
-            note = item.note
-        )
-    }
-)
+    customerName: String? = null,
+): KitchenTicketData =
+    KitchenTicketData(
+        storeName = storeName,
+        invoiceNo = invoiceNo ?: uuid.take(8).uppercase(),
+        orderType = orderType.value,
+        tableName = tableName,
+        queueNumber = queueNumber,
+        customerName = customerName,
+        cashierName = cashierName,
+        createdAt = createdAt.orEmpty(),
+        items =
+            items.map { item ->
+                KitchenTicketItem(
+                    name =
+                        if (!item.variantName.isNullOrBlank()) {
+                            "${item.productName} (${item.variantName})"
+                        } else {
+                            item.productName
+                        },
+                    qty = item.qty.toIntOrNull() ?: 1,
+                    note = item.note,
+                )
+            },
+    )

@@ -25,48 +25,50 @@ internal fun QrisWaitingContent(
     amount: Long,
     isPolling: Boolean,
     onCancel: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(vertical = 8.dp),
+        modifier =
+            modifier
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         QrisQrCode(
             qrString = qrString,
-            size     = 200.dp,
-            label    = "Scan dengan aplikasi bank atau e-wallet"
+            size = 200.dp,
+            label = "Scan dengan aplikasi bank atau e-wallet",
         )
 
         Surface(
             shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.secondaryContainer,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 if (isPolling) {
                     CircularProgressIndicator(
-                        modifier    = Modifier.size(16.dp),
+                        modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp,
-                        color       = MaterialTheme.colorScheme.onSecondaryContainer
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                 } else {
                     Icon(
-                        Icons.Default.HourglassTop, contentDescription = null,
-                        tint     = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(16.dp)
+                        Icons.Default.HourglassTop,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(16.dp),
                     )
                 }
                 Text(
                     if (isPolling) "Menunggu konfirmasi pembayaran..." else "Memuat QR...",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
             }
         }
@@ -74,11 +76,12 @@ internal fun QrisWaitingContent(
         HorizontalDivider()
 
         OutlinedButton(
-            onClick  = onCancel,
+            onClick = onCancel,
             modifier = Modifier.fillMaxWidth(),
-            colors   = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.error
-            )
+            colors =
+                ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error,
+                ),
         ) {
             Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
@@ -87,17 +90,16 @@ internal fun QrisWaitingContent(
     }
 }
 
-
 @Preview
 @Composable
 private fun QrisWaitingPreview_Polling() {
     RancakTheme {
         QrisWaitingContent(
-            qrString  = "00020101021126...preview-qr",
-            amount    = 85_000L,
+            qrString = "00020101021126...preview-qr",
+            amount = 85_000L,
             isPolling = true,
-            onCancel  = {},
-            modifier  = Modifier.fillMaxSize()
+            onCancel = {},
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -107,11 +109,11 @@ private fun QrisWaitingPreview_Polling() {
 private fun QrisWaitingPreview_Loading() {
     RancakTheme {
         QrisWaitingContent(
-            qrString  = "",
-            amount    = 42_000L,
+            qrString = "",
+            amount = 42_000L,
             isPolling = false,
-            onCancel  = {},
-            modifier  = Modifier.fillMaxSize()
+            onCancel = {},
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }

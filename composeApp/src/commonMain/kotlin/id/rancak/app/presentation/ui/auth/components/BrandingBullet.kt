@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,26 +26,30 @@ import id.rancak.app.presentation.designsystem.RancakTheme
  * login (hanya tablet).
  */
 @Composable
-internal fun BrandingBullet(icon: ImageVector, label: String) {
+internal fun BrandingBullet(
+    icon: ImageVector,
+    label: String,
+) {
     val onPrimary = MaterialTheme.colorScheme.onPrimary
     Row(
-        modifier              = Modifier.padding(bottom = 16.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier.padding(bottom = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
-            modifier = Modifier
-                .size(34.dp)
-                .clip(CircleShape)
-                .background(onPrimary.copy(alpha = 0.13f)),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(onPrimary.copy(alpha = 0.13f)),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(icon, null, Modifier.size(17.dp), tint = onPrimary)
         }
         Text(
             label,
             style = MaterialTheme.typography.bodyMedium,
-            color = onPrimary.copy(alpha = 0.86f)
+            color = onPrimary.copy(alpha = 0.86f),
         )
     }
 }

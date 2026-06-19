@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 data class ApiResponse<T>(
     @SerialName("status_code") val statusCode: Int = 200,
     val message: String? = null,
-    val data: T? = null
+    val data: T? = null,
 ) {
     val isSuccess: Boolean get() = statusCode in 200..299
 }
@@ -24,5 +24,5 @@ data class PaginatedData<T>(
     val items: List<T>,
     val total: Int? = null,
     val page: Int? = null,
-    val limit: Int? = null
+    val limit: Int? = null,
 )

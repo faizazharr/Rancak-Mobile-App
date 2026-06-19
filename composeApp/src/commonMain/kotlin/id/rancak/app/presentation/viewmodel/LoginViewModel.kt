@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Resource
@@ -21,13 +20,12 @@ data class LoginUiState(
     val isGoogleLoading: Boolean = false,
     val error: String? = null,
     val tenants: List<Tenant>? = null,
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
 )
 
 class LoginViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
@@ -53,9 +51,9 @@ class LoginViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            password  = "",
-                            tenants   = result.data.user.tenants,
-                            isLoggedIn = true
+                            password = "",
+                            tenants = result.data.user.tenants,
+                            isLoggedIn = true,
                         )
                     }
                 }
@@ -76,7 +74,7 @@ class LoginViewModel(
                         it.copy(
                             isGoogleLoading = false,
                             tenants = result.data.user.tenants,
-                            isLoggedIn = true
+                            isLoggedIn = true,
                         )
                     }
                 }

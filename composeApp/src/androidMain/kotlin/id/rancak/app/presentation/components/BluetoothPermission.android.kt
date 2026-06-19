@@ -8,21 +8,22 @@ import androidx.compose.runtime.Composable
 
 @Composable
 actual fun rememberRequestBluetoothPermission(onResult: (Boolean) -> Unit): () -> Unit {
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        // All requested permissions must be granted
-        val allGranted = permissions.values.all { it }
-        onResult(allGranted)
-    }
+    val launcher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions(),
+        ) { permissions ->
+            // All requested permissions must be granted
+            val allGranted = permissions.values.all { it }
+            onResult(allGranted)
+        }
 
     return {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             launcher.launch(
                 arrayOf(
                     Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.BLUETOOTH_SCAN
-                )
+                    Manifest.permission.BLUETOOTH_SCAN,
+                ),
             )
         } else {
             // Pre-Android 12: these permissions not needed at runtime

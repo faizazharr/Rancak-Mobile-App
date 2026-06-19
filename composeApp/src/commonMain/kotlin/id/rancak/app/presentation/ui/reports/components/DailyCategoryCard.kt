@@ -25,43 +25,44 @@ import kotlinx.collections.immutable.toImmutableList
 @Composable
 internal fun DailyCategoryCard(categories: ImmutableList<DailyCategoryReport>) {
     Card(
-        modifier  = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(1.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(
                 "Penjualan per Kategori",
-                style      = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.outline,
-                modifier   = Modifier.padding(bottom = 8.dp)
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(bottom = 8.dp),
             )
             categories.forEach { cat ->
                 Row(
-                    modifier              = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 3.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 3.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
                         Text(
-                            text       = cat.categoryName,
-                            style      = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Medium
+                            text = cat.categoryName,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
                         )
                         Text(
-                            text  = "${cat.totalQty.toInt()} item",
+                            text = "${cat.totalQty.toInt()} item",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.outline
+                            color = MaterialTheme.colorScheme.outline,
                         )
                     }
                     Text(
-                        text       = formatRupiah(cat.totalSales),
-                        style      = MaterialTheme.typography.bodySmall,
+                        text = formatRupiah(cat.totalSales),
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
-                        color      = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -75,11 +76,12 @@ private fun DailyCategoryCardPreview() {
     RancakTheme {
         Column(Modifier.padding(12.dp)) {
             DailyCategoryCard(
-                categories = listOf(
-                    DailyCategoryReport(categoryName = "Kopi",     totalSales = 4_500_000, totalQty = 28.0),
-                    DailyCategoryReport(categoryName = "Makanan",  totalSales = 2_800_000, totalQty = 14.0),
-                    DailyCategoryReport(categoryName = "Snack",    totalSales =   750_000, totalQty =  9.0)
-                ).toImmutableList()
+                categories =
+                    listOf(
+                        DailyCategoryReport(categoryName = "Kopi", totalSales = 4_500_000, totalQty = 28.0),
+                        DailyCategoryReport(categoryName = "Makanan", totalSales = 2_800_000, totalQty = 14.0),
+                        DailyCategoryReport(categoryName = "Snack", totalSales = 750_000, totalQty = 9.0),
+                    ).toImmutableList(),
             )
         }
     }

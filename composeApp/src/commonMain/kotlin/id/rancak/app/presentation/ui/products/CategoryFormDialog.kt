@@ -16,39 +16,39 @@ fun CategoryFormDialog(
     editingCategory: Category?,
     isSubmitting: Boolean,
     onDismiss: () -> Unit,
-    onConfirm: (name: String, description: String?) -> Unit
+    onConfirm: (name: String, description: String?) -> Unit,
 ) {
-    var name        by remember(editingCategory) { mutableStateOf(editingCategory?.name ?: "") }
+    var name by remember(editingCategory) { mutableStateOf(editingCategory?.name ?: "") }
     var description by remember(editingCategory) { mutableStateOf(editingCategory?.description ?: "") }
 
     val canConfirm = !isSubmitting && name.isNotBlank()
 
     RancakFormDialog(
-        icon             = Icons.Default.Category,
-        title            = if (editingCategory == null) "Tambah Kategori" else "Edit Kategori",
-        subtitle         = if (editingCategory == null) "Buat kategori produk baru" else "Perbarui informasi kategori",
+        icon = Icons.Default.Category,
+        title = if (editingCategory == null) "Tambah Kategori" else "Edit Kategori",
+        subtitle = if (editingCategory == null) "Buat kategori produk baru" else "Perbarui informasi kategori",
         onDismissRequest = onDismiss,
-        confirmLabel     = "Simpan",
-        onConfirm        = { onConfirm(name.trim(), description.ifBlank { null }) },
-        confirmEnabled   = canConfirm,
-        isSubmitting     = isSubmitting
+        confirmLabel = "Simpan",
+        onConfirm = { onConfirm(name.trim(), description.ifBlank { null }) },
+        confirmEnabled = canConfirm,
+        isSubmitting = isSubmitting,
     ) {
         OutlinedTextField(
-            value         = name,
+            value = name,
             onValueChange = { name = it },
-            label         = { Text("Nama Kategori *") },
-            modifier      = Modifier.fillMaxWidth(),
-            singleLine    = true,
-            isError       = name.isBlank(),
-            shape         = MaterialTheme.shapes.medium
+            label = { Text("Nama Kategori *") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            isError = name.isBlank(),
+            shape = MaterialTheme.shapes.medium,
         )
         OutlinedTextField(
-            value         = description,
+            value = description,
             onValueChange = { description = it },
-            label         = { Text("Deskripsi") },
-            modifier      = Modifier.fillMaxWidth(),
-            maxLines      = 3,
-            shape         = MaterialTheme.shapes.medium
+            label = { Text("Deskripsi") },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 3,
+            shape = MaterialTheme.shapes.medium,
         )
     }
 }
@@ -61,9 +61,9 @@ private fun CategoryFormDialogAddPreview() {
     RancakTheme {
         CategoryFormDialog(
             editingCategory = null,
-            isSubmitting    = false,
-            onDismiss       = {},
-            onConfirm       = { _, _ -> }
+            isSubmitting = false,
+            onDismiss = {},
+            onConfirm = { _, _ -> },
         )
     }
 }
@@ -74,9 +74,9 @@ private fun CategoryFormDialogEditPreview() {
     RancakTheme {
         CategoryFormDialog(
             editingCategory = Category("c1", "Makanan", "Aneka makanan berat"),
-            isSubmitting    = false,
-            onDismiss       = {},
-            onConfirm       = { _, _ -> }
+            isSubmitting = false,
+            onDismiss = {},
+            onConfirm = { _, _ -> },
         )
     }
 }

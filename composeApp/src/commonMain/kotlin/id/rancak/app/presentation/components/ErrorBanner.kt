@@ -9,10 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import id.rancak.app.presentation.designsystem.RancakTheme
-import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
 
 /**
@@ -29,10 +29,11 @@ import kotlinx.coroutines.delay
 fun ErrorBanner(
     error: String?,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
-        .fillMaxWidth()
-        .zIndex(10f),
-    autoDismissMs: Long = 3000L
+    modifier: Modifier =
+        Modifier
+            .fillMaxWidth()
+            .zIndex(10f),
+    autoDismissMs: Long = 3000L,
 ) {
     // Auto-dismiss
     LaunchedEffect(error) {
@@ -46,41 +47,42 @@ fun ErrorBanner(
         visible = error != null,
         enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
         exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
-        modifier = modifier
+        modifier = modifier,
     ) {
         Surface(
             color = MaterialTheme.colorScheme.errorContainer,
-            shadowElevation = 4.dp
+            shadowElevation = 4.dp,
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Icon(
                     Icons.Default.Warning,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
                 Text(
                     text = error ?: "",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 IconButton(
                     onClick = onDismiss,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 ) {
                     Icon(
                         Icons.Default.Close,
                         contentDescription = "Tutup",
                         tint = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
@@ -98,7 +100,7 @@ private fun ErrorBannerPreview() {
             ErrorBanner(
                 error = "Email dan password wajib diisi",
                 onDismiss = {},
-                modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).zIndex(10f)
+                modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).zIndex(10f),
             )
         }
     }

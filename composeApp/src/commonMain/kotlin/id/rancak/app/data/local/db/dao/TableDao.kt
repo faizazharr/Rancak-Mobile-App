@@ -7,7 +7,6 @@ import id.rancak.app.data.local.db.entity.TableEntity
 
 @Dao
 interface TableDao {
-
     @Query("SELECT * FROM `tables` ORDER BY sortOrder ASC")
     suspend fun getAll(): List<TableEntity>
 

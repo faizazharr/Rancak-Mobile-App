@@ -8,14 +8,15 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-actual val platformModule: Module = module {
-    single { SyncManager(androidContext()) }
-    single { PrinterManager().apply { init(androidContext()) } }
-    single<AppDatabase> {
-        Room.databaseBuilder<AppDatabase>(
-            context = androidContext(),
-            name = androidContext().getDatabasePath("rancak.db").absolutePath
-        ).fallbackToDestructiveMigration(true)
-         .build()
+actual val platformModule: Module =
+    module {
+        single { SyncManager(androidContext()) }
+        single { PrinterManager().apply { init(androidContext()) } }
+        single<AppDatabase> {
+            Room.databaseBuilder<AppDatabase>(
+                context = androidContext(),
+                name = androidContext().getDatabasePath("rancak.db").absolutePath,
+            ).fallbackToDestructiveMigration(true)
+                .build()
+        }
     }
-}

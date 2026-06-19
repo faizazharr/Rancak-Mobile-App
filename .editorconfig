@@ -1,0 +1,34 @@
+# EditorConfig configuration for KtLint and style rules
+root = true
+
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 140
+
+# Configure KtLint for Jetpack Compose function naming
+ktlint_function_naming_ignore_when_annotated_with = Composable
+
+# Allow wildcard imports (already widely used in the codebase)
+ktlint_standard_no-wildcard-imports = disabled
+
+# Enforce trailing commas for clean diffs
+ktlint_standard_trailing-comma-on-call-site = enabled
+ktlint_standard_trailing-comma-on-declaration-site = enabled
+
+# Disable rules that clash with legacy comments and line lengths
+ktlint_standard_discouraged-comment-location = disabled
+ktlint_standard_if-else-wrapping = disabled
+ktlint_standard_no-consecutive-comments = disabled
+ktlint_standard_max-line-length = disabled
+ktlint_standard_filename = disabled
+ktlint_standard_property-naming = disabled
+
+[**/src/iosMain/**/*.kt]
+ktlint = disabled
+
+
+
+

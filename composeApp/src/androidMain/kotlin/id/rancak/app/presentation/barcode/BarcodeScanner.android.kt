@@ -11,7 +11,6 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.lifecycle.compose.LocalLifecycleOwner as ComposeLocalLifecycleOwner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -29,6 +27,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
+import androidx.lifecycle.compose.LocalLifecycleOwner as ComposeLocalLifecycleOwner
 
 /**
  * Android barcode scanner using CameraX + ML Kit.
@@ -40,23 +39,25 @@ import java.util.concurrent.Executors
 @Composable
 actual fun BarcodeScannerView(
     onBarcodeDetected: (String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     val context = LocalContext.current
 
     // Check initial permission state
-    val initialGranted = remember {
-        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-            android.content.pm.PackageManager.PERMISSION_GRANTED
-    }
+    val initialGranted =
+        remember {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
 
     var cameraPermissionGranted by remember { mutableStateOf(initialGranted) }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        cameraPermissionGranted = granted
-    }
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { granted ->
+            cameraPermissionGranted = granted
+        }
 
     // Request permission on first composition if not already granted
     LaunchedEffect(initialGranted) {
@@ -69,16 +70,16 @@ actual fun BarcodeScannerView(
         // Permission request in progress
         Box(
             modifier = Modifier.fillMaxSize().background(Color.Black),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
                     "Izin kamera diperlukan untuk scan barcode",
                     color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
                     Text("Izinkan Kamera")
@@ -93,7 +94,7 @@ actual fun BarcodeScannerView(
 
     CameraBarcodeScannerContent(
         onBarcodeDetected = onBarcodeDetected,
-        onClose = onClose
+        onClose = onClose,
     )
 }
 
@@ -101,7 +102,7 @@ actual fun BarcodeScannerView(
 @Composable
 private fun CameraBarcodeScannerContent(
     onBarcodeDetected: (String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = ComposeLocalLifecycleOwner.current
@@ -127,42 +128,47 @@ private fun CameraBarcodeScannerContent(
                 cameraProviderFuture.addListener({
                     val cameraProvider = cameraProviderFuture.get()
 
-                    val preview = Preview.Builder().build().also {
-                        it.surfaceProvider = previewView.surfaceProvider
-                    }
+                    val preview =
+                        Preview.Builder().build().also {
+                            it.surfaceProvider = previewView.surfaceProvider
+                        }
 
                     val mlBarcodeScanner = BarcodeScanning.getClient()
 
-                    val resolutionSelector = ResolutionSelector.Builder()
-                        .setResolutionStrategy(
-                            ResolutionStrategy(
-                                Size(1280, 720),
-                                ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER
+                    val resolutionSelector =
+                        ResolutionSelector.Builder()
+                            .setResolutionStrategy(
+                                ResolutionStrategy(
+                                    Size(1280, 720),
+                                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER,
+                                ),
                             )
-                        )
-                        .build()
+                            .build()
 
-                    val imageAnalysis = ImageAnalysis.Builder()
-                        .setResolutionSelector(resolutionSelector)
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build()
+                    val imageAnalysis =
+                        ImageAnalysis.Builder()
+                            .setResolutionSelector(resolutionSelector)
+                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                            .build()
 
                     imageAnalysis.setAnalyzer(scannerExecutor) { imageProxy ->
                         // @SuppressLint("UnsafeOptInUsageError") on the outer function covers this
                         val mediaImage = imageProxy.image
                         if (mediaImage != null) {
-                            val image = InputImage.fromMediaImage(
-                                mediaImage,
-                                imageProxy.imageInfo.rotationDegrees
-                            )
+                            val image =
+                                InputImage.fromMediaImage(
+                                    mediaImage,
+                                    imageProxy.imageInfo.rotationDegrees,
+                                )
                             mlBarcodeScanner.process(image)
                                 .addOnSuccessListener { barcodes ->
-                                    val barcode = barcodes.firstOrNull {
-                                        it.valueType == Barcode.TYPE_PRODUCT ||
-                                        it.valueType == Barcode.TYPE_TEXT ||
-                                        it.valueType == Barcode.TYPE_ISBN ||
-                                        it.valueType == Barcode.TYPE_UNKNOWN
-                                    }
+                                    val barcode =
+                                        barcodes.firstOrNull {
+                                            it.valueType == Barcode.TYPE_PRODUCT ||
+                                                it.valueType == Barcode.TYPE_TEXT ||
+                                                it.valueType == Barcode.TYPE_ISBN ||
+                                                it.valueType == Barcode.TYPE_UNKNOWN
+                                        }
                                     val value = barcode?.rawValue
                                     val now = System.currentTimeMillis()
                                     // Debounce: only fire once per second for the same code
@@ -186,7 +192,7 @@ private fun CameraBarcodeScannerContent(
                             lifecycleOwner,
                             CameraSelector.DEFAULT_BACK_CAMERA,
                             preview,
-                            imageAnalysis
+                            imageAnalysis,
                         )
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -195,15 +201,16 @@ private fun CameraBarcodeScannerContent(
 
                 previewView
             },
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         )
 
         // Scanning frame visual guide
         Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(260.dp)
-                .background(Color.Transparent)
+            modifier =
+                Modifier
+                    .align(Alignment.Center)
+                    .size(260.dp)
+                    .background(Color.Transparent),
         ) {
             // Corner indicators using small boxes
             val cornerSize = 36.dp
@@ -237,22 +244,25 @@ private fun CameraBarcodeScannerContent(
             text = "Arahkan kamera ke barcode produk",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.White,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 48.dp)
-                .background(Color(0x80000000), RoundedCornerShape(8.dp))
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 48.dp)
+                    .background(Color(0x80000000), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
         )
 
         // Close button
         Button(
             onClick = onClose,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 48.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White.copy(alpha = 0.9f)
-            )
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 48.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = Color.White.copy(alpha = 0.9f),
+                ),
         ) {
             Text("Tutup", color = Color.Black)
         }

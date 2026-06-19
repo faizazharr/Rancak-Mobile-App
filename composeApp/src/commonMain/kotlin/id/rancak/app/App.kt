@@ -1,7 +1,6 @@
 package id.rancak.app
 
 import androidx.compose.runtime.Composable
-import id.rancak.app.di.appModules
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.navigation.RancakNavHost
 

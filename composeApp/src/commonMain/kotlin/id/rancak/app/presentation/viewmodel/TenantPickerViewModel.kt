@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Resource
@@ -22,7 +21,7 @@ enum class BusinessType(val label: String) {
     RETAIL("Retail / Minimarket"),
     FASHION("Fashion / Pakaian"),
     SERVICE("Jasa & Layanan"),
-    OTHER("Lainnya")
+    OTHER("Lainnya"),
 }
 
 /** State form pengajuan outlet. */
@@ -37,10 +36,11 @@ data class OutletSubmissionFormState(
     val businessType: BusinessType? = null,
     val isSubmitting: Boolean = false,
     val isSubmitted: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
 ) {
     val isValid: Boolean
-        get() = name.isNotBlank() &&
+        get() =
+            name.isNotBlank() &&
                 phone.isNotBlank() &&
                 address.isNotBlank() &&
                 nib.isNotBlank() &&
@@ -53,7 +53,7 @@ enum class BillingIssue {
     EXPIRED,
 
     /** Langganan belum aktif — belum ada pembayaran sama sekali. */
-    INACTIVE
+    INACTIVE,
 }
 
 @Immutable
@@ -71,13 +71,12 @@ data class TenantPickerUiState(
     /** Non-null ketika tenant terpilih memiliki masalah billing (kedaluwarsa / belum bayar). */
     val billingIssue: BillingIssue? = null,
     /** True saat user memilih "Bayar Billing" — dipakai Screen untuk trigger navigasi. */
-    val isNavigatingToBilling: Boolean = false
+    val isNavigatingToBilling: Boolean = false,
 )
 
 class TenantPickerViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(TenantPickerUiState())
     val uiState: StateFlow<TenantPickerUiState> = _uiState.asStateFlow()
 
@@ -117,6 +116,7 @@ class TenantPickerViewModel(
         val tenant = _uiState.value.selectedTenant ?: return
         authRepository.setTenant(tenant.uuid, tenant.name)
         tenant.role?.let { authRepository.setUserRole(it) }
+        authRepository.setSubscriptionStatus(tenant.subscriptionStatus)
 
         val issue = detectBillingIssue(tenant.subscriptionStatus)
         if (issue != null) {
@@ -130,21 +130,22 @@ class TenantPickerViewModel(
      * Deteksi masalah billing dari status langganan tenant.
      * Status `null`, `"active"`, dan `"trial"` dianggap tidak bermasalah.
      */
-    private fun detectBillingIssue(status: String?): BillingIssue? = when (status?.lowercase()) {
-        "expired", "past_due" -> BillingIssue.EXPIRED
-        "inactive"            -> BillingIssue.INACTIVE
-        else                  -> null
-    }
+    private fun detectBillingIssue(status: String?): BillingIssue? =
+        when (status?.lowercase()) {
+            "expired", "past_due" -> BillingIssue.EXPIRED
+            "inactive" -> BillingIssue.INACTIVE
+            else -> null
+        }
 
     /**
      * Dipanggil saat user memilih "Bayar Billing".
      * Context tenant sudah di-set di [confirm] — tinggal trigger navigasi ke layar Billing.
      *
-     * Sengaja TIDAK menghapus [billingIssue] di sini agar:
+     * Sengaja TIDAK menghapus `billingIssue` di sini agar:
      * 1. BillingIssueContent tetap tampil saat navigasi berlangsung (tidak ada flash ke daftar outlet).
-     * 2. Saat user kembali (Back) dari BillingScreen, [billingIssue] masih terset sehingga
+     * 2. Saat user kembali (Back) dari BillingScreen, `billingIssue` masih terset sehingga
      *    BillingIssueContent langsung tampil kembali tanpa flash ke daftar outlet.
-     * [billingIssue] akan otomatis null saat [loadTenants] + [confirm] mendapati status sudah aktif.
+     * `billingIssue` akan otomatis null saat [loadTenants] + [confirm] mendapati status sudah aktif.
      */
     fun continueToBilling() {
         _uiState.update { it.copy(isNavigatingToBilling = true) }
@@ -165,16 +166,14 @@ class TenantPickerViewModel(
 
     // ── Outlet submission ─────────────────────────────────────────────────────
 
-    fun updateSubmissionName(value: String) =
-        _uiState.update { it.copy(submission = it.submission.copy(name = value, error = null)) }
+    fun updateSubmissionName(value: String) = _uiState.update { it.copy(submission = it.submission.copy(name = value, error = null)) }
 
     fun updateSubmissionPhone(value: String) =
         _uiState.update {
             it.copy(submission = it.submission.copy(phone = value.filter { c -> c.isDigit() || c == '+' }, error = null))
         }
 
-    fun updateSubmissionAddress(value: String) =
-        _uiState.update { it.copy(submission = it.submission.copy(address = value, error = null)) }
+    fun updateSubmissionAddress(value: String) = _uiState.update { it.copy(submission = it.submission.copy(address = value, error = null)) }
 
     fun updateSubmissionGmapsUrl(value: String) =
         _uiState.update { it.copy(submission = it.submission.copy(gmapsUrl = value, error = null)) }
@@ -187,14 +186,11 @@ class TenantPickerViewModel(
     fun updateSubmissionBusinessType(value: BusinessType) =
         _uiState.update { it.copy(submission = it.submission.copy(businessType = value, error = null)) }
 
-    fun openSubmissionForm() =
-        _uiState.update { it.copy(submission = it.submission.copy(isFormOpen = true, error = null)) }
+    fun openSubmissionForm() = _uiState.update { it.copy(submission = it.submission.copy(isFormOpen = true, error = null)) }
 
-    fun closeSubmissionForm() =
-        _uiState.update { it.copy(submission = it.submission.copy(isFormOpen = false, error = null)) }
+    fun closeSubmissionForm() = _uiState.update { it.copy(submission = it.submission.copy(isFormOpen = false, error = null)) }
 
-    fun resetSubmission() =
-        _uiState.update { it.copy(submission = OutletSubmissionFormState()) }
+    fun resetSubmission() = _uiState.update { it.copy(submission = OutletSubmissionFormState()) }
 
     /**
      * Kirim pengajuan outlet baru ke `POST /applications`.
@@ -216,14 +212,15 @@ class TenantPickerViewModel(
             _uiState.update {
                 it.copy(submission = it.submission.copy(isSubmitting = true, error = null))
             }
-            val result = authRepository.submitOutletApplication(
-                outletName    = form.name.trim(),
-                phone         = form.phone.trim(),
-                address       = form.address.trim(),
-                nib           = form.nib.trim(),
-                businessType  = businessType.label,
-                googleMapsUrl = form.gmapsUrl.trim().ifBlank { null }
-            )
+            val result =
+                authRepository.submitOutletApplication(
+                    outletName = form.name.trim(),
+                    phone = form.phone.trim(),
+                    address = form.address.trim(),
+                    nib = form.nib.trim(),
+                    businessType = businessType.label,
+                    googleMapsUrl = form.gmapsUrl.trim().ifBlank { null },
+                )
             when (result) {
                 is Resource.Success -> {
                     val app = result.data
@@ -241,10 +238,11 @@ class TenantPickerViewModel(
                 is Resource.Error -> {
                     _uiState.update {
                         it.copy(
-                            submission = it.submission.copy(
-                                isSubmitting = false,
-                                error = result.message
-                            )
+                            submission =
+                                it.submission.copy(
+                                    isSubmitting = false,
+                                    error = result.message,
+                                ),
                         )
                     }
                 }
@@ -253,4 +251,3 @@ class TenantPickerViewModel(
         }
     }
 }
-

@@ -21,46 +21,54 @@ import kotlin.time.Clock
  * DTO → domain mappers for Reports (sales, stock, low-stock, expiring, daily-by-category).
  */
 
-fun MySalesReportDto.toDomain() = MySalesReport(
-    totalSales = totalSales.toLongOrNull() ?: 0L,
-    totalTransactions = totalTransactions,
-    cashTotal = cashTotal.toLongOrNull() ?: 0L
-)
+fun MySalesReportDto.toDomain() =
+    MySalesReport(
+        totalSales = totalSales.toLongOrNull() ?: 0L,
+        totalTransactions = totalTransactions,
+        cashTotal = cashTotal.toLongOrNull() ?: 0L,
+    )
 
-fun StockReportDto.toDomain() = StockReport(
-    productUuid = productUuid,
-    sku = sku,
-    name = name,
-    stock = stock,
-    stockAlertThreshold = stockAlertThreshold
-)
+fun StockReportDto.toDomain() =
+    StockReport(
+        productUuid = productUuid,
+        sku = sku,
+        name = name,
+        stock = stock,
+        stockAlertThreshold = stockAlertThreshold,
+    )
 
-fun LowStockDto.toDomain() = LowStock(
-    productUuid = productUuid,
-    productName = productName,
-    sku = sku,
-    currentStock = currentStock,
-    threshold = threshold
-)
+fun LowStockDto.toDomain() =
+    LowStock(
+        productUuid = productUuid,
+        productName = productName,
+        sku = sku,
+        currentStock = currentStock,
+        threshold = threshold,
+    )
 
-fun StockAlertDto.toDomain() = StockAlert(
-    productUuid = productUuid,
-    productName = productName,
-    sku = sku,
-    alertType = alertType,
-    currentStock = stock,
-    threshold = threshold
-)
+fun StockAlertDto.toDomain() =
+    StockAlert(
+        productUuid = productUuid,
+        productName = productName,
+        sku = sku,
+        alertType = alertType,
+        currentStock = stock,
+        threshold = threshold,
+    )
 
 fun ExpiringBatchDto.toDomain(): ExpiringBatch {
-    val days = expiryDate?.let {
-        try {
-            val expiry = LocalDate.parse(it)
-            val today = Clock.System.now()
-                .toLocalDateTime(TimeZone.currentSystemDefault()).date
-            (expiry.toEpochDays() - today.toEpochDays()).toInt()
-        } catch (_: Exception) { 0 }
-    } ?: 0
+    val days =
+        expiryDate?.let {
+            try {
+                val expiry = LocalDate.parse(it)
+                val today =
+                    Clock.System.now()
+                        .toLocalDateTime(TimeZone.currentSystemDefault()).date
+                (expiry.toEpochDays() - today.toEpochDays()).toInt()
+            } catch (_: Exception) {
+                0
+            }
+        } ?: 0
     return ExpiringBatch(
         batchUuid = batchUuid,
         productUuid = productUuid,
@@ -68,12 +76,13 @@ fun ExpiringBatchDto.toDomain(): ExpiringBatch {
         batchNumber = batchNumber,
         expiryDate = expiryDate ?: "",
         quantityRemaining = quantityRemaining,
-        daysUntilExpiry = days
+        daysUntilExpiry = days,
     )
 }
 
-fun DailyCategoryReportDto.toDomain() = DailyCategoryReport(
-    categoryName = categoryName,
-    totalSales = totalRevenue,
-    totalQty = totalQty
-)
+fun DailyCategoryReportDto.toDomain() =
+    DailyCategoryReport(
+        categoryName = categoryName,
+        totalSales = totalRevenue,
+        totalQty = totalQty,
+    )

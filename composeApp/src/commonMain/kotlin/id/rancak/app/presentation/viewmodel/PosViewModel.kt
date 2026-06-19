@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Category
@@ -14,17 +13,16 @@ import id.rancak.app.domain.repository.ProductRepository
 import id.rancak.app.domain.repository.UserSessionProvider
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Immutable
 data class PosUiState(
@@ -46,46 +44,51 @@ data class PosUiState(
      */
     val modifierCache: PersistentMap<String, ImmutableList<Modifier>> = persistentMapOf(),
     /** Set productUuid yang sedang dalam proses load modifier — cegah double request. */
-    val loadingModifierUuids: Set<String> = emptySet()
+    val loadingModifierUuids: Set<String> = emptySet(),
 )
 
 class PosViewModel(
     private val productRepository: ProductRepository,
-    private val sessionProvider: UserSessionProvider
+    private val sessionProvider: UserSessionProvider,
 ) : ViewModel() {
-
-    private val _uiState = MutableStateFlow(PosUiState(
-        outletName = sessionProvider.getCurrentTenantName() ?: ""
-    ))
+    private val _uiState =
+        MutableStateFlow(
+            PosUiState(
+                outletName = sessionProvider.getCurrentTenantName() ?: "",
+            ),
+        )
     val uiState: StateFlow<PosUiState> = _uiState.asStateFlow()
 
     /** Recompute derived fields setiap kali data sumber berubah. */
-    private suspend fun PosUiState.recompute(): PosUiState = withContext(Dispatchers.Default) {
-        val set = products86.mapTo(mutableSetOf()) { it.productUuid }
-        var filtered = products.filter { it.isActive }
-        if (selectedCategory != null) {
-            filtered = filtered.filter { it.category?.uuid == selectedCategory.uuid }
-        }
-        if (searchQuery.isNotBlank()) {
-            val query = searchQuery.lowercase()
-            filtered = filtered.filter {
-                it.name.lowercase().contains(query) ||
-                it.sku?.lowercase()?.contains(query) == true ||
-                it.barcode?.contains(query) == true
+    private suspend fun PosUiState.recompute(): PosUiState =
+        withContext(Dispatchers.Default) {
+            val set = products86.mapTo(mutableSetOf()) { it.productUuid }
+            var filtered = products.filter { it.isActive }
+            if (selectedCategory != null) {
+                filtered = filtered.filter { it.category?.uuid == selectedCategory.uuid }
             }
+            if (searchQuery.isNotBlank()) {
+                val query = searchQuery.lowercase()
+                filtered =
+                    filtered.filter {
+                        it.name.lowercase().contains(query) ||
+                            it.sku?.lowercase()?.contains(query) == true ||
+                            it.barcode?.contains(query) == true
+                    }
+            }
+            copy(products86Uuids = set, filteredProducts = filtered.toImmutableList())
         }
-        copy(products86Uuids = set, filteredProducts = filtered.toImmutableList())
-    }
 
     fun loadProducts() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             when (val result = productRepository.getProducts()) {
                 is Resource.Success -> {
-                    val newState = _uiState.value.copy(
-                        products = result.data.toImmutableList(),
-                        isLoading = false
-                    ).recompute()
+                    val newState =
+                        _uiState.value.copy(
+                            products = result.data.toImmutableList(),
+                            isLoading = false,
+                        ).recompute()
                     _uiState.value = newState
                 }
                 is Resource.Error -> {
@@ -117,9 +120,10 @@ class PosViewModel(
 
     fun onCategorySelected(category: Category?) {
         viewModelScope.launch {
-            val newState = _uiState.value.copy(
-                selectedCategory = if (_uiState.value.selectedCategory == category) null else category
-            ).recompute()
+            val newState =
+                _uiState.value.copy(
+                    selectedCategory = if (_uiState.value.selectedCategory == category) null else category,
+                ).recompute()
             _uiState.value = newState
         }
     }
@@ -145,9 +149,10 @@ class PosViewModel(
         viewModelScope.launch {
             when (val result = productRepository.get86Products()) {
                 is Resource.Success -> {
-                    val newState = _uiState.value.copy(
-                        products86 = result.data.toImmutableList()
-                    ).recompute()
+                    val newState =
+                        _uiState.value.copy(
+                            products86 = result.data.toImmutableList(),
+                        ).recompute()
                     _uiState.value = newState
                 }
                 is Resource.Error -> { /* silent fail for 86 */ }
@@ -169,15 +174,17 @@ class PosViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(loadingModifierUuids = it.loadingModifierUuids + productUuid) }
             when (val result = productRepository.getModifiers(productUuid)) {
-                is Resource.Success -> _uiState.update { s ->
-                    s.copy(
-                        modifierCache       = s.modifierCache.put(productUuid, result.data.toImmutableList()),
-                        loadingModifierUuids = s.loadingModifierUuids - productUuid
-                    )
-                }
-                is Resource.Error -> _uiState.update { s ->
-                    s.copy(loadingModifierUuids = s.loadingModifierUuids - productUuid)
-                }
+                is Resource.Success ->
+                    _uiState.update { s ->
+                        s.copy(
+                            modifierCache = s.modifierCache.put(productUuid, result.data.toImmutableList()),
+                            loadingModifierUuids = s.loadingModifierUuids - productUuid,
+                        )
+                    }
+                is Resource.Error ->
+                    _uiState.update { s ->
+                        s.copy(loadingModifierUuids = s.loadingModifierUuids - productUuid)
+                    }
                 is Resource.Loading -> {}
             }
         }

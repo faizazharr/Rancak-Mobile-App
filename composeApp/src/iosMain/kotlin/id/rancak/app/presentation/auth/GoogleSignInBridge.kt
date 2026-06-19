@@ -7,7 +7,10 @@ package id.rancak.app.presentation.auth
  *   completion.onResult(nil, "error msg")  // gagal
  */
 fun interface GoogleSignInCompletion {
-    fun onResult(idToken: String?, error: String?)
+    fun onResult(
+        idToken: String?,
+        error: String?,
+    )
 }
 
 /**

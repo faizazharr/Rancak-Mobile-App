@@ -27,7 +27,6 @@ package id.rancak.app.data.printing
  */
 @androidx.compose.runtime.Stable
 expect class PrinterManager() {
-
     // ── Network (TCP/IP) ── identical on both platforms ──────────────────────
 
     /**
@@ -39,7 +38,7 @@ expect class PrinterManager() {
     suspend fun printViaNetwork(
         ipAddress: String,
         port: Int = 9100,
-        data: ByteArray
+        data: ByteArray,
     ): PrintResult
 
     // ── Bluetooth ── platform-specific implementation ─────────────────────────
@@ -65,6 +64,6 @@ expect class PrinterManager() {
      */
     suspend fun printViaBluetooth(
         address: String,
-        data: ByteArray
+        data: ByteArray,
     ): PrintResult
 }

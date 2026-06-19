@@ -22,27 +22,31 @@ fun TaxTab(
     onEdit: (TaxConfig) -> Unit,
     onDelete: (TaxConfig) -> Unit,
     onToggleActive: (TaxConfig, Boolean) -> Unit = { _, _ -> },
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (taxConfigs.isEmpty()) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Belum ada konfigurasi pajak", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Belum ada konfigurasi pajak",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         return
     }
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         items(taxConfigs, key = { it.uuid }) { item ->
             PricingCard(
-                title    = item.name,
+                title = item.name,
                 subtitle = "${item.rate}% · ${item.applyTo}",
                 isActive = item.isActive,
-                onEdit   = { onEdit(item) },
+                onEdit = { onEdit(item) },
                 onDelete = { onDelete(item) },
-                onToggleActive = { isActive -> onToggleActive(item, isActive) }
+                onToggleActive = { isActive -> onToggleActive(item, isActive) },
             )
         }
     }
@@ -55,12 +59,13 @@ fun TaxTab(
 private fun TaxTabPreview() {
     RancakTheme {
         TaxTab(
-            taxConfigs = listOf(
-                TaxConfig("1", "PPN", 11.0, "after_discount", 1, true),
-                TaxConfig("2", "PPn BM", 20.0, "before_discount", 2, false)
-            ).toImmutableList(),
-            onEdit   = {},
-            onDelete = {}
+            taxConfigs =
+                listOf(
+                    TaxConfig("1", "PPN", 11.0, "after_discount", 1, true),
+                    TaxConfig("2", "PPn BM", 20.0, "before_discount", 2, false),
+                ).toImmutableList(),
+            onEdit = {},
+            onDelete = {},
         )
     }
 }

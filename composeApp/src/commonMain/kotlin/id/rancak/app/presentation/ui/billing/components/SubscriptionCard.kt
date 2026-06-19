@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,44 +24,45 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.designsystem.Tertiary
 import id.rancak.app.presentation.ui.billing.Quadruple
 import id.rancak.app.presentation.ui.billing.linearGradientBrush
-import androidx.compose.material.icons.filled.Refresh
 
 @Composable
 fun SubscriptionCard(
     subscription: SubscriptionState?,
     isTablet: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val (gradientStart, gradientEnd, statusLabel, statusIcon) = when (subscription?.status) {
-        "active"  -> Quadruple(Primary, Color(0xFF1DB88A), "Aktif", Icons.Default.CheckCircle)
-        "trial"   -> Quadruple(Tertiary, Color(0xFF5588EE), "Trial", Icons.Default.HourglassTop)
-        "expired" -> Quadruple(Color(0xFF9E9E9E), Color(0xFF757575), "Kedaluwarsa", Icons.Default.ErrorOutline)
-        else      -> Quadruple(Color(0xFF9E9E9E), Color(0xFF757575), "Tidak Aktif", Icons.Default.Block)
-    }
+    val (gradientStart, gradientEnd, statusLabel, statusIcon) =
+        when (subscription?.status) {
+            "active" -> Quadruple(Primary, Color(0xFF1DB88A), "Aktif", Icons.Default.CheckCircle)
+            "trial" -> Quadruple(Tertiary, Color(0xFF5588EE), "Trial", Icons.Default.HourglassTop)
+            "expired" -> Quadruple(Color(0xFF9E9E9E), Color(0xFF757575), "Kedaluwarsa", Icons.Default.ErrorOutline)
+            else -> Quadruple(Color(0xFF9E9E9E), Color(0xFF757575), "Tidak Aktif", Icons.Default.Block)
+        }
 
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.extraLarge)
-            .background(Brush.linearGradientBrush(listOf(gradientStart, gradientEnd)))
-            .padding(horizontal = if (isTablet) 20.dp else 16.dp, vertical = if (isTablet) 18.dp else 14.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(Brush.linearGradientBrush(listOf(gradientStart, gradientEnd)))
+                .padding(horizontal = if (isTablet) 20.dp else 16.dp, vertical = if (isTablet) 18.dp else 14.dp),
     ) {
         // Tablet & phone share the same vertical structure — tablet just gets bigger text/spacing.
-        val planNameStyle  = if (isTablet) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge
-        val labelStyle     = if (isTablet) MaterialTheme.typography.labelMedium   else MaterialTheme.typography.labelSmall
-        val spacing        = if (isTablet) 10.dp else 8.dp
-        val iconSize       = if (isTablet) 16.dp else 14.dp
+        val planNameStyle = if (isTablet) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge
+        val labelStyle = if (isTablet) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall
+        val spacing = if (isTablet) 10.dp else 8.dp
+        val iconSize = if (isTablet) 16.dp else 14.dp
 
         Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Icon(statusIcon, null, tint = Color.White, modifier = Modifier.size(iconSize))
                 Text(
                     "Status Langganan",
                     style = labelStyle,
-                    color = Color.White.copy(alpha = 0.75f)
+                    color = Color.White.copy(alpha = 0.75f),
                 )
                 Spacer(Modifier.weight(1f))
                 SubStatusPill(statusLabel)
@@ -71,48 +73,48 @@ fun SubscriptionCard(
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             if (subscription != null) {
                 HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     SubInfoItem(
                         label = "Mulai",
                         value = subscription.startedAt?.take(10) ?: "-",
-                        isTablet = isTablet
+                        isTablet = isTablet,
                     )
                     SubInfoItem(
                         label = "Berakhir",
                         value = subscription.expiresAt?.take(10) ?: "-",
                         align = Alignment.CenterHorizontally,
-                        isTablet = isTablet
+                        isTablet = isTablet,
                     )
                     SubInfoItem(
                         label = "Maks. Pengguna",
                         value = subscription.maxUsers?.toString() ?: "∞",
                         align = Alignment.End,
-                        isTablet = isTablet
+                        isTablet = isTablet,
                     )
                 }
                 if (subscription.status == "expired") {
                     HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Icon(
                             Icons.Default.Refresh,
                             contentDescription = null,
                             tint = Color.White.copy(alpha = 0.85f),
-                            modifier = Modifier.size(if (isTablet) 14.dp else 12.dp)
+                            modifier = Modifier.size(if (isTablet) 14.dp else 12.dp),
                         )
                         Text(
                             "Masa berlaku habis — pilih paket di bawah untuk memperbarui",
                             style = if (isTablet) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.85f)
+                            color = Color.White.copy(alpha = 0.85f),
                         )
                     }
                 }
@@ -129,7 +131,7 @@ private fun SubStatusPill(label: String) {
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             color = Color.White,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
         )
     }
 }
@@ -140,20 +142,20 @@ private fun SubInfoItem(
     value: String,
     align: Alignment.Horizontal = Alignment.Start,
     isTablet: Boolean = false,
-    minWidth: Dp = Dp.Unspecified
+    minWidth: Dp = Dp.Unspecified,
 ) {
     val mod = if (minWidth != Dp.Unspecified) Modifier.widthIn(min = minWidth) else Modifier
     Column(
         modifier = mod,
         horizontalAlignment = align,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Text(
             label,
             style = if (isTablet) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.65f),
             maxLines = 1,
-            overflow = TextOverflow.Clip
+            overflow = TextOverflow.Clip,
         )
         Text(
             value,
@@ -161,7 +163,7 @@ private fun SubInfoItem(
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -174,7 +176,7 @@ private fun SubscriptionCardActivePreview() {
     RancakTheme {
         SubscriptionCard(
             subscription = SubscriptionState("active", "pro", "2024-01-01", "2025-01-01", 5, false),
-            isTablet = false
+            isTablet = false,
         )
     }
 }

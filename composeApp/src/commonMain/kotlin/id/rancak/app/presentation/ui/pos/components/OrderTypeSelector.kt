@@ -24,54 +24,58 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
 internal fun OrderTypeSelector(
-    selected:        OrderType,
-    surface:         Color,
-    primary:         Color,
+    selected: OrderType,
+    surface: Color,
+    primary: Color,
     onSurfaceVariant: Color,
-    onSelect:        (OrderType) -> Unit
+    onSelect: (OrderType) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(surface)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(surface)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         OrderType.entries.forEach { type ->
             val isSelected = selected == type
-            val (icon, label) = when (type) {
-                OrderType.DINE_IN  -> Icons.Default.Restaurant    to "Dine In"
-                OrderType.TAKEAWAY -> Icons.Default.ShoppingBag   to "Takeaway"
-                OrderType.DELIVERY -> Icons.Default.DeliveryDining to "Delivery"
-            }
+            val (icon, label) =
+                when (type) {
+                    OrderType.DINE_IN -> Icons.Default.Restaurant to "Dine In"
+                    OrderType.TAKEAWAY -> Icons.Default.ShoppingBag to "Takeaway"
+                    OrderType.DELIVERY -> Icons.Default.DeliveryDining to "Delivery"
+                }
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(min = 48.dp)
-                    .clip(MaterialTheme.shapes.large)
-                    .background(if (isSelected) primary else surface)
-                    .border(
-                        1.dp,
-                        if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
-                        MaterialTheme.shapes.large
-                    )
-                    .clickable { onSelect(type) },
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .heightIn(min = 48.dp)
+                        .clip(MaterialTheme.shapes.large)
+                        .background(if (isSelected) primary else surface)
+                        .border(
+                            1.dp,
+                            if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+                            MaterialTheme.shapes.large,
+                        )
+                        .clickable { onSelect(type) },
+                contentAlignment = Alignment.Center,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     Icon(
-                        icon, null,
+                        icon,
+                        null,
                         Modifier.size(20.dp),
-                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant
+                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant,
                     )
                     Text(
                         label,
-                        style      = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color      = if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else onSurfaceVariant,
                     )
                 }
             }
@@ -86,11 +90,11 @@ internal fun OrderTypeSelector(
 private fun OrderTypeSelectorPreview_DineIn() {
     RancakTheme {
         OrderTypeSelector(
-            selected         = OrderType.DINE_IN,
-            surface          = MaterialTheme.colorScheme.surface,
-            primary          = MaterialTheme.colorScheme.primary,
+            selected = OrderType.DINE_IN,
+            surface = MaterialTheme.colorScheme.surface,
+            primary = MaterialTheme.colorScheme.primary,
             onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant,
-            onSelect         = {}
+            onSelect = {},
         )
     }
 }
@@ -100,11 +104,11 @@ private fun OrderTypeSelectorPreview_DineIn() {
 private fun OrderTypeSelectorPreview_Takeaway() {
     RancakTheme {
         OrderTypeSelector(
-            selected         = OrderType.TAKEAWAY,
-            surface          = MaterialTheme.colorScheme.surface,
-            primary          = MaterialTheme.colorScheme.primary,
+            selected = OrderType.TAKEAWAY,
+            surface = MaterialTheme.colorScheme.surface,
+            primary = MaterialTheme.colorScheme.primary,
             onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant,
-            onSelect         = {}
+            onSelect = {},
         )
     }
 }

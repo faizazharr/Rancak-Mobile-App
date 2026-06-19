@@ -19,15 +19,15 @@ import id.rancak.app.presentation.ui.pricing.components.VoucherCard
 import id.rancak.app.presentation.ui.pricing.components.VoucherFormContent
 import id.rancak.app.presentation.ui.pricing.components.VoucherFormPanel
 import id.rancak.app.presentation.viewmodel.VoucherManagementViewModel
-import kotlinx.coroutines.launch
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun VoucherManagementScreen(
     onBack: () -> Unit,
-    onPricing: () -> Unit = {}
+    onPricing: () -> Unit = {},
 ) {
     val viewModel: VoucherManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -54,12 +54,12 @@ fun VoucherManagementScreen(
         // Phone only: form opens full-screen, replacing this entire screen
         if (!isTablet && uiState.showFormDialog) {
             VoucherFormContent(
-                editing      = uiState.editingVoucher,
+                editing = uiState.editingVoucher,
                 isSubmitting = uiState.isSubmitting,
-                onBack       = viewModel::closeForm,
-                onConfirm    = { code, name, dt, dv, vf, desc, md, mp, ul, vu, active ->
+                onBack = viewModel::closeForm,
+                onConfirm = { code, name, dt, dv, vf, desc, md, mp, ul, vu, active ->
                     viewModel.save(code, name, dt, dv, vf, desc, md, mp, ul, vu, active)
-                }
+                },
             )
             return@BoxWithConstraints
         }
@@ -67,15 +67,15 @@ fun VoucherManagementScreen(
         Scaffold(
             topBar = {
                 RancakTopBar(
-                    title    = "Voucher",
-                    icon     = Icons.Default.LocalOffer,
-                    onMenu   = onBack,
+                    title = "Voucher",
+                    icon = Icons.Default.LocalOffer,
+                    onMenu = onBack,
                     subtitle = "${uiState.vouchers.size} voucher",
-                    actions  = {
+                    actions = {
                         IconButton(onClick = onPricing) {
                             Icon(Icons.Default.Sell, contentDescription = "Harga & Diskon")
                         }
-                    }
+                    },
                 )
             },
             floatingActionButton = {
@@ -85,30 +85,29 @@ fun VoucherManagementScreen(
                     }
                 }
             },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
+            snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding ->
             if (isTablet) {
                 // ── Tablet: split layout ─────────────────────────────────────
                 Row(Modifier.padding(padding).fillMaxSize()) {
-
                     // Left panel: filter chips + voucher list
                     Column(
                         Modifier
                             .weight(0.42f)
-                            .fillMaxHeight()
+                            .fillMaxHeight(),
                     ) {
                         VoucherFilterRow(
                             filterActive = uiState.filterActive,
-                            onFilter     = viewModel::setFilter,
-                            onAddVoucher = { viewModel.openForm() }
+                            onFilter = viewModel::setFilter,
+                            onAddVoucher = { viewModel.openForm() },
                         )
                         HorizontalDivider()
                         VoucherListContent(
                             isLoading = uiState.isLoading,
-                            vouchers  = uiState.vouchers.toImmutableList(),
-                            onEdit    = { viewModel.openForm(it) },
-                            onDelete  = { viewModel.openDeleteConfirm(it) },
-                            modifier  = Modifier.fillMaxSize()
+                            vouchers = uiState.vouchers.toImmutableList(),
+                            onEdit = { viewModel.openForm(it) },
+                            onDelete = { viewModel.openDeleteConfirm(it) },
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
 
@@ -118,39 +117,40 @@ fun VoucherManagementScreen(
                     Box(
                         Modifier
                             .weight(0.58f)
-                            .fillMaxHeight()
+                            .fillMaxHeight(),
                     ) {
                         if (uiState.showFormDialog) {
                             VoucherFormPanel(
-                                editing      = uiState.editingVoucher,
+                                editing = uiState.editingVoucher,
                                 isSubmitting = uiState.isSubmitting,
-                                onClose      = viewModel::closeForm,
-                                onConfirm    = { code, name, dt, dv, vf, desc, md, mp, ul, vu, active ->
+                                onClose = viewModel::closeForm,
+                                onConfirm = { code, name, dt, dv, vf, desc, md, mp, ul, vu, active ->
                                     viewModel.save(code, name, dt, dv, vf, desc, md, mp, ul, vu, active)
-                                }
+                                },
                             )
                         } else {
                             Column(
                                 Modifier.fillMaxSize(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
+                                verticalArrangement = Arrangement.Center,
                             ) {
                                 Icon(
-                                    Icons.Default.LocalOffer, null,
+                                    Icons.Default.LocalOffer,
+                                    null,
                                     Modifier.size(72.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f),
                                 )
                                 Spacer(Modifier.height(16.dp))
                                 Text(
                                     "Pilih voucher untuk diedit",
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     "atau tekan + untuk menambah baru",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 )
                             }
                         }
@@ -161,15 +161,15 @@ fun VoucherManagementScreen(
                 Column(Modifier.padding(padding).fillMaxSize()) {
                     VoucherFilterRow(
                         filterActive = uiState.filterActive,
-                        onFilter     = viewModel::setFilter
+                        onFilter = viewModel::setFilter,
                     )
                     HorizontalDivider()
                     VoucherListContent(
                         isLoading = uiState.isLoading,
-                        vouchers  = uiState.vouchers.toImmutableList(),
-                        onEdit    = { viewModel.openForm(it) },
-                        onDelete  = { viewModel.openDeleteConfirm(it) },
-                        modifier  = Modifier.fillMaxSize()
+                        vouchers = uiState.vouchers.toImmutableList(),
+                        onEdit = { viewModel.openForm(it) },
+                        onDelete = { viewModel.openDeleteConfirm(it) },
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }
@@ -180,19 +180,22 @@ fun VoucherManagementScreen(
             AlertDialog(
                 onDismissRequest = { if (!uiState.isSubmitting) viewModel.closeDeleteConfirm() },
                 title = { Text("Hapus Voucher") },
-                text  = { Text("Hapus voucher \"${uiState.editingVoucher!!.code}\"? Tindakan ini tidak dapat dibatalkan.") },
+                text = { Text("Hapus voucher \"${uiState.editingVoucher!!.code}\"? Tindakan ini tidak dapat dibatalkan.") },
                 confirmButton = {
                     TextButton(onClick = viewModel::delete, enabled = !uiState.isSubmitting) {
-                        if (uiState.isSubmitting) CircularProgressIndicator(Modifier.size(16.dp))
-                        else Text("Hapus", color = MaterialTheme.colorScheme.error)
+                        if (uiState.isSubmitting) {
+                            CircularProgressIndicator(Modifier.size(16.dp))
+                        } else {
+                            Text("Hapus", color = MaterialTheme.colorScheme.error)
+                        }
                     }
                 },
                 dismissButton = {
                     TextButton(
-                        onClick  = viewModel::closeDeleteConfirm,
-                        enabled  = !uiState.isSubmitting
+                        onClick = viewModel::closeDeleteConfirm,
+                        enabled = !uiState.isSubmitting,
                     ) { Text("Batal") }
-                }
+                },
             )
         }
     }
@@ -204,27 +207,28 @@ fun VoucherManagementScreen(
 private fun VoucherFilterRow(
     filterActive: Boolean?,
     onFilter: (Boolean?) -> Unit,
-    onAddVoucher: (() -> Unit)? = null  // non-null → tablet mode: show inline button
+    onAddVoucher: (() -> Unit)? = null, // non-null → tablet mode: show inline button
 ) {
     Row(
-        modifier              = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         listOf(null to "Semua", true to "Aktif", false to "Nonaktif").forEach { (value, label) ->
             FilterChip(
                 selected = filterActive == value,
-                onClick  = { onFilter(value) },
-                label    = { Text(label, style = MaterialTheme.typography.labelMedium) }
+                onClick = { onFilter(value) },
+                label = { Text(label, style = MaterialTheme.typography.labelMedium) },
             )
         }
         if (onAddVoucher != null) {
             Spacer(Modifier.weight(1f))
             Button(
-                onClick        = onAddVoucher,
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                onClick = onAddVoucher,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 Icon(Icons.Default.Add, null, Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
@@ -242,37 +246,40 @@ private fun VoucherListContent(
     vouchers: ImmutableList<Voucher>,
     onEdit: (Voucher) -> Unit,
     onDelete: (Voucher) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     when {
         isLoading -> LoadingScreen(modifier)
-        vouchers.isEmpty() -> Box(modifier, contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    Icons.Default.LocalOffer, null,
-                    Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                )
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    "Belum ada voucher",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        vouchers.isEmpty() ->
+            Box(modifier, contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Default.LocalOffer,
+                        null,
+                        Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Belum ada voucher",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-        }
-        else -> LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = modifier
-        ) {
-            items(vouchers, key = { it.uuid }) { voucher ->
-                VoucherCard(
-                    voucher  = voucher,
-                    onEdit   = { onEdit(voucher) },
-                    onDelete = { onDelete(voucher) }
-                )
+        else ->
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = modifier,
+            ) {
+                items(vouchers, key = { it.uuid }) { voucher ->
+                    VoucherCard(
+                        voucher = voucher,
+                        onEdit = { onEdit(voucher) },
+                        onDelete = { onDelete(voucher) },
+                    )
+                }
             }
-        }
     }
 }

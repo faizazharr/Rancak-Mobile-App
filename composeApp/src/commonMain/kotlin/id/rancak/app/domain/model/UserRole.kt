@@ -10,17 +10,19 @@ package id.rancak.app.domain.model
 enum class UserRole(val value: String, val level: Int) {
     STAFF("staff", 1),
     ADMIN("admin", 2),
-    OWNER("owner", 3);
+    OWNER("owner", 3),
+    ;
 
     /** Apakah peran ini memenuhi minimum [required]? */
     fun atLeast(required: UserRole): Boolean = this.level >= required.level
 
     /** Nama tampilan peran dalam Bahasa Indonesia. */
-    fun displayName(): String = when (this) {
-        STAFF -> "Staff"
-        ADMIN -> "Admin"
-        OWNER -> "Owner"
-    }
+    fun displayName(): String =
+        when (this) {
+            STAFF -> "Staff"
+            ADMIN -> "Admin"
+            OWNER -> "Owner"
+        }
 
     companion object {
         /**

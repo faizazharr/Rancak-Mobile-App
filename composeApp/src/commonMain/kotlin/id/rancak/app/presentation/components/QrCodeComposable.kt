@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
@@ -11,11 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.Image
-import androidx.compose.ui.tooling.preview.Preview
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.util.formatRupiah
 import io.github.alexzhirkevich.qrose.options.*
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 
@@ -30,32 +31,34 @@ import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 fun QrisQrCode(
     qrString: String,
     size: Dp = 240.dp,
-    label: String? = null
+    label: String? = null,
 ) {
     if (qrString.isBlank()) return
 
-    val painter = rememberQrCodePainter(data = qrString) {
-        shapes {
-            ball  = QrBallShape.circle()
-            frame = QrFrameShape.roundCorners(0.25f)
-            darkPixel = QrPixelShape.roundCorners()
+    val painter =
+        rememberQrCodePainter(data = qrString) {
+            shapes {
+                ball = QrBallShape.circle()
+                frame = QrFrameShape.roundCorners(0.25f)
+                darkPixel = QrPixelShape.roundCorners()
+            }
+            colors {
+                dark = QrBrush.solid(Color(0xFF1A1A2E))
+                light = QrBrush.solid(Color.White)
+            }
         }
-        colors {
-            dark  = QrBrush.solid(Color(0xFF1A1A2E))
-            light = QrBrush.solid(Color.White)
-        }
-    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .background(Color.White, MaterialTheme.shapes.extraLarge)
-            .padding(16.dp)
+        modifier =
+            Modifier
+                .background(Color.White, MaterialTheme.shapes.extraLarge)
+                .padding(16.dp),
     ) {
         Image(
             painter = painter,
             contentDescription = "QRIS Payment Code",
-            modifier = Modifier.size(size)
+            modifier = Modifier.size(size),
         )
         if (label != null) {
             Spacer(Modifier.height(8.dp))
@@ -63,7 +66,7 @@ fun QrisQrCode(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }
@@ -80,39 +83,40 @@ fun QrisQrCode(
 fun QrisPaymentPanel(
     qrString: String,
     amount: Long,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White, MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)))
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(Color.White, MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)))
+                .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text = "Scan QRIS untuk Bayar",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
 
         Text(
-            text = "Rp ${"%,d".format(amount).replace(',', '.')}",
+            text = formatRupiah(amount).replace("Rp", "Rp "),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
 
         QrisQrCode(
             qrString = qrString,
             size = 260.dp,
-            label = "Scan dengan aplikasi bank atau e-wallet"
+            label = "Scan dengan aplikasi bank atau e-wallet",
         )
 
         Text(
             text = "Menunggu konfirmasi pembayaran...",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         TextButton(onClick = onDismiss) {
@@ -129,7 +133,7 @@ private fun QrisQrCodePreview() {
     RancakTheme {
         QrisQrCode(
             qrString = "00020101021226610014ID.CO.QRIS.WWW0215ID20230001234560303UMI51440014ID.CO.QRIS.WWW0215ID2023000123456",
-            label = "Scan dengan aplikasi bank atau e-wallet"
+            label = "Scan dengan aplikasi bank atau e-wallet",
         )
     }
 }
@@ -141,7 +145,7 @@ private fun QrisPaymentPanelPreview() {
         QrisPaymentPanel(
             qrString = "00020101021226610014ID.CO.QRIS.WWW0215ID20230001234560303UMI",
             amount = 75000,
-            onDismiss = {}
+            onDismiss = {},
         )
     }
 }

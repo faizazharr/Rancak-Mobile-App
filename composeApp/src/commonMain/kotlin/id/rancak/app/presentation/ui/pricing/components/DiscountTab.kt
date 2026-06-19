@@ -23,7 +23,7 @@ fun DiscountTab(
     onEdit: (DiscountRule) -> Unit,
     onDelete: (DiscountRule) -> Unit,
     onToggleActive: (DiscountRule, Boolean) -> Unit = { _, _ -> },
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (rules.isEmpty()) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -34,17 +34,17 @@ fun DiscountTab(
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         items(rules, key = { it.uuid }) { item ->
             val valueLabel = if (item.discountType == "pct") "${item.discountValue}%" else formatRupiah(item.discountValue.toLong())
             PricingCard(
-                title    = item.name,
+                title = item.name,
                 subtitle = "$valueLabel · ${item.ruleType}",
                 isActive = item.isActive,
-                onEdit   = { onEdit(item) },
+                onEdit = { onEdit(item) },
                 onDelete = { onDelete(item) },
-                onToggleActive = { isActive -> onToggleActive(item, isActive) }
+                onToggleActive = { isActive -> onToggleActive(item, isActive) },
             )
         }
     }
@@ -57,12 +57,13 @@ fun DiscountTab(
 private fun DiscountTabPreview() {
     RancakTheme {
         DiscountTab(
-            rules = listOf(
-                DiscountRule("1", "Diskon Happy Hour", null, "time_based", "pct",  10.0,   null, null, null, null, 0, false, null, true),
-                DiscountRule("2", "Member Discount",   null, "always",     "flat", 5000.0, null, null, null, null, 0, false, null, true)
-            ).toImmutableList(),
-            onEdit   = {},
-            onDelete = {}
+            rules =
+                listOf(
+                    DiscountRule("1", "Diskon Happy Hour", null, "time_based", "pct", 10.0, null, null, null, null, 0, false, null, true),
+                    DiscountRule("2", "Member Discount", null, "always", "flat", 5000.0, null, null, null, null, 0, false, null, true),
+                ).toImmutableList(),
+            onEdit = {},
+            onDelete = {},
         )
     }
 }

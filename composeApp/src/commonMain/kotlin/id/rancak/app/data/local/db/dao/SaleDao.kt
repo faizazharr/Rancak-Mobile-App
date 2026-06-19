@@ -9,7 +9,6 @@ import id.rancak.app.data.local.db.entity.SaleItemEntity
 
 @Dao
 interface SaleDao {
-
     @Query("SELECT * FROM sales ORDER BY createdAt DESC")
     suspend fun getAll(): List<SaleEntity>
 
@@ -29,7 +28,10 @@ interface SaleDao {
     suspend fun upsertItems(items: List<SaleItemEntity>)
 
     @Transaction
-    suspend fun upsertSalesWithItems(sales: List<SaleEntity>, items: List<SaleItemEntity>) {
+    suspend fun upsertSalesWithItems(
+        sales: List<SaleEntity>,
+        items: List<SaleItemEntity>,
+    ) {
         upsertSales(sales)
         upsertItems(items)
     }

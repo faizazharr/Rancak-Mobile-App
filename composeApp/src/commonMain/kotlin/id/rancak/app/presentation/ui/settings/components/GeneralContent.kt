@@ -32,24 +32,24 @@ internal fun GeneralContent(
     onAutoPrint: (Boolean) -> Unit,
     onPaperWidth: (Int) -> Unit,
     onReceiptCopies: (Int) -> Unit,
-    onAutoPrintQueue: (Boolean) -> Unit
+    onAutoPrintQueue: (Boolean) -> Unit,
 ) {
     SettingsCard {
         Row(
-            modifier              = Modifier.fillMaxWidth(),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "Auto Print Struk",
-                    style      = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Text(
                     "Cetak struk otomatis setelah pembayaran berhasil",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Switch(checked = autoPrint, onCheckedChange = onAutoPrint)
@@ -58,20 +58,20 @@ internal fun GeneralContent(
 
     SettingsCard {
         Row(
-            modifier              = Modifier.fillMaxWidth(),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "Auto Print Antrian",
-                    style      = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Text(
                     "Cetak tiket nomor antrian otomatis saat pesanan dibuat",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Switch(checked = autoPrintQueue, onCheckedChange = onAutoPrintQueue)
@@ -81,29 +81,29 @@ internal fun GeneralContent(
     SettingsCard {
         Text(
             "Lebar Kertas",
-            style      = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
-            color      = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             PrimaryFilterChip(
                 selected = paperWidth == 58,
-                onClick  = { onPaperWidth(58) },
-                label    = { Text("58 mm", style = MaterialTheme.typography.labelMedium) },
-                modifier = Modifier.weight(1f)
+                onClick = { onPaperWidth(58) },
+                label = { Text("58 mm", style = MaterialTheme.typography.labelMedium) },
+                modifier = Modifier.weight(1f),
             )
             PrimaryFilterChip(
                 selected = paperWidth == 70,
-                onClick  = { onPaperWidth(70) },
-                label    = { Text("70 mm", style = MaterialTheme.typography.labelMedium) },
-                modifier = Modifier.weight(1f)
+                onClick = { onPaperWidth(70) },
+                label = { Text("70 mm", style = MaterialTheme.typography.labelMedium) },
+                modifier = Modifier.weight(1f),
             )
             PrimaryFilterChip(
                 selected = paperWidth == 80,
-                onClick  = { onPaperWidth(80) },
-                label    = { Text("80 mm", style = MaterialTheme.typography.labelMedium) },
-                modifier = Modifier.weight(1f)
+                onClick = { onPaperWidth(80) },
+                label = { Text("80 mm", style = MaterialTheme.typography.labelMedium) },
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -111,28 +111,28 @@ internal fun GeneralContent(
     SettingsCard {
         Text(
             "Jumlah Salinan Struk",
-            style      = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
-            color      = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             "Berapa lembar struk dicetak per transaksi",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             (1..3).forEach { copies ->
                 PrimaryFilterChip(
                     selected = receiptCopies == copies,
-                    onClick  = { onReceiptCopies(copies) },
-                    label    = {
+                    onClick = { onReceiptCopies(copies) },
+                    label = {
                         Text(
                             "$copies lembar",
-                            style = MaterialTheme.typography.labelMedium
+                            style = MaterialTheme.typography.labelMedium,
                         )
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -144,18 +144,18 @@ internal fun GeneralContent(
 private fun GeneralContentPreview() {
     RancakTheme {
         Column(
-            modifier            = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             GeneralContent(
-                autoPrint        = true,
-                paperWidth       = 58,
-                receiptCopies    = 1,
-                autoPrintQueue   = false,
-                onAutoPrint      = {},
-                onPaperWidth     = {},
-                onReceiptCopies  = {},
-                onAutoPrintQueue = {}
+                autoPrint = true,
+                paperWidth = 58,
+                receiptCopies = 1,
+                autoPrintQueue = false,
+                onAutoPrint = {},
+                onPaperWidth = {},
+                onReceiptCopies = {},
+                onAutoPrintQueue = {},
             )
         }
     }

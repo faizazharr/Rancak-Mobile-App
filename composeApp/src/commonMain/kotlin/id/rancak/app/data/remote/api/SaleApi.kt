@@ -2,6 +2,7 @@ package id.rancak.app.data.remote.api
 
 import id.rancak.app.data.remote.dto.ApiResponse
 import id.rancak.app.data.remote.dto.operations.ReceiptDto
+import id.rancak.app.data.remote.dto.sale.AddHeldOrderItemsRequest
 import id.rancak.app.data.remote.dto.sale.BatchSalesRequest
 import id.rancak.app.data.remote.dto.sale.BatchSalesResponse
 import id.rancak.app.data.remote.dto.sale.CreateSaleRequest
@@ -12,7 +13,6 @@ import id.rancak.app.data.remote.dto.sale.RefundResponseDto
 import id.rancak.app.data.remote.dto.sale.SaleDto
 import id.rancak.app.data.remote.dto.sale.SplitBillRequest
 import id.rancak.app.data.remote.dto.sale.SplitBillResponseDto
-import id.rancak.app.data.remote.dto.sale.AddHeldOrderItemsRequest
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.delete
@@ -32,7 +32,7 @@ import io.ktor.http.contentType
 suspend fun RancakApiService.createSale(
     tenantUuid: String,
     request: CreateSaleRequest,
-    idempotencyKey: String
+    idempotencyKey: String,
 ): ApiResponse<SaleDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.SALES) {
         contentType(ContentType.Application.Json)
@@ -46,7 +46,7 @@ suspend fun RancakApiService.getSales(
     dateTo: String? = null,
     status: String? = null,
     page: Int = 1,
-    limit: Int = 20
+    limit: Int = 20,
 ): ApiResponse<List<SaleDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.SALES) {
         parameter("page", page)
@@ -56,10 +56,15 @@ suspend fun RancakApiService.getSales(
         status?.let { parameter("status", it) }
     }.body()
 
-suspend fun RancakApiService.getSaleDetail(tenantUuid: String, saleUuid: String): ApiResponse<SaleDto> =
-    client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid").body()
+suspend fun RancakApiService.getSaleDetail(
+    tenantUuid: String,
+    saleUuid: String,
+): ApiResponse<SaleDto> = client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid").body()
 
-suspend fun RancakApiService.batchSales(tenantUuid: String, request: BatchSalesRequest): ApiResponse<BatchSalesResponse> =
+suspend fun RancakApiService.batchSales(
+    tenantUuid: String,
+    request: BatchSalesRequest,
+): ApiResponse<BatchSalesResponse> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/batch") {
         contentType(ContentType.Application.Json)
         setBody(request)
@@ -68,23 +73,34 @@ suspend fun RancakApiService.batchSales(tenantUuid: String, request: BatchSalesR
 suspend fun RancakApiService.payHeldOrder(
     tenantUuid: String,
     saleUuid: String,
-    request: PayHeldOrderRequest
+    request: PayHeldOrderRequest,
 ): ApiResponse<SaleDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/pay") {
         contentType(ContentType.Application.Json)
         setBody(request)
     }.body()
 
-suspend fun RancakApiService.serveSale(tenantUuid: String, saleUuid: String): ApiResponse<SaleDto> =
+suspend fun RancakApiService.serveSale(
+    tenantUuid: String,
+    saleUuid: String,
+): ApiResponse<SaleDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/serve").body()
 
-suspend fun RancakApiService.cancelSale(tenantUuid: String, saleUuid: String, reason: String? = null): ApiResponse<SaleDto> =
+suspend fun RancakApiService.cancelSale(
+    tenantUuid: String,
+    saleUuid: String,
+    reason: String? = null,
+): ApiResponse<SaleDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/cancel") {
         contentType(ContentType.Application.Json)
         setBody(buildMap { reason?.let { put("reason", it) } })
     }.body()
 
-suspend fun RancakApiService.voidSale(tenantUuid: String, saleUuid: String, reason: String? = null): ApiResponse<SaleDto> =
+suspend fun RancakApiService.voidSale(
+    tenantUuid: String,
+    saleUuid: String,
+    reason: String? = null,
+): ApiResponse<SaleDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/void") {
         contentType(ContentType.Application.Json)
         setBody(buildMap { reason?.let { put("reason", it) } })
@@ -93,14 +109,18 @@ suspend fun RancakApiService.voidSale(tenantUuid: String, saleUuid: String, reas
 suspend fun RancakApiService.refundSale(
     tenantUuid: String,
     saleUuid: String,
-    request: RefundRequest
+    request: RefundRequest,
 ): ApiResponse<RefundResponseDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/refund") {
         contentType(ContentType.Application.Json)
         setBody(request)
     }.body()
 
-suspend fun RancakApiService.moveTable(tenantUuid: String, saleUuid: String, tableUuid: String): ApiResponse<SaleDto> =
+suspend fun RancakApiService.moveTable(
+    tenantUuid: String,
+    saleUuid: String,
+    tableUuid: String,
+): ApiResponse<SaleDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/move-table") {
         contentType(ContentType.Application.Json)
         setBody(mapOf("table_uuid" to tableUuid))
@@ -112,7 +132,7 @@ suspend fun RancakApiService.moveTable(tenantUuid: String, saleUuid: String, tab
 suspend fun RancakApiService.splitBill(
     tenantUuid: String,
     saleUuid: String,
-    request: SplitBillRequest
+    request: SplitBillRequest,
 ): ApiResponse<SplitBillResponseDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/split") {
         contentType(ContentType.Application.Json)
@@ -125,7 +145,7 @@ suspend fun RancakApiService.splitBill(
 suspend fun RancakApiService.addHeldOrderItems(
     tenantUuid: String,
     saleUuid: String,
-    request: AddHeldOrderItemsRequest
+    request: AddHeldOrderItemsRequest,
 ): ApiResponse<SaleDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/items") {
         contentType(ContentType.Application.Json)
@@ -136,30 +156,42 @@ suspend fun RancakApiService.addHeldOrderItems(
 suspend fun RancakApiService.deleteHeldOrderItem(
     tenantUuid: String,
     saleUuid: String,
-    itemUuid: String
+    itemUuid: String,
 ): ApiResponse<SaleDto> =
     client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/items/$itemUuid").body()
 
 // ── QR payments ──
-suspend fun RancakApiService.createQrPayment(tenantUuid: String, saleUuid: String): ApiResponse<QrPaymentDto> =
+suspend fun RancakApiService.createQrPayment(
+    tenantUuid: String,
+    saleUuid: String,
+): ApiResponse<QrPaymentDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.qrPayment(saleUuid)) {
         contentType(ContentType.Application.Json)
     }.body()
 
 /** Poll current QR payment status for a sale. */
-suspend fun RancakApiService.getQrPaymentStatus(tenantUuid: String, saleUuid: String): ApiResponse<QrPaymentDto> =
+suspend fun RancakApiService.getQrPaymentStatus(
+    tenantUuid: String,
+    saleUuid: String,
+): ApiResponse<QrPaymentDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.qrPayment(saleUuid)).body()
 
 // ── Receipt & ESC/POS ──
 
-suspend fun RancakApiService.getSaleReceipt(tenantUuid: String, saleUuid: String): ApiResponse<ReceiptDto> =
+suspend fun RancakApiService.getSaleReceipt(
+    tenantUuid: String,
+    saleUuid: String,
+): ApiResponse<ReceiptDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/receipt").body()
 
 /**
  * Get pre-built ESC/POS cashier receipt bytes from server.
  * Returns raw binary data ready to send to printer.
  */
-suspend fun RancakApiService.getReceiptEscpos(tenantUuid: String, saleUuid: String): ByteArray =
+suspend fun RancakApiService.getReceiptEscpos(
+    tenantUuid: String,
+    saleUuid: String,
+): ByteArray =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.receiptEscpos(saleUuid)) {
         accept(ContentType.Application.OctetStream)
     }.body()
@@ -168,7 +200,10 @@ suspend fun RancakApiService.getReceiptEscpos(tenantUuid: String, saleUuid: Stri
  * Get pre-built ESC/POS kitchen ticket (KOT) bytes from server.
  * Returns raw binary data ready to send to kitchen printer.
  */
-suspend fun RancakApiService.getReceiptKitchen(tenantUuid: String, saleUuid: String): ByteArray =
+suspend fun RancakApiService.getReceiptKitchen(
+    tenantUuid: String,
+    saleUuid: String,
+): ByteArray =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.receiptKitchen(saleUuid)) {
         accept(ContentType.Application.OctetStream)
     }.body()
@@ -177,7 +212,11 @@ suspend fun RancakApiService.getReceiptKitchen(tenantUuid: String, saleUuid: Str
  * Get combined KOT + cashier receipt bytes for single-printer mode.
  * @param kotFirst true = KOT first then cashier, false = cashier first then KOT
  */
-suspend fun RancakApiService.getReceiptCombined(tenantUuid: String, saleUuid: String, kotFirst: Boolean = true): ByteArray =
+suspend fun RancakApiService.getReceiptCombined(
+    tenantUuid: String,
+    saleUuid: String,
+    kotFirst: Boolean = true,
+): ByteArray =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.receiptCombined(saleUuid)) {
         accept(ContentType.Application.OctetStream)
         parameter("kot_first", kotFirst)
@@ -192,7 +231,7 @@ suspend fun RancakApiService.getReceiptCombined(tenantUuid: String, saleUuid: St
 suspend fun RancakApiService.mergeSale(
     tenantUuid: String,
     targetUuid: String,
-    sourceUuid: String
+    sourceUuid: String,
 ): ApiResponse<SaleDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$targetUuid/merge") {
         contentType(ContentType.Application.Json)
@@ -200,7 +239,10 @@ suspend fun RancakApiService.mergeSale(
     }.body()
 
 /** Struk nomor antrian (font besar, 58mm). Returns raw ESC/POS bytes. */
-suspend fun RancakApiService.getReceiptQueue(tenantUuid: String, saleUuid: String): ByteArray =
+suspend fun RancakApiService.getReceiptQueue(
+    tenantUuid: String,
+    saleUuid: String,
+): ByteArray =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/receipt/queue") {
         accept(ContentType.Application.OctetStream)
     }.body()
@@ -213,14 +255,16 @@ suspend fun RancakApiService.reprintSale(
     tenantUuid: String,
     saleUuid: String,
     reason: String? = null,
-    printType: String = "receipt"
+    printType: String = "receipt",
 ): ApiResponse<id.rancak.app.data.remote.dto.sale.ReprintResponseDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SALES}/$saleUuid/reprint") {
         contentType(ContentType.Application.Json)
-        setBody(buildMap {
-            put("print_type", printType)
-            reason?.let { put("reason", it) }
-        })
+        setBody(
+            buildMap {
+                put("print_type", printType)
+                reason?.let { put("reason", it) }
+            },
+        )
     }.body()
 
 // ── Devices: cash drawer ────────────────────────────────────────────────────

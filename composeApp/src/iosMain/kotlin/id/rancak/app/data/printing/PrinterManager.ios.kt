@@ -1,3 +1,4 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 package id.rancak.app.data.printing
 
 import androidx.compose.runtime.Stable
@@ -5,6 +6,7 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.CoreBluetooth.*
 import platform.Foundation.*
+import platform.darwin.NSObject
 import platform.posix.*
 
 /**
@@ -40,7 +42,6 @@ import platform.posix.*
  */
 @Stable
 actual class PrinterManager actual constructor() {
-
     // ── TCP/IP via POSIX socket ───────────────────────────────────────────────
     //
     // Menggunakan POSIX socket API (bukan CFStream) karena:
@@ -52,18 +53,22 @@ actual class PrinterManager actual constructor() {
     actual suspend fun printViaNetwork(
         ipAddress: String,
         port: Int,
-        data: ByteArray
-    ): PrintResult = withContext(Dispatchers.Default) {
-
-        // withTimeoutOrNull handles connect timeout di level coroutine,
-        // SO_SNDTIMEO handles write timeout di level socket.
-        withTimeoutOrNull(10_000L) {
-            posixPrint(ipAddress, port, data)
-        } ?: PrintResult.Error("Timeout koneksi ke printer $ipAddress:$port")
-    }
+        data: ByteArray,
+    ): PrintResult =
+        withContext(Dispatchers.Default) {
+            // withTimeoutOrNull handles connect timeout di level coroutine,
+            // SO_SNDTIMEO handles write timeout di level socket.
+            withTimeoutOrNull(10_000L) {
+                posixPrint(ipAddress, port, data)
+            } ?: PrintResult.Error("Timeout koneksi ke printer $ipAddress:$port")
+        }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun posixPrint(ipAddress: String, port: Int, data: ByteArray): PrintResult {
+    private fun posixPrint(
+        ipAddress: String,
+        port: Int,
+        data: ByteArray,
+    ): PrintResult {
         // 1. Buat socket
         val sockfd = socket(AF_INET, SOCK_STREAM, 0)
         if (sockfd < 0) return PrintResult.Error("Gagal membuat socket (errno $errno)")
@@ -73,56 +78,70 @@ actual class PrinterManager actual constructor() {
             val tv = alloc<timeval>()
             tv.tv_sec = 8
             tv.tv_usec = 0
-            setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO,
-                tv.ptr, sizeOf<timeval>().convert())
+            setsockopt(
+                sockfd,
+                SOL_SOCKET,
+                SO_SNDTIMEO,
+                tv.ptr,
+                sizeOf<timeval>().convert(),
+            )
 
             // 3. Siapkan alamat tujuan
             val serverAddr = alloc<sockaddr_in>()
             serverAddr.sin_family = AF_INET.convert()
             // htons: konversi port ke network byte order
-            serverAddr.sin_port = ((port and 0xFF) shl 8 or ((port ushr 8) and 0xFF))
-                .toUShort()
-            // inet_pton: konversi string IP ke binary
-            val inetResult = inet_pton(
-                AF_INET,
-                ipAddress,
-                serverAddr.sin_addr.ptr
-            )
-            if (inetResult <= 0) {
+            serverAddr.sin_port =
+                ((port and 0xFF) shl 8 or ((port ushr 8) and 0xFF))
+                    .toUShort()
+            val ipParts = ipAddress.split('.')
+            if (ipParts.size != 4) {
                 close(sockfd)
                 return@memScoped PrintResult.Error("Alamat IP tidak valid: $ipAddress")
             }
+            val addr = try {
+                val b1 = ipParts[0].toUByte()
+                val b2 = ipParts[1].toUByte()
+                val b3 = ipParts[2].toUByte()
+                val b4 = ipParts[3].toUByte()
+                (b1.toUInt()) or (b2.toUInt() shl 8) or (b3.toUInt() shl 16) or (b4.toUInt() shl 24)
+            } catch (e: Exception) {
+                close(sockfd)
+                return@memScoped PrintResult.Error("Alamat IP tidak valid: $ipAddress")
+            }
+            serverAddr.sin_addr.s_addr = addr
 
             // 4. Connect (blocking — timeout dari withTimeoutOrNull di atas)
-            val connectResult = connect(
-                sockfd,
-                serverAddr.ptr.reinterpret(),
-                sizeOf<sockaddr_in>().convert()
-            )
+            val connectResult =
+                connect(
+                    sockfd,
+                    serverAddr.ptr.reinterpret(),
+                    sizeOf<sockaddr_in>().convert(),
+                )
             if (connectResult < 0) {
                 close(sockfd)
                 return@memScoped PrintResult.Error(
                     "Tidak bisa konek ke $ipAddress:$port (errno $errno). " +
-                    "Pastikan printer menyala dan terhubung ke jaringan yang sama."
+                        "Pastikan printer menyala dan terhubung ke jaringan yang sama.",
                 )
             }
 
             // 5. Kirim semua data ESC/POS (send bisa partial, loop sampai selesai)
             var offset = 0
             while (offset < data.size) {
-                val sent = data.usePinned { pinned ->
-                    send(
-                        sockfd,
-                        pinned.addressOf(offset),
-                        (data.size - offset).convert(),
-                        0
-                    )
-                }
+                val sent =
+                    data.usePinned { pinned ->
+                        send(
+                            sockfd,
+                            pinned.addressOf(offset),
+                            (data.size - offset).convert(),
+                            0,
+                        )
+                    }
                 when {
                     sent.toInt() < 0 -> {
                         close(sockfd)
                         return@memScoped PrintResult.Error(
-                            "Gagal mengirim data ke printer (errno $errno)"
+                            "Gagal mengirim data ke printer (errno $errno)",
                         )
                     }
                     else -> offset += sent.toInt()
@@ -144,12 +163,11 @@ actual class PrinterManager actual constructor() {
         return bleDelegate.isBtPoweredOn()
     }
 
-    actual suspend fun getBluetoothPrinters(): List<PrinterDevice> =
-        bleDelegate.scanForPrinters()
+    actual suspend fun getBluetoothPrinters(): List<PrinterDevice> = bleDelegate.scanForPrinters()
 
     actual suspend fun printViaBluetooth(
         address: String,
-        data: ByteArray
+        data: ByteArray,
     ): PrintResult = bleDelegate.printToPeripheral(address, data)
 }
 
@@ -171,17 +189,16 @@ private class BleCentralDelegate :
     NSObject(),
     CBCentralManagerDelegateProtocol,
     CBPeripheralDelegateProtocol {
-
     private var central: CBCentralManager? = null
     private val scanned = mutableListOf<CBPeripheral>()
 
-    private var scanJob:  CompletableDeferred<List<PrinterDevice>>? = null
+    private var scanJob: CompletableDeferred<List<PrinterDevice>>? = null
     private var printJob: CompletableDeferred<PrintResult>? = null
 
-    private var writeChar:    CBCharacteristic? = null
+    private var writeChar: CBCharacteristic? = null
     private var pendingBytes: ByteArray? = null
     private var writeOffset = 0
-    private val CHUNK_SIZE  = 180   // 180B universal; some printers support 512B
+    private val CHUNK_SIZE = 180 // 180B universal; some printers support 512B
 
     fun isBtPoweredOn(): Boolean {
         return central?.state == CBManagerStatePoweredOn
@@ -206,11 +223,11 @@ private class BleCentralDelegate :
             job.complete(
                 scanned.map {
                     PrinterDevice(
-                        name    = it.name ?: "BLE Printer",
+                        name = it.name ?: "BLE Printer",
                         address = it.identifier.UUIDString,
-                        type    = PrinterConnectionType.BLUETOOTH
+                        type = PrinterConnectionType.BLUETOOTH,
                     )
-                }
+                },
             )
         }
         return job.await()
@@ -218,17 +235,21 @@ private class BleCentralDelegate :
 
     // ── Print ──────────────────────────────────────────────────────────────────
 
-    suspend fun printToPeripheral(uuid: String, data: ByteArray): PrintResult {
-        val peripheral = scanned.firstOrNull { it.identifier.UUIDString == uuid }
-            ?: return PrintResult.Error(
-                "Printer $uuid tidak ditemukan — panggil getBluetoothPrinters() dulu"
-            )
+    suspend fun printToPeripheral(
+        uuid: String,
+        data: ByteArray,
+    ): PrintResult {
+        val peripheral =
+            scanned.firstOrNull { it.identifier.UUIDString == uuid }
+                ?: return PrintResult.Error(
+                    "Printer $uuid tidak ditemukan — panggil getBluetoothPrinters() dulu",
+                )
 
         val job = CompletableDeferred<PrintResult>()
-        printJob  = job
+        printJob = job
         writeChar = null
         pendingBytes = data
-        writeOffset  = 0
+        writeOffset = 0
 
         peripheral.delegate = this
         central?.connectPeripheral(peripheral, options = null)
@@ -245,7 +266,7 @@ private class BleCentralDelegate :
 
     override fun centralManagerDidUpdateState(central: CBCentralManager) {
         when (central.state) {
-            CBManagerStatePoweredOn  -> {
+            CBManagerStatePoweredOn -> {
                 // Sudah siap scan — scanForPrinters() akan trigger ini
                 if (scanJob?.isCompleted == false) {
                     central.scanForPeripheralsWithServices(null, null)
@@ -274,7 +295,7 @@ private class BleCentralDelegate :
         central: CBCentralManager,
         didDiscoverPeripheral: CBPeripheral,
         advertisementData: Map<Any?, *>,
-        RSSI: NSNumber
+        RSSI: NSNumber,
     ) {
         // Hanya tambahkan printer yang punya nama (filter noise dari perangkat lain)
         if (didDiscoverPeripheral.name != null &&
@@ -286,26 +307,28 @@ private class BleCentralDelegate :
 
     override fun centralManager(
         central: CBCentralManager,
-        didConnectPeripheral: CBPeripheral
+        didConnectPeripheral: CBPeripheral,
     ) {
         // Koneksi berhasil → cari semua service
         didConnectPeripheral.discoverServices(null)
     }
 
+    @ObjCSignatureOverride
     override fun centralManager(
         central: CBCentralManager,
         didFailToConnectPeripheral: CBPeripheral,
-        error: NSError?
+        error: NSError?,
     ) {
         printJob?.complete(
-            PrintResult.Error("Gagal konek ke printer BLE: ${error?.localizedDescription ?: "unknown"}")
+            PrintResult.Error("Gagal konek ke printer BLE: ${error?.localizedDescription ?: "unknown"}"),
         )
     }
 
+    @ObjCSignatureOverride
     override fun centralManager(
         central: CBCentralManager,
         didDisconnectPeripheral: CBPeripheral,
-        error: NSError?
+        error: NSError?,
     ) {
         // Disconnect setelah print selesai = normal
         // Jika printJob belum selesai dan ada error = koneksi putus di tengah print
@@ -318,11 +341,11 @@ private class BleCentralDelegate :
 
     override fun peripheral(
         peripheral: CBPeripheral,
-        didDiscoverServices: NSError?
+        didDiscoverServices: NSError?,
     ) {
         if (didDiscoverServices != null) {
             printJob?.complete(
-                PrintResult.Error("Gagal temukan service printer: ${didDiscoverServices.localizedDescription}")
+                PrintResult.Error("Gagal temukan service printer: ${didDiscoverServices.localizedDescription}"),
             )
             return
         }
@@ -335,11 +358,11 @@ private class BleCentralDelegate :
     override fun peripheral(
         peripheral: CBPeripheral,
         didDiscoverCharacteristicsForService: CBService,
-        error: NSError?
+        error: NSError?,
     ) {
         if (error != null) {
             printJob?.complete(
-                PrintResult.Error("Gagal temukan characteristic: ${error.localizedDescription}")
+                PrintResult.Error("Gagal temukan characteristic: ${error.localizedDescription}"),
             )
             return
         }
@@ -347,12 +370,13 @@ private class BleCentralDelegate :
         if (writeChar != null) return
 
         // Cari characteristic dengan property Write atau WriteWithoutResponse
-        val writable = didDiscoverCharacteristicsForService.characteristics
-            ?.filterIsInstance<CBCharacteristic>()
-            ?.firstOrNull { char ->
-                (char.properties and CBCharacteristicPropertyWriteWithoutResponse != 0uL) ||
-                (char.properties and CBCharacteristicPropertyWrite != 0uL)
-            }
+        val writable =
+            didDiscoverCharacteristicsForService.characteristics
+                ?.filterIsInstance<CBCharacteristic>()
+                ?.firstOrNull { char ->
+                    (char.properties and CBCharacteristicPropertyWriteWithoutResponse != 0uL) ||
+                        (char.properties and CBCharacteristicPropertyWrite != 0uL)
+                }
 
         if (writable != null) {
             writeChar = writable
@@ -362,8 +386,8 @@ private class BleCentralDelegate :
             printJob?.complete(
                 PrintResult.Error(
                     "Printer tidak punya writable BLE characteristic. " +
-                    "Coba gunakan mode Wi-Fi printer."
-                )
+                        "Coba gunakan mode Wi-Fi printer.",
+                ),
             )
         }
     }
@@ -371,7 +395,7 @@ private class BleCentralDelegate :
     override fun peripheral(
         peripheral: CBPeripheral,
         didWriteValueForCharacteristic: CBCharacteristic,
-        error: NSError?
+        error: NSError?,
     ) {
         if (error != null) {
             central?.cancelPeripheralConnection(peripheral)
@@ -389,7 +413,7 @@ private class BleCentralDelegate :
 
     private fun sendNextChunk(peripheral: CBPeripheral) {
         val data = pendingBytes ?: return
-        val char = writeChar   ?: return
+        val char = writeChar ?: return
 
         if (writeOffset >= data.size) {
             // Semua data terkirim → disconnect dan selesaikan
@@ -398,21 +422,23 @@ private class BleCentralDelegate :
             return
         }
 
-        val chunkEnd  = minOf(writeOffset + CHUNK_SIZE, data.size)
-        val chunk     = data.copyOfRange(writeOffset, chunkEnd)
-        writeOffset   = chunkEnd
+        val chunkEnd = minOf(writeOffset + CHUNK_SIZE, data.size)
+        val chunk = data.copyOfRange(writeOffset, chunkEnd)
+        writeOffset = chunkEnd
 
-        val nsData: NSData = chunk.usePinned { pinned ->
-            NSData.dataWithBytes(pinned.addressOf(0), chunk.size.toULong())
-        }
+        val nsData: NSData =
+            chunk.usePinned { pinned ->
+                NSData.dataWithBytes(pinned.addressOf(0), chunk.size.toULong())
+            }
 
         // WriteWithoutResponse → tidak ada ACK, langsung kirim chunk berikutnya
         // WriteWithResponse    → tunggu callback didWriteValueForCharacteristic
         val writeType =
-            if (char.properties and CBCharacteristicPropertyWriteWithoutResponse != 0uL)
+            if (char.properties and CBCharacteristicPropertyWriteWithoutResponse != 0uL) {
                 CBCharacteristicWriteWithoutResponse
-            else
+            } else {
                 CBCharacteristicWriteWithResponse
+            }
 
         peripheral.writeValue(nsData, char, writeType)
 

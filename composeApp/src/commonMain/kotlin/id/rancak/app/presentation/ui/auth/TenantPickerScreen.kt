@@ -1,28 +1,27 @@
 package id.rancak.app.presentation.ui.auth
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import id.rancak.app.domain.model.Tenant
+import id.rancak.app.presentation.components.BackHandler
 import id.rancak.app.presentation.components.ErrorScreen
-import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.components.LoadingScreen
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.ui.auth.components.BillingIssueContent
 import id.rancak.app.presentation.ui.auth.components.OutletSubmissionContent
 import id.rancak.app.presentation.ui.auth.components.TenantPickerLandscape
@@ -45,7 +44,7 @@ fun TenantPickerScreen(
     onTenantSelected: () -> Unit,
     onLoggedOut: () -> Unit = {},
     onNavigateToBilling: () -> Unit = {},
-    switchMode: Boolean = false
+    switchMode: Boolean = false,
 ) {
     val viewModel: TenantPickerViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -55,11 +54,12 @@ fun TenantPickerScreen(
     // subscriptionStatus yang diperiksa di confirm() selalu fresh dari server.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.loadTenants(autoConfirmSingle = false)
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    viewModel.loadTenants(autoConfirmSingle = false)
+                }
             }
-        }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
@@ -87,65 +87,70 @@ fun TenantPickerScreen(
     Scaffold { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             when {
-                uiState.isLoading     -> LoadingScreen(Modifier.fillMaxSize())
-                uiState.error != null -> ErrorScreen(
-                    message  = uiState.error!!,
-                    onRetry  = viewModel::loadTenants,
-                    modifier = Modifier.fillMaxSize()
-                )
+                uiState.isLoading -> LoadingScreen(Modifier.fillMaxSize())
+                uiState.error != null ->
+                    ErrorScreen(
+                        message = uiState.error!!,
+                        onRetry = viewModel::loadTenants,
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 // Masalah billing — tampilkan peringatan sebelum masuk ke aplikasi
-                uiState.billingIssue != null -> BillingIssueContent(
-                    tenantName        = uiState.selectedTenant?.name ?: "",
-                    issue             = uiState.billingIssue!!,
-                    onPayBilling      = viewModel::continueToBilling,
-                    onPickOtherOutlet = viewModel::dismissBillingIssue,
-                    modifier          = Modifier.fillMaxSize()
-                )
+                uiState.billingIssue != null ->
+                    BillingIssueContent(
+                        tenantName = uiState.selectedTenant?.name ?: "",
+                        issue = uiState.billingIssue!!,
+                        onPayBilling = viewModel::continueToBilling,
+                        onPickOtherOutlet = viewModel::dismissBillingIssue,
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 // Form atau success bisa ditampilkan meski outlet sudah ada (ajukan outlet tambahan)
                 uiState.tenants.isEmpty() ||
-                uiState.submission.isFormOpen ||
-                uiState.submission.isSubmitted -> OutletSubmissionContent(
-                    state                = uiState.submission,
-                    onOpenForm           = viewModel::openSubmissionForm,
-                    onCloseForm          = viewModel::closeSubmissionForm,
-                    onNameChange         = viewModel::updateSubmissionName,
-                    onPhoneChange        = viewModel::updateSubmissionPhone,
-                    onAddressChange      = viewModel::updateSubmissionAddress,
-                    onGmapsChange        = viewModel::updateSubmissionGmapsUrl,
-                    onNibChange          = viewModel::updateSubmissionNib,
-                    onBusinessTypeChange = viewModel::updateSubmissionBusinessType,
-                    onSubmit             = viewModel::submitOutletRequest,
-                    onReset              = viewModel::resetSubmission,
-                    onLogout             = onLoggedOut,
-                    modifier             = Modifier.fillMaxSize()
-                )
-                else -> BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    val sizes = LocalSizes.current
-                    val isWide = maxWidth > maxHeight || maxWidth >= sizes.tabletBreakpoint
-                    if (isWide) {
-                        TenantPickerLandscape(
-                            tenants        = uiState.tenants.toImmutableList(),
-                            selectedTenant = uiState.selectedTenant,
-                            onSelectTenant = onSelectAndConfirm,
-                            onAddOutlet    = viewModel::openSubmissionForm
-                        )
-                    } else {
-                        TenantPickerPortrait(
-                            tenants        = uiState.tenants.toImmutableList(),
-                            selectedTenant = uiState.selectedTenant,
-                            onSelectTenant = onSelectAndConfirm,
-                            onAddOutlet    = viewModel::openSubmissionForm
-                        )
+                    uiState.submission.isFormOpen ||
+                    uiState.submission.isSubmitted ->
+                    OutletSubmissionContent(
+                        state = uiState.submission,
+                        onOpenForm = viewModel::openSubmissionForm,
+                        onCloseForm = viewModel::closeSubmissionForm,
+                        onNameChange = viewModel::updateSubmissionName,
+                        onPhoneChange = viewModel::updateSubmissionPhone,
+                        onAddressChange = viewModel::updateSubmissionAddress,
+                        onGmapsChange = viewModel::updateSubmissionGmapsUrl,
+                        onNibChange = viewModel::updateSubmissionNib,
+                        onBusinessTypeChange = viewModel::updateSubmissionBusinessType,
+                        onSubmit = viewModel::submitOutletRequest,
+                        onReset = viewModel::resetSubmission,
+                        onLogout = onLoggedOut,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                else ->
+                    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                        val sizes = LocalSizes.current
+                        val isWide = maxWidth > maxHeight || maxWidth >= sizes.tabletBreakpoint
+                        if (isWide) {
+                            TenantPickerLandscape(
+                                tenants = uiState.tenants.toImmutableList(),
+                                selectedTenant = uiState.selectedTenant,
+                                onSelectTenant = onSelectAndConfirm,
+                                onAddOutlet = viewModel::openSubmissionForm,
+                            )
+                        } else {
+                            TenantPickerPortrait(
+                                tenants = uiState.tenants.toImmutableList(),
+                                selectedTenant = uiState.selectedTenant,
+                                onSelectTenant = onSelectAndConfirm,
+                                onAddOutlet = viewModel::openSubmissionForm,
+                            )
+                        }
                     }
-                }
             }
 
             // Indikator refresh tipis di atas saat data di-refresh di belakang layar
             if (uiState.isRefreshing) {
                 LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopCenter)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.TopCenter),
                 )
             }
         }
@@ -156,19 +161,20 @@ fun TenantPickerScreen(
 // Preview — memanggil layout yang sama dengan yang dipakai TenantPickerScreen
 // ─────────────────────────────────────────────────────────────────────────────
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Tenant – Phone",   widthDp = 390, heightDp = 844)
+@androidx.compose.ui.tooling.preview.Preview(name = "Tenant – Phone", widthDp = 390, heightDp = 844)
 @Composable
 private fun TenantPickerScreenPhonePreview() {
-    val tenants = listOf(
-        id.rancak.app.domain.model.Tenant("1", "Warung Rancak"),
-        id.rancak.app.domain.model.Tenant("2", "Cafe Sederhana"),
-        id.rancak.app.domain.model.Tenant("3", "Kedai Kopi")
-    ).toImmutableList()
+    val tenants =
+        listOf(
+            id.rancak.app.domain.model.Tenant("1", "Warung Rancak"),
+            id.rancak.app.domain.model.Tenant("2", "Cafe Sederhana"),
+            id.rancak.app.domain.model.Tenant("3", "Kedai Kopi"),
+        ).toImmutableList()
     id.rancak.app.presentation.designsystem.RancakTheme {
         id.rancak.app.presentation.ui.auth.components.TenantPickerPortrait(
-            tenants        = tenants,
+            tenants = tenants,
             selectedTenant = null,
-            onSelectTenant = {}
+            onSelectTenant = {},
         )
     }
 }
@@ -176,17 +182,18 @@ private fun TenantPickerScreenPhonePreview() {
 @androidx.compose.ui.tooling.preview.Preview(name = "Tenant – Tablet", widthDp = 1024, heightDp = 768)
 @Composable
 private fun TenantPickerScreenTabletPreview() {
-    val tenants = listOf(
-        id.rancak.app.domain.model.Tenant("1", "Warung Rancak"),
-        id.rancak.app.domain.model.Tenant("2", "Cafe Sederhana"),
-        id.rancak.app.domain.model.Tenant("3", "Kedai Kopi"),
-        id.rancak.app.domain.model.Tenant("4", "Toko Serba Ada")
-    ).toImmutableList()
+    val tenants =
+        listOf(
+            id.rancak.app.domain.model.Tenant("1", "Warung Rancak"),
+            id.rancak.app.domain.model.Tenant("2", "Cafe Sederhana"),
+            id.rancak.app.domain.model.Tenant("3", "Kedai Kopi"),
+            id.rancak.app.domain.model.Tenant("4", "Toko Serba Ada"),
+        ).toImmutableList()
     id.rancak.app.presentation.designsystem.RancakTheme {
         id.rancak.app.presentation.ui.auth.components.TenantPickerLandscape(
-            tenants        = tenants,
+            tenants = tenants,
             selectedTenant = null,
-            onSelectTenant = {}
+            onSelectTenant = {},
         )
     }
 }

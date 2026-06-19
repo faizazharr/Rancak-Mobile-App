@@ -31,7 +31,7 @@ suspend fun RancakApiService.getStockAlerts(tenantUuid: String): ApiResponse<Lis
 
 suspend fun RancakApiService.getExpiringBatches(
     tenantUuid: String,
-    days: Int = 7
+    days: Int = 7,
 ): ApiResponse<List<ExpiringBatchDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/expiring-batches") {
         parameter("days", days)
@@ -39,7 +39,7 @@ suspend fun RancakApiService.getExpiringBatches(
 
 suspend fun RancakApiService.getDailyByCategory(
     tenantUuid: String,
-    date: String? = null
+    date: String? = null,
 ): ApiResponse<List<DailyCategoryReportDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/daily-by-category") {
         date?.let { parameter("date", it) }
@@ -50,14 +50,14 @@ suspend fun RancakApiService.getDailyByCategory(
 /** Tandai satu alert stok sebagai dibaca. */
 suspend fun RancakApiService.markStockAlertRead(
     tenantUuid: String,
-    alertId: String
+    alertId: String,
 ): ApiResponse<Unit> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/stock-alerts/$alertId/read")
         .body()
 
 /** Dismiss semua alert stok yang belum dibaca. */
 suspend fun RancakApiService.markAllStockAlertsRead(
-    tenantUuid: String
+    tenantUuid: String,
 ): ApiResponse<id.rancak.app.data.remote.dto.operations.DismissedCountDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/stock-alerts/read-all")
         .body()
@@ -67,7 +67,7 @@ suspend fun RancakApiService.markAllStockAlertsRead(
 /** Rekap shift per kasir untuk tanggal tertentu. */
 suspend fun RancakApiService.getShiftByCashier(
     tenantUuid: String,
-    date: String? = null
+    date: String? = null,
 ): ApiResponse<List<id.rancak.app.data.remote.dto.operations.CashierShiftSummaryDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.REPORTS}/shift-by-cashier") {
         date?.let { parameter("date", it) }

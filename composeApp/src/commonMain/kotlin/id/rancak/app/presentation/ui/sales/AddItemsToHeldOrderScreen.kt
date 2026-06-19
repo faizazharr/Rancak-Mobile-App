@@ -1,16 +1,14 @@
 package id.rancak.app.presentation.ui.sales
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -22,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.components.EmptyScreen
-import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakButton
 import id.rancak.app.presentation.components.RancakTopBar
@@ -44,7 +41,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun AddItemsToHeldOrderScreen(
     saleUuid: String,
     onBack: () -> Unit,
-    onSuccess: () -> Unit
+    onSuccess: () -> Unit,
 ) {
     val viewModel: AddItemsToHeldOrderViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -65,28 +62,28 @@ fun AddItemsToHeldOrderScreen(
     Scaffold(
         topBar = {
             RancakTopBar(
-                title    = "Tambah Item",
-                icon     = Icons.AutoMirrored.Filled.PlaylistAdd,
+                title = "Tambah Item",
+                icon = Icons.AutoMirrored.Filled.PlaylistAdd,
                 subtitle = "Tambahkan ke open bill",
-                onBack   = onBack
+                onBack = onBack,
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
             BottomSubmitBar(
-                totalQty   = uiState.totalSelectedQty,
+                totalQty = uiState.totalSelectedQty,
                 totalPrice = uiState.totalSelectedPrice,
-                isLoading  = uiState.isSubmitting,
-                onSubmit   = { viewModel.submit(saleUuid) }
+                isLoading = uiState.isSubmitting,
+                onSubmit = { viewModel.submit(saleUuid) },
             )
-        }
+        },
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding)
+            modifier = Modifier.fillMaxSize().padding(padding),
         ) {
             SearchBar(
-                query    = uiState.searchQuery,
-                onChange = viewModel::setSearchQuery
+                query = uiState.searchQuery,
+                onChange = viewModel::setSearchQuery,
             )
 
             when {
@@ -95,27 +92,31 @@ fun AddItemsToHeldOrderScreen(
                     EmptyScreen("Belum ada produk", Modifier.weight(1f).fillMaxWidth())
                 uiState.filteredProducts.isEmpty() ->
                     EmptyScreen("Produk tidak ditemukan", Modifier.weight(1f).fillMaxWidth())
-                else -> ProductGrid(
-                    products    = uiState.filteredProducts.toImmutableList(),
-                    selectedQty = { uuid -> uiState.selected[uuid]?.qty ?: 0 },
-                    onIncrement = viewModel::increment,
-                    onDecrement = viewModel::decrement,
-                    modifier    = Modifier.weight(1f).fillMaxWidth()
-                )
+                else ->
+                    ProductGrid(
+                        products = uiState.filteredProducts.toImmutableList(),
+                        selectedQty = { uuid -> uiState.selected[uuid]?.qty ?: 0 },
+                        onIncrement = viewModel::increment,
+                        onDecrement = viewModel::decrement,
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                    )
             }
         }
     }
 }
 
 @Composable
-private fun SearchBar(query: String, onChange: (String) -> Unit) {
+private fun SearchBar(
+    query: String,
+    onChange: (String) -> Unit,
+) {
     OutlinedTextField(
-        value         = query,
+        value = query,
         onValueChange = onChange,
-        leadingIcon   = { Icon(Icons.Default.Search, null) },
-        placeholder   = { Text("Cari produk…") },
-        singleLine    = true,
-        modifier      = Modifier.fillMaxWidth().padding(12.dp)
+        leadingIcon = { Icon(Icons.Default.Search, null) },
+        placeholder = { Text("Cari produk…") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth().padding(12.dp),
     )
 }
 
@@ -125,21 +126,21 @@ private fun ProductGrid(
     selectedQty: (String) -> Int,
     onIncrement: (Product) -> Unit,
     onDecrement: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
-        columns             = GridCells.Adaptive(minSize = 160.dp),
-        modifier            = modifier,
-        contentPadding      = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+        columns = GridCells.Adaptive(minSize = 160.dp),
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement   = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(products, key = { it.uuid }) { product ->
             ProductCard(
-                product     = product,
-                qty         = selectedQty(product.uuid),
+                product = product,
+                qty = selectedQty(product.uuid),
                 onIncrement = { onIncrement(product) },
-                onDecrement = { onDecrement(product.uuid) }
+                onDecrement = { onDecrement(product.uuid) },
             )
         }
     }
@@ -150,44 +151,49 @@ private fun ProductCard(
     product: Product,
     qty: Int,
     onIncrement: () -> Unit,
-    onDecrement: () -> Unit
+    onDecrement: () -> Unit,
 ) {
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (qty > 0) MaterialTheme.colorScheme.primaryContainer
-                            else MaterialTheme.colorScheme.surface
-        ),
-        modifier = Modifier.fillMaxWidth()
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (qty > 0) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+            ),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 product.name,
-                style      = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
-                maxLines   = 2
+                maxLines = 2,
             )
             Text(
                 formatRupiah(product.price),
-                style      = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                color      = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (qty > 0) {
                     QtyButton(icon = Icons.Default.Remove, onClick = onDecrement)
                     Text(
                         qty.toString(),
-                        modifier   = Modifier.padding(horizontal = 10.dp),
-                        style      = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        modifier = Modifier.padding(horizontal = 10.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
                 QtyButton(icon = Icons.Default.Add, onClick = onIncrement)
@@ -197,19 +203,22 @@ private fun ProductCard(
 }
 
 @Composable
-private fun QtyButton(icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+private fun QtyButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+) {
     Surface(
-        shape    = CircleShape,
-        color    = MaterialTheme.colorScheme.primary,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.size(32.dp),
-        onClick  = onClick
+        onClick = onClick,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
-                imageVector        = icon,
+                imageVector = icon,
                 contentDescription = null,
-                tint               = MaterialTheme.colorScheme.onPrimary,
-                modifier           = Modifier.size(18.dp)
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(18.dp),
             )
         }
     }
@@ -220,38 +229,39 @@ private fun BottomSubmitBar(
     totalQty: Int,
     totalPrice: Long,
     isLoading: Boolean,
-    onSubmit: () -> Unit
+    onSubmit: () -> Unit,
 ) {
     Surface(
         tonalElevation = 4.dp,
-        modifier       = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "$totalQty item",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     formatRupiah(totalPrice),
-                    style      = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
             RancakButton(
-                text      = "Tambahkan",
-                onClick   = onSubmit,
+                text = "Tambahkan",
+                onClick = onSubmit,
                 isLoading = isLoading,
-                enabled   = totalQty > 0 && !isLoading
+                enabled = totalQty > 0 && !isLoading,
             )
         }
     }

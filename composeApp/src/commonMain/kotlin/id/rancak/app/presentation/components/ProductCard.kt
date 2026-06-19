@@ -8,8 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
@@ -20,25 +20,30 @@ fun ProductCard(
     imageUrl: String?,
     isAvailable: Boolean = true,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier
-            .clip(MaterialTheme.shapes.small)
-            .clickable(enabled = isAvailable) { onClick() },
+        modifier =
+            modifier
+                .clip(MaterialTheme.shapes.small)
+                .clickable(enabled = isAvailable) { onClick() },
         shape = MaterialTheme.shapes.small,
-        colors = CardDefaults.cardColors(
-            containerColor = if (isAvailable)
-                MaterialTheme.colorScheme.surface
-            else
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (isAvailable) {
+                        MaterialTheme.colorScheme.surface
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    },
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
         ) {
             // Category label — small uppercase, muted
             if (category != null) {
@@ -47,7 +52,7 @@ fun ProductCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(2.dp))
             }
@@ -59,10 +64,12 @@ fun ProductCard(
                 fontWeight = FontWeight.Medium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                color = if (isAvailable)
-                    MaterialTheme.colorScheme.onSurface
-                else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                color =
+                    if (isAvailable) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    },
             )
 
             Spacer(Modifier.height(4.dp))
@@ -72,10 +79,12 @@ fun ProductCard(
                 text = price,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
-                color = if (isAvailable)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                color =
+                    if (isAvailable) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    },
             )
         }
     }
@@ -94,7 +103,7 @@ private fun ProductCardPreview() {
                 category = "Makanan Berat",
                 imageUrl = null,
                 onClick = {},
-                modifier = Modifier.width(160.dp)
+                modifier = Modifier.width(160.dp),
             )
             ProductCard(
                 name = "Es Teh Manis",
@@ -103,7 +112,7 @@ private fun ProductCardPreview() {
                 imageUrl = null,
                 isAvailable = false,
                 onClick = {},
-                modifier = Modifier.width(160.dp)
+                modifier = Modifier.width(160.dp),
             )
         }
     }

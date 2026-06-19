@@ -1,21 +1,17 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.PaymentMethod
-import id.rancak.app.domain.model.QrPayment
 import id.rancak.app.domain.model.QrPaymentStatus
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SplitPaymentEntry
-import id.rancak.app.domain.model.User
 import id.rancak.app.domain.repository.SaleRepository
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
@@ -49,7 +45,7 @@ data class SplitableItem(
     val name: String,
     val qty: Int,
     val price: Long,
-    val variantName: String? = null
+    val variantName: String? = null,
 ) {
     val subtotal: Long get() = price * qty
 }
@@ -63,8 +59,8 @@ data class SplitGroup(
     val id: Int,
     val itemQtys: Map<Int, Int>,
     val method: PaymentMethod,
-    val cashPaid: Long = 0L,  // hanya untuk CASH; QRIS menggunakan groupActualTotal
-    val groupActualTotal: Long = 0L  // item subtotal + biaya proporsional
+    val cashPaid: Long = 0L, // hanya untuk CASH; QRIS menggunakan groupActualTotal
+    val groupActualTotal: Long = 0L, // item subtotal + biaya proporsional
 )
 
 @Immutable
@@ -74,7 +70,6 @@ data class PaymentUiState(
     val isProcessing: Boolean = false,
     val error: String? = null,
     val completedSale: Sale? = null,
-
     // ── Split-payment (item-based) ────────────────────────────────────────────
     /** True berarti mode pembayaran terbagi aktif. */
     val isSplitPayment: Boolean = false,
@@ -88,7 +83,6 @@ data class PaymentUiState(
     val currentSplitMethod: PaymentMethod = PaymentMethod.CASH,
     /** Input nominal uang tunai untuk grup saat ini. */
     val currentSplitCashInput: String = "",
-
     // ── QRIS-specific ─────────────────────────────────────────────────────────
     /** QR string dari Xendit — non-null berarti tampilkan layar QR. */
     val qrisQrString: String? = null,
@@ -98,7 +92,6 @@ data class PaymentUiState(
     val qrisAmount: Long = 0,
     /** True saat polling aktif. */
     val isQrisPolling: Boolean = false,
-
     // ── Held-order loading ────────────────────────────────────────────────────
     /** Sale yang sedang dibayar dari held order — dimuat via [PaymentViewModel.loadHeldSale]. */
     val heldSale: Sale? = null,
@@ -109,9 +102,8 @@ data class PaymentUiState(
      * Ini berarti ada stale bill di local store — user perlu diarahkan untuk
      * menghapusnya dari daftar.
      */
-    val saleAlreadyPaid: Boolean = false
-)
-{
+    val saleAlreadyPaid: Boolean = false,
+) {
     val paidAmountLong: Long get() = paidAmount.toLongOrNull() ?: 0L
 
     /** Total subtotal item yang dipilih untuk grup saat ini. */
@@ -153,9 +145,8 @@ data class PaymentUiState(
 }
 
 class PaymentViewModel(
-    private val saleRepository: SaleRepository
+    private val saleRepository: SaleRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(PaymentUiState())
     val uiState: StateFlow<PaymentUiState> = _uiState.asStateFlow()
 
@@ -169,9 +160,10 @@ class PaymentViewModel(
     fun setPaidAmount(amount: String) {
         // Hanya simpan digit, lalu clamp ke MAX_AMOUNT untuk cegah overflow.
         val digitsOnly = amount.filter { c -> c.isDigit() }
-        val clamped = digitsOnly.toLongOrNull()?.let {
-            if (it > MAX_AMOUNT) MAX_AMOUNT.toString() else digitsOnly
-        } ?: digitsOnly
+        val clamped =
+            digitsOnly.toLongOrNull()?.let {
+                if (it > MAX_AMOUNT) MAX_AMOUNT.toString() else digitsOnly
+            } ?: digitsOnly
         _uiState.update { it.copy(paidAmount = clamped) }
     }
 
@@ -187,7 +179,7 @@ class PaymentViewModel(
         adminFee: Long = 0,
         deliveryFee: Long = 0,
         tip: Long = 0,
-        voucherCode: String? = null
+        voucherCode: String? = null,
     ) {
         val state = _uiState.value
         val subtotal = items.sumOf { it.price * it.qty }
@@ -202,23 +194,26 @@ class PaymentViewModel(
             viewModelScope.launch {
                 _uiState.update { it.copy(isProcessing = true, error = null) }
                 try {
-                    when (val result = saleRepository.createSale(
-                        items        = items,
-                        paymentMethod = PaymentMethod.CASH, // placeholder; backend ignores for held
-                        paidAmount   = 0L,
-                        orderType    = orderType,
-                        tableUuid    = tableUuid,
-                        customerName = customerName?.takeIf { it.isNotBlank() },
-                        note         = note?.takeIf { it.isNotBlank() },
-                        hold         = true,
-                        pax          = pax,
-                        discount     = discount,
-                        tax          = tax,
-                        adminFee     = adminFee,
-                        deliveryFee  = deliveryFee,
-                        tip          = tip,
-                        voucherCode  = voucherCode?.takeIf { it.isNotBlank() }
-                    )) {
+                    when (
+                        val result =
+                            saleRepository.createSale(
+                                items = items,
+                                paymentMethod = PaymentMethod.CASH, // placeholder; backend ignores for held
+                                paidAmount = 0L,
+                                orderType = orderType,
+                                tableUuid = tableUuid,
+                                customerName = customerName?.takeIf { it.isNotBlank() },
+                                note = note?.takeIf { it.isNotBlank() },
+                                hold = true,
+                                pax = pax,
+                                discount = discount,
+                                tax = tax,
+                                adminFee = adminFee,
+                                deliveryFee = deliveryFee,
+                                tip = tip,
+                                voucherCode = voucherCode?.takeIf { it.isNotBlank() },
+                            )
+                    ) {
                         is Resource.Success ->
                             initiateQrisPayment(result.data.uuid, result.data.total)
                         is Resource.Error ->
@@ -254,23 +249,26 @@ class PaymentViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
             try {
-                when (val result = saleRepository.createSale(
-                    items         = items,
-                    paymentMethod = state.selectedMethod,
-                    paidAmount    = state.paidAmountLong,
-                    orderType     = orderType,
-                    tableUuid     = tableUuid,
-                    customerName  = customerName?.takeIf { it.isNotBlank() },
-                    note          = note?.takeIf { it.isNotBlank() },
-                    hold          = false,
-                    pax           = pax,
-                    discount      = discount,
-                    tax           = tax,
-                    adminFee      = adminFee,
-                    deliveryFee   = deliveryFee,
-                    tip           = tip,
-                    voucherCode   = voucherCode?.takeIf { it.isNotBlank() }
-                )) {
+                when (
+                    val result =
+                        saleRepository.createSale(
+                            items = items,
+                            paymentMethod = state.selectedMethod,
+                            paidAmount = state.paidAmountLong,
+                            orderType = orderType,
+                            tableUuid = tableUuid,
+                            customerName = customerName?.takeIf { it.isNotBlank() },
+                            note = note?.takeIf { it.isNotBlank() },
+                            hold = false,
+                            pax = pax,
+                            discount = discount,
+                            tax = tax,
+                            adminFee = adminFee,
+                            deliveryFee = deliveryFee,
+                            tip = tip,
+                            voucherCode = voucherCode?.takeIf { it.isNotBlank() },
+                        )
+                ) {
                     is Resource.Success ->
                         _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
                     is Resource.Error ->
@@ -300,7 +298,7 @@ class PaymentViewModel(
         adminFee: Long = 0,
         deliveryFee: Long = 0,
         tip: Long = 0,
-        voucherCode: String? = null
+        voucherCode: String? = null,
     ) {
         val subtotal = items.sumOf { it.price * it.qty }
         if (discount < 0 || discount > subtotal) {
@@ -314,23 +312,26 @@ class PaymentViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
-            when (val result = saleRepository.createSale(
-                items         = items,
-                paymentMethod = PaymentMethod.CASH, // placeholder; backend abaikan saat hold
-                paidAmount    = 0L,
-                orderType     = orderType,
-                tableUuid     = tableUuid,
-                customerName  = customerName?.takeIf { it.isNotBlank() },
-                note          = note?.takeIf { it.isNotBlank() },
-                hold          = true,
-                pax           = pax,
-                discount      = discount,
-                tax           = tax,
-                adminFee      = adminFee,
-                deliveryFee   = deliveryFee,
-                tip           = tip,
-                voucherCode   = voucherCode?.takeIf { it.isNotBlank() }
-            )) {
+            when (
+                val result =
+                    saleRepository.createSale(
+                        items = items,
+                        paymentMethod = PaymentMethod.CASH, // placeholder; backend abaikan saat hold
+                        paidAmount = 0L,
+                        orderType = orderType,
+                        tableUuid = tableUuid,
+                        customerName = customerName?.takeIf { it.isNotBlank() },
+                        note = note?.takeIf { it.isNotBlank() },
+                        hold = true,
+                        pax = pax,
+                        discount = discount,
+                        tax = tax,
+                        adminFee = adminFee,
+                        deliveryFee = deliveryFee,
+                        tip = tip,
+                        voucherCode = voucherCode?.takeIf { it.isNotBlank() },
+                    )
+            ) {
                 is Resource.Success -> {
                     _uiState.update {
                         it.copy(isProcessing = false, completedSale = result.data)
@@ -345,26 +346,29 @@ class PaymentViewModel(
     }
 
     /** Dipanggil setelah sale dibuat dengan QRIS — membuat QR lalu mulai polling. */
-    private suspend fun initiateQrisPayment(saleUuid: String, amount: Long) {
+    private suspend fun initiateQrisPayment(
+        saleUuid: String,
+        amount: Long,
+    ) {
         when (val qrResult = saleRepository.createQrPayment(saleUuid)) {
             is Resource.Success -> {
                 val qr = qrResult.data
                 if (qr.qrString.isBlank()) {
                     _uiState.update {
                         it.copy(
-                            isProcessing  = false,
-                            error         = "QR string kosong — pastikan Xendit API key sudah dikonfigurasi"
+                            isProcessing = false,
+                            error = "QR string kosong — pastikan Xendit API key sudah dikonfigurasi",
                         )
                     }
                     return
                 }
                 _uiState.update {
                     it.copy(
-                        isProcessing   = false,
-                        qrisQrString   = qr.qrString,
-                        qrisSaleUuid   = saleUuid,
-                        qrisAmount     = amount,
-                        isQrisPolling  = true
+                        isProcessing = false,
+                        qrisQrString = qr.qrString,
+                        qrisSaleUuid = saleUuid,
+                        qrisAmount = amount,
+                        isQrisPolling = true,
                     )
                 }
                 startQrisPolling(saleUuid)
@@ -379,65 +383,66 @@ class PaymentViewModel(
     /** Polling status QR setiap [QRIS_POLL_INTERVAL_MS] ms hingga [QRIS_MAX_POLLS] kali. */
     private fun startQrisPolling(saleUuid: String) {
         qrisPollingJob?.cancel()
-        qrisPollingJob = viewModelScope.launch {
-            var pollCount  = 0
-            var errorCount = 0
+        qrisPollingJob =
+            viewModelScope.launch {
+                var pollCount = 0
+                var errorCount = 0
 
-            while (pollCount < QRIS_MAX_POLLS) {
-                delay(QRIS_POLL_INTERVAL_MS)
-                pollCount++
+                while (pollCount < QRIS_MAX_POLLS) {
+                    delay(QRIS_POLL_INTERVAL_MS)
+                    pollCount++
 
-                when (val statusResult = saleRepository.getQrPaymentStatus(saleUuid)) {
-                    is Resource.Success -> {
-                        errorCount = 0
-                        when (statusResult.data.status) {
-                            QrPaymentStatus.SUCCEEDED -> {
-                                val saleResult = saleRepository.getSaleDetail(saleUuid)
-                                _uiState.update {
-                                    it.copy(
-                                        isQrisPolling = false,
-                                        qrisQrString  = null,
-                                        completedSale = (saleResult as? Resource.Success)?.data
-                                    )
-                                }
-                                return@launch
-                            }
-                            QrPaymentStatus.EXPIRED, QrPaymentStatus.FAILED -> {
-                                _uiState.update {
-                                    it.copy(
-                                        isQrisPolling = false,
-                                        qrisQrString  = null,
-                                        qrisSaleUuid  = null,
-                                        error         = "QR QRIS kadaluarsa atau gagal. Silakan coba lagi."
-                                    )
-                                }
-                                return@launch
-                            }
-                            QrPaymentStatus.PENDING -> { /* lanjut polling */ }
-                        }
-                    }
-                    is Resource.Error -> {
-                        errorCount++
-                        // Setiap 5 error berturut-turut, beri tahu user tapi tetap polling
-                        if (errorCount >= 5) {
-                            _uiState.update { it.copy(error = "Koneksi bermasalah, tetap mencoba...") }
+                    when (val statusResult = saleRepository.getQrPaymentStatus(saleUuid)) {
+                        is Resource.Success -> {
                             errorCount = 0
+                            when (statusResult.data.status) {
+                                QrPaymentStatus.SUCCEEDED -> {
+                                    val saleResult = saleRepository.getSaleDetail(saleUuid)
+                                    _uiState.update {
+                                        it.copy(
+                                            isQrisPolling = false,
+                                            qrisQrString = null,
+                                            completedSale = (saleResult as? Resource.Success)?.data,
+                                        )
+                                    }
+                                    return@launch
+                                }
+                                QrPaymentStatus.EXPIRED, QrPaymentStatus.FAILED -> {
+                                    _uiState.update {
+                                        it.copy(
+                                            isQrisPolling = false,
+                                            qrisQrString = null,
+                                            qrisSaleUuid = null,
+                                            error = "QR QRIS kadaluarsa atau gagal. Silakan coba lagi.",
+                                        )
+                                    }
+                                    return@launch
+                                }
+                                QrPaymentStatus.PENDING -> { /* lanjut polling */ }
+                            }
                         }
+                        is Resource.Error -> {
+                            errorCount++
+                            // Setiap 5 error berturut-turut, beri tahu user tapi tetap polling
+                            if (errorCount >= 5) {
+                                _uiState.update { it.copy(error = "Koneksi bermasalah, tetap mencoba...") }
+                                errorCount = 0
+                            }
+                        }
+                        is Resource.Loading -> {}
                     }
-                    is Resource.Loading -> {}
+                }
+
+                // Timeout — QR mungkin sudah expired di sisi server
+                _uiState.update {
+                    it.copy(
+                        isQrisPolling = false,
+                        qrisQrString = null,
+                        qrisSaleUuid = null,
+                        error = "Waktu tunggu QR habis. Silakan coba lagi.",
+                    )
                 }
             }
-
-            // Timeout — QR mungkin sudah expired di sisi server
-            _uiState.update {
-                it.copy(
-                    isQrisPolling = false,
-                    qrisQrString  = null,
-                    qrisSaleUuid  = null,
-                    error         = "Waktu tunggu QR habis. Silakan coba lagi."
-                )
-            }
-        }
     }
 
     /** Batalkan pembayaran QRIS yang sedang menunggu. */
@@ -448,11 +453,11 @@ class PaymentViewModel(
         _uiState.update {
             it.copy(
                 isQrisPolling = false,
-                qrisQrString  = null,
-                qrisSaleUuid  = null,
-                qrisAmount    = 0,
-                error         = null,
-                isProcessing  = false
+                qrisQrString = null,
+                qrisSaleUuid = null,
+                qrisAmount = 0,
+                error = null,
+                isProcessing = false,
             )
         }
         // Batalkan held order di server agar tidak meninggalkan sale "phantom"
@@ -468,13 +473,13 @@ class PaymentViewModel(
     fun toggleSplitPayment() {
         _uiState.update { state ->
             state.copy(
-                isSplitPayment        = !state.isSplitPayment,
-                splitableItems        = persistentListOf(),
-                splitGroups           = persistentListOf(),
-                currentSplitItemQtys  = persistentMapOf(),
-                currentSplitMethod    = PaymentMethod.CASH,
+                isSplitPayment = !state.isSplitPayment,
+                splitableItems = persistentListOf(),
+                splitGroups = persistentListOf(),
+                currentSplitItemQtys = persistentMapOf(),
+                currentSplitMethod = PaymentMethod.CASH,
                 currentSplitCashInput = "",
-                error                 = null
+                error = null,
             )
         }
     }
@@ -483,12 +488,12 @@ class PaymentViewModel(
     fun initSplitItems(items: List<SplitableItem>) {
         _uiState.update { state ->
             state.copy(
-                splitableItems        = items.toImmutableList(),
-                splitGroups           = persistentListOf(),
-                currentSplitItemQtys  = persistentMapOf(),
-                currentSplitMethod    = PaymentMethod.CASH,
+                splitableItems = items.toImmutableList(),
+                splitGroups = persistentListOf(),
+                currentSplitItemQtys = persistentMapOf(),
+                currentSplitMethod = PaymentMethod.CASH,
                 currentSplitCashInput = "",
-                error                 = null
+                error = null,
             )
         }
     }
@@ -497,12 +502,17 @@ class PaymentViewModel(
      * Set qty untuk item tertentu pada grup yang sedang dibangun.
      * qty = 0 menghapus item dari seleksi saat ini.
      */
-    fun setCurrentSplitItemQty(index: Int, qty: Int) {
+    fun setCurrentSplitItemQty(
+        index: Int,
+        qty: Int,
+    ) {
         _uiState.update { state ->
-            val updated = if (qty <= 0)
-                state.currentSplitItemQtys.remove(index)
-            else
-                state.currentSplitItemQtys.put(index, qty)
+            val updated =
+                if (qty <= 0) {
+                    state.currentSplitItemQtys.remove(index)
+                } else {
+                    state.currentSplitItemQtys.put(index, qty)
+                }
             state.copy(currentSplitItemQtys = updated)
         }
     }
@@ -513,9 +523,10 @@ class PaymentViewModel(
 
     fun setCurrentSplitCashInput(input: String) {
         val digits = input.filter { c -> c.isDigit() }
-        val clamped = digits.toLongOrNull()?.let {
-            if (it > MAX_AMOUNT) MAX_AMOUNT.toString() else digits
-        } ?: digits
+        val clamped =
+            digits.toLongOrNull()?.let {
+                if (it > MAX_AMOUNT) MAX_AMOUNT.toString() else digits
+            } ?: digits
         _uiState.update { it.copy(currentSplitCashInput = clamped, error = null) }
     }
 
@@ -539,22 +550,26 @@ class PaymentViewModel(
             }
         }
         val newId = (state.splitGroups.maxOfOrNull { it.id } ?: 0) + 1
-        val newGroup = SplitGroup(
-            id               = newId,
-            itemQtys         = state.currentSplitItemQtys,
-            method           = state.currentSplitMethod,
-            cashPaid         = if (state.currentSplitMethod == PaymentMethod.CASH)
-                                   state.currentSplitCashInput.toLongOrNull() ?: 0L
-                               else 0L,
-            groupActualTotal = if (groupActualTotal > 0) groupActualTotal else subtotal
-        )
+        val newGroup =
+            SplitGroup(
+                id = newId,
+                itemQtys = state.currentSplitItemQtys,
+                method = state.currentSplitMethod,
+                cashPaid =
+                    if (state.currentSplitMethod == PaymentMethod.CASH) {
+                        state.currentSplitCashInput.toLongOrNull() ?: 0L
+                    } else {
+                        0L
+                    },
+                groupActualTotal = if (groupActualTotal > 0) groupActualTotal else subtotal,
+            )
         _uiState.update {
             it.copy(
-                splitGroups           = (it.splitGroups + newGroup).toImmutableList(),
-                currentSplitItemQtys  = persistentMapOf(),
-                currentSplitMethod    = PaymentMethod.CASH,
+                splitGroups = (it.splitGroups + newGroup).toImmutableList(),
+                currentSplitItemQtys = persistentMapOf(),
+                currentSplitMethod = PaymentMethod.CASH,
                 currentSplitCashInput = "",
-                error                 = null
+                error = null,
             )
         }
     }
@@ -582,7 +597,7 @@ class PaymentViewModel(
         adminFee: Long = 0,
         deliveryFee: Long = 0,
         tip: Long = 0,
-        voucherCode: String? = null
+        voucherCode: String? = null,
     ) {
         val state = _uiState.value
         if (state.splitGroups.isEmpty()) {
@@ -593,34 +608,40 @@ class PaymentViewModel(
             _uiState.update { it.copy(error = "Masih ada item yang belum dibagi ke grup") }
             return
         }
-        val payments = state.splitGroups.map { group ->
-            val amount = if (group.method == PaymentMethod.CASH && group.cashPaid > 0)
-                group.cashPaid
-            else
-                group.groupActualTotal.takeIf { it > 0 } ?: state.splitGroupSubtotal(group)
-            SplitPaymentEntry(group.method, amount)
-        }
+        val payments =
+            state.splitGroups.map { group ->
+                val amount =
+                    if (group.method == PaymentMethod.CASH && group.cashPaid > 0) {
+                        group.cashPaid
+                    } else {
+                        group.groupActualTotal.takeIf { it > 0 } ?: state.splitGroupSubtotal(group)
+                    }
+                SplitPaymentEntry(group.method, amount)
+            }
         // Catatan: untuk split bill, QRIS dibayar per pelanggan via QRIS statis merchant
         // (di luar backend). Tidak perlu generate QR dinamis Xendit di sini.
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
             try {
-                when (val result = saleRepository.createSaleWithSplitPayment(
-                    items        = items,
-                    payments     = payments,
-                    orderType    = orderType,
-                    tableUuid    = tableUuid,
-                    customerName = customerName?.takeIf { it.isNotBlank() },
-                    note         = note?.takeIf { it.isNotBlank() },
-                    pax          = pax,
-                    discount     = discount,
-                    tax          = tax,
-                    adminFee     = adminFee,
-                    deliveryFee  = deliveryFee,
-                    tip          = tip,
-                    voucherCode  = voucherCode?.takeIf { it.isNotBlank() }
-                )) {
+                when (
+                    val result =
+                        saleRepository.createSaleWithSplitPayment(
+                            items = items,
+                            payments = payments,
+                            orderType = orderType,
+                            tableUuid = tableUuid,
+                            customerName = customerName?.takeIf { it.isNotBlank() },
+                            note = note?.takeIf { it.isNotBlank() },
+                            pax = pax,
+                            discount = discount,
+                            tax = tax,
+                            adminFee = adminFee,
+                            deliveryFee = deliveryFee,
+                            tip = tip,
+                            voucherCode = voucherCode?.takeIf { it.isNotBlank() },
+                        )
+                ) {
                     is Resource.Success -> {
                         _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
                     }
@@ -638,7 +659,10 @@ class PaymentViewModel(
      * Bayar held order (single method).
      * [saleTotal] dipakai sebagai nominal QR QRIS (tampilan di layar tunggu).
      */
-    fun processHeldOrderPayment(saleUuid: String, saleTotal: Long = 0L) {
+    fun processHeldOrderPayment(
+        saleUuid: String,
+        saleTotal: Long = 0L,
+    ) {
         val state = _uiState.value
 
         // QRIS: langsung buat QR — tidak perlu memanggil /pay terlebih dahulu.
@@ -662,18 +686,21 @@ class PaymentViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
             try {
-                when (val result = saleRepository.paySale(
-                    saleUuid      = saleUuid,
-                    paymentMethod = state.selectedMethod,
-                    paidAmount    = state.paidAmountLong
-                )) {
+                when (
+                    val result =
+                        saleRepository.paySale(
+                            saleUuid = saleUuid,
+                            paymentMethod = state.selectedMethod,
+                            paidAmount = state.paidAmountLong,
+                        )
+                ) {
                     is Resource.Success -> {
                         _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
                     }
                     is Resource.Error -> {
                         // 400 dengan pesan 'paid' berarti order sudah dibayar sebelumnya — ini
                         // stale bill di local store, bukan kesalahan user.
-                        if (result.message?.contains("paid", ignoreCase = true) == true) {
+                        if (result.message.contains("paid", ignoreCase = true)) {
                             _uiState.update { it.copy(isProcessing = false, saleAlreadyPaid = true) }
                         } else {
                             _uiState.update { it.copy(isProcessing = false, error = result.message) }
@@ -690,7 +717,10 @@ class PaymentViewModel(
     /**
      * Bayar held order dengan split payment (item-based groups).
      */
-    fun processHeldOrderPaymentWithSplit(saleUuid: String, orderTotal: Long) {
+    fun processHeldOrderPaymentWithSplit(
+        saleUuid: String,
+        orderTotal: Long,
+    ) {
         val state = _uiState.value
         if (state.splitGroups.isEmpty()) {
             _uiState.update { it.copy(error = "Tambahkan minimal satu grup pembayaran") }
@@ -700,13 +730,16 @@ class PaymentViewModel(
             _uiState.update { it.copy(error = "Masih ada item yang belum dibagi ke grup") }
             return
         }
-        val payments = state.splitGroups.map { group ->
-            val amount = if (group.method == PaymentMethod.CASH && group.cashPaid > 0)
-                group.cashPaid
-            else
-                group.groupActualTotal.takeIf { it > 0 } ?: state.splitGroupSubtotal(group)
-            SplitPaymentEntry(group.method, amount)
-        }
+        val payments =
+            state.splitGroups.map { group ->
+                val amount =
+                    if (group.method == PaymentMethod.CASH && group.cashPaid > 0) {
+                        group.cashPaid
+                    } else {
+                        group.groupActualTotal.takeIf { it > 0 } ?: state.splitGroupSubtotal(group)
+                    }
+                SplitPaymentEntry(group.method, amount)
+            }
         // Catatan: QRIS pada split bill dibayar via QRIS statis merchant per pelanggan
         // (lihat dialog QRIS di SplitPaymentColumn). Tidak perlu generate QR dinamis di sini.
 
@@ -718,7 +751,7 @@ class PaymentViewModel(
                         _uiState.update { it.copy(isProcessing = false, completedSale = result.data) }
                     }
                     is Resource.Error -> {
-                        if (result.message?.contains("paid", ignoreCase = true) == true) {
+                        if (result.message.contains("paid", ignoreCase = true)) {
                             _uiState.update { it.copy(isProcessing = false, saleAlreadyPaid = true) }
                         } else {
                             _uiState.update { it.copy(isProcessing = false, error = result.message) }
@@ -744,7 +777,7 @@ class PaymentViewModel(
             // Langkah 2: Refresh network
             when (val result = saleRepository.getSaleDetail(saleUuid)) {
                 is Resource.Success -> _uiState.update { it.copy(heldSale = result.data, heldSaleError = null) }
-                is Resource.Error   -> {
+                is Resource.Error -> {
                     if (_uiState.value.heldSale == null) {
                         _uiState.update { it.copy(heldSaleError = result.message) }
                     }

@@ -24,27 +24,32 @@ internal fun FinanceRow(
     label: String,
     value: String,
     color: Color,
-    bold: Boolean = false
+    bold: Boolean = false,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 3.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 3.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text       = label,
-            style      = MaterialTheme.typography.bodySmall,
-            color      = if (bold) MaterialTheme.colorScheme.onSurface
-                         else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = if (bold) FontWeight.SemiBold else FontWeight.Normal
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color =
+                if (bold) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            fontWeight = if (bold) FontWeight.SemiBold else FontWeight.Normal,
         )
         Text(
-            text       = value,
-            style      = MaterialTheme.typography.bodySmall,
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = if (bold) FontWeight.Bold else FontWeight.Medium,
-            color      = color
+            color = color,
         )
     }
 }

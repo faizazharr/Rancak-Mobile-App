@@ -12,17 +12,17 @@ data class Table(
     val status: TableStatus,
     val isActive: Boolean,
     val sortOrder: Int,
-    val activeSaleUuid: String?
+    val activeSaleUuid: String?,
 )
 
 enum class TableStatus(val value: String) {
     AVAILABLE("available"),
     OCCUPIED("occupied"),
-    INACTIVE("inactive");
+    INACTIVE("inactive"),
+    ;
 
     companion object {
-        fun from(value: String?): TableStatus =
-            entries.firstOrNull { it.value == value } ?: AVAILABLE
+        fun from(value: String?): TableStatus = entries.firstOrNull { it.value == value } ?: AVAILABLE
     }
 }
 
@@ -40,16 +40,16 @@ data class Shift(
     val totalSales: Long?,
     val totalTransactions: Int?,
     val totalExpenses: Long?,
-    val totalCashIn: Long?
+    val totalCashIn: Long?,
 )
 
 enum class ShiftStatus(val value: String) {
     OPEN("open"),
-    CLOSED("closed");
+    CLOSED("closed"),
+    ;
 
     companion object {
-        fun from(value: String?): ShiftStatus =
-            entries.firstOrNull { it.value == value } ?: CLOSED
+        fun from(value: String?): ShiftStatus = entries.firstOrNull { it.value == value } ?: CLOSED
     }
 }
 
@@ -64,7 +64,7 @@ data class KdsOrder(
     val note: String?,
     val status: KdsStatus,
     val items: ImmutableList<KdsItem>,
-    val createdAt: String?
+    val createdAt: String?,
 )
 
 @Immutable
@@ -74,18 +74,18 @@ data class KdsItem(
     val qty: String,
     val variantName: String?,
     val note: String?,
-    val status: KdsItemStatus
+    val status: KdsItemStatus,
 )
 
 enum class KdsStatus(val value: String) {
     NEW("new"),
     COOKING("cooking"),
     READY("ready"),
-    DONE("done");
+    DONE("done"),
+    ;
 
     companion object {
-        fun from(value: String?): KdsStatus =
-            entries.firstOrNull { it.value == value } ?: NEW
+        fun from(value: String?): KdsStatus = entries.firstOrNull { it.value == value } ?: NEW
     }
 }
 
@@ -93,11 +93,11 @@ enum class KdsItemStatus(val value: String) {
     PENDING("pending"),
     COOKING("cooking"),
     READY("ready"),
-    DONE("done");
+    DONE("done"),
+    ;
 
     companion object {
-        fun from(value: String?): KdsItemStatus =
-            entries.firstOrNull { it.value == value } ?: PENDING
+        fun from(value: String?): KdsItemStatus = entries.firstOrNull { it.value == value } ?: PENDING
     }
 }
 
@@ -110,7 +110,7 @@ data class Surcharge(
     val isPercentage: Boolean,
     val maxAmount: Long?,
     val isActive: Boolean,
-    val sortOrder: Int
+    val sortOrder: Int,
 )
 
 @Immutable
@@ -120,7 +120,7 @@ data class TaxConfig(
     val rate: Double,
     val applyTo: String,
     val sortOrder: Int,
-    val isActive: Boolean
+    val isActive: Boolean,
 )
 
 @Immutable
@@ -138,13 +138,13 @@ data class DiscountRule(
     val priority: Int,
     val stackable: Boolean,
     val maxDiscount: Long?,
-    val isActive: Boolean
+    val isActive: Boolean,
 )
 
 @Immutable
 data class VoucherValidation(
     val voucher: Voucher,
-    val discountApplied: Long
+    val discountApplied: Long,
 )
 
 @Immutable
@@ -161,14 +161,14 @@ data class Voucher(
     val usageCount: Int,
     val validFrom: String?,
     val validUntil: String?,
-    val isActive: Boolean
+    val isActive: Boolean,
 )
 
 @Immutable
 data class DiscountPreview(
     val appliedRules: ImmutableList<AppliedRule>,
     val totalDiscount: Long,
-    val finalTotal: Long
+    val finalTotal: Long,
 )
 
 @Immutable
@@ -176,7 +176,7 @@ data class AppliedRule(
     val uuid: String,
     val name: String,
     val ruleType: String,
-    val discount: Long
+    val discount: Long,
 )
 
 @Immutable
@@ -189,14 +189,14 @@ data class OrderBoardOrder(
     val status: SaleStatus,
     val createdAt: String?,
     val servedAt: String?,
-    val items: ImmutableList<OrderBoardItem>
+    val items: ImmutableList<OrderBoardItem>,
 )
 
 @Immutable
 data class OrderBoardItem(
     val productName: String,
     val qty: Int,
-    val note: String?
+    val note: String?,
 )
 
 /** Cash count: rekonsiliasi kas fisik vs sistem. */
@@ -210,7 +210,7 @@ data class CashCount(
     val difference: Double,
     val denominations: Map<String, Int>?,
     val note: String?,
-    val countedAt: String
+    val countedAt: String,
 )
 
 /** Rekap shift per kasir untuk laporan harian. */
@@ -229,5 +229,5 @@ data class CashierShiftSummary(
     val cashTotal: Double,
     val nonCashTotal: Double,
     /** Selisih kas — null jika belum ada cash count. */
-    val cashDifference: Double?
+    val cashDifference: Double?,
 )

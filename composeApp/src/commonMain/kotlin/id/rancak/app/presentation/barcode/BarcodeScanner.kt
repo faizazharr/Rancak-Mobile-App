@@ -14,5 +14,5 @@ import androidx.compose.runtime.Composable
 @Composable
 expect fun BarcodeScannerView(
     onBarcodeDetected: (String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 )

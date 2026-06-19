@@ -16,7 +16,7 @@ data class Printer(
     val address: String,
     val paperWidthMm: Int = 58,
     val isDefault: Boolean = false,
-    val createdAt: String? = null
+    val createdAt: String? = null,
 )
 
 /** Key-value config tenant (mis. invoice prefix, tax rate cache, dll). */
@@ -24,5 +24,5 @@ data class Printer(
 data class AppConfig(
     val key: String,
     val value: String,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
 )

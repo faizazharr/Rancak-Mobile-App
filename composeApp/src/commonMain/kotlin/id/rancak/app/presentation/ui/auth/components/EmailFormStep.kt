@@ -2,7 +2,6 @@ package id.rancak.app.presentation.ui.auth.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,91 +55,104 @@ internal fun EmailFormStep(
     onPasswordChange: (String) -> Unit,
     onLogin: () -> Unit,
     onBack: () -> Unit,
-    onForgotPassword: () -> Unit = {}
+    onForgotPassword: () -> Unit = {},
 ) {
     // Validasi — hanya tampilkan error setelah user mulai mengetik
-    val emailError = when {
-        uiState.email.isBlank() -> null
-        !uiState.email.contains("@") || !uiState.email.contains(".") -> "Format email tidak valid"
-        else -> null
-    }
-    val passwordError = when {
-        uiState.password.isBlank() -> null
-        uiState.password.length < 6 -> "Password minimal 6 karakter"
-        else -> null
-    }
-    val canLogin = uiState.email.isNotBlank() && emailError == null &&
-        uiState.password.isNotBlank() && passwordError == null
+    val emailError =
+        when {
+            uiState.email.isBlank() -> null
+            !uiState.email.contains("@") || !uiState.email.contains(".") -> "Format email tidak valid"
+            else -> null
+        }
+    val passwordError =
+        when {
+            uiState.password.isBlank() -> null
+            uiState.password.length < 6 -> "Password minimal 6 karakter"
+            else -> null
+        }
+    val canLogin =
+        uiState.email.isNotBlank() && emailError == null &&
+            uiState.password.isNotBlank() && passwordError == null
     Column(
-        modifier            = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
-            modifier          = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable(onClick = onBack),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable(onClick = onBack),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack, null,
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    null,
                     Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Spacer(Modifier.width(10.dp))
             Text(
                 "Masuk dengan Email",
-                style      = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
 
         Spacer(Modifier.height(20.dp))
 
         RancakTextField(
-            value         = uiState.email,
+            value = uiState.email,
             onValueChange = onEmailChange,
-            label         = "Email",
-            isError       = emailError != null,
-            errorMessage  = emailError,
-            leadingIcon   = { Icon(Icons.Default.Email, contentDescription = null) }
+            label = "Email",
+            isError = emailError != null,
+            errorMessage = emailError,
+            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
         )
 
         Spacer(Modifier.height(14.dp))
 
         OutlinedTextField(
-            value         = uiState.password,
+            value = uiState.password,
             onValueChange = onPasswordChange,
-            label         = { Text("Password") },
-            leadingIcon   = { Icon(Icons.Default.Lock, contentDescription = null) },
-            trailingIcon  = {
+            label = { Text("Password") },
+            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+            trailingIcon = {
                 IconButton(onClick = onPasswordToggle) {
                     Icon(
-                        if (passwordVisible) Icons.Default.VisibilityOff
-                        else Icons.Default.Visibility,
-                        contentDescription = null
+                        if (passwordVisible) {
+                            Icons.Default.VisibilityOff
+                        } else {
+                            Icons.Default.Visibility
+                        },
+                        contentDescription = null,
                     )
                 }
             },
-            visualTransformation = if (passwordVisible) VisualTransformation.None
-                                   else PasswordVisualTransformation(),
+            visualTransformation =
+                if (passwordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
             isError = passwordError != null,
             supportingText = passwordError?.let { err -> { Text(err) } },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction    = ImeAction.Done
-            ),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
+                ),
             keyboardActions = KeyboardActions(onDone = { if (canLogin) onLogin() }),
             singleLine = true,
-            shape      = MaterialTheme.shapes.medium,
-            modifier   = Modifier.fillMaxWidth()
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.fillMaxWidth(),
         )
 
         Spacer(Modifier.height(6.dp))
@@ -150,7 +162,7 @@ internal fun EmailFormStep(
                 Text(
                     "Lupa Password?",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -159,10 +171,10 @@ internal fun EmailFormStep(
 
         if (uiState.error != null) {
             Text(
-                text     = uiState.error,
-                color    = MaterialTheme.colorScheme.error,
-                style    = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth()
+                text = uiState.error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(8.dp))
         } else {
@@ -170,11 +182,11 @@ internal fun EmailFormStep(
         }
 
         RancakButton(
-            text      = "Masuk",
-            onClick   = onLogin,
+            text = "Masuk",
+            onClick = onLogin,
             isLoading = uiState.isLoading,
-            enabled   = canLogin,
-            modifier  = Modifier.fillMaxWidth()
+            enabled = canLogin,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -185,13 +197,13 @@ private fun EmailFormStepPreview() {
     RancakTheme {
         Column(Modifier.padding(24.dp)) {
             EmailFormStep(
-                uiState          = LoginUiState(email = "user@example.com"),
-                passwordVisible  = false,
+                uiState = LoginUiState(email = "user@example.com"),
+                passwordVisible = false,
                 onPasswordToggle = {},
-                onEmailChange    = {},
+                onEmailChange = {},
                 onPasswordChange = {},
-                onLogin          = {},
-                onBack           = {}
+                onLogin = {},
+                onBack = {},
             )
         }
     }

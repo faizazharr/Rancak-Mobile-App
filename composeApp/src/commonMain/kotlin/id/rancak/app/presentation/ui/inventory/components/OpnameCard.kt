@@ -24,81 +24,93 @@ fun OpnameCard(
     onOpen: () -> Unit,
     onCancel: () -> Unit,
     isSelected: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val sem = RancakColors.semantic
-    val statusColor = when (opname.status) {
-        "finalized" -> sem.success
-        "cancelled" -> MaterialTheme.colorScheme.error
-        else        -> sem.warning
-    }
-    val statusLabel = when (opname.status) {
-        "finalized" -> "Final"
-        "cancelled" -> "Dibatalkan"
-        else        -> "Draft"
-    }
+    val statusColor =
+        when (opname.status) {
+            "finalized" -> sem.success
+            "cancelled" -> MaterialTheme.colorScheme.error
+            else -> sem.warning
+        }
+    val statusLabel =
+        when (opname.status) {
+            "finalized" -> "Final"
+            "cancelled" -> "Dibatalkan"
+            else -> "Draft"
+        }
 
-    val statusIcon = when (opname.status) {
-        "finalized" -> Icons.Default.Visibility
-        "cancelled" -> Icons.Default.DoNotDisturb
-        else        -> Icons.Default.Edit
-    }
+    val statusIcon =
+        when (opname.status) {
+            "finalized" -> Icons.Default.Visibility
+            "cancelled" -> Icons.Default.DoNotDisturb
+            else -> Icons.Default.Edit
+        }
 
     Card(
-        modifier  = modifier.fillMaxWidth().clickable(onClick = onOpen),
-        shape     = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 3.dp else 1.dp
-        ),
-        colors    = CardDefaults.cardColors(
-            containerColor = if (isSelected) Primary.copy(alpha = 0.10f)
-                             else MaterialTheme.colorScheme.surface
-        )
+        modifier = modifier.fillMaxWidth().clickable(onClick = onOpen),
+        shape = MaterialTheme.shapes.medium,
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = if (isSelected) 3.dp else 1.dp,
+            ),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (isSelected) {
+                        Primary.copy(alpha = 0.10f)
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+            ),
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
             // Left status strip
             Box(
-                modifier = Modifier.width(3.dp).fillMaxHeight()
-                    .background(if (isSelected) Primary else statusColor)
+                modifier =
+                    Modifier.width(3.dp).fillMaxHeight()
+                        .background(if (isSelected) Primary else statusColor),
             )
             Row(
-                modifier              = Modifier.weight(1f).padding(start = 10.dp, top = 10.dp, bottom = 10.dp, end = 4.dp),
+                modifier = Modifier.weight(1f).padding(start = 10.dp, top = 10.dp, bottom = 10.dp, end = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Box(
-                            modifier         = Modifier.size(20.dp).background(
-                                statusColor.copy(alpha = 0.14f), MaterialTheme.shapes.extraSmall
-                            ),
-                            contentAlignment = Alignment.Center
+                            modifier =
+                                Modifier.size(20.dp).background(
+                                    statusColor.copy(alpha = 0.14f),
+                                    MaterialTheme.shapes.extraSmall,
+                                ),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(statusIcon, null, tint = statusColor, modifier = Modifier.size(11.dp))
                         }
                         Text(
                             "#${opname.opnameNo}",
-                            style      = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
-                            maxLines   = 1
+                            maxLines = 1,
                         )
                     }
                     Spacer(Modifier.height(3.dp))
                     Text(
                         "${opname.itemCount} item · ${formatOpnameDate(opname.createdAt)}",
-                        style    = MaterialTheme.typography.labelSmall,
-                        color    = MaterialTheme.colorScheme.outline,
-                        maxLines = 1
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                        maxLines = 1,
                     )
                     if (!opname.note.isNullOrBlank()) {
                         Text(
                             opname.note,
-                            style    = MaterialTheme.typography.labelSmall,
-                            color    = MaterialTheme.colorScheme.outline,
-                            maxLines = 1
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outline,
+                            maxLines = 1,
                         )
                     }
                     Spacer(Modifier.height(4.dp))
@@ -106,14 +118,14 @@ fun OpnameCard(
                 }
                 if (opname.status == "draft") {
                     IconButton(
-                        onClick  = onCancel,
-                        modifier = Modifier.size(32.dp)
+                        onClick = onCancel,
+                        modifier = Modifier.size(32.dp),
                     ) {
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "Batalkan",
-                            tint     = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(16.dp)
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp),
                         )
                     }
                 }
@@ -124,10 +136,15 @@ fun OpnameCard(
 
 // ── Preview ───────────────────────────────────────────────────────────────────
 
-private val sampleOpname = StockOpname(
-    uuid = "1", opnameNo = "OP-001", status = "draft", note = "Opname bulanan",
-    itemCount = 12, createdAt = "2024-01-15T10:00:00"
-)
+private val sampleOpname =
+    StockOpname(
+        uuid = "1",
+        opnameNo = "OP-001",
+        status = "draft",
+        note = "Opname bulanan",
+        itemCount = 12,
+        createdAt = "2024-01-15T10:00:00",
+    )
 
 @Preview
 @Composable

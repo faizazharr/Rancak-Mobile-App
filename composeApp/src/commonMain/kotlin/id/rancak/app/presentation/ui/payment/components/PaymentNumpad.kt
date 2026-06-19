@@ -22,23 +22,24 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 @Composable
 internal fun PaymentNumpad(
     onKey: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val keys = listOf(
-        listOf("1",   "2", "3"),
-        listOf("4",   "5", "6"),
-        listOf("7",   "8", "9"),
-        listOf("000", "0", "⌫")
-    )
+    val keys =
+        listOf(
+            listOf("1", "2", "3"),
+            listOf("4", "5", "6"),
+            listOf("7", "8", "9"),
+            listOf("000", "0", "⌫"),
+        )
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         keys.forEach { row ->
             Row(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 row.forEach { key -> PaymentNumpadKey(key = key, onClick = { onKey(key) }) }
             }
@@ -48,37 +49,48 @@ internal fun PaymentNumpad(
 
 /** Single elevated key; renders a backspace icon for "⌫". */
 @Composable
-private fun RowScope.PaymentNumpadKey(key: String, onClick: () -> Unit) {
+private fun RowScope.PaymentNumpadKey(
+    key: String,
+    onClick: () -> Unit,
+) {
     val isBackspace = key == "⌫"
     ElevatedButton(
-        onClick  = onClick,
+        onClick = onClick,
         modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp),
-        shape    = MaterialTheme.shapes.medium,
-        colors   = ButtonDefaults.elevatedButtonColors(
-            containerColor = if (isBackspace)
-                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
-            else MaterialTheme.colorScheme.surface,
-            contentColor = if (isBackspace)
-                MaterialTheme.colorScheme.error
-            else MaterialTheme.colorScheme.onSurface
-        ),
-        elevation = ButtonDefaults.elevatedButtonElevation(
-            defaultElevation = 1.dp,
-            pressedElevation = 0.dp
-        ),
-        contentPadding = PaddingValues(0.dp)
+        shape = MaterialTheme.shapes.medium,
+        colors =
+            ButtonDefaults.elevatedButtonColors(
+                containerColor =
+                    if (isBackspace) {
+                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+                contentColor =
+                    if (isBackspace) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+            ),
+        elevation =
+            ButtonDefaults.elevatedButtonElevation(
+                defaultElevation = 1.dp,
+                pressedElevation = 0.dp,
+            ),
+        contentPadding = PaddingValues(0.dp),
     ) {
         if (isBackspace) {
             Icon(
                 Icons.AutoMirrored.Filled.Backspace,
                 contentDescription = "Hapus",
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         } else {
             Text(
                 key,
-                style      = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
             )
         }
     }

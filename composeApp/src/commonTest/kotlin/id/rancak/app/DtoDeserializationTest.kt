@@ -1,16 +1,15 @@
 package id.rancak.app
 
 import id.rancak.app.data.remote.dto.ApiResponse
+import id.rancak.app.data.remote.dto.auth.MyTenantDto
 import id.rancak.app.data.remote.dto.operations.PaymentMethodReportDto
 import id.rancak.app.data.remote.dto.operations.ShiftSummaryDto
 import id.rancak.app.data.remote.dto.sale.SaleDto
-import id.rancak.app.data.remote.dto.auth.MyTenantDto
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -19,12 +18,12 @@ import kotlin.test.assertTrue
  * These tests catch @SerialName mismatches before they reach the device.
  */
 class DtoDeserializationTest {
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-        coerceInputValues = true
-    }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            coerceInputValues = true
+        }
 
     // ── ApiResponse envelope ──────────────────────────────────────────────────
 
@@ -95,7 +94,8 @@ class DtoDeserializationTest {
 
     @Test
     fun `ShiftSummaryDto deserialises payment_breakdown correctly`() {
-        val raw = """
+        val raw =
+            """
             {
               "uuid": "shift-123",
               "status": "closed",
@@ -113,7 +113,7 @@ class DtoDeserializationTest {
                 {"payment_method":"qris","transaction_count":4,"total":1000000}
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
         val dto = json.decodeFromString<ShiftSummaryDto>(raw)
         assertEquals("shift-123", dto.uuid)
         assertEquals("500000", dto.openingCash)
@@ -131,7 +131,8 @@ class DtoDeserializationTest {
 
     @Test
     fun `ShiftSummaryDto falls back to payment_summary when payment_breakdown absent`() {
-        val raw = """
+        val raw =
+            """
             {
               "uuid": "shift-old",
               "status": "open",
@@ -140,7 +141,7 @@ class DtoDeserializationTest {
                 {"payment_method":"cash","total":500000}
               ]
             }
-        """.trimIndent()
+            """.trimIndent()
         val dto = json.decodeFromString<ShiftSummaryDto>(raw)
         assertEquals(1, dto.payments.size)
         assertEquals("cash", dto.payments[0].method)
@@ -150,7 +151,8 @@ class DtoDeserializationTest {
 
     @Test
     fun `SaleDto deserialises basic fields`() {
-        val raw = """
+        val raw =
+            """
             {
               "uuid": "sale-abc",
               "invoice_no": "INV-20260422-000001",
@@ -163,7 +165,7 @@ class DtoDeserializationTest {
               "order_type": "dine_in",
               "items": []
             }
-        """.trimIndent()
+            """.trimIndent()
         val dto = json.decodeFromString<SaleDto>(raw)
         assertEquals("sale-abc", dto.uuid)
         assertEquals("INV-20260422-000001", dto.invoiceNo)
@@ -176,13 +178,14 @@ class DtoDeserializationTest {
 
     @Test
     fun `MyTenantDto deserialises tenant fields`() {
-        val raw = """
+        val raw =
+            """
             {
               "uuid": "tenant-001",
               "name": "Warung Rancak",
               "subscription_status": "active"
             }
-        """.trimIndent()
+            """.trimIndent()
         val dto = json.decodeFromString<MyTenantDto>(raw)
         assertEquals("tenant-001", dto.uuid)
         assertEquals("Warung Rancak", dto.name)

@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Resource
@@ -28,7 +27,7 @@ data class TableUiState(
     val editingTable: Table? = null,
     val showFormDialog: Boolean = false,
     val pendingDelete: Table? = null,
-    val snackbarMessage: String? = null
+    val snackbarMessage: String? = null,
 )
 
 /**
@@ -42,9 +41,8 @@ data class TableUiState(
  */
 class TableViewModel(
     private val operationsRepository: OperationsRepository,
-    private val adminRepository: AdminRepository
+    private val adminRepository: AdminRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(TableUiState())
     val uiState: StateFlow<TableUiState> = _uiState.asStateFlow()
 
@@ -55,8 +53,8 @@ class TableViewModel(
                 is Resource.Success ->
                     _uiState.update {
                         it.copy(
-                            tables    = result.data.sortedBy { t -> t.sortOrder }.toImmutableList(),
-                            isLoading = false
+                            tables = result.data.sortedBy { t -> t.sortOrder }.toImmutableList(),
+                            isLoading = false,
                         )
                     }
                 is Resource.Error ->
@@ -93,37 +91,38 @@ class TableViewModel(
         area: String?,
         capacity: Int,
         isActive: Boolean,
-        sortOrder: Int
+        sortOrder: Int,
     ) {
         val editing = _uiState.value.editingTable
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true) }
-            val result = if (editing == null) {
-                adminRepository.createTable(
-                    name      = name,
-                    area      = area,
-                    capacity  = capacity,
-                    isActive  = isActive,
-                    sortOrder = sortOrder
-                )
-            } else {
-                adminRepository.updateTable(
-                    tableId   = editing.uuid,
-                    name      = name,
-                    area      = area,
-                    capacity  = capacity,
-                    isActive  = isActive,
-                    sortOrder = sortOrder
-                )
-            }
+            val result =
+                if (editing == null) {
+                    adminRepository.createTable(
+                        name = name,
+                        area = area,
+                        capacity = capacity,
+                        isActive = isActive,
+                        sortOrder = sortOrder,
+                    )
+                } else {
+                    adminRepository.updateTable(
+                        tableId = editing.uuid,
+                        name = name,
+                        area = area,
+                        capacity = capacity,
+                        isActive = isActive,
+                        sortOrder = sortOrder,
+                    )
+                }
             when (result) {
                 is Resource.Success -> {
                     _uiState.update {
                         it.copy(
-                            isSubmitting    = false,
-                            showFormDialog  = false,
-                            editingTable    = null,
-                            snackbarMessage = if (editing == null) "Meja berhasil ditambahkan" else "Meja diperbarui"
+                            isSubmitting = false,
+                            showFormDialog = false,
+                            editingTable = null,
+                            snackbarMessage = if (editing == null) "Meja berhasil ditambahkan" else "Meja diperbarui",
                         )
                     }
                     loadTables()
@@ -131,8 +130,8 @@ class TableViewModel(
                 is Resource.Error ->
                     _uiState.update {
                         it.copy(
-                            isSubmitting    = false,
-                            snackbarMessage = result.message
+                            isSubmitting = false,
+                            snackbarMessage = result.message,
                         )
                     }
                 is Resource.Loading -> { /* not used */ }
@@ -158,9 +157,9 @@ class TableViewModel(
                 is Resource.Success -> {
                     _uiState.update {
                         it.copy(
-                            isSubmitting    = false,
-                            pendingDelete   = null,
-                            snackbarMessage = "Meja '${target.name}' dihapus"
+                            isSubmitting = false,
+                            pendingDelete = null,
+                            snackbarMessage = "Meja '${target.name}' dihapus",
                         )
                     }
                     loadTables()
@@ -168,9 +167,9 @@ class TableViewModel(
                 is Resource.Error ->
                     _uiState.update {
                         it.copy(
-                            isSubmitting    = false,
-                            pendingDelete   = null,
-                            snackbarMessage = result.message
+                            isSubmitting = false,
+                            pendingDelete = null,
+                            snackbarMessage = result.message,
                         )
                     }
                 is Resource.Loading -> { /* not used */ }

@@ -26,7 +26,7 @@ fun DeviceIntegrityWarningDialog(onDismiss: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.Warning,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.error
+                tint = MaterialTheme.colorScheme.error,
             )
         },
         title = { Text("Perangkat Tidak Aman") },
@@ -34,13 +34,13 @@ fun DeviceIntegrityWarningDialog(onDismiss: () -> Unit) {
             Text(
                 "Perangkat Anda terdeteksi rooted atau jailbroken. Data aplikasi " +
                     "mungkin lebih mudah diakses oleh aplikasi lain. Harap gunakan " +
-                    "perangkat resmi perusahaan untuk transaksi produksi."
+                    "perangkat resmi perusahaan untuk transaksi produksi.",
             )
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text("Saya Mengerti")
             }
-        }
+        },
     )
 }

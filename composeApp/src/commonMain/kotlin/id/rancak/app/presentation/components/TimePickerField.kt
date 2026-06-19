@@ -28,53 +28,55 @@ fun TimePickerField(
     onTimeSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     isError: Boolean = false,
-    supportingText: @Composable (() -> Unit)? = null
+    supportingText: @Composable (() -> Unit)? = null,
 ) {
     var showPicker by remember { mutableStateOf(false) }
 
-    val initialHour   = remember(value) { value.substringBefore(':', "0").toIntOrNull() ?: 0 }
+    val initialHour = remember(value) { value.substringBefore(':', "0").toIntOrNull() ?: 0 }
     val initialMinute = remember(value) { value.substringAfter(':', "0").toIntOrNull() ?: 0 }
 
     Box(modifier = modifier) {
         OutlinedTextField(
-            value         = value,
+            value = value,
             onValueChange = {},
-            readOnly      = true,
-            label         = { Text(label) },
-            trailingIcon  = { Icon(Icons.Default.Schedule, contentDescription = "Pilih waktu") },
-            isError       = isError,
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { Icon(Icons.Default.Schedule, contentDescription = "Pilih waktu") },
+            isError = isError,
             supportingText = supportingText,
-            singleLine    = true,
-            modifier      = Modifier.fillMaxWidth()
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
         )
         Box(
-            modifier = Modifier
-                .matchParentSize()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication        = null,
-                    onClick           = { showPicker = true }
-                )
+            modifier =
+                Modifier
+                    .matchParentSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { showPicker = true },
+                    ),
         )
     }
 
     if (showPicker) {
-        val state = rememberTimePickerState(
-            initialHour   = initialHour,
-            initialMinute = initialMinute,
-            is24Hour      = true
-        )
+        val state =
+            rememberTimePickerState(
+                initialHour = initialHour,
+                initialMinute = initialMinute,
+                is24Hour = true,
+            )
         AlertDialog(
             onDismissRequest = { showPicker = false },
-            title   = { Text("Pilih Waktu") },
-            text    = {
+            title = { Text("Pilih Waktu") },
+            text = {
                 Column(
-                    modifier          = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     TimePicker(
-                        state    = state,
-                        modifier = Modifier.padding(top = 8.dp)
+                        state = state,
+                        modifier = Modifier.padding(top = 8.dp),
                     )
                 }
             },
@@ -88,7 +90,7 @@ fun TimePickerField(
             },
             dismissButton = {
                 TextButton(onClick = { showPicker = false }) { Text("Batal") }
-            }
+            },
         )
     }
 }

@@ -3,10 +3,12 @@ package id.rancak.app.domain.model
 import androidx.compose.runtime.Immutable
 
 sealed class Resource<out T> {
-@Immutable
+    @Immutable
     data class Success<T>(val data: T) : Resource<T>()
-@Immutable
+
+    @Immutable
     data class Error(val message: String, val code: Int? = null) : Resource<Nothing>()
+
     data object Loading : Resource<Nothing>()
 
     val isSuccess get() = this is Success
@@ -15,9 +17,10 @@ sealed class Resource<out T> {
 
     fun getOrNull(): T? = (this as? Success)?.data
 
-    fun <R> map(transform: (T) -> R): Resource<R> = when (this) {
-        is Success -> Success(transform(data))
-        is Error -> Error(message, code)
-        is Loading -> Loading
-    }
+    fun <R> map(transform: (T) -> R): Resource<R> =
+        when (this) {
+            is Success -> Success(transform(data))
+            is Error -> Error(message, code)
+            is Loading -> Loading
+        }
 }

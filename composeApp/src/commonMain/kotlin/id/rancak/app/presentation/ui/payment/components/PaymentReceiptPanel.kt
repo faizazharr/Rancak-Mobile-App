@@ -38,68 +38,69 @@ import kotlinx.collections.immutable.persistentListOf
  */
 @Composable
 internal fun PaymentReceiptPanel(
-    itemCount:       Int,
-    subtotal:        Long,
-    total:           Long,
-    discount:        Long,
-    tax:             Long,
-    adminFee:        Long,
-    deliveryFee:     Long,
-    tip:             Long,
-    changeAmount:    Long,
-    isCashSelected:  Boolean,
-    paidAmount:      String,
-    orderItems:      ImmutableList<OrderLineItem>  = persistentListOf(),
-    taxLines:        ImmutableList<NamedAmount>    = persistentListOf(),
-    surchargeLines:  ImmutableList<NamedAmount>    = persistentListOf(),
-    orderTypeLabel:  String?                       = null,
-    customerName:    String?                       = null,
-    tableLabel:      String?                       = null,
-    pax:             Int                           = 0,
-    voucherCode:     String?                       = null,
-    selectedMethod:  PaymentMethod?                = null,
-    storeName:       String                        = "RANCAK POS",
-    isSplit:         Boolean                       = false,
-    onToggleMode:    () -> Unit                    = {},
-    modifier:        Modifier                      = Modifier
+    itemCount: Int,
+    subtotal: Long,
+    total: Long,
+    discount: Long,
+    tax: Long,
+    adminFee: Long,
+    deliveryFee: Long,
+    tip: Long,
+    changeAmount: Long,
+    isCashSelected: Boolean,
+    paidAmount: String,
+    orderItems: ImmutableList<OrderLineItem> = persistentListOf(),
+    taxLines: ImmutableList<NamedAmount> = persistentListOf(),
+    surchargeLines: ImmutableList<NamedAmount> = persistentListOf(),
+    orderTypeLabel: String? = null,
+    customerName: String? = null,
+    tableLabel: String? = null,
+    pax: Int = 0,
+    voucherCode: String? = null,
+    selectedMethod: PaymentMethod? = null,
+    storeName: String = "RANCAK POS",
+    isSplit: Boolean = false,
+    onToggleMode: () -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     // Panel mengisi tinggi kolom penuh — hanya bagian items yang scroll,
     // header/total/pricing/toggle selalu terlihat.
     Box(
-        modifier         = modifier,
-        contentAlignment = Alignment.TopCenter
+        modifier = modifier,
+        contentAlignment = Alignment.TopCenter,
     ) {
         Card(
-            modifier  = Modifier
-                .widthIn(max = 480.dp)
-                .fillMaxWidth()
-                .fillMaxHeight(),
-            shape     = RoundedCornerShape(12.dp),
-            colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            modifier =
+                Modifier
+                    .widthIn(max = 480.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // ── Konten tetap atas ────────────────────────────────────────
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     // Brand header
                     Text(
                         storeName.uppercase(),
-                        modifier  = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 2.dp),
-                        style     = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 2.dp),
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = 3.sp,
-                        color     = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
                     )
                     ReceiptOrderChips(
                         orderTypeLabel = orderTypeLabel,
-                        customerName   = customerName,
-                        tableLabel     = tableLabel,
-                        pax            = pax,
-                        selectedMethod = selectedMethod
+                        customerName = customerName,
+                        tableLabel = tableLabel,
+                        pax = pax,
+                        selectedMethod = selectedMethod,
                     )
                     DashedDivider()
                 }
@@ -107,23 +108,24 @@ internal fun PaymentReceiptPanel(
                 // ── Bagian items — hanya ini yang bisa scroll ────────────────
                 if (orderItems.isNotEmpty()) {
                     Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 16.dp)
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .verticalScroll(rememberScrollState())
+                                .padding(horizontal = 16.dp),
                     ) {
                         Text(
                             "PESANAN",
-                            style         = MaterialTheme.typography.labelSmall,
-                            fontWeight    = FontWeight.ExtraBold,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
                             letterSpacing = 2.sp,
-                            color         = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(Modifier.height(6.dp))
                         ReceiptLineItems(
-                            items     = orderItems,
+                            items = orderItems,
                             itemCount = itemCount,
-                            subtotal  = subtotal
+                            subtotal = subtotal,
                         )
                         Spacer(Modifier.height(8.dp))
                     }
@@ -134,20 +136,20 @@ internal fun PaymentReceiptPanel(
                 // ── Konten tetap bawah (selalu terlihat) ─────────────────────
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     DashedDivider()
                     ReceiptPricingSection(
-                        subtotal       = subtotal,
-                        discount       = discount,
-                        tax            = tax,
-                        adminFee       = adminFee,
-                        deliveryFee    = deliveryFee,
-                        tip            = tip,
-                        taxLines       = taxLines,
+                        subtotal = subtotal,
+                        discount = discount,
+                        tax = tax,
+                        adminFee = adminFee,
+                        deliveryFee = deliveryFee,
+                        tip = tip,
+                        taxLines = taxLines,
                         surchargeLines = surchargeLines,
-                        itemCount      = itemCount,
-                        hasItemDetail  = orderItems.isNotEmpty()
+                        itemCount = itemCount,
+                        hasItemDetail = orderItems.isNotEmpty(),
                     )
                     ReceiptTotalCard(total = total)
 
@@ -155,23 +157,27 @@ internal fun PaymentReceiptPanel(
                     if (isCashSelected && paid > 0) {
                         DashedDivider()
                         ReceiptPaymentRows(
-                            paidAmount   = paid,
-                            changeAmount = changeAmount
+                            paidAmount = paid,
+                            changeAmount = changeAmount,
                         )
                     }
 
                     if (!voucherCode.isNullOrBlank()) {
                         DashedDivider()
                         Row(
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
                         ) {
-                            Icon(Icons.Default.LocalOffer, null, Modifier.size(11.dp),
-                                tint = MaterialTheme.colorScheme.primary)
+                            Icon(
+                                Icons.Default.LocalOffer,
+                                null,
+                                Modifier.size(11.dp),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
                             Text(
                                 "Voucher: $voucherCode",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
@@ -194,29 +200,30 @@ internal fun PaymentReceiptPanel(
 @Composable
 private fun ReceiptStoreHeader(storeName: String) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center,
     ) {
         Column(
-            modifier            = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
+            modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(3.dp)
+            verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Icon(
                 Icons.Default.Store,
                 contentDescription = null,
-                tint     = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
-                modifier = Modifier.size(22.dp)
+                tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
+                modifier = Modifier.size(22.dp),
             )
             Text(
                 storeName.uppercase(),
-                style         = MaterialTheme.typography.titleMedium,
-                fontWeight    = FontWeight.ExtraBold,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 3.sp,
-                color         = MaterialTheme.colorScheme.onPrimary,
-                textAlign     = TextAlign.Center
+                color = MaterialTheme.colorScheme.onPrimary,
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -227,28 +234,32 @@ private fun ReceiptStoreHeader(storeName: String) {
 @Composable
 private fun ReceiptNotch(atTop: Boolean) {
     Row(
-        modifier              = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        val leftShape = if (atTop)
-            RoundedCornerShape(bottomEnd = 100.dp)
-        else
-            RoundedCornerShape(topEnd = 100.dp)
-        val rightShape = if (atTop)
-            RoundedCornerShape(bottomStart = 100.dp)
-        else
-            RoundedCornerShape(topStart = 100.dp)
+        val leftShape =
+            if (atTop) {
+                RoundedCornerShape(bottomEnd = 100.dp)
+            } else {
+                RoundedCornerShape(topEnd = 100.dp)
+            }
+        val rightShape =
+            if (atTop) {
+                RoundedCornerShape(bottomStart = 100.dp)
+            } else {
+                RoundedCornerShape(topStart = 100.dp)
+            }
         Box(
             Modifier
                 .size(width = 16.dp, height = 14.dp)
                 .clip(leftShape)
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.background),
         )
         Box(
             Modifier
                 .size(width = 16.dp, height = 14.dp)
                 .clip(rightShape)
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.background),
         )
     }
 }
@@ -260,11 +271,11 @@ private fun DashedDivider(color: Color = MaterialTheme.colorScheme.outlineVarian
     val c = color
     Canvas(modifier = Modifier.fillMaxWidth().height(1.dp)) {
         drawLine(
-            color       = c,
-            start       = Offset(0f, size.height / 2),
-            end         = Offset(size.width, size.height / 2),
+            color = c,
+            start = Offset(0f, size.height / 2),
+            end = Offset(size.width, size.height / 2),
             strokeWidth = 1.dp.toPx(),
-            pathEffect  = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()), 0f)
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()), 0f),
         )
     }
 }
@@ -274,55 +285,60 @@ private fun DashedDivider(color: Color = MaterialTheme.colorScheme.outlineVarian
 @Composable
 private fun ReceiptOrderChips(
     orderTypeLabel: String?,
-    customerName:   String?,
-    tableLabel:     String?,
-    pax:            Int,
-    selectedMethod: PaymentMethod?
+    customerName: String?,
+    tableLabel: String?,
+    pax: Int,
+    selectedMethod: PaymentMethod?,
 ) {
-    val hasAny = !orderTypeLabel.isNullOrBlank() || !customerName.isNullOrBlank() ||
-                 !tableLabel.isNullOrBlank() || pax > 0 || selectedMethod != null
+    val hasAny =
+        !orderTypeLabel.isNullOrBlank() || !customerName.isNullOrBlank() ||
+            !tableLabel.isNullOrBlank() || pax > 0 || selectedMethod != null
     if (!hasAny) return
 
     Row(
-        modifier              = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         orderTypeLabel?.takeIf { it.isNotBlank() }?.let {
             InfoChipSmall(Icons.Default.TableBar, it)
         }
         selectedMethod?.let { method ->
-            val (icon, label) = when (method) {
-                PaymentMethod.CASH     -> Icons.Default.Payments   to "Cash"
-                PaymentMethod.QRIS     -> Icons.Default.QrCode2    to "QRIS"
-                PaymentMethod.CARD     -> Icons.Default.CreditCard  to "Card"
-                PaymentMethod.TRANSFER -> Icons.Default.AccountBalance to "Transfer"
-                else                   -> Icons.Default.MoreHoriz  to method.value
-            }
+            val (icon, label) =
+                when (method) {
+                    PaymentMethod.CASH -> Icons.Default.Payments to "Cash"
+                    PaymentMethod.QRIS -> Icons.Default.QrCode2 to "QRIS"
+                    PaymentMethod.CARD -> Icons.Default.CreditCard to "Card"
+                    PaymentMethod.TRANSFER -> Icons.Default.AccountBalance to "Transfer"
+                    else -> Icons.Default.MoreHoriz to method.value
+                }
             InfoChipSmall(icon, label)
         }
         if (!customerName.isNullOrBlank()) InfoChipSmall(Icons.Default.Person, customerName)
-        if (!tableLabel.isNullOrBlank())   InfoChipSmall(Icons.Default.TableBar, tableLabel)
-        if (pax > 0)                        InfoChipSmall(Icons.Default.People, "$pax tamu")
+        if (!tableLabel.isNullOrBlank()) InfoChipSmall(Icons.Default.TableBar, tableLabel)
+        if (pax > 0) InfoChipSmall(Icons.Default.People, "$pax tamu")
     }
 }
 
 @Composable
-private fun InfoChipSmall(icon: ImageVector, label: String) {
+private fun InfoChipSmall(
+    icon: ImageVector,
+    label: String,
+) {
     Surface(
         shape = MaterialTheme.shapes.extraSmall,
-        color = MaterialTheme.colorScheme.surfaceVariant
+        color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Row(
-            modifier              = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(3.dp)
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Icon(icon, null, Modifier.size(10.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 label,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -332,37 +348,41 @@ private fun InfoChipSmall(icon: ImageVector, label: String) {
 
 @Composable
 private fun ReceiptLineItems(
-    items:     ImmutableList<OrderLineItem>,
+    items: ImmutableList<OrderLineItem>,
     itemCount: Int,
-    subtotal:  Long
+    subtotal: Long,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         items.forEach { line ->
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.Top
+                verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                    val label = if (line.variantName != null)
-                        "${line.name} (${line.variantName})" else line.name
+                    val label =
+                        if (line.variantName != null) {
+                            "${line.name} (${line.variantName})"
+                        } else {
+                            line.name
+                        }
                     Text(
                         label,
-                        style      = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Text(
                         "${line.qty}× @ ${formatRupiah(line.price)}",
-                        style      = MaterialTheme.typography.labelSmall,
-                        color      = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontFamily = FontFamily.Monospace
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontFamily = FontFamily.Monospace,
                     )
                 }
                 Text(
                     formatRupiah(line.subtotal),
-                    style      = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.SemiBold,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace,
                 )
             }
         }
@@ -373,26 +393,28 @@ private fun ReceiptLineItems(
 
 @Composable
 private fun ReceiptPricingSection(
-    subtotal:       Long,
-    discount:       Long,
-    tax:            Long,
-    adminFee:       Long,
-    deliveryFee:    Long,
-    tip:            Long,
-    taxLines:       ImmutableList<NamedAmount>,
+    subtotal: Long,
+    discount: Long,
+    tax: Long,
+    adminFee: Long,
+    deliveryFee: Long,
+    tip: Long,
+    taxLines: ImmutableList<NamedAmount>,
     surchargeLines: ImmutableList<NamedAmount>,
-    itemCount:      Int,
-    hasItemDetail:  Boolean
+    itemCount: Int,
+    hasItemDetail: Boolean,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         val subtotalLabel = if (hasItemDetail) "Subtotal ($itemCount item)" else "$itemCount item"
         ReceiptAmountRow(subtotalLabel, formatRupiah(subtotal))
 
-        if (discount > 0) ReceiptAmountRow(
-            "Diskon",
-            "− ${formatRupiah(discount)}",
-            valueColor = MaterialTheme.colorScheme.error
-        )
+        if (discount > 0) {
+            ReceiptAmountRow(
+                "Diskon",
+                "− ${formatRupiah(discount)}",
+                valueColor = MaterialTheme.colorScheme.error,
+            )
+        }
         if (taxLines.isNotEmpty()) {
             taxLines.filter { it.amount > 0 }.forEach {
                 ReceiptAmountRow(it.label, formatRupiah(it.amount))
@@ -408,7 +430,7 @@ private fun ReceiptPricingSection(
             ReceiptAmountRow("Biaya Admin", formatRupiah(adminFee))
         }
         if (deliveryFee > 0) ReceiptAmountRow("Ongkir", formatRupiah(deliveryFee))
-        if (tip > 0)         ReceiptAmountRow("Tip",    formatRupiah(tip))
+        if (tip > 0) ReceiptAmountRow("Tip", formatRupiah(tip))
     }
 }
 
@@ -417,30 +439,31 @@ private fun ReceiptPricingSection(
 @Composable
 private fun ReceiptTotalCard(total: Long) {
     Surface(
-        shape    = RoundedCornerShape(8.dp),
-        color    = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-        border   = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
-        modifier = Modifier.fillMaxWidth()
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier              = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 "TOTAL",
-                style         = MaterialTheme.typography.titleSmall,
-                fontWeight    = FontWeight.ExtraBold,
-                letterSpacing = 1.sp
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.sp,
             )
             Text(
                 formatRupiah(total),
-                style      = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color      = MaterialTheme.colorScheme.primary,
-                fontFamily = FontFamily.Monospace
+                color = MaterialTheme.colorScheme.primary,
+                fontFamily = FontFamily.Monospace,
             )
         }
     }
@@ -449,14 +472,19 @@ private fun ReceiptTotalCard(total: Long) {
 // ── Cash payment rows ─────────────────────────────────────────────────────────
 
 @Composable
-private fun ReceiptPaymentRows(paidAmount: Long, changeAmount: Long) {
+private fun ReceiptPaymentRows(
+    paidAmount: Long,
+    changeAmount: Long,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         ReceiptAmountRow("Dibayar", formatRupiah(paidAmount))
-        if (changeAmount > 0) ReceiptAmountRow(
-            "Kembalian",
-            formatRupiah(changeAmount),
-            valueColor = MaterialTheme.colorScheme.secondary
-        )
+        if (changeAmount > 0) {
+            ReceiptAmountRow(
+                "Kembalian",
+                formatRupiah(changeAmount),
+                valueColor = MaterialTheme.colorScheme.secondary,
+            )
+        }
     }
 }
 
@@ -464,37 +492,47 @@ private fun ReceiptPaymentRows(paidAmount: Long, changeAmount: Long) {
 
 @Composable
 private fun PaymentModeToggle(
-    isSplit:  Boolean,
+    isSplit: Boolean,
     onToggle: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier            = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(
             "Mode Pembayaran",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             AssistChip(
-                onClick  = { if (isSplit) onToggle() },
-                label    = { Text("Tunggal") },
+                onClick = { if (isSplit) onToggle() },
+                label = { Text("Tunggal") },
                 leadingIcon = { Icon(Icons.Default.Payments, null, Modifier.size(16.dp)) },
                 modifier = Modifier.weight(1f),
-                colors   = if (!isSplit) AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ) else AssistChipDefaults.assistChipColors()
+                colors =
+                    if (!isSplit) {
+                        AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        )
+                    } else {
+                        AssistChipDefaults.assistChipColors()
+                    },
             )
             AssistChip(
-                onClick  = { if (!isSplit) onToggle() },
-                label    = { Text("Terpisah") },
+                onClick = { if (!isSplit) onToggle() },
+                label = { Text("Terpisah") },
                 leadingIcon = { Icon(Icons.AutoMirrored.Filled.CallSplit, null, Modifier.size(16.dp)) },
                 modifier = Modifier.weight(1f),
-                colors   = if (isSplit) AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ) else AssistChipDefaults.assistChipColors()
+                colors =
+                    if (isSplit) {
+                        AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        )
+                    } else {
+                        AssistChipDefaults.assistChipColors()
+                    },
             )
         }
     }
@@ -504,22 +542,22 @@ private fun PaymentModeToggle(
 
 @Composable
 private fun ReceiptAmountRow(
-    label:      String,
-    value:      String,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface
+    label: String,
+    value: String,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
 ) {
     Row(
-        modifier              = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
             value,
-            style      = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.SemiBold,
-            color      = valueColor,
-            fontFamily = FontFamily.Monospace
+            color = valueColor,
+            fontFamily = FontFamily.Monospace,
         )
     }
 }
@@ -531,27 +569,28 @@ private fun ReceiptAmountRow(
 private fun PaymentReceiptPanelPreview_Cash() {
     RancakTheme {
         PaymentReceiptPanel(
-            itemCount      = 3,
-            subtotal       = 75_000L,
-            total          = 70_000L,
-            discount       = 5_000L,
-            tax            = 0L,
-            adminFee       = 0L,
-            deliveryFee    = 0L,
-            tip            = 0L,
-            changeAmount   = 30_000L,
+            itemCount = 3,
+            subtotal = 75_000L,
+            total = 70_000L,
+            discount = 5_000L,
+            tax = 0L,
+            adminFee = 0L,
+            deliveryFee = 0L,
+            tip = 0L,
+            changeAmount = 30_000L,
             isCashSelected = true,
-            paidAmount     = "100000",
-            orderItems     = persistentListOf(
-                OrderLineItem("Kopi Susu Gula Aren", null, 2, 18_000L, 36_000L),
-                OrderLineItem("Croissant",           null, 1, 22_000L, 22_000L),
-                OrderLineItem("Es Teh",              null, 1, 12_000L, 12_000L)
-            ),
+            paidAmount = "100000",
+            orderItems =
+                persistentListOf(
+                    OrderLineItem("Kopi Susu Gula Aren", null, 2, 18_000L, 36_000L),
+                    OrderLineItem("Croissant", null, 1, 22_000L, 22_000L),
+                    OrderLineItem("Es Teh", null, 1, 12_000L, 12_000L),
+                ),
             orderTypeLabel = "Dine In",
-            customerName   = "Budi",
-            pax            = 2,
+            customerName = "Budi",
+            pax = 2,
             selectedMethod = PaymentMethod.CASH,
-            modifier       = Modifier.padding(12.dp)
+            modifier = Modifier.padding(12.dp),
         )
     }
 }
@@ -561,20 +600,20 @@ private fun PaymentReceiptPanelPreview_Cash() {
 private fun PaymentReceiptPanelPreview_Empty() {
     RancakTheme {
         PaymentReceiptPanel(
-            itemCount      = 0,
-            subtotal       = 0L,
-            total          = 0L,
-            discount       = 0L,
-            tax            = 0L,
-            adminFee       = 0L,
-            deliveryFee    = 0L,
-            tip            = 0L,
-            changeAmount   = 0L,
+            itemCount = 0,
+            subtotal = 0L,
+            total = 0L,
+            discount = 0L,
+            tax = 0L,
+            adminFee = 0L,
+            deliveryFee = 0L,
+            tip = 0L,
+            changeAmount = 0L,
             isCashSelected = false,
-            paidAmount     = "",
+            paidAmount = "",
             orderTypeLabel = "Take Away",
             selectedMethod = PaymentMethod.QRIS,
-            modifier       = Modifier.padding(12.dp)
+            modifier = Modifier.padding(12.dp),
         )
     }
 }

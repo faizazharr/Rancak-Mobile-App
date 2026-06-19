@@ -1,7 +1,6 @@
 package id.rancak.app.data.printing
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.Stable
 
 /**
  * Shared data models for cross-platform ESC/POS printing.
@@ -13,6 +12,7 @@ import androidx.compose.runtime.Stable
 @Immutable
 sealed class PrintResult {
     object Success : PrintResult()
+
     @Immutable data class Error(val message: String) : PrintResult()
 }
 
@@ -28,12 +28,12 @@ data class PrinterDevice(
      * - Network: IP address "192.168.1.100"
      */
     val address: String,
-    val type: PrinterConnectionType
+    val type: PrinterConnectionType,
 )
 
 enum class PrinterConnectionType {
     BLUETOOTH,
-    NETWORK
+    NETWORK,
 }
 
 /**
@@ -51,11 +51,11 @@ enum class PrintMode(val value: String) {
     DUAL_PRINTER("dual_printer"),
     SINGLE_KOT_FIRST("single_kot_first"),
     SINGLE_RECEIPT_FIRST("single_receipt_first"),
-    RECEIPT_ONLY("receipt_only");
+    RECEIPT_ONLY("receipt_only"),
+    ;
 
     companion object {
-        fun from(value: String?): PrintMode =
-            entries.firstOrNull { it.value == value } ?: RECEIPT_ONLY
+        fun from(value: String?): PrintMode = entries.firstOrNull { it.value == value } ?: RECEIPT_ONLY
     }
 }
 
@@ -83,7 +83,7 @@ data class ReceiptData(
     val changeAmount: Long = 0,
     val footerText: String? = null,
     /** Jika true, struk akan diberi stempel VOID di bagian atas. */
-    val isVoided: Boolean = false
+    val isVoided: Boolean = false,
 )
 
 @Immutable
@@ -93,7 +93,7 @@ data class ReceiptItem(
     val qty: Int,
     val price: Long,
     val subtotal: Long,
-    val note: String? = null
+    val note: String? = null,
 )
 
 /**
@@ -110,12 +110,12 @@ data class KitchenTicketData(
     val customerName: String? = null,
     val cashierName: String? = null,
     val createdAt: String,
-    val items: List<KitchenTicketItem>
+    val items: List<KitchenTicketItem>,
 )
 
 @Immutable
 data class KitchenTicketItem(
     val name: String,
     val qty: Int,
-    val note: String? = null
+    val note: String? = null,
 )

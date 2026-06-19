@@ -10,69 +10,72 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-private val LightColorScheme = lightColorScheme(
-    primary = Primary,
-    onPrimary = OnPrimary,
-    primaryContainer = PrimaryContainer,
-    onPrimaryContainer = OnPrimaryContainer,
-    secondary = Secondary,
-    onSecondary = OnSecondary,
-    secondaryContainer = SecondaryContainer,
-    onSecondaryContainer = OnSecondaryContainer,
-    tertiary = Tertiary,
-    onTertiary = OnTertiary,
-    tertiaryContainer = TertiaryContainer,
-    onTertiaryContainer = OnTertiaryContainer,
-    error = Error,
-    onError = OnError,
-    errorContainer = ErrorContainer,
-    onErrorContainer = OnErrorContainer,
-    background = Background,
-    onBackground = OnBackground,
-    surface = Surface,
-    onSurface = OnSurface,
-    surfaceVariant = SurfaceVariant,
-    onSurfaceVariant = OnSurfaceVariant,
-    surfaceTint = SurfaceTint,
-    outline = Outline,
-    outlineVariant = OutlineVariant
-)
+private val LightColorScheme =
+    lightColorScheme(
+        primary = Primary,
+        onPrimary = OnPrimary,
+        primaryContainer = PrimaryContainer,
+        onPrimaryContainer = OnPrimaryContainer,
+        secondary = Secondary,
+        onSecondary = OnSecondary,
+        secondaryContainer = SecondaryContainer,
+        onSecondaryContainer = OnSecondaryContainer,
+        tertiary = Tertiary,
+        onTertiary = OnTertiary,
+        tertiaryContainer = TertiaryContainer,
+        onTertiaryContainer = OnTertiaryContainer,
+        error = Error,
+        onError = OnError,
+        errorContainer = ErrorContainer,
+        onErrorContainer = OnErrorContainer,
+        background = Background,
+        onBackground = OnBackground,
+        surface = Surface,
+        onSurface = OnSurface,
+        surfaceVariant = SurfaceVariant,
+        onSurfaceVariant = OnSurfaceVariant,
+        surfaceTint = SurfaceTint,
+        outline = Outline,
+        outlineVariant = OutlineVariant,
+    )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = DarkPrimary,
-    onPrimary = DarkOnPrimary,
-    primaryContainer = DarkPrimaryContainer,
-    onPrimaryContainer = DarkOnPrimaryContainer,
-    secondary = DarkSecondary,
-    onSecondary = DarkOnSecondary,
-    secondaryContainer = DarkSecondaryContainer,
-    onSecondaryContainer = DarkOnSecondaryContainer,
-    tertiary = DarkTertiary,
-    onTertiary = DarkOnTertiary,
-    tertiaryContainer = DarkTertiaryContainer,
-    onTertiaryContainer = DarkOnTertiaryContainer,
-    error = DarkError,
-    onError = DarkOnError,
-    errorContainer = DarkErrorContainer,
-    onErrorContainer = DarkOnErrorContainer,
-    background = DarkBackground,
-    onBackground = DarkOnBackground,
-    surface = DarkSurface,
-    onSurface = DarkOnSurface,
-    surfaceVariant = DarkSurfaceVariant,
-    onSurfaceVariant = DarkOnSurfaceVariant,
-    outline = DarkOutline,
-    outlineVariant = DarkOutlineVariant
-)
+private val DarkColorScheme =
+    darkColorScheme(
+        primary = DarkPrimary,
+        onPrimary = DarkOnPrimary,
+        primaryContainer = DarkPrimaryContainer,
+        onPrimaryContainer = DarkOnPrimaryContainer,
+        secondary = DarkSecondary,
+        onSecondary = DarkOnSecondary,
+        secondaryContainer = DarkSecondaryContainer,
+        onSecondaryContainer = DarkOnSecondaryContainer,
+        tertiary = DarkTertiary,
+        onTertiary = DarkOnTertiary,
+        tertiaryContainer = DarkTertiaryContainer,
+        onTertiaryContainer = DarkOnTertiaryContainer,
+        error = DarkError,
+        onError = DarkOnError,
+        errorContainer = DarkErrorContainer,
+        onErrorContainer = DarkOnErrorContainer,
+        background = DarkBackground,
+        onBackground = DarkOnBackground,
+        surface = DarkSurface,
+        onSurface = DarkOnSurface,
+        surfaceVariant = DarkSurfaceVariant,
+        onSurfaceVariant = DarkOnSurfaceVariant,
+        outline = DarkOutline,
+        outlineVariant = DarkOutlineVariant,
+    )
 
 // ERP kasir: sudut tajam → kesan profesional, bukan consumer-app
-val RancakShapes = Shapes(
-    extraSmall = RoundedCornerShape(2.dp),
-    small      = RoundedCornerShape(4.dp),
-    medium     = RoundedCornerShape(6.dp),
-    large      = RoundedCornerShape(8.dp),
-    extraLarge = RoundedCornerShape(10.dp)
-)
+val RancakShapes =
+    Shapes(
+        extraSmall = RoundedCornerShape(2.dp),
+        small = RoundedCornerShape(4.dp),
+        medium = RoundedCornerShape(6.dp),
+        large = RoundedCornerShape(8.dp),
+        extraLarge = RoundedCornerShape(10.dp),
+    )
 
 // ── Semantic / Extended Colors ──────────────────────────────────────────────
 
@@ -96,40 +99,42 @@ data class SemanticColors(
     val paymentCash: Color,
     val paymentCard: Color,
     val paymentQris: Color,
-    val paymentTransfer: Color
+    val paymentTransfer: Color,
 )
 
-private val LightSemanticColors = SemanticColors(
-    success           = Success,
-    warning           = Warning,
-    info              = Info,
-    statusAvailable   = StatusAvailable,
-    statusOccupied    = StatusOccupied,
-    statusReserved    = StatusReserved,
-    statusMaintenance = StatusMaintenance,
-    statusOnline      = StatusOnline,
-    statusOffline     = StatusOffline,
-    paymentCash       = PaymentCash,
-    paymentCard       = PaymentCard,
-    paymentQris       = PaymentQris,
-    paymentTransfer   = PaymentTransfer
-)
+private val LightSemanticColors =
+    SemanticColors(
+        success = Success,
+        warning = Warning,
+        info = Info,
+        statusAvailable = StatusAvailable,
+        statusOccupied = StatusOccupied,
+        statusReserved = StatusReserved,
+        statusMaintenance = StatusMaintenance,
+        statusOnline = StatusOnline,
+        statusOffline = StatusOffline,
+        paymentCash = PaymentCash,
+        paymentCard = PaymentCard,
+        paymentQris = PaymentQris,
+        paymentTransfer = PaymentTransfer,
+    )
 
-private val DarkSemanticColors = SemanticColors(
-    success           = DarkSuccess,
-    warning           = DarkWarning,
-    info              = DarkInfo,
-    statusAvailable   = DarkStatusAvailable,
-    statusOccupied    = DarkStatusOccupied,
-    statusReserved    = DarkStatusReserved,
-    statusMaintenance = DarkStatusMaintenance,
-    statusOnline      = DarkStatusOnline,
-    statusOffline     = DarkStatusOffline,
-    paymentCash       = DarkPaymentCash,
-    paymentCard       = DarkPaymentCard,
-    paymentQris       = DarkPaymentQris,
-    paymentTransfer   = DarkPaymentTransfer
-)
+private val DarkSemanticColors =
+    SemanticColors(
+        success = DarkSuccess,
+        warning = DarkWarning,
+        info = DarkInfo,
+        statusAvailable = DarkStatusAvailable,
+        statusOccupied = DarkStatusOccupied,
+        statusReserved = DarkStatusReserved,
+        statusMaintenance = DarkStatusMaintenance,
+        statusOnline = DarkStatusOnline,
+        statusOffline = DarkStatusOffline,
+        paymentCash = DarkPaymentCash,
+        paymentCard = DarkPaymentCard,
+        paymentQris = DarkPaymentQris,
+        paymentTransfer = DarkPaymentTransfer,
+    )
 
 val LocalSemanticColors = staticCompositionLocalOf { LightSemanticColors }
 
@@ -138,22 +143,22 @@ val LocalSemanticColors = staticCompositionLocalOf { LightSemanticColors }
 @Composable
 fun RancakTheme(
     darkTheme: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme    = if (darkTheme) DarkColorScheme    else LightColorScheme
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val semanticColors = if (darkTheme) DarkSemanticColors else LightSemanticColors
 
     CompositionLocalProvider(
         LocalSpacing provides Spacing(),
         LocalElevation provides Elevation(),
         LocalSizes provides Sizes(),
-        LocalSemanticColors provides semanticColors
+        LocalSemanticColors provides semanticColors,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography  = RancakTypography,
-            shapes      = RancakShapes,
-            content     = content
+            typography = RancakTypography,
+            shapes = RancakShapes,
+            content = content,
         )
     }
 }

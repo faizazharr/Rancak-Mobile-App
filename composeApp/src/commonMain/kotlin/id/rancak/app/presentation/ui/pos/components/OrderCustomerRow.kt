@@ -28,107 +28,115 @@ import id.rancak.app.presentation.viewmodel.CartUiState
 
 @Composable
 internal fun OrderCustomerRow(
-    cartState:      CartUiState,
-    surface:        Color,
-    primary:        Color,
-    onSurface:      Color,
+    cartState: CartUiState,
+    surface: Color,
+    primary: Color,
+    onSurface: Color,
     onSurfaceVariant: Color,
     onCustomerName: (String) -> Unit,
-    onPax:          (Int) -> Unit
+    onPax: (Int) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(surface)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(surface)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // ── Customer name field ───────────────────────────────────────────
         BasicTextField(
-            value         = cartState.customerName,
+            value = cartState.customerName,
             onValueChange = onCustomerName,
-            singleLine    = true,
-            textStyle     = MaterialTheme.typography.bodyMedium.copy(
-                color    = onSurface
-            ),
+            singleLine = true,
+            textStyle =
+                MaterialTheme.typography.bodyMedium.copy(
+                    color = onSurface,
+                ),
             cursorBrush = SolidColor(primary),
-            modifier    = Modifier.weight(1f),
+            modifier = Modifier.weight(1f),
             decorationBox = { inner ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.large)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
-                            MaterialTheme.shapes.large
-                        )
-                        .padding(horizontal = 8.dp, vertical = 8.dp),
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.large)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
+                                MaterialTheme.shapes.large,
+                            )
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Icon(Icons.Default.Person, null, Modifier.size(16.dp), tint = onSurfaceVariant)
                     Box(Modifier.weight(1f)) {
                         if (cartState.customerName.isEmpty()) {
                             Text(
                                 "Nama customer",
-                                style    = MaterialTheme.typography.bodyMedium,
-                                color    = onSurfaceVariant.copy(0.5f)
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = onSurfaceVariant.copy(0.5f),
                             )
                         }
                         inner()
                     }
                 }
-            }
+            },
         )
 
         // ── Pax stepper ──────────────────────────────────────────────────
         Row(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
-                .border(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
-                    MaterialTheme.shapes.large
-                )
-                .padding(horizontal = 6.dp, vertical = 6.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            modifier =
+                Modifier
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
+                        MaterialTheme.shapes.large,
+                    )
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Box(
                 Modifier
                     .size(48.dp)
                     .clip(CircleShape)
                     .background(
-                        if (cartState.pax > 1) MaterialTheme.colorScheme.outlineVariant.copy(0.35f)
-                        else Color.Transparent
+                        if (cartState.pax > 1) {
+                            MaterialTheme.colorScheme.outlineVariant.copy(0.35f)
+                        } else {
+                            Color.Transparent
+                        },
                     )
                     .clickable(enabled = cartState.pax > 1) { onPax(cartState.pax - 1) },
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Default.Remove, null,
+                    Icons.Default.Remove,
+                    null,
                     Modifier.size(20.dp),
-                    tint = if (cartState.pax > 1) onSurface else onSurfaceVariant.copy(0.3f)
+                    tint = if (cartState.pax > 1) onSurface else onSurfaceVariant.copy(0.3f),
                 )
             }
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     "${cartState.pax}",
-                    style      = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color      = onSurface,
-                    modifier   = Modifier.widthIn(min = 18.dp),
-                    textAlign  = TextAlign.Center
+                    color = onSurface,
+                    modifier = Modifier.widthIn(min = 18.dp),
+                    textAlign = TextAlign.Center,
                 )
                 Text(
                     "tamu",
                     style = MaterialTheme.typography.labelMedium,
-                    color = onSurfaceVariant.copy(0.6f)
+                    color = onSurfaceVariant.copy(0.6f),
                 )
             }
 
@@ -138,7 +146,7 @@ internal fun OrderCustomerRow(
                     .clip(CircleShape)
                     .background(primary)
                     .clickable { onPax(cartState.pax + 1) },
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Default.Add, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onPrimary)
             }
@@ -153,13 +161,13 @@ internal fun OrderCustomerRow(
 private fun OrderCustomerRowPreview() {
     RancakTheme {
         OrderCustomerRow(
-            cartState        = CartUiState(customerName = "Budi", pax = 3),
-            surface          = MaterialTheme.colorScheme.surface,
-            primary          = MaterialTheme.colorScheme.primary,
-            onSurface        = MaterialTheme.colorScheme.onSurface,
+            cartState = CartUiState(customerName = "Budi", pax = 3),
+            surface = MaterialTheme.colorScheme.surface,
+            primary = MaterialTheme.colorScheme.primary,
+            onSurface = MaterialTheme.colorScheme.onSurface,
             onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant,
-            onCustomerName   = {},
-            onPax            = {}
+            onCustomerName = {},
+            onPax = {},
         )
     }
 }

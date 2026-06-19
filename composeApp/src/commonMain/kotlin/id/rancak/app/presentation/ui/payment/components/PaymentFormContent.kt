@@ -18,7 +18,7 @@ data class OrderLineItem(
     val variantName: String? = null,
     val qty: Int,
     val price: Long,
-    val subtotal: Long
+    val subtotal: Long,
 )
 
 /**
@@ -28,7 +28,7 @@ data class OrderLineItem(
  */
 data class NamedAmount(
     val label: String,
-    val amount: Long
+    val amount: Long,
 )
 
 /**
@@ -78,69 +78,71 @@ internal fun PaymentFormContent(
     tableLabel: String? = null,
     pax: Int = 0,
     voucherCode: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val total = subtotal - discount + tax + adminFee + deliveryFee + tip
 
-    val changeAmount = remember(paidAmount, total) {
-        val paid = paidAmount.toLongOrNull() ?: 0L
-        if (paid > total) paid - total else 0L
-    }
+    val changeAmount =
+        remember(paidAmount, total) {
+            val paid = paidAmount.toLongOrNull() ?: 0L
+            if (paid > total) paid - total else 0L
+        }
 
-    val quickAmounts = remember(total) {
-        listOf(
-            total,
-            ((total / 10_000) + 1) * 10_000,
-            ((total / 50_000) + 1) * 50_000,
-            ((total / 100_000) + 1) * 100_000
-        ).distinct().sorted().toImmutableList()
-    }
+    val quickAmounts =
+        remember(total) {
+            listOf(
+                total,
+                ((total / 10_000) + 1) * 10_000,
+                ((total / 50_000) + 1) * 50_000,
+                ((total / 100_000) + 1) * 100_000,
+            ).distinct().sorted().toImmutableList()
+        }
 
     Row(
-        modifier              = modifier.padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         PaymentReceiptPanel(
-            itemCount      = itemCount,
-            subtotal       = subtotal,
-            total          = total,
-            discount       = discount,
-            tax            = tax,
-            adminFee       = adminFee,
-            deliveryFee    = deliveryFee,
-            tip            = tip,
-            changeAmount   = changeAmount,
+            itemCount = itemCount,
+            subtotal = subtotal,
+            total = total,
+            discount = discount,
+            tax = tax,
+            adminFee = adminFee,
+            deliveryFee = deliveryFee,
+            tip = tip,
+            changeAmount = changeAmount,
             isCashSelected = isCashSelected,
-            paidAmount     = paidAmount,
-            orderItems     = orderItems,
-            taxLines       = taxLines,
+            paidAmount = paidAmount,
+            orderItems = orderItems,
+            taxLines = taxLines,
             surchargeLines = surchargeLines,
             orderTypeLabel = orderTypeLabel,
-            customerName   = customerName,
-            tableLabel     = tableLabel,
-            pax            = pax,
-            voucherCode    = voucherCode,
+            customerName = customerName,
+            tableLabel = tableLabel,
+            pax = pax,
+            voucherCode = voucherCode,
             selectedMethod = selectedMethod,
-            isSplit        = isSplit,
-            onToggleMode   = onToggleMode,
-            modifier       = Modifier.weight(0.42f).fillMaxHeight()
+            isSplit = isSplit,
+            onToggleMode = onToggleMode,
+            modifier = Modifier.weight(0.42f).fillMaxHeight(),
         )
         PaymentInputPanel(
-            selectedMethod     = selectedMethod,
-            onSelectMethod     = onSelectMethod,
-            paidAmount         = paidAmount,
+            selectedMethod = selectedMethod,
+            onSelectMethod = onSelectMethod,
+            paidAmount = paidAmount,
             onPaidAmountChange = onPaidAmountChange,
-            isCashSelected     = isCashSelected,
-            isProcessing       = isProcessing,
-            onProcessPayment   = onProcessPayment,
-            onQrisSelected     = onQrisSelected,
-            quickAmounts       = quickAmounts,
-            isQrisWaiting      = isQrisWaiting,
-            qrisQrString       = qrisQrString,
-            qrisAmount         = qrisAmount,
-            isQrisPolling      = isQrisPolling,
-            onCancelQris       = onCancelQris,
-            modifier           = Modifier.weight(0.58f).fillMaxHeight()
+            isCashSelected = isCashSelected,
+            isProcessing = isProcessing,
+            onProcessPayment = onProcessPayment,
+            onQrisSelected = onQrisSelected,
+            quickAmounts = quickAmounts,
+            isQrisWaiting = isQrisWaiting,
+            qrisQrString = qrisQrString,
+            qrisAmount = qrisAmount,
+            isQrisPolling = isQrisPolling,
+            onCancelQris = onCancelQris,
+            modifier = Modifier.weight(0.58f).fillMaxHeight(),
         )
     }
 }
@@ -152,16 +154,16 @@ internal fun PaymentFormContent(
 private fun PaymentFormPreview_Cash() {
     RancakTheme {
         PaymentFormContent(
-            itemCount       = 3,
-            subtotal        = 75_000L,
-            selectedMethod  = PaymentMethod.CASH,
-            onSelectMethod  = {},
-            paidAmount      = "100000",
+            itemCount = 3,
+            subtotal = 75_000L,
+            selectedMethod = PaymentMethod.CASH,
+            onSelectMethod = {},
+            paidAmount = "100000",
             onPaidAmountChange = {},
-            isCashSelected  = true,
-            isProcessing    = false,
+            isCashSelected = true,
+            isProcessing = false,
             onProcessPayment = {},
-            modifier        = Modifier.fillMaxSize().padding(12.dp)
+            modifier = Modifier.fillMaxSize().padding(12.dp),
         )
     }
 }
@@ -171,16 +173,16 @@ private fun PaymentFormPreview_Cash() {
 private fun PaymentFormPreview_Qris() {
     RancakTheme {
         PaymentFormContent(
-            itemCount       = 2,
-            subtotal        = 42_000L,
-            selectedMethod  = PaymentMethod.QRIS,
-            onSelectMethod  = {},
-            paidAmount      = "",
+            itemCount = 2,
+            subtotal = 42_000L,
+            selectedMethod = PaymentMethod.QRIS,
+            onSelectMethod = {},
+            paidAmount = "",
             onPaidAmountChange = {},
-            isCashSelected  = false,
-            isProcessing    = false,
+            isCashSelected = false,
+            isProcessing = false,
             onProcessPayment = {},
-            modifier        = Modifier.fillMaxSize().padding(12.dp)
+            modifier = Modifier.fillMaxSize().padding(12.dp),
         )
     }
 }

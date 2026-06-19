@@ -7,7 +7,7 @@ data class User(
     val uuid: String,
     val name: String,
     val email: String,
-    val tenants: List<Tenant> = emptyList()
+    val tenants: List<Tenant> = emptyList(),
 )
 
 @Immutable
@@ -18,20 +18,20 @@ data class Tenant(
     val phone: String? = null,
     val role: String? = null,
     val subscriptionStatus: String? = null,
-    val subscriptionExpiresAt: String? = null
+    val subscriptionExpiresAt: String? = null,
 )
 
 @Immutable
 data class AuthTokens(
     val accessToken: String,
     val refreshToken: String,
-    val expiresIn: Long
+    val expiresIn: Long,
 )
 
 @Immutable
 data class LoginResult(
     val tokens: AuthTokens,
-    val user: User
+    val user: User,
 )
 
 @Immutable
@@ -45,7 +45,7 @@ data class TenantSettings(
     val subscriptionPlan: String?,
     val subscriptionExpiresAt: String?,
     val maxUsers: Int?,
-    val currentUsers: Int?
+    val currentUsers: Int?,
 )
 
 @Immutable
@@ -66,7 +66,7 @@ data class ReceiptSettings(
     val receiptInstagram: String? = null,
     val receiptFacebook: String? = null,
     val receiptWifiSsid: String? = null,
-    val receiptWifiPassword: String? = null
+    val receiptWifiPassword: String? = null,
 )
 
 @Immutable
@@ -76,7 +76,7 @@ data class Session(
     val issuedAt: String?,
     val lastUsedAt: String?,
     val expiresAt: String?,
-    val current: Boolean
+    val current: Boolean,
 )
 
 /**
@@ -98,5 +98,5 @@ data class TenantApplication(
     val status: String,
     val rejectionReason: String?,
     val approvedTenantUuid: String?,
-    val createdAt: String
+    val createdAt: String,
 )

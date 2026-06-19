@@ -26,19 +26,22 @@ import kotlinx.collections.immutable.persistentListOf
 
 // ── Helpers (package-private) ─────────────────────────────────────────────────
 
-internal fun headerColorForStatus(status: KdsStatus): Color = when (status) {
-    KdsStatus.NEW     -> KdsColorNew
-    KdsStatus.COOKING -> KdsColorCooking
-    KdsStatus.READY   -> Success
-    KdsStatus.DONE    -> StatusMaintenance
-}
+internal fun headerColorForStatus(status: KdsStatus): Color =
+    when (status) {
+        KdsStatus.NEW -> KdsColorNew
+        KdsStatus.COOKING -> KdsColorCooking
+        KdsStatus.READY -> Success
+        KdsStatus.DONE -> StatusMaintenance
+    }
 
 internal fun orderTime(createdAt: String?): String {
     if (createdAt.isNullOrBlank()) return ""
     return try {
         val t = createdAt.replace("T", " ")
         if (t.length >= 16) t.substring(11, 16) else ""
-    } catch (_: Exception) { "" }
+    } catch (_: Exception) {
+        ""
+    }
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -47,47 +50,65 @@ internal fun orderTime(createdAt: String?): String {
 fun KdsOrderCard(
     order: KdsOrder,
     onAdvance: (KdsStatus) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val nextStatus = when (order.status) {
-        KdsStatus.NEW     -> KdsStatus.COOKING
-        KdsStatus.COOKING -> KdsStatus.READY
-        KdsStatus.READY   -> KdsStatus.DONE
-        KdsStatus.DONE    -> null
-    }
-    val headerColor    = headerColorForStatus(order.status)
-    val time           = orderTime(order.createdAt)
-    val orderTypeLabel = when (order.orderType) {
-        OrderType.DINE_IN  -> "Dine In"
-        OrderType.TAKEAWAY -> "Take Away"
-        OrderType.DELIVERY -> "Delivery"
-    }
+    val nextStatus =
+        when (order.status) {
+            KdsStatus.NEW -> KdsStatus.COOKING
+            KdsStatus.COOKING -> KdsStatus.READY
+            KdsStatus.READY -> KdsStatus.DONE
+            KdsStatus.DONE -> null
+        }
+    val headerColor = headerColorForStatus(order.status)
+    val time = orderTime(order.createdAt)
+    val orderTypeLabel =
+        when (order.orderType) {
+            OrderType.DINE_IN -> "Dine In"
+            OrderType.TAKEAWAY -> "Take Away"
+            OrderType.DELIVERY -> "Delivery"
+        }
 
     Card(
-        modifier = modifier.fillMaxWidth().then(
-            if (nextStatus != null) Modifier.clickable { onAdvance(nextStatus) } else Modifier
-        ),
-        shape  = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        modifier =
+            modifier.fillMaxWidth().then(
+                if (nextStatus != null) Modifier.clickable { onAdvance(nextStatus) } else Modifier,
+            ),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column {
             Box(
-                modifier = Modifier.fillMaxWidth().background(headerColor).padding(horizontal = 12.dp, vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth().background(headerColor).padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
-                Row(modifier = Modifier.fillMaxWidth(),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically) {
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("#${order.queueNumber ?: "-"}", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            "#${order.queueNumber ?: "-"}",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
                         if (!order.invoiceNo.isNullOrBlank()) {
-                            Text(order.invoiceNo, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                            Text(
+                                order.invoiceNo,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
                                 style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
-                        Text("$orderTypeLabel${order.tableName?.let { " · $it" } ?: ""}",
+                        Text(
+                            "$orderTypeLabel${order.tableName?.let { " · $it" } ?: ""}",
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
-                            style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                         if (!order.customerName.isNullOrBlank()) {
                             Text(
                                 "a/n ${order.customerName}",
@@ -95,34 +116,68 @@ fun KdsOrderCard(
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                     }
                     if (time.isNotBlank()) {
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(time, color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                            Text(when (order.status) {
-                                KdsStatus.NEW     -> "BARU"
-                                KdsStatus.COOKING -> "MASAK"
-                                KdsStatus.READY   -> "SIAP"
-                                KdsStatus.DONE    -> "SELESAI"
-                            }, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            Text(
+                                time,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                when (order.status) {
+                                    KdsStatus.NEW -> "BARU"
+                                    KdsStatus.COOKING -> "MASAK"
+                                    KdsStatus.READY -> "SIAP"
+                                    KdsStatus.DONE -> "SELESAI"
+                                },
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                            )
                         }
                     }
                 }
             }
 
-            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 order.items.forEach { item ->
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(item.qty, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.width(28.dp))
+                        Text(
+                            item.qty,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.width(28.dp),
+                        )
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(item.productName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                            item.variantName?.let { Text("- $it", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                            item.note?.let { Text("- $it", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            Text(
+                                item.productName,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            item.variantName?.let {
+                                Text(
+                                    "- $it",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            item.note?.let {
+                                Text(
+                                    "- $it",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                 }
@@ -131,12 +186,14 @@ fun KdsOrderCard(
                     Text(
                         when (nextStatus) {
                             KdsStatus.COOKING -> "Ketuk untuk mulai masak ▶"
-                            KdsStatus.READY   -> "Ketuk jika siap antar ✓"
-                            KdsStatus.DONE    -> "Ketuk untuk selesaikan ✓✓"
-                            else              -> ""
+                            KdsStatus.READY -> "Ketuk jika siap antar ✓"
+                            KdsStatus.DONE -> "Ketuk untuk selesaikan ✓✓"
+                            else -> ""
                         },
-                        style = MaterialTheme.typography.bodySmall, color = headerColor, fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
+                        style = MaterialTheme.typography.bodySmall,
+                        color = headerColor,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                     )
                 }
             }
@@ -151,14 +208,15 @@ fun KdsOrderCard(
 private fun KdsOrderCardNewPreview() {
     RancakTheme {
         KdsOrderCard(
-            order = KdsOrder(
-                uuid = "1", invoiceNo = "ORD-001", orderType = OrderType.DINE_IN,
-                tableName = "Meja 3", queueNumber = 1, customerName = "Andi", note = null,
-                status = KdsStatus.NEW,
-                items = persistentListOf(KdsItem("i1", "Nasi Goreng", "2", null, null, KdsItemStatus.PENDING)),
-                createdAt = "2026-01-01T10:15:00"
-            ),
-            onAdvance = {}
+            order =
+                KdsOrder(
+                    uuid = "1", invoiceNo = "ORD-001", orderType = OrderType.DINE_IN,
+                    tableName = "Meja 3", queueNumber = 1, customerName = "Andi", note = null,
+                    status = KdsStatus.NEW,
+                    items = persistentListOf(KdsItem("i1", "Nasi Goreng", "2", null, null, KdsItemStatus.PENDING)),
+                    createdAt = "2026-01-01T10:15:00",
+                ),
+            onAdvance = {},
         )
     }
 }

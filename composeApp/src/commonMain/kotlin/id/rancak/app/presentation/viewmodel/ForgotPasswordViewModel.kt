@@ -16,13 +16,12 @@ data class ForgotPasswordUiState(
     val email: String = "",
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
 )
 
 class ForgotPasswordViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(ForgotPasswordUiState())
     val uiState: StateFlow<ForgotPasswordUiState> = _uiState.asStateFlow()
 
@@ -40,7 +39,7 @@ class ForgotPasswordViewModel(
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = authRepository.forgotPassword(email)) {
                 is Resource.Success -> _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-                is Resource.Error   -> _uiState.update { it.copy(isLoading = false, error = result.message) }
+                is Resource.Error -> _uiState.update { it.copy(isLoading = false, error = result.message) }
                 is Resource.Loading -> {}
             }
         }

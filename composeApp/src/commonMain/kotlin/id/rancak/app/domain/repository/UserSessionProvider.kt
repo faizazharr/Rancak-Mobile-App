@@ -23,11 +23,20 @@ interface UserSessionProvider {
     fun getCurrentTenantName(): String?
 
     /** Simpan UUID dan nama tenant yang dipilih user. */
-    fun setTenant(uuid: String, name: String)
+    fun setTenant(
+        uuid: String,
+        name: String,
+    )
 
     /** Simpan peran user berdasarkan string dari backend (mis. "admin"). */
     fun setUserRole(role: String)
 
     /** Peran user saat ini. [UserRole.STAFF] sebagai fallback aman bila belum ter-set. */
     fun getUserRole(): UserRole
+
+    /** Status langganan tenant aktif, mis. "active", "expired", "trial". Null jika belum di-set. */
+    fun getSubscriptionStatus(): String?
+
+    /** Simpan status langganan tenant yang dipilih user. */
+    fun setSubscriptionStatus(status: String?)
 }

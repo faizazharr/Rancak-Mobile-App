@@ -1,14 +1,13 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleItem
-import id.rancak.app.domain.repository.SaleRepository
 import id.rancak.app.domain.model.SplitBillResult
+import id.rancak.app.domain.repository.SaleRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +21,7 @@ data class SplitBillUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     /** Non-null saat split berhasil. */
-    val result: SplitBillResult? = null
+    val result: SplitBillResult? = null,
 ) {
     val availableItems: List<SaleItem> get() = sale?.items ?: emptyList()
     val canSplit: Boolean get() {
@@ -32,19 +31,20 @@ data class SplitBillUiState(
         return selected >= 1 && selected < total
     }
     val selectedTotal: Long
-        get() = availableItems
-            .filter { it.uuid in selectedItemIds }
-            .sumOf { it.subtotal }
+        get() =
+            availableItems
+                .filter { it.uuid in selectedItemIds }
+                .sumOf { it.subtotal }
     val remainingTotal: Long
-        get() = availableItems
-            .filter { it.uuid !in selectedItemIds }
-            .sumOf { it.subtotal }
+        get() =
+            availableItems
+                .filter { it.uuid !in selectedItemIds }
+                .sumOf { it.subtotal }
 }
 
 class SplitBillViewModel(
-    private val saleRepository: SaleRepository
+    private val saleRepository: SaleRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(SplitBillUiState())
     val uiState: StateFlow<SplitBillUiState> = _uiState.asStateFlow()
 
@@ -52,12 +52,14 @@ class SplitBillViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = saleRepository.getSaleDetail(saleUuid)) {
-                is Resource.Success -> _uiState.update {
-                    it.copy(isLoading = false, sale = result.data, selectedItemIds = emptySet())
-                }
-                is Resource.Error -> _uiState.update {
-                    it.copy(isLoading = false, error = result.message)
-                }
+                is Resource.Success ->
+                    _uiState.update {
+                        it.copy(isLoading = false, sale = result.data, selectedItemIds = emptySet())
+                    }
+                is Resource.Error ->
+                    _uiState.update {
+                        it.copy(isLoading = false, error = result.message)
+                    }
                 is Resource.Loading -> {}
             }
         }
@@ -65,10 +67,12 @@ class SplitBillViewModel(
 
     fun toggleItem(itemUuid: String) {
         _uiState.update { state ->
-            val updated = if (itemUuid in state.selectedItemIds)
-                state.selectedItemIds - itemUuid
-            else
-                state.selectedItemIds + itemUuid
+            val updated =
+                if (itemUuid in state.selectedItemIds) {
+                    state.selectedItemIds - itemUuid
+                } else {
+                    state.selectedItemIds + itemUuid
+                }
             state.copy(selectedItemIds = updated)
         }
     }
@@ -91,12 +95,14 @@ class SplitBillViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = saleRepository.splitBill(saleUuid, state.selectedItemIds.toList())) {
-                is Resource.Success -> _uiState.update {
-                    it.copy(isLoading = false, result = result.data)
-                }
-                is Resource.Error -> _uiState.update {
-                    it.copy(isLoading = false, error = result.message)
-                }
+                is Resource.Success ->
+                    _uiState.update {
+                        it.copy(isLoading = false, result = result.data)
+                    }
+                is Resource.Error ->
+                    _uiState.update {
+                        it.copy(isLoading = false, error = result.message)
+                    }
                 is Resource.Loading -> {}
             }
         }

@@ -1,23 +1,25 @@
 package id.rancak.app.presentation.ui.inventory.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,9 +37,7 @@ import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
-
 
 @Composable
 fun OpnameDetailContent(
@@ -52,13 +52,14 @@ fun OpnameDetailContent(
     onFinalizeClick: () -> Unit,
     onFinalizeConfirm: () -> Unit,
     onFinalizeDismiss: () -> Unit,
-    onDeleteItem: (String) -> Unit = {}
+    onDeleteItem: (String) -> Unit = {},
 ) {
-    val stockInputs = remember(detail.opname.uuid) {
-        mutableStateMapOf<String, String>().apply {
-            detail.items.forEach { put(it.productUuid, it.actualStock.toString()) }
+    val stockInputs =
+        remember(detail.opname.uuid) {
+            mutableStateMapOf<String, String>().apply {
+                detail.items.forEach { put(it.productUuid, it.actualStock.toString()) }
+            }
         }
-    }
     val isDraft = detail.opname.status == "draft"
     var showPicker by remember { mutableStateOf(false) }
     val savedUuids = remember(detail.items) { detail.items.map { it.productUuid }.toSet() }
@@ -74,7 +75,7 @@ fun OpnameDetailContent(
                             productName = p.name,
                             systemStock = p.stock,
                             actualStock = actual,
-                            difference  = actual - p.stock
+                            difference = actual - p.stock,
                         )
                     }
                 }
@@ -84,10 +85,10 @@ fun OpnameDetailContent(
     Scaffold(
         topBar = {
             RancakTopBar(
-                title    = "Opname #${detail.opname.opnameNo}",
-                icon     = Icons.Default.Inventory,
-                onBack   = onBack,
-                subtitle = "${detail.items.size} item · ${if (isDraft) "Draft" else "Final"}"
+                title = "Opname #${detail.opname.opnameNo}",
+                icon = Icons.Default.Inventory,
+                onBack = onBack,
+                subtitle = "${detail.items.size} item · ${if (isDraft) "Draft" else "Final"}",
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -95,83 +96,89 @@ fun OpnameDetailContent(
             if (isDraft) {
                 Surface(shadowElevation = 4.dp) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         if (showFinalizeConfirm) {
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
-                                color    = MaterialTheme.colorScheme.errorContainer,
-                                shape    = MaterialTheme.shapes.small
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                shape = MaterialTheme.shapes.small,
                             ) {
                                 Row(
                                     modifier = Modifier.padding(10.dp),
-                                    verticalAlignment     = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
                                     Icon(
-                                        Icons.Default.Warning, null,
-                                        tint     = MaterialTheme.colorScheme.onErrorContainer,
-                                        modifier = Modifier.size(16.dp)
+                                        Icons.Default.Warning,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                                        modifier = Modifier.size(16.dp),
                                     )
                                     Text(
                                         "Stok sistem akan disesuaikan. Tindakan ini tidak dapat dibatalkan.",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
                                     )
                                 }
                             }
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
                                 OutlinedButton(
-                                    onClick  = onFinalizeDismiss,
+                                    onClick = onFinalizeDismiss,
                                     modifier = Modifier.weight(1f),
-                                    enabled  = !isSubmitting
+                                    enabled = !isSubmitting,
                                 ) { Text("Batal") }
                                 Button(
-                                    onClick  = onFinalizeConfirm,
+                                    onClick = onFinalizeConfirm,
                                     modifier = Modifier.weight(1f),
-                                    enabled  = !isSubmitting,
-                                    colors   = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.error
-                                    )
+                                    enabled = !isSubmitting,
+                                    colors =
+                                        ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.error,
+                                        ),
                                 ) {
-                                    if (isSubmitting)
+                                    if (isSubmitting) {
                                         CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                                    else Text("Finalisasi")
+                                    } else {
+                                        Text("Finalisasi")
+                                    }
                                 }
                             }
                         } else {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
                                 OutlinedButton(
                                     onClick = {
-                                        val entries = stockInputs.entries.mapNotNull { (uuid, text) ->
-                                            text.toDoubleOrNull()?.let { OpnameItemEntry(uuid, it) }
-                                        }
+                                        val entries =
+                                            stockInputs.entries.mapNotNull { (uuid, text) ->
+                                                text.toDoubleOrNull()?.let { OpnameItemEntry(uuid, it) }
+                                            }
                                         onSaveItems(entries)
                                     },
                                     modifier = Modifier.weight(1f),
-                                    enabled  = !isSubmitting
+                                    enabled = !isSubmitting,
                                 ) { Text("Simpan") }
                                 Button(
-                                    onClick  = onFinalizeClick,
+                                    onClick = onFinalizeClick,
                                     modifier = Modifier.weight(1f),
-                                    enabled  = !isSubmitting && detail.items.isNotEmpty()
+                                    enabled = !isSubmitting && detail.items.isNotEmpty(),
                                 ) { Text("Finalisasi") }
                             }
                         }
                     }
                 }
             }
-        }
+        },
     ) { padding ->
         if (isLoading) {
             LoadingScreen(Modifier.padding(padding))
@@ -179,54 +186,57 @@ fun OpnameDetailContent(
             Column(Modifier.padding(padding).fillMaxSize()) {
                 if (!isDraft) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         ElevatedCard(
                             modifier = Modifier.weight(1f),
-                            colors   = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer
-                            )
+                            colors =
+                                CardDefaults.elevatedCardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                ),
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Text(
                                     detail.shortageCount.toString(),
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
                                 )
                                 Text(
                                     "Kurang Stok",
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
                                 )
                             }
                         }
                         ElevatedCard(
                             modifier = Modifier.weight(1f),
-                            colors   = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
+                            colors =
+                                CardDefaults.elevatedCardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                ),
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Text(
                                     detail.surplusCount.toString(),
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 )
                                 Text(
                                     "Lebih Stok",
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 )
                             }
                         }
@@ -236,9 +246,10 @@ fun OpnameDetailContent(
                 if (isDraft) {
                     OutlinedButton(
                         onClick = { showPicker = true },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
                     ) {
                         Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
@@ -247,13 +258,14 @@ fun OpnameDetailContent(
                 }
 
                 LazyColumn(
-                    contentPadding = PaddingValues(
-                        start  = if (isDraft) 16.dp else 0.dp,
-                        end    = if (isDraft) 16.dp else 0.dp,
-                        top    = if (isDraft) 16.dp else 0.dp,
-                        bottom = 16.dp
-                    ),
-                    verticalArrangement = if (isDraft) Arrangement.spacedBy(8.dp) else Arrangement.Top
+                    contentPadding =
+                        PaddingValues(
+                            start = if (isDraft) 16.dp else 0.dp,
+                            end = if (isDraft) 16.dp else 0.dp,
+                            top = if (isDraft) 16.dp else 0.dp,
+                            bottom = 16.dp,
+                        ),
+                    verticalArrangement = if (isDraft) Arrangement.spacedBy(8.dp) else Arrangement.Top,
                 ) {
                     items(detail.items, key = { it.productUuid }) { item ->
                         OpnameItem(
@@ -261,7 +273,7 @@ fun OpnameDetailContent(
                             isDraft = isDraft,
                             stockInputValue = stockInputs[item.productUuid] ?: item.actualStock.toString(),
                             onStockInputChange = { stockInputs[item.productUuid] = it },
-                            onDelete = if (isDraft) ({ onDeleteItem(item.productUuid) }) else null
+                            onDelete = if (isDraft) ({ onDeleteItem(item.productUuid) }) else null,
                         )
                     }
                     items(pendingItems, key = { "pending_${it.productUuid}" }) { item ->
@@ -270,7 +282,7 @@ fun OpnameDetailContent(
                             isDraft = true,
                             stockInputValue = stockInputs[item.productUuid] ?: item.actualStock.toString(),
                             onStockInputChange = { stockInputs[item.productUuid] = it },
-                            onDelete = { stockInputs.remove(item.productUuid) }
+                            onDelete = { stockInputs.remove(item.productUuid) },
                         )
                     }
                 }
@@ -285,10 +297,9 @@ fun OpnameDetailContent(
                     stockInputs.putAll(entries)
                     showPicker = false
                 },
-                onDismiss = { showPicker = false }
+                onDismiss = { showPicker = false },
             )
         }
-
     }
 }
 
@@ -307,13 +318,14 @@ fun OpnameDetailTabletPanel(
     onFinalizeConfirm: () -> Unit,
     onFinalizeDismiss: () -> Unit,
     onDeleteItem: (String) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val stockInputs = remember(detail.opname.uuid) {
-        mutableStateMapOf<String, String>().apply {
-            detail.items.forEach { put(it.productUuid, it.actualStock.toString()) }
+    val stockInputs =
+        remember(detail.opname.uuid) {
+            mutableStateMapOf<String, String>().apply {
+                detail.items.forEach { put(it.productUuid, it.actualStock.toString()) }
+            }
         }
-    }
     val isDraft = detail.opname.status == "draft"
     var showPicker by remember { mutableStateOf(false) }
     val savedUuids = remember(detail.items) { detail.items.map { it.productUuid }.toSet() }
@@ -329,70 +341,76 @@ fun OpnameDetailTabletPanel(
                             productName = p.name,
                             systemStock = p.stock,
                             actualStock = actual,
-                            difference  = actual - p.stock
+                            difference = actual - p.stock,
                         )
                     }
                 }
         }
     }
 
-    val statusLabel = when (detail.opname.status) {
-        "finalized" -> "Final"
-        "cancelled" -> "Dibatalkan"
-        else        -> "Draft"
-    }
+    val statusLabel =
+        when (detail.opname.status) {
+            "finalized" -> "Final"
+            "cancelled" -> "Dibatalkan"
+            else -> "Draft"
+        }
 
     Column(modifier = modifier) {
         // ── Gradient header ───────────────────────────────────────────────────
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd)))
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .background(Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd))),
         ) {
             Row(
-                modifier            = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
-                verticalAlignment   = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .padding(start = 8.dp),
                 ) {
                     Text(
                         "Opname #${detail.opname.opnameNo}",
-                        style      = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color      = Color.White
+                        color = Color.White,
                     )
                     Text(
                         "${detail.items.size + pendingItems.size} item · $statusLabel · ${formatOpnameDate(detail.opname.createdAt)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.78f)
+                        color = Color.White.copy(alpha = 0.78f),
                     )
                 }
                 if (isDraft) {
                     OutlinedButton(
                         onClick = {
-                            val entries = stockInputs.entries.mapNotNull { (uuid, text) ->
-                                text.toDoubleOrNull()?.let { OpnameItemEntry(uuid, it) }
-                            }
+                            val entries =
+                                stockInputs.entries.mapNotNull { (uuid, text) ->
+                                    text.toDoubleOrNull()?.let { OpnameItemEntry(uuid, it) }
+                                }
                             onSaveItems(entries)
                         },
                         enabled = !isSubmitting,
-                        border  = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f)),
-                        colors  = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.7f)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
                     ) { Text("Simpan") }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Button(
-                            onClick  = onFinalizeClick,
-                            enabled  = !isSubmitting && detail.items.isNotEmpty(),
-                            colors   = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.onPrimary,
-                                contentColor   = Primary
-                            )
+                            onClick = onFinalizeClick,
+                            enabled = !isSubmitting && detail.items.isNotEmpty(),
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.onPrimary,
+                                    contentColor = Primary,
+                                ),
                         ) {
                             Text("Finalisasi", fontWeight = FontWeight.Bold)
                         }
@@ -400,7 +418,7 @@ fun OpnameDetailTabletPanel(
                             Text(
                                 "Simpan item lebih dulu",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color.White.copy(alpha = 0.65f)
+                                color = Color.White.copy(alpha = 0.65f),
                             )
                         }
                     }
@@ -418,83 +436,87 @@ fun OpnameDetailTabletPanel(
             // ── Compact summary row (finalized / cancelled only) ──────────
             if (!isDraft) {
                 Row(
-                    modifier              = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Surface(
-                        modifier        = Modifier.weight(1f),
-                        shape           = MaterialTheme.shapes.large,
-                        color           = MaterialTheme.colorScheme.errorContainer,
-                        shadowElevation = 1.dp
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shadowElevation = 1.dp,
                     ) {
                         Row(
-                            modifier              = Modifier.padding(16.dp),
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             Box(
-                                modifier         = Modifier.size(36.dp).background(
-                                    MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.12f),
-                                    MaterialTheme.shapes.medium
-                                ),
-                                contentAlignment = Alignment.Center
+                                modifier =
+                                    Modifier.size(36.dp).background(
+                                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.12f),
+                                        MaterialTheme.shapes.medium,
+                                    ),
+                                contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    Icons.Default.TrendingDown, null,
-                                    tint     = MaterialTheme.colorScheme.onErrorContainer,
-                                    modifier = Modifier.size(20.dp)
+                                    Icons.AutoMirrored.Filled.TrendingDown,
+                                    null,
+                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.size(20.dp),
                                 )
                             }
                             Column {
                                 Text(
                                     detail.shortageCount.toString(),
-                                    style      = MaterialTheme.typography.titleLarge,
+                                    style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
-                                    color      = MaterialTheme.colorScheme.onErrorContainer
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
                                 )
                                 Text(
                                     "Kurang Stok",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
                                 )
                             }
                         }
                     }
                     Surface(
-                        modifier        = Modifier.weight(1f),
-                        shape           = MaterialTheme.shapes.large,
-                        color           = MaterialTheme.colorScheme.primaryContainer,
-                        shadowElevation = 1.dp
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shadowElevation = 1.dp,
                     ) {
                         Row(
-                            modifier              = Modifier.padding(16.dp),
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             Box(
-                                modifier         = Modifier.size(36.dp).background(
-                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
-                                    MaterialTheme.shapes.medium
-                                ),
-                                contentAlignment = Alignment.Center
+                                modifier =
+                                    Modifier.size(36.dp).background(
+                                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
+                                        MaterialTheme.shapes.medium,
+                                    ),
+                                contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    Icons.Default.TrendingUp, null,
-                                    tint     = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.size(20.dp)
+                                    Icons.AutoMirrored.Filled.TrendingUp,
+                                    null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(20.dp),
                                 )
                             }
                             Column {
                                 Text(
                                     detail.surplusCount.toString(),
-                                    style      = MaterialTheme.typography.titleLarge,
+                                    style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
-                                    color      = MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 )
                                 Text(
                                     "Lebih Stok",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                                 )
                             }
                         }
@@ -506,18 +528,19 @@ fun OpnameDetailTabletPanel(
             // ── Add product button (draft only) ───────────────────────────
             if (isDraft) {
                 Row(
-                    modifier              = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End,
                 ) {
                     FilledTonalButton(
-                        onClick        = { showPicker = true },
+                        onClick = { showPicker = true },
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
-                        modifier       = Modifier.height(36.dp),
-                        colors         = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = Primary.copy(alpha = 0.12f),
-                            contentColor   = Primary
-                        )
+                        modifier = Modifier.height(36.dp),
+                        colors =
+                            ButtonDefaults.filledTonalButtonColors(
+                                containerColor = Primary.copy(alpha = 0.12f),
+                                contentColor = Primary,
+                            ),
                     ) {
                         Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
@@ -529,60 +552,62 @@ fun OpnameDetailTabletPanel(
 
             // ── Table header ──────────────────────────────────────────────
             Row(
-                modifier          = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     "PRODUK",
                     modifier = Modifier.weight(1f),
-                    style    = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                    letterSpacing = 0.8.sp
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 0.8.sp,
                 )
                 Text(
                     "SISTEM",
-                    modifier   = Modifier.width(68.dp),
-                    textAlign  = TextAlign.End,
-                    style      = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.width(68.dp),
+                    textAlign = TextAlign.End,
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
-                    letterSpacing = 0.8.sp
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 0.8.sp,
                 )
                 Spacer(Modifier.width(10.dp))
                 Row(
-                    modifier              = Modifier.width(96.dp),
+                    modifier = Modifier.width(96.dp),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment     = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         "AKTUAL",
-                        style      = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onSurfaceVariant,
-                        letterSpacing = 0.8.sp
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 0.8.sp,
                     )
                     if (isDraft) {
                         Spacer(Modifier.width(3.dp))
                         Icon(
-                            Icons.Default.Edit, null,
-                            tint     = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(10.dp)
+                            Icons.Default.Edit,
+                            null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(10.dp),
                         )
                     }
                 }
                 Spacer(Modifier.width(10.dp))
                 Text(
                     "SELISIH",
-                    modifier  = Modifier.width(68.dp),
+                    modifier = Modifier.width(68.dp),
                     textAlign = TextAlign.End,
-                    style     = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
-                    letterSpacing = 0.8.sp
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 0.8.sp,
                 )
                 Spacer(Modifier.width(32.dp))
             }
@@ -594,56 +619,58 @@ fun OpnameDetailTabletPanel(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(
-                            modifier         = Modifier.size(64.dp).background(
-                                MaterialTheme.colorScheme.surfaceVariant,
-                                MaterialTheme.shapes.extraLarge
-                            ),
-                            contentAlignment = Alignment.Center
+                            modifier =
+                                Modifier.size(64.dp).background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    MaterialTheme.shapes.extraLarge,
+                                ),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                Icons.Default.Inventory, null,
+                                Icons.Default.Inventory,
+                                null,
                                 modifier = Modifier.size(32.dp),
-                                tint     = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                             )
                         }
                         Spacer(Modifier.height(16.dp))
                         Text(
                             "Belum ada produk",
                             style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
                             "Ketuk \"+ Tambah Produk\" untuk mulai menghitung stok",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 16.dp),
-                    modifier       = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     itemsIndexed(detail.items, key = { _, item -> item.productUuid }) { index, item ->
                         OpnameTableRow(
-                            item               = item,
-                            isDraft            = isDraft,
-                            rowIndex           = index,
-                            stockInputValue    = stockInputs[item.productUuid] ?: formatStockValue(item.actualStock),
+                            item = item,
+                            isDraft = isDraft,
+                            rowIndex = index,
+                            stockInputValue = stockInputs[item.productUuid] ?: formatStockValue(item.actualStock),
                             onStockInputChange = { stockInputs[item.productUuid] = it },
-                            onDelete           = if (isDraft) ({ onDeleteItem(item.productUuid) }) else null
+                            onDelete = if (isDraft) ({ onDeleteItem(item.productUuid) }) else null,
                         )
                         HorizontalDivider(thickness = 0.5.dp)
                     }
                     itemsIndexed(pendingItems, key = { _, item -> "pending_${item.productUuid}" }) { index, item ->
                         OpnameTableRow(
-                            item               = item,
-                            isDraft            = true,
-                            rowIndex           = detail.items.size + index,
-                            stockInputValue    = stockInputs[item.productUuid] ?: formatStockValue(item.actualStock),
+                            item = item,
+                            isDraft = true,
+                            rowIndex = detail.items.size + index,
+                            stockInputValue = stockInputs[item.productUuid] ?: formatStockValue(item.actualStock),
                             onStockInputChange = { stockInputs[item.productUuid] = it },
-                            onDelete           = { stockInputs.remove(item.productUuid) }
+                            onDelete = { stockInputs.remove(item.productUuid) },
                         )
                         HorizontalDivider(thickness = 0.5.dp)
                     }
@@ -654,14 +681,14 @@ fun OpnameDetailTabletPanel(
 
     if (showPicker) {
         ProductPickerSheet(
-            products      = products,
+            products = products,
             existingUuids = stockInputs.keys.toImmutableSet(),
-            isTablet      = true,
-            onConfirm     = { entries ->
+            isTablet = true,
+            onConfirm = { entries ->
                 stockInputs.putAll(entries)
                 showPicker = false
             },
-            onDismiss = { showPicker = false }
+            onDismiss = { showPicker = false },
         )
     }
 
@@ -669,35 +696,47 @@ fun OpnameDetailTabletPanel(
         AlertDialog(
             onDismissRequest = { if (!isSubmitting) onFinalizeDismiss() },
             title = { Text("Finalisasi Opname") },
-            text  = { Text("Stok sistem akan disesuaikan berdasarkan hasil hitung fisik. Tindakan ini tidak dapat dibatalkan.") },
+            text = { Text("Stok sistem akan disesuaikan berdasarkan hasil hitung fisik. Tindakan ini tidak dapat dibatalkan.") },
             confirmButton = {
                 Button(onClick = onFinalizeConfirm, enabled = !isSubmitting) {
-                    if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                    else Text("Finalisasi")
+                    if (isSubmitting) {
+                        CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text("Finalisasi")
+                    }
                 }
             },
             dismissButton = {
                 TextButton(onClick = onFinalizeDismiss, enabled = !isSubmitting) { Text("Batal") }
-            }
+            },
         )
     }
 }
 
 // ── Compact table row — used only inside OpnameDetailTabletPanel ─────────────
 
-internal fun formatStockValue(value: Double): String =
-    if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
+internal fun formatStockValue(value: Double): String = if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
 
 internal fun formatOpnameDate(isoDate: String): String {
     val parts = isoDate.take(10).split("-")
     if (parts.size < 3) return isoDate.take(10)
-    val day   = parts[2].toIntOrNull() ?: return isoDate.take(10)
-    val month = when (parts[1]) {
-        "01" -> "Jan"; "02" -> "Feb"; "03" -> "Mar"; "04" -> "Apr"
-        "05" -> "Mei"; "06" -> "Jun"; "07" -> "Jul"; "08" -> "Agu"
-        "09" -> "Sep"; "10" -> "Okt"; "11" -> "Nov"; "12" -> "Des"
-        else -> parts[1]
-    }
+    val day = parts[2].toIntOrNull() ?: return isoDate.take(10)
+    val month =
+        when (parts[1]) {
+            "01" -> "Jan"
+            "02" -> "Feb"
+            "03" -> "Mar"
+            "04" -> "Apr"
+            "05" -> "Mei"
+            "06" -> "Jun"
+            "07" -> "Jul"
+            "08" -> "Agu"
+            "09" -> "Sep"
+            "10" -> "Okt"
+            "11" -> "Nov"
+            "12" -> "Des"
+            else -> parts[1]
+        }
     return "$day $month ${parts[0]}"
 }
 
@@ -709,75 +748,85 @@ private fun OpnameTableRow(
     onStockInputChange: (String) -> Unit,
     onDelete: (() -> Unit)? = null,
     rowIndex: Int = 0,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val sem      = RancakColors.semantic
-    val diffColor = when {
-        item.difference == 0.0 -> sem.success
-        else                   -> sem.warning
-    }
-    val diffText = if (item.difference >= 0)
-        "+${formatStockValue(item.difference)}"
-    else
-        formatStockValue(item.difference)
+    val sem = RancakColors.semantic
+    val diffColor =
+        when {
+            item.difference == 0.0 -> sem.success
+            else -> sem.warning
+        }
+    val diffText =
+        if (item.difference >= 0) {
+            "+${formatStockValue(item.difference)}"
+        } else {
+            formatStockValue(item.difference)
+        }
 
-    val rowBg = if (rowIndex % 2 != 0) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                else Color.Transparent
+    val rowBg =
+        if (rowIndex % 2 != 0) {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        } else {
+            Color.Transparent
+        }
     Row(
-        modifier          = modifier.fillMaxWidth().background(rowBg).padding(start = 16.dp, end = 8.dp, top = 13.dp, bottom = 13.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = modifier.fillMaxWidth().background(rowBg).padding(start = 16.dp, end = 8.dp, top = 13.dp, bottom = 13.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // Product icon + name
         Row(
-            modifier              = Modifier.weight(1f),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Box(
-                modifier         = Modifier.size(28.dp).background(
-                    Primary.copy(alpha = 0.10f), MaterialTheme.shapes.small
-                ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier.size(28.dp).background(
+                        Primary.copy(alpha = 0.10f),
+                        MaterialTheme.shapes.small,
+                    ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Default.Inventory, null,
-                    tint     = Primary.copy(alpha = 0.70f),
-                    modifier = Modifier.size(14.dp)
+                    Icons.Default.Inventory,
+                    null,
+                    tint = Primary.copy(alpha = 0.70f),
+                    modifier = Modifier.size(14.dp),
                 )
             }
             Text(
                 item.productName,
-                modifier   = Modifier.weight(1f),
-                style      = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                maxLines   = 2,
-                overflow   = TextOverflow.Ellipsis
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Text(
             formatStockValue(item.systemStock),
-            modifier  = Modifier.width(68.dp),
+            modifier = Modifier.width(68.dp),
             textAlign = TextAlign.End,
-            style     = MaterialTheme.typography.bodyMedium,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.width(10.dp))
         if (isDraft) {
             OutlinedTextField(
-                value           = stockInputValue,
-                onValueChange   = { onStockInputChange(it.filter { c -> c.isDigit() || c == '.' }) },
+                value = stockInputValue,
+                onValueChange = { onStockInputChange(it.filter { c -> c.isDigit() || c == '.' }) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier        = Modifier.width(96.dp).height(48.dp),
-                singleLine      = true,
-                textStyle       = MaterialTheme.typography.bodyMedium,
-                shape           = MaterialTheme.shapes.medium
+                modifier = Modifier.width(96.dp).height(48.dp),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium,
+                shape = MaterialTheme.shapes.medium,
             )
         } else {
             Text(
                 formatStockValue(item.actualStock),
-                modifier  = Modifier.width(96.dp),
+                modifier = Modifier.width(96.dp),
                 textAlign = TextAlign.Center,
-                style     = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
         Spacer(Modifier.width(10.dp))
@@ -785,24 +834,25 @@ private fun OpnameTableRow(
         Box(modifier = Modifier.width(72.dp), contentAlignment = Alignment.CenterEnd) {
             Surface(
                 shape = MaterialTheme.shapes.extraSmall,
-                color = diffColor.copy(alpha = 0.12f)
+                color = diffColor.copy(alpha = 0.12f),
             ) {
                 Text(
                     diffText,
-                    modifier   = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
-                    textAlign  = TextAlign.Center,
-                    style      = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color      = diffColor
+                    color = diffColor,
                 )
             }
         }
         if (onDelete != null) {
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                 Icon(
-                    Icons.Default.Delete, null,
-                    tint     = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(16.dp)
+                    Icons.Default.Delete,
+                    null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(16.dp),
                 )
             }
         } else {
@@ -818,17 +868,20 @@ private fun OpnameTableRow(
 private fun OpnameDetailContentPreview() {
     RancakTheme {
         OpnameDetailContent(
-            detail = StockOpnameDetail(
-                opname = StockOpname("1", "OP-001", "draft", "Opname bulanan", 2, createdAt = "2024-01-15"),
-                items = listOf(
-                    OpnameItem("p1", "Kopi Arabika", systemStock = 50.0, actualStock = 47.0, difference = -3.0)
+            detail =
+                StockOpnameDetail(
+                    opname = StockOpname("1", "OP-001", "draft", "Opname bulanan", 2, createdAt = "2024-01-15"),
+                    items =
+                        listOf(
+                            OpnameItem("p1", "Kopi Arabika", systemStock = 50.0, actualStock = 47.0, difference = -3.0),
+                        ),
+                    shortageCount = 1,
+                    surplusCount = 0,
                 ),
-                shortageCount = 1, surplusCount = 0
-            ),
             products = persistentListOf(),
             isSubmitting = false, isLoading = false, showFinalizeConfirm = false,
             snackbarHostState = SnackbarHostState(),
-            onBack = {}, onSaveItems = {}, onFinalizeClick = {}, onFinalizeConfirm = {}, onFinalizeDismiss = {}
+            onBack = {}, onSaveItems = {}, onFinalizeClick = {}, onFinalizeConfirm = {}, onFinalizeDismiss = {},
         )
     }
 }

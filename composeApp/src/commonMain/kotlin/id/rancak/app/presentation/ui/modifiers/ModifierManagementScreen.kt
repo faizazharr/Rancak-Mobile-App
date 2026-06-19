@@ -2,16 +2,13 @@ package id.rancak.app.presentation.ui.modifiers
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -23,29 +20,28 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Tune
-import id.rancak.app.presentation.components.RancakFormDialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,12 +55,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import id.rancak.app.domain.model.Modifier as DomainModifier
 import id.rancak.app.domain.model.Product
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakButton
+import id.rancak.app.presentation.components.RancakFormDialog
 import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.components.StatusChip
@@ -73,19 +69,18 @@ import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.viewmodel.ModifierManagementUiState
 import id.rancak.app.presentation.viewmodel.ModifierManagementViewModel
 import id.rancak.app.presentation.viewmodel.ModifierTab
-import kotlinx.coroutines.launch
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+import id.rancak.app.domain.model.Modifier as DomainModifier
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Screen (stateful)
 // ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
-fun ModifierManagementScreen(
-    onBack: () -> Unit
-) {
+fun ModifierManagementScreen(onBack: () -> Unit) {
     val viewModel: ModifierManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -105,21 +100,21 @@ fun ModifierManagementScreen(
     }
 
     ModifierManagementContent(
-        uiState            = uiState,
-        onBack             = onBack,
-        onSelectTab        = viewModel::selectTab,
-        onSelectProduct    = viewModel::selectProduct,
-        onAddModifier      = viewModel::openCreateForm,
-        onEditModifier     = viewModel::openEditForm,
-        onDeleteModifier   = viewModel::openDeleteDialog,
-        onSave             = viewModel::saveModifier,
-        onCloseForm        = viewModel::closeFormDialog,
-        onConfirmDelete    = viewModel::confirmDelete,
-        onCloseDelete      = viewModel::closeDeleteDialog,
-        onFormNameChange   = viewModel::onFormNameChange,
-        onFormSortChange   = viewModel::onFormSortOrderChange,
+        uiState = uiState,
+        onBack = onBack,
+        onSelectTab = viewModel::selectTab,
+        onSelectProduct = viewModel::selectProduct,
+        onAddModifier = viewModel::openCreateForm,
+        onEditModifier = viewModel::openEditForm,
+        onDeleteModifier = viewModel::openDeleteDialog,
+        onSave = viewModel::saveModifier,
+        onCloseForm = viewModel::closeFormDialog,
+        onConfirmDelete = viewModel::confirmDelete,
+        onCloseDelete = viewModel::closeDeleteDialog,
+        onFormNameChange = viewModel::onFormNameChange,
+        onFormSortChange = viewModel::onFormSortOrderChange,
         onFormActiveChange = viewModel::onFormIsActiveChange,
-        snackbarHostState  = snackbarHostState
+        snackbarHostState = snackbarHostState,
     )
 }
 
@@ -143,25 +138,25 @@ fun ModifierManagementContent(
     onFormNameChange: (String) -> Unit = {},
     onFormSortChange: (Int) -> Unit = {},
     onFormActiveChange: (Boolean) -> Unit = {},
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     // Form dialog (global + per-produk berbagi form yang sama)
     if (uiState.showFormDialog) {
         ModifierFormDialog(
-            uiState           = uiState,
-            onSave            = onSave,
-            onDismiss         = onCloseForm,
-            onNameChange      = onFormNameChange,
+            uiState = uiState,
+            onSave = onSave,
+            onDismiss = onCloseForm,
+            onNameChange = onFormNameChange,
             onSortOrderChange = onFormSortChange,
-            onIsActiveChange  = onFormActiveChange
+            onIsActiveChange = onFormActiveChange,
         )
     }
 
     if (uiState.showDeleteDialog) {
         AlertDialog(
             onDismissRequest = onCloseDelete,
-            title  = { Text("Hapus Add-ons") },
-            text   = { Text("Yakin ingin menghapus add-ons \"${uiState.selectedModifier?.name}\"?") },
+            title = { Text("Hapus Add-ons") },
+            text = { Text("Yakin ingin menghapus add-ons \"${uiState.selectedModifier?.name}\"?") },
             confirmButton = {
                 TextButton(onClick = onConfirmDelete) {
                     Text("Hapus", color = MaterialTheme.colorScheme.error)
@@ -169,22 +164,25 @@ fun ModifierManagementContent(
             },
             dismissButton = {
                 TextButton(onClick = onCloseDelete) { Text("Batal") }
-            }
+            },
         )
     }
 
     // Tentukan list aktif berdasarkan tab
-    val activeList = when (uiState.activeTab) {
-        ModifierTab.GLOBAL      -> uiState.modifiers
-        ModifierTab.PER_PRODUCT -> uiState.productModifiers
-    }.toImmutableList()
-    val isLoadingActive = when (uiState.activeTab) {
-        ModifierTab.GLOBAL      -> uiState.isLoading
-        ModifierTab.PER_PRODUCT -> uiState.isLoadingProductModifiers
-    }
+    val activeList =
+        when (uiState.activeTab) {
+            ModifierTab.GLOBAL -> uiState.modifiers
+            ModifierTab.PER_PRODUCT -> uiState.productModifiers
+        }.toImmutableList()
+    val isLoadingActive =
+        when (uiState.activeTab) {
+            ModifierTab.GLOBAL -> uiState.isLoading
+            ModifierTab.PER_PRODUCT -> uiState.isLoadingProductModifiers
+        }
     // Pada tab per-produk, FAB hanya aktif setelah produk dipilih
-    val canAdd = uiState.activeTab == ModifierTab.GLOBAL ||
-                 uiState.selectedProduct != null
+    val canAdd =
+        uiState.activeTab == ModifierTab.GLOBAL ||
+            uiState.selectedProduct != null
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val sizes = LocalSizes.current
@@ -193,10 +191,10 @@ fun ModifierManagementContent(
         Scaffold(
             topBar = {
                 RancakTopBar(
-                    title    = "Add-ons",
-                    icon     = Icons.Default.Tune,
+                    title = "Add-ons",
+                    icon = Icons.Default.Tune,
                     subtitle = "${uiState.modifiers.size} global · ${uiState.productModifiers.size} per-produk",
-                    onMenu   = onBack
+                    onMenu = onBack,
                 )
             },
             floatingActionButton = {
@@ -207,34 +205,34 @@ fun ModifierManagementContent(
                     }
                 }
             },
-            snackbarHost   = { SnackbarHost(snackbarHostState) },
-            containerColor = MaterialTheme.colorScheme.background
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = MaterialTheme.colorScheme.background,
         ) { padding ->
             if (isTablet) {
                 TabletLayout(
-                    uiState          = uiState,
-                    activeList       = activeList,
-                    isLoadingActive  = isLoadingActive,
-                    activeError      = if (uiState.activeTab == ModifierTab.GLOBAL) uiState.error else null,
-                    canAdd           = canAdd,
-                    onSelectTab      = onSelectTab,
-                    onSelectProduct  = onSelectProduct,
-                    onAddModifier    = onAddModifier,
-                    onEditModifier   = onEditModifier,
+                    uiState = uiState,
+                    activeList = activeList,
+                    isLoadingActive = isLoadingActive,
+                    activeError = if (uiState.activeTab == ModifierTab.GLOBAL) uiState.error else null,
+                    canAdd = canAdd,
+                    onSelectTab = onSelectTab,
+                    onSelectProduct = onSelectProduct,
+                    onAddModifier = onAddModifier,
+                    onEditModifier = onEditModifier,
                     onDeleteModifier = onDeleteModifier,
-                    modifier         = Modifier.padding(padding).fillMaxSize()
+                    modifier = Modifier.padding(padding).fillMaxSize(),
                 )
             } else {
                 PhoneLayout(
-                    uiState          = uiState,
-                    activeList       = activeList,
-                    isLoadingActive  = isLoadingActive,
-                    activeError      = if (uiState.activeTab == ModifierTab.GLOBAL) uiState.error else null,
-                    onSelectTab      = onSelectTab,
-                    onSelectProduct  = onSelectProduct,
-                    onEditModifier   = onEditModifier,
+                    uiState = uiState,
+                    activeList = activeList,
+                    isLoadingActive = isLoadingActive,
+                    activeError = if (uiState.activeTab == ModifierTab.GLOBAL) uiState.error else null,
+                    onSelectTab = onSelectTab,
+                    onSelectProduct = onSelectProduct,
+                    onEditModifier = onEditModifier,
                     onDeleteModifier = onDeleteModifier,
-                    modifier         = Modifier.padding(padding).fillMaxSize()
+                    modifier = Modifier.padding(padding).fillMaxSize(),
                 )
             }
         }
@@ -255,75 +253,87 @@ private fun TabletLayout(
     onAddModifier: () -> Unit,
     onEditModifier: (DomainModifier) -> Unit,
     onDeleteModifier: (DomainModifier) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier) {
         // Panel kiri: tab + list
         Column(
-            modifier = Modifier
-                .weight(0.58f)
-                .fillMaxHeight()
+            modifier =
+                Modifier
+                    .weight(0.58f)
+                    .fillMaxHeight(),
         ) {
             ModifierTabRow(uiState.activeTab, onSelectTab)
             AnimatedVisibility(uiState.activeTab == ModifierTab.PER_PRODUCT) {
                 ProductPickerDropdown(
-                    products        = uiState.products.toImmutableList(),
+                    products = uiState.products.toImmutableList(),
                     selectedProduct = uiState.selectedProduct,
                     onSelectProduct = onSelectProduct,
-                    modifier        = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
             ModifierListBody(
-                    modifiers       = activeList,
-                    isLoading       = isLoadingActive,
-                    error           = activeError,
-                    onEdit          = onEditModifier,
-                    onDelete        = onDeleteModifier,
-                    emptyText       = if (uiState.activeTab == ModifierTab.PER_PRODUCT && uiState.selectedProduct == null)
-                                          "Pilih produk terlebih dahulu"
-                                      else "Belum ada add-ons",
-                    modifier        = Modifier.weight(1f)
-                )
-            }
-            VerticalDivider(modifier = Modifier.fillMaxHeight())
+                modifiers = activeList,
+                isLoading = isLoadingActive,
+                error = activeError,
+                onEdit = onEditModifier,
+                onDelete = onDeleteModifier,
+                emptyText =
+                    if (uiState.activeTab == ModifierTab.PER_PRODUCT && uiState.selectedProduct == null) {
+                        "Pilih produk terlebih dahulu"
+                    } else {
+                        "Belum ada add-ons"
+                    },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        VerticalDivider(modifier = Modifier.fillMaxHeight())
         // Panel kanan: ringkasan + tombol tambah (tablet — no FAB)
         Column(
-            modifier            = Modifier.weight(0.42f).fillMaxHeight().padding(24.dp),
+            modifier = Modifier.weight(0.42f).fillMaxHeight().padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Ringkasan
             Card(
                 modifier = Modifier.widthIn(max = 320.dp).fillMaxWidth(),
-                colors   = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         "Ringkasan Add-ons",
-                        style      = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
                     )
                     Row(
-                        modifier              = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text("Global", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("${uiState.modifiers.size} modifier", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "${uiState.modifiers.size} modifier",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                     Row(
-                        modifier              = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text("Per Produk", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("${uiState.productModifiers.size} modifier", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "${uiState.productModifiers.size} modifier",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 }
             }
             if (canAdd) {
                 RancakButton(
-                    text     = "Tambah Add-ons",
-                    onClick  = onAddModifier,
-                    modifier = Modifier.widthIn(max = 320.dp).fillMaxWidth()
+                    text = "Tambah Add-ons",
+                    onClick = onAddModifier,
+                    modifier = Modifier.widthIn(max = 320.dp).fillMaxWidth(),
                 )
             }
         }
@@ -342,28 +352,31 @@ private fun PhoneLayout(
     onSelectProduct: (Product?) -> Unit,
     onEditModifier: (DomainModifier) -> Unit,
     onDeleteModifier: (DomainModifier) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         ModifierTabRow(uiState.activeTab, onSelectTab)
         AnimatedVisibility(uiState.activeTab == ModifierTab.PER_PRODUCT) {
             ProductPickerDropdown(
-                products        = uiState.products.toImmutableList(),
+                products = uiState.products.toImmutableList(),
                 selectedProduct = uiState.selectedProduct,
                 onSelectProduct = onSelectProduct,
-                modifier        = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
         ModifierListBody(
-            modifiers  = activeList,
-            isLoading  = isLoadingActive,
-            error      = activeError,
-            onEdit     = onEditModifier,
-            onDelete   = onDeleteModifier,
-            emptyText  = if (uiState.activeTab == ModifierTab.PER_PRODUCT && uiState.selectedProduct == null)
-                             "Pilih produk terlebih dahulu"
-                         else "Belum ada add-ons",
-            modifier   = Modifier.weight(1f)
+            modifiers = activeList,
+            isLoading = isLoadingActive,
+            error = activeError,
+            onEdit = onEditModifier,
+            onDelete = onDeleteModifier,
+            emptyText =
+                if (uiState.activeTab == ModifierTab.PER_PRODUCT && uiState.selectedProduct == null) {
+                    "Pilih produk terlebih dahulu"
+                } else {
+                    "Belum ada add-ons"
+                },
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -371,17 +384,20 @@ private fun PhoneLayout(
 // ── Tab Row ───────────────────────────────────────────────────────────────────
 
 @Composable
-private fun ModifierTabRow(activeTab: ModifierTab, onSelectTab: (ModifierTab) -> Unit) {
+private fun ModifierTabRow(
+    activeTab: ModifierTab,
+    onSelectTab: (ModifierTab) -> Unit,
+) {
     PrimaryTabRow(selectedTabIndex = activeTab.ordinal) {
         Tab(
             selected = activeTab == ModifierTab.GLOBAL,
-            onClick  = { onSelectTab(ModifierTab.GLOBAL) },
-            text     = { Text("Global") }
+            onClick = { onSelectTab(ModifierTab.GLOBAL) },
+            text = { Text("Global") },
         )
         Tab(
             selected = activeTab == ModifierTab.PER_PRODUCT,
-            onClick  = { onSelectTab(ModifierTab.PER_PRODUCT) },
-            text     = { Text("Per Produk") }
+            onClick = { onSelectTab(ModifierTab.PER_PRODUCT) },
+            text = { Text("Per Produk") },
         )
     }
 }
@@ -394,35 +410,35 @@ private fun ProductPickerDropdown(
     products: ImmutableList<Product>,
     selectedProduct: Product?,
     onSelectProduct: (Product?) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
-        expanded         = expanded,
+        expanded = expanded,
         onExpandedChange = { expanded = it },
-        modifier         = modifier
+        modifier = modifier,
     ) {
         OutlinedTextField(
-            value            = selectedProduct?.name ?: "",
-            onValueChange    = {},
-            readOnly         = true,
-            label            = { Text("Pilih Produk") },
-            trailingIcon     = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            shape            = MaterialTheme.shapes.medium,
-            modifier         = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+            value = selectedProduct?.name ?: "",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Pilih Produk") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
         )
         ExposedDropdownMenu(
-            expanded         = expanded,
-            onDismissRequest = { expanded = false }
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
         ) {
             products.forEach { product ->
                 DropdownMenuItem(
-                    text    = { Text(product.name) },
+                    text = { Text(product.name) },
                     onClick = {
                         onSelectProduct(product)
                         expanded = false
-                    }
+                    },
                 )
             }
         }
@@ -439,21 +455,22 @@ private fun ModifierListBody(
     onEdit: (DomainModifier) -> Unit,
     onDelete: (DomainModifier) -> Unit,
     emptyText: String = "Belum ada modifier",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     when {
-        isLoading            -> LoadingScreen(modifier)
+        isLoading -> LoadingScreen(modifier)
         error != null && modifiers.isEmpty() -> ErrorScreen(error, modifier = modifier)
-        modifiers.isEmpty()  -> EmptyScreen(emptyText, modifier = modifier)
-        else -> LazyColumn(
-            modifier            = modifier,
-            contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(modifiers, key = { it.uuid }) { mod ->
-                ModifierListItem(modifier = mod, onEdit = onEdit, onDelete = onDelete)
+        modifiers.isEmpty() -> EmptyScreen(emptyText, modifier = modifier)
+        else ->
+            LazyColumn(
+                modifier = modifier,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(modifiers, key = { it.uuid }) { mod ->
+                    ModifierListItem(modifier = mod, onEdit = onEdit, onDelete = onDelete)
+                }
             }
-        }
     }
 }
 
@@ -463,30 +480,31 @@ private fun ModifierListBody(
 private fun ModifierListItem(
     modifier: DomainModifier,
     onEdit: (DomainModifier) -> Unit,
-    onDelete: (DomainModifier) -> Unit
+    onDelete: (DomainModifier) -> Unit,
 ) {
     val semantic = RancakColors.semantic
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier  = Modifier.fillMaxWidth()
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier              = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .fillMaxWidth(),
+            modifier =
+                Modifier
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     modifier.name,
-                    style      = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
                 )
                 StatusChip(
-                    text  = if (modifier.isActive) "Aktif" else "Nonaktif",
-                    color = if (modifier.isActive) semantic.success else MaterialTheme.colorScheme.onSurfaceVariant
+                    text = if (modifier.isActive) "Aktif" else "Nonaktif",
+                    color = if (modifier.isActive) semantic.success else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Row {
@@ -495,9 +513,10 @@ private fun ModifierListItem(
                 }
                 IconButton(onClick = { onDelete(modifier) }) {
                     Icon(
-                        Icons.Default.Delete, contentDescription = "Hapus",
-                        tint     = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp)
+                        Icons.Default.Delete,
+                        contentDescription = "Hapus",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp),
                     )
                 }
             }
@@ -514,38 +533,37 @@ private fun ModifierFormDialog(
     onDismiss: () -> Unit,
     onNameChange: (String) -> Unit,
     onSortOrderChange: (Int) -> Unit,
-    onIsActiveChange: (Boolean) -> Unit
+    onIsActiveChange: (Boolean) -> Unit,
 ) {
     RancakFormDialog(
-        icon             = Icons.Default.Tune,
-        title            = if (uiState.selectedModifier == null) "Tambah Add-ons" else "Edit Add-ons",
-        subtitle         = if (uiState.selectedModifier == null) "Buat add-ons pilihan baru" else "Perbarui informasi add-ons",
+        icon = Icons.Default.Tune,
+        title = if (uiState.selectedModifier == null) "Tambah Add-ons" else "Edit Add-ons",
+        subtitle = if (uiState.selectedModifier == null) "Buat add-ons pilihan baru" else "Perbarui informasi add-ons",
         onDismissRequest = onDismiss,
-        confirmLabel     = "Simpan",
-        onConfirm        = onSave,
-        confirmEnabled   = uiState.formName.isNotBlank() && !uiState.isSaving,
-        isSubmitting     = uiState.isSaving
+        confirmLabel = "Simpan",
+        onConfirm = onSave,
+        confirmEnabled = uiState.formName.isNotBlank() && !uiState.isSaving,
+        isSubmitting = uiState.isSaving,
     ) {
         RancakTextField(
-            value         = uiState.formName,
+            value = uiState.formName,
             onValueChange = onNameChange,
-            label         = "Nama Add-ons",
-            placeholder   = "Contoh: Pedas, Tanpa Bawang, Tambah Es"
+            label = "Nama Add-ons",
+            placeholder = "Contoh: Pedas, Tanpa Bawang, Tambah Es",
         )
         RancakTextField(
-            value           = uiState.formSortOrder.toString(),
-            onValueChange   = { onSortOrderChange(it.toIntOrNull() ?: 0) },
-            label           = "Urutan Tampil",
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            value = uiState.formSortOrder.toString(),
+            onValueChange = { onSortOrderChange(it.toIntOrNull() ?: 0) },
+            label = "Urutan Tampil",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier              = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Aktif", style = MaterialTheme.typography.bodyMedium)
             Switch(checked = uiState.formIsActive, onCheckedChange = onIsActiveChange)
         }
     }
 }
-

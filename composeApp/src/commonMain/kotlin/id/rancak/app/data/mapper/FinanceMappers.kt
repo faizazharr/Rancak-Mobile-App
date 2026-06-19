@@ -13,60 +13,64 @@ import id.rancak.app.domain.model.ShiftSummary
  * DTO → domain mappers for Cash-ins, Expenses, and Shift summaries.
  */
 
-fun CashInDto.toDomain() = CashIn(
-    uuid = uuid,
-    amount = amount,
-    source = source,
-    description = description,
-    note = note,
-    cashierUuid = cashierUuid,
-    cashierName = cashierName,
-    shiftUuid = shiftUuid,
-    cashInDate = cashInDate,
-    createdAt = createdAt
-)
+fun CashInDto.toDomain() =
+    CashIn(
+        uuid = uuid,
+        amount = amount,
+        source = source,
+        description = description,
+        note = note,
+        cashierUuid = cashierUuid,
+        cashierName = cashierName,
+        shiftUuid = shiftUuid,
+        cashInDate = cashInDate,
+        createdAt = createdAt,
+    )
 
-fun ExpenseDto.toDomain() = Expense(
-    uuid = uuid,
-    amount = amount,
-    description = description,
-    note = note,
-    categoryUuid = categoryUuid,
-    categoryName = categoryName,
-    cashierUuid = cashierUuid,
-    cashierName = cashierName,
-    expenseDate = expenseDate,
-    createdAt = createdAt,
-    updatedAt = updatedAt
-)
+fun ExpenseDto.toDomain() =
+    Expense(
+        uuid = uuid,
+        amount = amount,
+        description = description,
+        note = note,
+        categoryUuid = categoryUuid,
+        categoryName = categoryName,
+        cashierUuid = cashierUuid,
+        cashierName = cashierName,
+        expenseDate = expenseDate,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+    )
 
-fun ShiftSummaryDto.toDomain() = ShiftSummary(
-    uuid = uuid,
-    openedAt = openedAt,
-    closedAt = closedAt,
-    status = status,
-    openingCash = openingCash,
-    closingCash = closingCash,
-    expectedCash = expectedCash,
-    cashDifference = cashDifference,
-    cashierName = cashierName,
-    totalSales = totalSales,
-    totalTransactions = totalTransactions,
-    totalExpenses = totalExpenses,
-    totalCashIn = totalCashIn,
-    paymentSummary = payments.map { it.toDomain() }
-)
+fun ShiftSummaryDto.toDomain() =
+    ShiftSummary(
+        uuid = uuid,
+        openedAt = openedAt,
+        closedAt = closedAt,
+        status = status,
+        openingCash = openingCash,
+        closingCash = closingCash,
+        expectedCash = expectedCash,
+        cashDifference = cashDifference,
+        cashierName = cashierName,
+        totalSales = totalSales,
+        totalTransactions = totalTransactions,
+        totalExpenses = totalExpenses,
+        totalCashIn = totalCashIn,
+        paymentSummary = payments.map { it.toDomain() },
+    )
 
-fun PaymentMethodReportDto.toDomain() = PaymentMethodReport(
-    method = method,
-    total = total,
-    count = count
-)
+fun PaymentMethodReportDto.toDomain() =
+    PaymentMethodReport(
+        method = method,
+        total = total,
+        count = count,
+    )
 
 fun id.rancak.app.data.remote.dto.operations.ExpenseCategoryDto.toDomain(): id.rancak.app.domain.model.ExpenseCategory =
     id.rancak.app.domain.model.ExpenseCategory(
         uuid = uuid,
         name = name,
         isActive = isActive,
-        sortOrder = sortOrder
+        sortOrder = sortOrder,
     )

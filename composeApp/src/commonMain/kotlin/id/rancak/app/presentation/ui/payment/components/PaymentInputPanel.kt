@@ -30,27 +30,27 @@ internal val visiblePaymentMethods = listOf(PaymentMethod.CASH, PaymentMethod.QR
  */
 @Composable
 internal fun PaymentInputPanel(
-    selectedMethod:    PaymentMethod,
-    onSelectMethod:    (PaymentMethod) -> Unit,
-    paidAmount:        String,
-    onPaidAmountChange:(String) -> Unit,
-    isCashSelected:    Boolean,
-    isProcessing:      Boolean,
-    onProcessPayment:  () -> Unit,
-    quickAmounts:      ImmutableList<Long>,
-    onQrisSelected:    () -> Unit           = {},
-    isQrisWaiting:     Boolean              = false,
-    qrisQrString:      String?              = null,
-    qrisAmount:        Long                 = 0L,
-    isQrisPolling:     Boolean              = false,
-    onCancelQris:      () -> Unit           = {},
-    modifier:          Modifier             = Modifier
+    selectedMethod: PaymentMethod,
+    onSelectMethod: (PaymentMethod) -> Unit,
+    paidAmount: String,
+    onPaidAmountChange: (String) -> Unit,
+    isCashSelected: Boolean,
+    isProcessing: Boolean,
+    onProcessPayment: () -> Unit,
+    quickAmounts: ImmutableList<Long>,
+    onQrisSelected: () -> Unit = {},
+    isQrisWaiting: Boolean = false,
+    qrisQrString: String? = null,
+    qrisAmount: Long = 0L,
+    isQrisPolling: Boolean = false,
+    onCancelQris: () -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     val isQris = selectedMethod == PaymentMethod.QRIS
 
     Column(
-        modifier            = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         MethodSelector(
             selectedMethod = selectedMethod,
@@ -58,48 +58,58 @@ internal fun PaymentInputPanel(
                 if (isQrisWaiting && method != PaymentMethod.QRIS) onCancelQris()
                 onSelectMethod(method)
                 if (method == PaymentMethod.QRIS) onQrisSelected()
-            }
+            },
         )
 
         when {
             isQrisWaiting && qrisQrString != null -> {
                 QrisWaitingContent(
-                    qrString  = qrisQrString,
-                    amount    = qrisAmount,
+                    qrString = qrisQrString,
+                    amount = qrisAmount,
                     isPolling = isQrisPolling,
-                    onCancel  = onCancelQris,
-                    modifier  = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            MaterialTheme.shapes.large
-                        )
-                        .clip(MaterialTheme.shapes.large)
+                    onCancel = onCancelQris,
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                MaterialTheme.shapes.large,
+                            )
+                            .clip(MaterialTheme.shapes.large),
                 )
             }
             isCashSelected -> {
                 PaidAmountDisplay(
                     paidAmount = paidAmount,
-                    onClear    = { onPaidAmountChange("") }
+                    onClear = { onPaidAmountChange("") },
                 )
                 QuickAmountRow(
                     quickAmounts = quickAmounts,
-                    paidAmount   = paidAmount,
-                    onSelect     = { onPaidAmountChange(it.toString()) }
+                    paidAmount = paidAmount,
+                    onSelect = { onPaidAmountChange(it.toString()) },
                 )
                 PaymentNumpad(
                     modifier = Modifier.weight(1f),
-                    onKey    = { key ->
-                        val next = when (key) {
-                            "⌫"   -> paidAmount.dropLast(1)
-                            "000" -> if (paidAmount.isEmpty()) paidAmount
-                                     else (paidAmount + "000").take(10)
-                            else  -> if (paidAmount.isEmpty() && key == "0") paidAmount
-                                     else (paidAmount + key).take(10)
-                        }
+                    onKey = { key ->
+                        val next =
+                            when (key) {
+                                "⌫" -> paidAmount.dropLast(1)
+                                "000" ->
+                                    if (paidAmount.isEmpty()) {
+                                        paidAmount
+                                    } else {
+                                        (paidAmount + "000").take(10)
+                                    }
+                                else ->
+                                    if (paidAmount.isEmpty() && key == "0") {
+                                        paidAmount
+                                    } else {
+                                        (paidAmount + key).take(10)
+                                    }
+                            }
                         onPaidAmountChange(next)
-                    }
+                    },
                 )
             }
             else -> Spacer(Modifier.weight(1f))
@@ -108,18 +118,18 @@ internal fun PaymentInputPanel(
         if (!isQrisWaiting) {
             if (!isQris) {
                 RancakButton(
-                    text      = "Proses Pembayaran",
-                    onClick   = onProcessPayment,
+                    text = "Proses Pembayaran",
+                    onClick = onProcessPayment,
                     isLoading = isProcessing,
-                    modifier  = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             } else {
                 RancakButton(
-                    text      = if (isProcessing) "Membuat QR Code QRIS..." else "Bayar dengan QRIS",
-                    onClick   = onQrisSelected,
+                    text = if (isProcessing) "Membuat QR Code QRIS..." else "Bayar dengan QRIS",
+                    onClick = onQrisSelected,
                     isLoading = isProcessing,
-                    enabled   = !isProcessing,
-                    modifier  = Modifier.fillMaxWidth()
+                    enabled = !isProcessing,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -131,24 +141,24 @@ internal fun PaymentInputPanel(
 @Composable
 private fun MethodSelector(
     selectedMethod: PaymentMethod,
-    onSelectMethod: (PaymentMethod) -> Unit
+    onSelectMethod: (PaymentMethod) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             "Metode Pembayaran",
-            style      = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
         )
         Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             visiblePaymentMethods.forEach { method ->
                 PaymentMethodChip(
-                    method     = method.value,
+                    method = method.value,
                     isSelected = selectedMethod == method,
-                    onClick    = { onSelectMethod(method) },
-                    modifier   = Modifier.weight(1f)
+                    onClick = { onSelectMethod(method) },
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -158,34 +168,45 @@ private fun MethodSelector(
 // ── Paid amount display ───────────────────────────────────────────────────────
 
 @Composable
-private fun PaidAmountDisplay(paidAmount: String, onClear: () -> Unit) {
+private fun PaidAmountDisplay(
+    paidAmount: String,
+    onClear: () -> Unit,
+) {
     Surface(
-        shape    = MaterialTheme.shapes.medium,
-        color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        modifier = Modifier.fillMaxWidth()
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier              = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column {
                 Text(
                     "Jumlah Bayar",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text       = if (paidAmount.isEmpty()) "Rp 0"
-                                 else formatRupiah(paidAmount.toLongOrNull() ?: 0L),
-                    style      = MaterialTheme.typography.titleLarge,
+                    text =
+                        if (paidAmount.isEmpty()) {
+                            "Rp 0"
+                        } else {
+                            formatRupiah(paidAmount.toLongOrNull() ?: 0L)
+                        },
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color      = if (paidAmount.isEmpty())
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    else MaterialTheme.colorScheme.onSurface
+                    color =
+                        if (paidAmount.isEmpty()) {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                 )
             }
             if (paidAmount.isNotEmpty()) {
@@ -193,8 +214,8 @@ private fun PaidAmountDisplay(paidAmount: String, onClear: () -> Unit) {
                     Icon(
                         Icons.Default.Clear,
                         contentDescription = "Hapus semua",
-                        tint     = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp),
                     )
                 }
             }
@@ -207,34 +228,41 @@ private fun PaidAmountDisplay(paidAmount: String, onClear: () -> Unit) {
 @Composable
 private fun QuickAmountRow(
     quickAmounts: ImmutableList<Long>,
-    paidAmount:   String,
-    onSelect:     (Long) -> Unit
+    paidAmount: String,
+    onSelect: (Long) -> Unit,
 ) {
     Row(
-        modifier              = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         quickAmounts.take(4).forEach { amount ->
             val isActive = paidAmount == amount.toString()
             FilledTonalButton(
-                onClick        = { onSelect(amount) },
-                modifier       = Modifier.weight(1f),
-                shape          = MaterialTheme.shapes.small,
+                onClick = { onSelect(amount) },
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.small,
                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 10.dp),
-                colors         = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = if (isActive)
-                        MaterialTheme.colorScheme.primaryContainer
-                    else MaterialTheme.colorScheme.surfaceVariant
-                )
+                colors =
+                    ButtonDefaults.filledTonalButtonColors(
+                        containerColor =
+                            if (isActive) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                    ),
             ) {
                 Text(
                     formatRupiah(amount),
-                    style     = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
-                    maxLines  = 1,
-                    color     = if (isActive)
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                    maxLines = 1,
+                    color =
+                        if (isActive) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                 )
             }
         }
@@ -248,15 +276,15 @@ private fun QuickAmountRow(
 private fun PaymentInputPanelPreview_Cash() {
     RancakTheme {
         PaymentInputPanel(
-            selectedMethod     = PaymentMethod.CASH,
-            onSelectMethod     = {},
-            paidAmount         = "100000",
+            selectedMethod = PaymentMethod.CASH,
+            onSelectMethod = {},
+            paidAmount = "100000",
             onPaidAmountChange = {},
-            isCashSelected     = true,
-            isProcessing       = false,
-            onProcessPayment   = {},
-            quickAmounts       = persistentListOf(70_000L, 80_000L, 100_000L, 150_000L),
-            modifier           = Modifier.padding(16.dp).fillMaxSize()
+            isCashSelected = true,
+            isProcessing = false,
+            onProcessPayment = {},
+            quickAmounts = persistentListOf(70_000L, 80_000L, 100_000L, 150_000L),
+            modifier = Modifier.padding(16.dp).fillMaxSize(),
         )
     }
 }
@@ -266,15 +294,15 @@ private fun PaymentInputPanelPreview_Cash() {
 private fun PaymentInputPanelPreview_Qris() {
     RancakTheme {
         PaymentInputPanel(
-            selectedMethod     = PaymentMethod.QRIS,
-            onSelectMethod     = {},
-            paidAmount         = "",
+            selectedMethod = PaymentMethod.QRIS,
+            onSelectMethod = {},
+            paidAmount = "",
             onPaidAmountChange = {},
-            isCashSelected     = false,
-            isProcessing       = false,
-            onProcessPayment   = {},
-            quickAmounts       = persistentListOf(),
-            modifier           = Modifier.padding(16.dp).fillMaxSize()
+            isCashSelected = false,
+            isProcessing = false,
+            onProcessPayment = {},
+            quickAmounts = persistentListOf(),
+            modifier = Modifier.padding(16.dp).fillMaxSize(),
         )
     }
 }

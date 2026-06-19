@@ -1,12 +1,12 @@
 package id.rancak.app.presentation.ui.auth.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Store
@@ -35,73 +35,79 @@ internal fun TenantPickerPortrait(
     tenants: ImmutableList<Tenant>,
     selectedTenant: Tenant?,
     onSelectTenant: (Tenant) -> Unit,
-    onAddOutlet: (() -> Unit)? = null
+    onAddOutlet: (() -> Unit)? = null,
 ) {
-    val primary     = MaterialTheme.colorScheme.primary
-    val primaryDark = Color(
-        red   = (primary.red   * 0.55f).coerceIn(0f, 1f),
-        green = (primary.green * 0.55f).coerceIn(0f, 1f),
-        blue  = (primary.blue  * 0.55f).coerceIn(0f, 1f)
-    )
+    val primary = MaterialTheme.colorScheme.primary
+    val primaryDark =
+        Color(
+            red = (primary.red * 0.55f).coerceIn(0f, 1f),
+            green = (primary.green * 0.55f).coerceIn(0f, 1f),
+            blue = (primary.blue * 0.55f).coerceIn(0f, 1f),
+        )
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Latar gradient penuh
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(primary, primaryDark)))
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(listOf(primary, primaryDark))),
         )
         // Dekorasi lingkaran
         Box(
-            modifier = Modifier
-                .size(260.dp)
-                .offset(x = (-60).dp, y = (-40).dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.07f))
+            modifier =
+                Modifier
+                    .size(260.dp)
+                    .offset(x = (-60).dp, y = (-40).dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.07f)),
         )
         Box(
-            modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.TopEnd)
-                .offset(x = 60.dp, y = 80.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.05f))
+            modifier =
+                Modifier
+                    .size(200.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = 60.dp, y = 80.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.05f)),
         )
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .systemBarsPadding()
-                .padding(horizontal = 20.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .systemBarsPadding()
+                    .padding(horizontal = 20.dp),
         ) {
             Spacer(Modifier.height(28.dp))
 
             // Header kompak
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(MaterialTheme.shapes.extraLarge)
-                        .background(Color.White.copy(alpha = 0.18f))
-                        .border(1.dp, Color.White.copy(alpha = 0.35f), MaterialTheme.shapes.extraLarge),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(52.dp)
+                            .clip(MaterialTheme.shapes.extraLarge)
+                            .background(Color.White.copy(alpha = 0.18f))
+                            .border(1.dp, Color.White.copy(alpha = 0.35f), MaterialTheme.shapes.extraLarge),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(Icons.Default.Store, null, Modifier.size(28.dp), tint = Color.White)
                 }
                 Column {
                     Text(
                         "Pilih Outlet",
-                        style      = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
-                        color      = Color.White
+                        color = Color.White,
                     )
                     Text(
                         "Tentukan outlet untuk sesi kasir",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.70f)
+                        color = Color.White.copy(alpha = 0.70f),
                     )
                 }
             }
@@ -110,28 +116,29 @@ internal fun TenantPickerPortrait(
 
             // Label + badge
             Row(
-                modifier              = Modifier.fillMaxWidth(),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
                     "Outlet Tersedia",
-                    style      = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color      = Color.White.copy(alpha = 0.85f)
+                    color = Color.White.copy(alpha = 0.85f),
                 )
                 Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.20f))
-                        .border(1.dp, Color.White.copy(alpha = 0.30f), CircleShape)
-                        .padding(horizontal = 10.dp, vertical = 3.dp)
+                    modifier =
+                        Modifier
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.20f))
+                            .border(1.dp, Color.White.copy(alpha = 0.30f), CircleShape)
+                            .padding(horizontal = 10.dp, vertical = 3.dp),
                 ) {
                     Text(
                         "${tenants.size}",
-                        style      = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color      = Color.White
+                        color = Color.White,
                     )
                 }
             }
@@ -140,17 +147,17 @@ internal fun TenantPickerPortrait(
 
             // Daftar outlet
             LazyColumn(
-                modifier            = Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding      = PaddingValues(bottom = 8.dp)
+                contentPadding = PaddingValues(bottom = 8.dp),
             ) {
                 itemsIndexed(tenants, key = { _, t -> t.uuid }) { index, tenant ->
                     GlassOutletCard(
-                        name               = tenant.name,
-                        isSelected         = selectedTenant == tenant,
-                        colorIndex         = index,
+                        name = tenant.name,
+                        isSelected = selectedTenant == tenant,
+                        colorIndex = index,
                         subscriptionStatus = tenant.subscriptionStatus,
-                        onClick            = { onSelectTenant(tenant) }
+                        onClick = { onSelectTenant(tenant) },
                     )
                 }
             }
@@ -158,11 +165,11 @@ internal fun TenantPickerPortrait(
             // Tombol ajukan outlet baru — selalu tersedia agar user bisa tambah outlet
             if (onAddOutlet != null) {
                 OutlinedButton(
-                    onClick  = onAddOutlet,
+                    onClick = onAddOutlet,
                     modifier = Modifier.fillMaxWidth(),
-                    border   = BorderStroke(1.dp, Color.White.copy(alpha = 0.40f)),
-                    shape    = MaterialTheme.shapes.medium,
-                    colors   = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.40f)),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
@@ -179,11 +186,12 @@ internal fun TenantPickerPortrait(
 @Composable
 private fun TenantPickerPortraitPreview() {
     RancakTheme {
-        val tenants = listOf(
-            Tenant("1", "Warung Rancak"),
-            Tenant("2", "Cafe Sederhana"),
-            Tenant("3", "Kedai Kopi")
-        ).toImmutableList()
+        val tenants =
+            listOf(
+                Tenant("1", "Warung Rancak"),
+                Tenant("2", "Cafe Sederhana"),
+                Tenant("3", "Kedai Kopi"),
+            ).toImmutableList()
         TenantPickerPortrait(tenants, tenants.first(), {})
     }
 }

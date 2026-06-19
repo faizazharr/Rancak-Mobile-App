@@ -14,51 +14,55 @@ import id.rancak.app.domain.model.ReceiptItemDomain
  * DTO → domain mappers for Receipt printing, Bundles, and Modifiers.
  */
 
-fun ReceiptDto.toDomain() = Receipt(
-    invoiceNo = invoiceNo,
-    tenantName = tenantName,
-    tenantAddress = tenantAddress,
-    tenantPhone = tenantPhone,
-    customerName = customerName,
-    queueNumber = queueNumber,
-    orderType = orderType,
-    cashierName = cashierName,
-    createdAt = createdAt,
-    items = items.map { it.toDomain() },
-    subtotal = subtotal,
-    discount = discount,
-    surcharge = surcharge,
-    tax = tax,
-    deliveryFee = deliveryFee,
-    tip = tip,
-    adminFee = adminFee,
-    total = total,
-    paidAmount = paidAmount,
-    changeAmount = changeAmount,
-    paymentMethod = paymentMethod
-)
+fun ReceiptDto.toDomain() =
+    Receipt(
+        invoiceNo = invoiceNo,
+        tenantName = tenantName,
+        tenantAddress = tenantAddress,
+        tenantPhone = tenantPhone,
+        customerName = customerName,
+        queueNumber = queueNumber,
+        orderType = orderType,
+        cashierName = cashierName,
+        createdAt = createdAt,
+        items = items.map { it.toDomain() },
+        subtotal = subtotal,
+        discount = discount,
+        surcharge = surcharge,
+        tax = tax,
+        deliveryFee = deliveryFee,
+        tip = tip,
+        adminFee = adminFee,
+        total = total,
+        paidAmount = paidAmount,
+        changeAmount = changeAmount,
+        paymentMethod = paymentMethod,
+    )
 
-fun ReceiptItemDto.toDomain() = ReceiptItemDomain(
-    productName = name,
-    variantName = variantName,
-    qty = qty.toIntOrNull() ?: 1,
-    price = price,
-    subtotal = subtotal,
-    note = note
-)
+fun ReceiptItemDto.toDomain() =
+    ReceiptItemDomain(
+        productName = name,
+        variantName = variantName,
+        qty = qty.toIntOrNull() ?: 1,
+        price = price,
+        subtotal = subtotal,
+        note = note,
+    )
 
-fun BundleDto.toDomain() = Bundle(
-    uuid = uuid,
-    name = name,
-    price = price,
-    isActive = isActive,
-    items = items.map { BundleItem(it.productUuid, it.productName, it.qty) }
-)
+fun BundleDto.toDomain() =
+    Bundle(
+        uuid = uuid,
+        name = name,
+        price = price,
+        isActive = isActive,
+        items = items.map { BundleItem(it.productUuid, it.productName, it.qty) },
+    )
 
-fun ModifierDto.toDomain() = Modifier(
-    uuid        = uuid,
-    name        = name,
-    sortOrder   = sortOrder,
-    productUuid = productUuid,
-    isActive    = isActive
-)
+fun ModifierDto.toDomain() =
+    Modifier(
+        uuid = uuid,
+        name = name,
+        sortOrder = sortOrder,
+        productUuid = productUuid,
+        isActive = isActive,
+    )

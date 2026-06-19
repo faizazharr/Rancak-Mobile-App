@@ -34,12 +34,13 @@ internal suspend fun sendToPrinter(
     btAddress: String,
     networkIp: String,
     networkPort: Int,
-    data: ByteArray
-): PrintResult = if (type == SettingsStore.TYPE_BLUETOOTH) {
-    printerManager.printViaBluetooth(btAddress, data)
-} else {
-    printerManager.printViaNetwork(networkIp, networkPort, data)
-}
+    data: ByteArray,
+): PrintResult =
+    if (type == SettingsStore.TYPE_BLUETOOTH) {
+        printerManager.printViaBluetooth(btAddress, data)
+    } else {
+        printerManager.printViaNetwork(networkIp, networkPort, data)
+    }
 
 /**
  * Dialog cetak struk — dapat digunakan dari PaymentScreen maupun SalesHistoryScreen.
@@ -55,38 +56,41 @@ fun PrintDialog(
     sale: Sale,
     printerManager: PrinterManager,
     settingsStore: SettingsStore,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
     val printMode = PrintMode.from(settingsStore.printMode)
 
-    val hasSavedPrinter  = settingsStore.printerAddress.isNotBlank()
-    val savedType        = settingsStore.printerType
-    val savedName        = settingsStore.printerName
-    val savedAddress     = settingsStore.printerAddress
-    val savedNetworkIp   = settingsStore.networkPrinterIp
+    val hasSavedPrinter = settingsStore.printerAddress.isNotBlank()
+    val savedType = settingsStore.printerType
+    val savedName = settingsStore.printerName
+    val savedAddress = settingsStore.printerAddress
+    val savedNetworkIp = settingsStore.networkPrinterIp
     val savedNetworkPort = settingsStore.networkPrinterPort
 
-    val hasKitchenPrinter    = settingsStore.hasKitchenPrinter
-    val kitchenType          = settingsStore.kitchenPrinterType
-    val kitchenAddress       = settingsStore.kitchenPrinterAddress
-    val kitchenNetworkIp     = settingsStore.kitchenNetworkPrinterIp
-    val kitchenNetworkPort   = settingsStore.kitchenNetworkPrinterPort
+    val hasKitchenPrinter = settingsStore.hasKitchenPrinter
+    val kitchenType = settingsStore.kitchenPrinterType
+    val kitchenAddress = settingsStore.kitchenPrinterAddress
+    val kitchenNetworkIp = settingsStore.kitchenNetworkPrinterIp
+    val kitchenNetworkPort = settingsStore.kitchenNetworkPrinterPort
 
-    val storeName   = settingsStore.receiptStoreName.ifBlank { "Rancak" }
+    val storeName = settingsStore.receiptStoreName.ifBlank { "Rancak" }
     val storeAddress = settingsStore.receiptStoreAddress.ifBlank { null }
-    val storePhone  = settingsStore.receiptStorePhone.ifBlank { null }
-    val footerText  = settingsStore.receiptFooter.ifBlank { null }
+    val storePhone = settingsStore.receiptStorePhone.ifBlank { null }
+    val footerText = settingsStore.receiptFooter.ifBlank { null }
 
     var selectedTab by remember {
         mutableStateOf(
-            if (savedType == SettingsStore.TYPE_NETWORK) PrintDialogTab.NETWORK
-            else PrintDialogTab.BLUETOOTH
+            if (savedType == SettingsStore.TYPE_NETWORK) {
+                PrintDialogTab.NETWORK
+            } else {
+                PrintDialogTab.BLUETOOTH
+            },
         )
     }
-    var networkIp   by remember { mutableStateOf(savedNetworkIp) }
-    var isPrinting  by remember { mutableStateOf(false) }
+    var networkIp by remember { mutableStateOf(savedNetworkIp) }
+    var isPrinting by remember { mutableStateOf(false) }
     var printResult by remember { mutableStateOf<PrintResult?>(null) }
     var activePrintJob by remember { mutableStateOf<Job?>(null) }
 
@@ -94,14 +98,15 @@ fun PrintDialog(
         cashierType: String,
         cashierBtAddr: String,
         cashierNetIp: String,
-        cashierNetPort: Int
+        cashierNetPort: Int,
     ): PrintResult {
-        val receiptData = sale.toReceiptData(
-            storeName    = storeName,
-            storeAddress = storeAddress,
-            storePhone   = storePhone,
-            footerText   = footerText
-        )
+        val receiptData =
+            sale.toReceiptData(
+                storeName = storeName,
+                storeAddress = storeAddress,
+                storePhone = storePhone,
+                footerText = footerText,
+            )
 
         return when (printMode) {
             PrintMode.RECEIPT_ONLY -> {
@@ -111,25 +116,35 @@ fun PrintDialog(
 
             PrintMode.SINGLE_KOT_FIRST, PrintMode.SINGLE_RECEIPT_FIRST -> {
                 val kitchenData = sale.toKitchenTicketData(storeName = storeName)
-                val kotFirst    = printMode == PrintMode.SINGLE_KOT_FIRST
-                val bytes       = EscPosBuilder.buildCombinedReceipt(receiptData, kitchenData, kotFirst)
+                val kotFirst = printMode == PrintMode.SINGLE_KOT_FIRST
+                val bytes = EscPosBuilder.buildCombinedReceipt(receiptData, kitchenData, kotFirst)
                 sendToPrinter(printerManager, cashierType, cashierBtAddr, cashierNetIp, cashierNetPort, bytes)
             }
 
             PrintMode.DUAL_PRINTER -> {
                 val receiptBytes = EscPosBuilder.buildReceipt(receiptData)
-                val kitchenData  = sale.toKitchenTicketData(storeName = storeName)
-                val kotBytes     = EscPosBuilder.buildKitchenTicket(kitchenData)
+                val kitchenData = sale.toKitchenTicketData(storeName = storeName)
+                val kotBytes = EscPosBuilder.buildKitchenTicket(kitchenData)
 
-                val cashierDeferred = scope.async {
-                    sendToPrinter(printerManager, cashierType, cashierBtAddr, cashierNetIp, cashierNetPort, receiptBytes)
-                }
-                val kitchenDeferred = if (hasKitchenPrinter) {
+                val cashierDeferred =
                     scope.async {
-                        sendToPrinter(printerManager, kitchenType, kitchenAddress,
-                            kitchenNetworkIp, kitchenNetworkPort, kotBytes)
+                        sendToPrinter(printerManager, cashierType, cashierBtAddr, cashierNetIp, cashierNetPort, receiptBytes)
                     }
-                } else null
+                val kitchenDeferred =
+                    if (hasKitchenPrinter) {
+                        scope.async {
+                            sendToPrinter(
+                                printerManager,
+                                kitchenType,
+                                kitchenAddress,
+                                kitchenNetworkIp,
+                                kitchenNetworkPort,
+                                kotBytes,
+                            )
+                        }
+                    } else {
+                        null
+                    }
 
                 val cashierResult = cashierDeferred.await()
                 val kitchenResult = kitchenDeferred?.await()
@@ -149,33 +164,37 @@ fun PrintDialog(
     LaunchedEffect(hasSavedPrinter) {
         if (hasSavedPrinter && !autoPrintAttempted) {
             autoPrintAttempted = true
-            isPrinting  = true
+            isPrinting = true
             printResult = null
-            activePrintJob = scope.launch {
-                printResult = executePrint(savedType, savedAddress, savedNetworkIp, savedNetworkPort)
-                isPrinting  = false
-            }
+            activePrintJob =
+                scope.launch {
+                    printResult = executePrint(savedType, savedAddress, savedNetworkIp, savedNetworkPort)
+                    isPrinting = false
+                }
         }
     }
 
     AlertDialog(
         onDismissRequest = { if (!isPrinting) onDismiss() },
-        icon  = { Icon(Icons.Default.Print, contentDescription = null) },
+        icon = { Icon(Icons.Default.Print, contentDescription = null) },
         title = { Text("Cetak Struk") },
-        text  = {
+        text = {
             Column {
                 // ── Mode label ────────────────────────────────────────────────
-                val modeLabel = when (printMode) {
-                    PrintMode.RECEIPT_ONLY         -> null
-                    PrintMode.DUAL_PRINTER         -> "Mode: Dua Printer (Kasir + Dapur)"
-                    PrintMode.SINGLE_KOT_FIRST     -> "Mode: Satu Printer (KOT dulu)"
-                    PrintMode.SINGLE_RECEIPT_FIRST -> "Mode: Satu Printer (Struk dulu)"
-                }
+                val modeLabel =
+                    when (printMode) {
+                        PrintMode.RECEIPT_ONLY -> null
+                        PrintMode.DUAL_PRINTER -> "Mode: Dua Printer (Kasir + Dapur)"
+                        PrintMode.SINGLE_KOT_FIRST -> "Mode: Satu Printer (KOT dulu)"
+                        PrintMode.SINGLE_RECEIPT_FIRST -> "Mode: Satu Printer (Struk dulu)"
+                    }
                 if (modeLabel != null) {
-                    Text(modeLabel,
+                    Text(
+                        modeLabel,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(bottom = 8.dp))
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
                 }
 
                 // ── Printer tersimpan ─────────────────────────────────────────
@@ -183,29 +202,38 @@ fun PrintDialog(
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                         shape = MaterialTheme.shapes.small,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                if (savedType == SettingsStore.TYPE_BLUETOOTH) Icons.Default.Bluetooth
-                                else Icons.Default.Wifi,
+                                if (savedType == SettingsStore.TYPE_BLUETOOTH) {
+                                    Icons.Default.Bluetooth
+                                } else {
+                                    Icons.Default.Wifi
+                                },
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(18.dp),
                             )
                             Spacer(Modifier.width(8.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(savedName.ifBlank { savedAddress },
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold)
                                 Text(
-                                    if (printMode == PrintMode.DUAL_PRINTER) "Printer kasir"
-                                    else "Printer tersimpan dari Pengaturan",
+                                    savedName.ifBlank { savedAddress },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Text(
+                                    if (printMode == PrintMode.DUAL_PRINTER) {
+                                        "Printer kasir"
+                                    } else {
+                                        "Printer tersimpan dari Pengaturan"
+                                    },
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         }
                     }
@@ -217,27 +245,34 @@ fun PrintDialog(
                     Surface(
                         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
                         shape = MaterialTheme.shapes.small,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                if (kitchenType == SettingsStore.TYPE_BLUETOOTH) Icons.Default.Bluetooth
-                                else Icons.Default.Wifi,
+                                if (kitchenType == SettingsStore.TYPE_BLUETOOTH) {
+                                    Icons.Default.Bluetooth
+                                } else {
+                                    Icons.Default.Wifi
+                                },
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(18.dp),
                             )
                             Spacer(Modifier.width(8.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(settingsStore.kitchenPrinterName.ifBlank { kitchenAddress },
+                                Text(
+                                    settingsStore.kitchenPrinterName.ifBlank { kitchenAddress },
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold)
-                                Text("Printer dapur (KOT)",
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Text(
+                                    "Printer dapur (KOT)",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         }
                     }
@@ -246,18 +281,24 @@ fun PrintDialog(
                     Surface(
                         color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
                         shape = MaterialTheme.shapes.small,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Default.Warning, contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(18.dp),
+                            )
                             Spacer(Modifier.width(8.dp))
-                            Text("Printer dapur belum diatur. KOT tidak akan dicetak.",
+                            Text(
+                                "Printer dapur belum diatur. KOT tidak akan dicetak.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer)
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            )
                         }
                     }
                     Spacer(Modifier.height(4.dp))
@@ -268,30 +309,44 @@ fun PrintDialog(
                 // ── Manual fallback (no saved printer / error) ────────────────
                 if (!hasSavedPrinter || printResult is PrintResult.Error) {
                     if (printResult is PrintResult.Error && hasSavedPrinter) {
-                        Text("Gagal mencetak ke printer tersimpan. Pilih printer lain atau coba lagi:",
+                        Text(
+                            "Gagal mencetak ke printer tersimpan. Pilih printer lain atau coba lagi:",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(bottom = 8.dp))
+                            modifier = Modifier.padding(bottom = 8.dp),
+                        )
                     }
 
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
                             selected = selectedTab == PrintDialogTab.BLUETOOTH,
-                            onClick  = { selectedTab = PrintDialogTab.BLUETOOTH; printResult = null },
-                            label    = { Text("Bluetooth") },
-                            leadingIcon = if (selectedTab == PrintDialogTab.BLUETOOTH) {
-                                { Icon(Icons.Default.Bluetooth, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                            } else null,
-                            modifier = Modifier.weight(1f)
+                            onClick = {
+                                selectedTab = PrintDialogTab.BLUETOOTH
+                                printResult = null
+                            },
+                            label = { Text("Bluetooth") },
+                            leadingIcon =
+                                if (selectedTab == PrintDialogTab.BLUETOOTH) {
+                                    { Icon(Icons.Default.Bluetooth, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                } else {
+                                    null
+                                },
+                            modifier = Modifier.weight(1f),
                         )
                         FilterChip(
                             selected = selectedTab == PrintDialogTab.NETWORK,
-                            onClick  = { selectedTab = PrintDialogTab.NETWORK; printResult = null },
-                            label    = { Text("Wi-Fi / LAN") },
-                            leadingIcon = if (selectedTab == PrintDialogTab.NETWORK) {
-                                { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                            } else null,
-                            modifier = Modifier.weight(1f)
+                            onClick = {
+                                selectedTab = PrintDialogTab.NETWORK
+                                printResult = null
+                            },
+                            label = { Text("Wi-Fi / LAN") },
+                            leadingIcon =
+                                if (selectedTab == PrintDialogTab.NETWORK) {
+                                    { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                } else {
+                                    null
+                                },
+                            modifier = Modifier.weight(1f),
                         )
                     }
 
@@ -308,15 +363,17 @@ fun PrintDialog(
                                 leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null) },
                                 singleLine = true,
                                 shape = MaterialTheme.shapes.medium,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             )
                         }
                         PrintDialogTab.BLUETOOTH -> {
-                            Text("Buka Pengaturan untuk menghubungkan printer Bluetooth.",
+                            Text(
+                                "Buka Pengaturan untuk menghubungkan printer Bluetooth.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth())
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                     }
                 }
@@ -325,41 +382,59 @@ fun PrintDialog(
                 printResult?.let { result ->
                     Spacer(Modifier.height(12.dp))
                     when (result) {
-                        is PrintResult.Success -> Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = MaterialTheme.shapes.small,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Text("Struk berhasil dicetak!", style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        is PrintResult.Success ->
+                            Surface(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = MaterialTheme.shapes.small,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Struk berhasil dicetak!",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    )
+                                }
                             }
-                        }
-                        is PrintResult.Error -> Surface(
-                            color = MaterialTheme.colorScheme.errorContainer,
-                            shape = MaterialTheme.shapes.small,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Warning, contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Text(result.message, style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer)
+                        is PrintResult.Error ->
+                            Surface(
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                shape = MaterialTheme.shapes.small,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        result.message,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                    )
+                                }
                             }
-                        }
                     }
                 }
 
                 // ── Loading ───────────────────────────────────────────────────
                 if (isPrinting) {
                     Spacer(Modifier.height(12.dp))
-                    Row(Modifier.fillMaxWidth(),
+                    Row(
+                        Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically) {
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.width(8.dp))
                         Text("Mencetak...", style = MaterialTheme.typography.bodySmall)
@@ -368,33 +443,38 @@ fun PrintDialog(
             }
         },
         confirmButton = {
-            val canPrint = !isPrinting && when {
-                hasSavedPrinter && printResult !is PrintResult.Error -> true
-                selectedTab == PrintDialogTab.NETWORK -> networkIp.isNotBlank()
-                else -> false
-            }
-            val buttonText = when {
-                printResult is PrintResult.Success -> "Cetak Ulang"
-                printResult is PrintResult.Error   -> "Coba Lagi"
-                else                               -> "Cetak"
-            }
+            val canPrint =
+                !isPrinting &&
+                    when {
+                        hasSavedPrinter && printResult !is PrintResult.Error -> true
+                        selectedTab == PrintDialogTab.NETWORK -> networkIp.isNotBlank()
+                        else -> false
+                    }
+            val buttonText =
+                when {
+                    printResult is PrintResult.Success -> "Cetak Ulang"
+                    printResult is PrintResult.Error -> "Coba Lagi"
+                    else -> "Cetak"
+                }
             Button(
                 onClick = {
-                    isPrinting  = true
+                    isPrinting = true
                     printResult = null
-                    activePrintJob = scope.launch {
-                        printResult = when {
-                            hasSavedPrinter ->
-                                executePrint(savedType, savedAddress, savedNetworkIp, savedNetworkPort)
-                            selectedTab == PrintDialogTab.NETWORK ->
-                                executePrint(SettingsStore.TYPE_NETWORK, "", networkIp.trim(), 9100)
-                            else ->
-                                PrintResult.Error("Pilih printer terlebih dahulu di Pengaturan")
+                    activePrintJob =
+                        scope.launch {
+                            printResult =
+                                when {
+                                    hasSavedPrinter ->
+                                        executePrint(savedType, savedAddress, savedNetworkIp, savedNetworkPort)
+                                    selectedTab == PrintDialogTab.NETWORK ->
+                                        executePrint(SettingsStore.TYPE_NETWORK, "", networkIp.trim(), 9100)
+                                    else ->
+                                        PrintResult.Error("Pilih printer terlebih dahulu di Pengaturan")
+                                }
+                            isPrinting = false
                         }
-                        isPrinting = false
-                    }
                 },
-                enabled = canPrint
+                enabled = canPrint,
             ) { Text(buttonText) }
         },
         dismissButton = {
@@ -403,9 +483,9 @@ fun PrintDialog(
                     activePrintJob?.cancel()
                     isPrinting = false
                     onDismiss()
-                }
+                },
             ) { Text(if (isPrinting) "Batalkan" else "Tutup") }
-        }
+        },
     )
 }
 
@@ -427,18 +507,18 @@ fun PartialReceiptPrintDialog(
     receiptData: ReceiptData,
     printerManager: PrinterManager,
     settingsStore: SettingsStore,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
-    val hasSavedPrinter  = settingsStore.printerAddress.isNotBlank()
-    val savedType        = settingsStore.printerType
-    val savedName        = settingsStore.printerName
-    val savedAddress     = settingsStore.printerAddress
-    val savedNetworkIp   = settingsStore.networkPrinterIp
+    val hasSavedPrinter = settingsStore.printerAddress.isNotBlank()
+    val savedType = settingsStore.printerType
+    val savedName = settingsStore.printerName
+    val savedAddress = settingsStore.printerAddress
+    val savedNetworkIp = settingsStore.networkPrinterIp
     val savedNetworkPort = settingsStore.networkPrinterPort
 
-    var isPrinting  by remember { mutableStateOf(false) }
+    var isPrinting by remember { mutableStateOf(false) }
     var printResult by remember { mutableStateOf<PrintResult?>(null) }
     var activePrintJob by remember { mutableStateOf<Job?>(null) }
 
@@ -452,41 +532,43 @@ fun PartialReceiptPrintDialog(
     LaunchedEffect(Unit) {
         if (hasSavedPrinter && !autoPrintDone) {
             autoPrintDone = true
-            isPrinting  = true
-            activePrintJob = scope.launch {
-                printResult = doPrint()
-                isPrinting  = false
-            }
+            isPrinting = true
+            activePrintJob =
+                scope.launch {
+                    printResult = doPrint()
+                    isPrinting = false
+                }
         }
     }
 
     AlertDialog(
         onDismissRequest = { if (!isPrinting) onDismiss() },
-        icon  = { Icon(Icons.Default.Print, contentDescription = null) },
+        icon = { Icon(Icons.Default.Print, contentDescription = null) },
         title = { Text("Struk $groupLabel") },
-        text  = {
+        text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Ringkasan total
                 Surface(
-                    color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                    shape    = MaterialTheme.shapes.small,
-                    modifier = Modifier.fillMaxWidth()
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
                             "Total",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             formatRupiah(receiptData.total),
-                            style      = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
                 }
@@ -494,25 +576,28 @@ fun PartialReceiptPrintDialog(
                 // Info printer tersimpan
                 if (hasSavedPrinter) {
                     Surface(
-                        color    = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        shape    = MaterialTheme.shapes.small,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
                             modifier = Modifier.padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                if (savedType == SettingsStore.TYPE_BLUETOOTH) Icons.Default.Bluetooth
-                                else Icons.Default.Wifi,
+                                if (savedType == SettingsStore.TYPE_BLUETOOTH) {
+                                    Icons.Default.Bluetooth
+                                } else {
+                                    Icons.Default.Wifi
+                                },
                                 contentDescription = null,
-                                tint     = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp)
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp),
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
                                 savedName.ifBlank { savedAddress },
-                                style = MaterialTheme.typography.bodySmall
+                                style = MaterialTheme.typography.bodySmall,
                             )
                         }
                     }
@@ -520,7 +605,7 @@ fun PartialReceiptPrintDialog(
                     Text(
                         "Belum ada printer tersimpan. Konfigurasikan printer di Pengaturan.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
@@ -528,7 +613,7 @@ fun PartialReceiptPrintDialog(
                 if (isPrinting) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                         Text("Mencetak...", style = MaterialTheme.typography.bodySmall)
@@ -537,32 +622,40 @@ fun PartialReceiptPrintDialog(
 
                 printResult?.let { result ->
                     when (result) {
-                        is PrintResult.Success -> Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.primary)
-                            Text(
-                                "Struk berhasil dicetak!",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        is PrintResult.Error -> Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(Icons.Default.Warning, contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.error)
-                            Text(
-                                result.message,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
+                        is PrintResult.Success ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                                Text(
+                                    "Struk berhasil dicetak!",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        is PrintResult.Error ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.error,
+                                )
+                                Text(
+                                    result.message,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
                     }
                 }
             }
@@ -572,13 +665,14 @@ fun PartialReceiptPrintDialog(
                 Button(
                     enabled = !isPrinting,
                     onClick = {
-                        isPrinting  = true
+                        isPrinting = true
                         printResult = null
-                        activePrintJob = scope.launch {
-                            printResult = doPrint()
-                            isPrinting  = false
-                        }
-                    }
+                        activePrintJob =
+                            scope.launch {
+                                printResult = doPrint()
+                                isPrinting = false
+                            }
+                    },
                 ) { Text("Cetak Ulang") }
             } else if (!isPrinting) {
                 Button(onClick = onDismiss) { Text("Tutup") }
@@ -590,8 +684,8 @@ fun PartialReceiptPrintDialog(
                     activePrintJob?.cancel()
                     isPrinting = false
                     onDismiss()
-                }
+                },
             ) { Text(if (isPrinting) "Batalkan" else "Lewati") }
-        }
+        },
     )
 }

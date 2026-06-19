@@ -38,30 +38,28 @@ import org.koin.compose.viewmodel.koinViewModel
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-fun BundleManagementScreen(
-    onBack: () -> Unit
-) {
+fun BundleManagementScreen(onBack: () -> Unit) {
     val viewModel: BundleManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     BundleManagementContent(
-        uiState           = uiState,
-        onBack            = onBack,
-        onRetry           = viewModel::loadBundles,
-        onAddBundle       = viewModel::openCreateDialog,
-        onEditBundle      = viewModel::openEditDialog,
-        onDeleteBundle    = viewModel::showDeleteConfirm,
-        onToggleActive    = viewModel::toggleActive,
-        onClearError      = viewModel::clearError,
+        uiState = uiState,
+        onBack = onBack,
+        onRetry = viewModel::loadBundles,
+        onAddBundle = viewModel::openCreateDialog,
+        onEditBundle = viewModel::openEditDialog,
+        onDeleteBundle = viewModel::showDeleteConfirm,
+        onToggleActive = viewModel::toggleActive,
+        onClearError = viewModel::clearError,
         // Dialog actions
-        onDismissDialog   = viewModel::closeDialog,
-        onNameChange      = viewModel::onNameChange,
-        onPriceChange     = viewModel::onPriceChange,
-        onSkuChange       = viewModel::onSkuChange,
-        onIsActiveChange  = viewModel::onIsActiveChange,
-        onSaveBundle      = viewModel::saveBundle,
-        onDismissDelete   = viewModel::dismissDeleteConfirm,
-        onConfirmDelete   = viewModel::deleteBundle
+        onDismissDialog = viewModel::closeDialog,
+        onNameChange = viewModel::onNameChange,
+        onPriceChange = viewModel::onPriceChange,
+        onSkuChange = viewModel::onSkuChange,
+        onIsActiveChange = viewModel::onIsActiveChange,
+        onSaveBundle = viewModel::saveBundle,
+        onDismissDelete = viewModel::dismissDeleteConfirm,
+        onConfirmDelete = viewModel::deleteBundle,
     )
 }
 
@@ -86,106 +84,110 @@ internal fun BundleManagementContent(
     onIsActiveChange: (Boolean) -> Unit = {},
     onSaveBundle: () -> Unit = {},
     onDismissDelete: () -> Unit = {},
-    onConfirmDelete: () -> Unit = {}
+    onConfirmDelete: () -> Unit = {},
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val sizes = LocalSizes.current
         val isTablet = maxWidth >= sizes.tabletBreakpoint
 
-    Scaffold(
-        topBar = {
-            RancakTopBar(
-                title    = "Manajemen Bundle",
-                icon     = Icons.Default.Inventory2,
-                subtitle = "Kelola paket produk",
-                onMenu   = onBack
-            )
-        },
-        floatingActionButton = {
-            // FAB hanya di phone — tablet pakai inline button di header
-            if (!isTablet) {
-                FloatingActionButton(onClick = onAddBundle) {
-                    Icon(Icons.Default.Add, "Tambah Bundle")
-                }
-            }
-        }
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            ErrorBanner(
-                error     = uiState.error,
-                onDismiss = onClearError,
-                modifier  = Modifier.fillMaxWidth().align(Alignment.TopCenter).zIndex(10f)
-            )
-
-            Column(Modifier.fillMaxSize()) {
-                // Tablet: inline header row dengan tombol tambah
-                if (isTablet) {
-                    Row(
-                        modifier              = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment     = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            "${uiState.bundles.size} bundle",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        FilledTonalButton(onClick = onAddBundle) {
-                            Icon(Icons.Default.Add, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Tambah Bundle")
-                        }
+        Scaffold(
+            topBar = {
+                RancakTopBar(
+                    title = "Manajemen Bundle",
+                    icon = Icons.Default.Inventory2,
+                    subtitle = "Kelola paket produk",
+                    onMenu = onBack,
+                )
+            },
+            floatingActionButton = {
+                // FAB hanya di phone — tablet pakai inline button di header
+                if (!isTablet) {
+                    FloatingActionButton(onClick = onAddBundle) {
+                        Icon(Icons.Default.Add, "Tambah Bundle")
                     }
                 }
+            },
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                ErrorBanner(
+                    error = uiState.error,
+                    onDismiss = onClearError,
+                    modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).zIndex(10f),
+                )
 
-                when {
-                    uiState.isLoading -> LoadingScreen()
-                    uiState.error != null && uiState.bundles.isEmpty() -> ErrorScreen(
-                        uiState.error, onRetry = onRetry
-                    )
-                    uiState.bundles.isEmpty() -> EmptyScreen(
-                        "Belum ada bundle. Tambahkan paket produk baru.",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    else -> BundleList(
-                        bundles        = uiState.bundles,
-                        onEdit         = onEditBundle,
-                        onDelete       = onDeleteBundle,
-                        onToggleActive = onToggleActive
-                    )
+                Column(Modifier.fillMaxSize()) {
+                    // Tablet: inline header row dengan tombol tambah
+                    if (isTablet) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                "${uiState.bundles.size} bundle",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            FilledTonalButton(onClick = onAddBundle) {
+                                Icon(Icons.Default.Add, null, Modifier.size(18.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Tambah Bundle")
+                            }
+                        }
+                    }
+
+                    when {
+                        uiState.isLoading -> LoadingScreen()
+                        uiState.error != null && uiState.bundles.isEmpty() ->
+                            ErrorScreen(
+                                uiState.error,
+                                onRetry = onRetry,
+                            )
+                        uiState.bundles.isEmpty() ->
+                            EmptyScreen(
+                                "Belum ada bundle. Tambahkan paket produk baru.",
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        else ->
+                            BundleList(
+                                bundles = uiState.bundles,
+                                onEdit = onEditBundle,
+                                onDelete = onDeleteBundle,
+                                onToggleActive = onToggleActive,
+                            )
+                    }
                 }
             }
-        }
 
-        // Create / Edit dialog
-        if (uiState.showCreateDialog) {
-            BundleFormDialog(
-                uiState          = uiState,
-                onDismiss        = onDismissDialog,
-                onNameChange     = onNameChange,
-                onPriceChange    = onPriceChange,
-                onSkuChange      = onSkuChange,
-                onIsActiveChange = onIsActiveChange,
-                onSave           = onSaveBundle
-            )
-        }
+            // Create / Edit dialog
+            if (uiState.showCreateDialog) {
+                BundleFormDialog(
+                    uiState = uiState,
+                    onDismiss = onDismissDialog,
+                    onNameChange = onNameChange,
+                    onPriceChange = onPriceChange,
+                    onSkuChange = onSkuChange,
+                    onIsActiveChange = onIsActiveChange,
+                    onSave = onSaveBundle,
+                )
+            }
 
-        // Delete confirm dialog
-        uiState.deletingBundle?.let { bundle ->
-            AlertDialog(
-                onDismissRequest = onDismissDelete,
-                title   = { Text("Hapus Bundle?") },
-                text    = { Text("Bundle \"${bundle.name}\" akan dihapus secara permanen.") },
-                confirmButton = {
-                    TextButton(
-                        onClick = onConfirmDelete,
-                        colors  = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                    ) { Text("Hapus") }
-                },
-                dismissButton = { TextButton(onClick = onDismissDelete) { Text("Batal") } }
-            )
-        }
-    } // end Scaffold
+            // Delete confirm dialog
+            uiState.deletingBundle?.let { bundle ->
+                AlertDialog(
+                    onDismissRequest = onDismissDelete,
+                    title = { Text("Hapus Bundle?") },
+                    text = { Text("Bundle \"${bundle.name}\" akan dihapus secara permanen.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = onConfirmDelete,
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        ) { Text("Hapus") }
+                    },
+                    dismissButton = { TextButton(onClick = onDismissDelete) { Text("Batal") } },
+                )
+            }
+        } // end Scaffold
     } // end BoxWithConstraints
 }
 
@@ -194,17 +196,17 @@ private fun BundleList(
     bundles: List<Bundle>,
     onEdit: (Bundle) -> Unit,
     onDelete: (Bundle) -> Unit,
-    onToggleActive: (Bundle) -> Unit
+    onToggleActive: (Bundle) -> Unit,
 ) {
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(bundles, key = { it.uuid }) { bundle ->
             BundleCard(
-                bundle   = bundle,
-                onEdit   = { onEdit(bundle) },
-                onDelete = { onDelete(bundle) }
+                bundle = bundle,
+                onEdit = { onEdit(bundle) },
+                onDelete = { onDelete(bundle) },
             )
         }
     }
@@ -214,38 +216,38 @@ private fun BundleList(
 private fun BundleCard(
     bundle: Bundle,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
     Card(
-        shape  = MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth()
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(bundle.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text(
                         formatRupiah(bundle.price),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                     if (bundle.items.isNotEmpty()) {
                         Text(
                             "${bundle.items.size} item",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     StatusChip(
-                        text  = if (bundle.isActive) "Aktif" else "Nonaktif",
-                        color = if (bundle.isActive) RancakColors.semantic.success else MaterialTheme.colorScheme.onSurfaceVariant
+                        text = if (bundle.isActive) "Aktif" else "Nonaktif",
+                        color = if (bundle.isActive) RancakColors.semantic.success else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.width(4.dp))
                     IconButton(onClick = onEdit) {
@@ -268,44 +270,44 @@ private fun BundleFormDialog(
     onPriceChange: (String) -> Unit,
     onSkuChange: (String) -> Unit,
     onIsActiveChange: (Boolean) -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
 ) {
     val isEdit = uiState.editingBundle != null
     AlertDialog(
         onDismissRequest = onDismiss,
-        title   = { Text(if (isEdit) "Edit Bundle" else "Tambah Bundle") },
-        text    = {
+        title = { Text(if (isEdit) "Edit Bundle" else "Tambah Bundle") },
+        text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
-                    value         = uiState.formName,
+                    value = uiState.formName,
                     onValueChange = onNameChange,
-                    label         = { Text("Nama Bundle*") },
-                    shape         = MaterialTheme.shapes.medium,
-                    singleLine    = true,
-                    modifier      = Modifier.fillMaxWidth()
+                    label = { Text("Nama Bundle*") },
+                    shape = MaterialTheme.shapes.medium,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
-                    value           = uiState.formPrice,
-                    onValueChange   = onPriceChange,
-                    label           = { Text("Harga (Rp)*") },
-                    prefix          = { Text("Rp ") },
+                    value = uiState.formPrice,
+                    onValueChange = onPriceChange,
+                    label = { Text("Harga (Rp)*") },
+                    prefix = { Text("Rp ") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    shape           = MaterialTheme.shapes.medium,
-                    singleLine      = true,
-                    modifier        = Modifier.fillMaxWidth()
+                    shape = MaterialTheme.shapes.medium,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
-                    value         = uiState.formSku,
+                    value = uiState.formSku,
                     onValueChange = onSkuChange,
-                    label         = { Text("SKU (opsional)") },
-                    shape         = MaterialTheme.shapes.medium,
-                    singleLine    = true,
-                    modifier      = Modifier.fillMaxWidth()
+                    label = { Text("SKU (opsional)") },
+                    shape = MaterialTheme.shapes.medium,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Aktif", style = MaterialTheme.typography.bodyMedium)
                     Switch(checked = uiState.formIsActive, onCheckedChange = onIsActiveChange)
@@ -318,14 +320,14 @@ private fun BundleFormDialog(
         },
         confirmButton = {
             RancakButton(
-                text      = if (isEdit) "Simpan" else "Tambah",
-                onClick   = onSave,
+                text = if (isEdit) "Simpan" else "Tambah",
+                onClick = onSave,
                 isLoading = uiState.isSaving,
-                enabled   = uiState.formName.isNotBlank() && uiState.formPrice.isNotBlank() && !uiState.isSaving
+                enabled = uiState.formName.isNotBlank() && uiState.formPrice.isNotBlank() && !uiState.isSaving,
             )
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Batal") }
-        }
+        },
     )
 }

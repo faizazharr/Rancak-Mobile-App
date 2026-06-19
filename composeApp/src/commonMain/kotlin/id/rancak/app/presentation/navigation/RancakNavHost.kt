@@ -33,22 +33,21 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -61,11 +60,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import id.rancak.app.presentation.components.LocalNavigateToHome
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.AuthRepository
+import id.rancak.app.presentation.components.LocalNavigateToHome
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -75,7 +74,7 @@ import org.koin.compose.viewmodel.koinViewModel
 private data class DrawerItem(
     val label: String,
     val icon: ImageVector,
-    val screen: Screen
+    val screen: Screen,
 )
 
 @Immutable
@@ -83,7 +82,7 @@ private data class DrawerGroup(
     val label: String,
     val icon: ImageVector,
     val items: List<DrawerItem>,
-    val expandedByDefault: Boolean = false
+    val expandedByDefault: Boolean = false,
 )
 
 /**
@@ -92,9 +91,10 @@ private data class DrawerGroup(
  * navController dibuat sekali saat composable masuk komposisi dan tidak
  * pernah diganti — tidak perlu rekomposisi saat nilai berubah.
  */
-private val LocalNavController = staticCompositionLocalOf<NavHostController> {
-    error("NavHostController not provided — pastikan dipanggil di dalam RancakNavHost()")
-}
+private val LocalNavController =
+    staticCompositionLocalOf<NavHostController> {
+        error("NavHostController not provided — pastikan dipanggil di dalam RancakNavHost()")
+    }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,77 +112,85 @@ fun RancakNavHost() {
     // TODO(role-gating): setelah backend mengembalikan field `role` pada respons
     // tenant/login, ganti semua UserRole.STAFF di bawah dengan peran yang sesuai
     // dan uncomment baris filter `visibleDrawerItems`.
-    val drawerGroups = remember {
-        listOf(
-            DrawerGroup(
-                label = "Kasir",
-                icon = Icons.Default.PointOfSale,
-                expandedByDefault = true,
-                items = listOf(
-                    DrawerItem("Kasir",  Icons.Default.PointOfSale, Screen.Pos),
-                    DrawerItem("Shift",  Icons.Default.AccessTime,  Screen.Shift),
-                )
-            ),
-            DrawerGroup(
-                label = "Operasional",
-                icon = Icons.Default.TableBar,
-                expandedByDefault = true,
-                items = listOf(
-                    DrawerItem("Meja",        Icons.Default.TableBar,   Screen.Tables),
-                    DrawerItem("Reservasi",   Icons.Default.EventSeat,  Screen.Reservations),
-                    DrawerItem("Dapur (KDS)", Icons.Default.Restaurant, Screen.Kds),
-                    DrawerItem("Order Board", Icons.Default.Dashboard,  Screen.OrderBoard),
-                )
-            ),
-            DrawerGroup(
-                label = "Keuangan",
-                icon = Icons.Default.AccountBalance,
-                expandedByDefault = true,
-                items = listOf(
-                    DrawerItem("Laporan",     Icons.Default.BarChart,       Screen.Reports),
-                    DrawerItem("Riwayat",     Icons.Default.Receipt,        Screen.SalesHistory),
-                    DrawerItem("Kas & Biaya", Icons.Default.AccountBalance, Screen.CashExpense),
-                )
-            ),
-            DrawerGroup(
-                label = "Produk & Stok",
-                icon = Icons.Default.Inventory2,
-                expandedByDefault = true,
-                items = listOf(
-                    DrawerItem("Produk",        Icons.Default.Inventory2,  Screen.ProductManagement),
-                    DrawerItem("Stok Opname",   Icons.Default.Inventory,   Screen.StockOpname),
-                    DrawerItem("Add-ons",        Icons.Default.Tune,        Screen.ModifierManagement),
-                    DrawerItem("Voucher",        Icons.Default.LocalOffer,  Screen.VoucherManagement),
-                    DrawerItem("Harga & Diskon", Icons.Default.Percent,     Screen.PricingManagement),
-                )
-            ),
-            DrawerGroup(
-                label = "Pengadaan",
-                icon = Icons.Default.LocalShipping,
-                expandedByDefault = false,
-                items = listOf(
-                    DrawerItem("Supplier",       Icons.Default.LocalShipping, Screen.SupplierManagement),
-                    DrawerItem("Purchase Order", Icons.Default.ShoppingCart,  Screen.PurchaseOrders),
-                )
-            ),
-            DrawerGroup(
-                label = "Sistem",
-                icon = Icons.Default.Settings,
-                expandedByDefault = false,
-                items = listOf(
-                    DrawerItem("Pengaturan",  Icons.Default.Settings,    Screen.Settings),
-                    DrawerItem("Billing",     Icons.Default.CreditCard,  Screen.Billing()),  // fromSetup = false (drawer)
-                    DrawerItem("Sesi Aktif",  Icons.Default.DevicesOther, Screen.SessionManagement),
-                    DrawerItem("Multi-Outlet", Icons.Default.Store,       Screen.GroupDashboard),
-                )
-            ),
-        )
-    }
-    val expandedGroups = remember {
-        mutableStateMapOf<String, Boolean>().apply {
-            drawerGroups.forEach { put(it.label, it.expandedByDefault) }
+    val drawerGroups =
+        remember {
+            listOf(
+                DrawerGroup(
+                    label = "Kasir",
+                    icon = Icons.Default.PointOfSale,
+                    expandedByDefault = true,
+                    items =
+                        listOf(
+                            DrawerItem("Kasir", Icons.Default.PointOfSale, Screen.Pos),
+                            DrawerItem("Shift", Icons.Default.AccessTime, Screen.Shift),
+                        ),
+                ),
+                DrawerGroup(
+                    label = "Operasional",
+                    icon = Icons.Default.TableBar,
+                    expandedByDefault = true,
+                    items =
+                        listOf(
+                            DrawerItem("Meja", Icons.Default.TableBar, Screen.Tables),
+                            DrawerItem("Reservasi", Icons.Default.EventSeat, Screen.Reservations),
+                            DrawerItem("Dapur (KDS)", Icons.Default.Restaurant, Screen.Kds),
+                            DrawerItem("Order Board", Icons.Default.Dashboard, Screen.OrderBoard),
+                        ),
+                ),
+                DrawerGroup(
+                    label = "Keuangan",
+                    icon = Icons.Default.AccountBalance,
+                    expandedByDefault = true,
+                    items =
+                        listOf(
+                            DrawerItem("Laporan", Icons.Default.BarChart, Screen.Reports),
+                            DrawerItem("Riwayat", Icons.Default.Receipt, Screen.SalesHistory),
+                            DrawerItem("Kas & Biaya", Icons.Default.AccountBalance, Screen.CashExpense),
+                        ),
+                ),
+                DrawerGroup(
+                    label = "Produk & Stok",
+                    icon = Icons.Default.Inventory2,
+                    expandedByDefault = true,
+                    items =
+                        listOf(
+                            DrawerItem("Produk", Icons.Default.Inventory2, Screen.ProductManagement),
+                            DrawerItem("Stok Opname", Icons.Default.Inventory, Screen.StockOpname),
+                            DrawerItem("Add-ons", Icons.Default.Tune, Screen.ModifierManagement),
+                            DrawerItem("Voucher", Icons.Default.LocalOffer, Screen.VoucherManagement),
+                            DrawerItem("Harga & Diskon", Icons.Default.Percent, Screen.PricingManagement),
+                        ),
+                ),
+                DrawerGroup(
+                    label = "Pengadaan",
+                    icon = Icons.Default.LocalShipping,
+                    expandedByDefault = false,
+                    items =
+                        listOf(
+                            DrawerItem("Supplier", Icons.Default.LocalShipping, Screen.SupplierManagement),
+                            DrawerItem("Purchase Order", Icons.Default.ShoppingCart, Screen.PurchaseOrders),
+                        ),
+                ),
+                DrawerGroup(
+                    label = "Sistem",
+                    icon = Icons.Default.Settings,
+                    expandedByDefault = false,
+                    items =
+                        listOf(
+                            DrawerItem("Pengaturan", Icons.Default.Settings, Screen.Settings),
+                            DrawerItem("Billing", Icons.Default.CreditCard, Screen.Billing()), // fromSetup = false (drawer)
+                            DrawerItem("Sesi Aktif", Icons.Default.DevicesOther, Screen.SessionManagement),
+                            DrawerItem("Multi-Outlet", Icons.Default.Store, Screen.GroupDashboard),
+                        ),
+                ),
+            )
         }
-    }
+    val expandedGroups =
+        remember {
+            mutableStateMapOf<String, Boolean>().apply {
+                drawerGroups.forEach { put(it.label, it.expandedByDefault) }
+            }
+        }
 
     val currentDestination = navBackStackEntry?.destination
     // visibleEntries: semua NavBackStackEntry yang sedang di-render, termasuk
@@ -193,18 +201,19 @@ fun RancakNavHost() {
     // layar auth (Splash/Login/TenantPicker/Billing) benar-benar selesai keluar
     // dari komposisi, mencegah flash drawer di tengah transisi.
     val visibleEntries by navController.visibleEntries.collectAsStateWithLifecycle()
-    val showDrawer = remember(visibleEntries) {
-        visibleEntries.isNotEmpty() &&
-            visibleEntries.none { entry ->
-                val d = entry.destination
-                d.hasRoute(Screen.Splash::class) ||
-                d.hasRoute(Screen.Login::class) ||
-                d.hasRoute(Screen.ForgotPassword::class) ||
-                d.hasRoute(Screen.ResetPassword::class) ||
-                d.hasRoute(Screen.TenantPicker::class) ||
-                d.hasRoute(Screen.Billing::class)
-            }
-    }
+    val showDrawer =
+        remember(visibleEntries) {
+            visibleEntries.isNotEmpty() &&
+                visibleEntries.none { entry ->
+                    val d = entry.destination
+                    d.hasRoute(Screen.Splash::class) ||
+                        d.hasRoute(Screen.Login::class) ||
+                        d.hasRoute(Screen.ForgotPassword::class) ||
+                        d.hasRoute(Screen.ResetPassword::class) ||
+                        d.hasRoute(Screen.TenantPicker::class) ||
+                        d.hasRoute(Screen.Billing::class)
+                }
+        }
 
     // Pastikan drawer selalu tertutup setiap kali pindah destinasi.
     // Hanya jalankan animasi close() bila drawer benar-benar terbuka agar
@@ -218,155 +227,156 @@ fun RancakNavHost() {
     // from being destroyed and recreated when showDrawer changes (login → main),
     // which was the root cause of white-screen flashes.
     CompositionLocalProvider(LocalNavController provides navController) {
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        gesturesEnabled = showDrawer,
-        drawerContent = {
-            // ModalDrawerSheet selalu di-compose dengan lebar tetap 280.dp agar
-            // AnchoredDraggableState punya anchor (Closed → -280.dp, Open → 0)
-            // sejak frame pertama. Tanpa ini, offset awal = Float.NaN yang
-            // Compose render sebagai 0 (Open) selama satu frame → drawer flash
-            // terlihat terbuka sesaat setelah splash screen selesai.
-            ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
-                if (showDrawer) {
-                    Spacer(Modifier.height(24.dp))
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            gesturesEnabled = showDrawer,
+            drawerContent = {
+                // ModalDrawerSheet selalu di-compose dengan lebar tetap 280.dp agar
+                // AnchoredDraggableState punya anchor (Closed → -280.dp, Open → 0)
+                // sejak frame pertama. Tanpa ini, offset awal = Float.NaN yang
+                // Compose render sebagai 0 (Open) selama satu frame → drawer flash
+                // terlihat terbuka sesaat setelah splash screen selesai.
+                ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+                    if (showDrawer) {
+                        Spacer(Modifier.height(24.dp))
 
-                    // ── Header: brand + outlet aktif ──────────────────────
-                    Surface(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        shape = MaterialTheme.shapes.large,
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-                            Text(
-                                "Rancak",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            val activeTenantName = authRepository.getCurrentTenantName()
-                            if (activeTenantName != null) {
-                                Spacer(Modifier.height(6.dp))
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
-                                )
-                                Spacer(Modifier.height(6.dp))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.Store,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                    Text(
-                                        activeTenantName,
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            } else {
+                        // ── Header: brand + outlet aktif ──────────────────────
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            shape = MaterialTheme.shapes.large,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                        ) {
+                            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                                 Text(
-                                    "Point of Sale",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    "Rancak",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                                val activeTenantName = authRepository.getCurrentTenantName()
+                                if (activeTenantName != null) {
+                                    Spacer(Modifier.height(6.dp))
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f),
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Store,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp),
+                                            tint = MaterialTheme.colorScheme.primary,
+                                        )
+                                        Text(
+                                            activeTenantName,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        "Point of Sale",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        Spacer(Modifier.height(8.dp))
+
+                        Column(
+                            modifier =
+                                Modifier
+                                    .weight(1f)
+                                    .verticalScroll(rememberScrollState()),
+                        ) {
+                            drawerGroups.forEach { group ->
+                                DrawerAccordionGroup(
+                                    group = group,
+                                    isExpanded = expandedGroups[group.label] ?: group.expandedByDefault,
+                                    onToggle = {
+                                        expandedGroups[group.label] =
+                                            !(expandedGroups[group.label] ?: group.expandedByDefault)
+                                    },
+                                    onItemClick = { item ->
+                                        // Navigasi top-level drawer:
+                                        //  - popUpTo(Screen.Pos, inclusive=false, saveState=true):
+                                        //    Pos adalah root sejati back stack setelah auth selesai.
+                                        //    Screen.Splash sudah dihapus dari stack saat auth flow,
+                                        //    jadi popUpTo(Splash) sebelumnya adalah no-op.
+                                        //    inclusive=false: Pos TETAP ada di stack → Back dari
+                                        //    drawer destination selalu kembali ke Pos lalu keluar app.
+                                        //  - launchSingleTop: cegah duplikasi destinasi yang aktif.
+                                        //  - restoreState: pulihkan state destinasi tujuan jika pernah
+                                        //    dikunjungi (scroll position, ViewModel state).
+                                        navController.navigate(item.screen) {
+                                            popUpTo(Screen.Pos) {
+                                                saveState = true
+                                                inclusive = false
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                        scope.launch { drawerState.close() }
+                                    },
+                                    // Sorot item yang route-nya cocok dengan destinasi aktif saat ini.
+                                    // hasRoute(KClass<*>) aman untuk data object maupun data class.
+                                    isSelected = { item ->
+                                        currentDestination?.hasRoute(item.screen::class) == true
+                                    },
                                 )
                             }
+                            Spacer(Modifier.height(8.dp))
                         }
-                    }
 
-                    Spacer(Modifier.height(16.dp))
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    Spacer(Modifier.height(8.dp))
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        Spacer(Modifier.height(4.dp))
 
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState())
-                    ) {
-                        drawerGroups.forEach { group ->
-                            DrawerAccordionGroup(
-                                group = group,
-                                isExpanded = expandedGroups[group.label] ?: group.expandedByDefault,
-                                onToggle = {
-                                    expandedGroups[group.label] =
-                                        !(expandedGroups[group.label] ?: group.expandedByDefault)
-                                },
-                                onItemClick = { item ->
-                                    // Navigasi top-level drawer:
-                                    //  - popUpTo(Screen.Pos, inclusive=false, saveState=true):
-                                    //    Pos adalah root sejati back stack setelah auth selesai.
-                                    //    Screen.Splash sudah dihapus dari stack saat auth flow,
-                                    //    jadi popUpTo(Splash) sebelumnya adalah no-op.
-                                    //    inclusive=false: Pos TETAP ada di stack → Back dari
-                                    //    drawer destination selalu kembali ke Pos lalu keluar app.
-                                    //  - launchSingleTop: cegah duplikasi destinasi yang aktif.
-                                    //  - restoreState: pulihkan state destinasi tujuan jika pernah
-                                    //    dikunjungi (scroll position, ViewModel state).
-                                    navController.navigate(item.screen) {
-                                        popUpTo(Screen.Pos) {
-                                            saveState = true
-                                            inclusive = false
-                                        }
-                                        launchSingleTop = true
-                                        restoreState    = true
-                                    }
-                                    scope.launch { drawerState.close() }
-                                },
-                                // Sorot item yang route-nya cocok dengan destinasi aktif saat ini.
-                                // hasRoute(KClass<*>) aman untuk data object maupun data class.
-                                isSelected = { item ->
-                                    currentDestination?.hasRoute(item.screen::class) == true
-                                }
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
-                    }
-
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    Spacer(Modifier.height(4.dp))
-
-                    // ── Ganti Outlet ───────────────────────────────────────
-                    NavigationDrawerItem(
-                        icon = { Icon(Icons.Default.Store, contentDescription = null) },
-                        label = { Text("Ganti Outlet") },
-                        selected = false,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            navController.navigate(Screen.TenantPicker(switchMode = true)) {
-                                popUpTo(0) { inclusive = true }
-                            }
-                        },
-                        modifier = Modifier.padding(horizontal = 12.dp)
-                    )
-
-                    // ── Keluar ─────────────────────────────────────────────
-                    NavigationDrawerItem(
-                        icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
-                        label = { Text("Keluar") },
-                        selected = false,
-                        onClick = {
-                            scope.launch {
-                                drawerState.close()
-                                authRepository.logout()
-                                navController.navigate(Screen.Login) {
+                        // ── Ganti Outlet ───────────────────────────────────────
+                        NavigationDrawerItem(
+                            icon = { Icon(Icons.Default.Store, contentDescription = null) },
+                            label = { Text("Ganti Outlet") },
+                            selected = false,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                navController.navigate(Screen.TenantPicker(switchMode = true)) {
                                     popUpTo(0) { inclusive = true }
                                 }
-                            }
-                        },
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                    )
+                            },
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                        )
+
+                        // ── Keluar ─────────────────────────────────────────────
+                        NavigationDrawerItem(
+                            icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
+                            label = { Text("Keluar") },
+                            selected = false,
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    authRepository.logout()
+                                    navController.navigate(Screen.Login) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            },
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
                 }
-            }
+            },
+        ) {
+            NavigationContent(onMenuClick = {
+                if (showDrawer) scope.launch { drawerState.open() }
+            })
         }
-    ) {
-        NavigationContent(onMenuClick = {
-            if (showDrawer) scope.launch { drawerState.open() }
-        })
-    }
     } // end CompositionLocalProvider
 }
 
@@ -381,35 +391,36 @@ private fun DrawerAccordionGroup(
     onToggle: () -> Unit,
     onItemClick: (DrawerItem) -> Unit,
     /** Kembalikan true jika item adalah destinasi yang sedang aktif. */
-    isSelected: (DrawerItem) -> Boolean = { false }
+    isSelected: (DrawerItem) -> Boolean = { false },
 ) {
     // ── Section header ────────────────────────────────────────────────────────
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onToggle)
-            .padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggle)
+                .padding(start = 20.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Icon(
             group.icon,
             contentDescription = null,
             modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.primary,
         )
         Text(
             group.label,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
         Icon(
             if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
             contentDescription = if (isExpanded) "Tutup" else "Buka",
             modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 
@@ -417,7 +428,7 @@ private fun DrawerAccordionGroup(
     AnimatedVisibility(
         visible = isExpanded,
         enter = expandVertically(animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)),
-        exit  = shrinkVertically(animationSpec = tween(durationMillis = 150, easing = FastOutLinearInEasing))
+        exit = shrinkVertically(animationSpec = tween(durationMillis = 150, easing = FastOutLinearInEasing)),
     ) {
         Column {
             group.items.forEach { item ->
@@ -426,9 +437,10 @@ private fun DrawerAccordionGroup(
                     label = { Text(item.label) },
                     selected = isSelected(item),
                     onClick = { onItemClick(item) },
-                    modifier = Modifier
-                        .heightIn(min = 48.dp)
-                        .padding(start = 24.dp, end = 12.dp, bottom = 2.dp)
+                    modifier =
+                        Modifier
+                            .heightIn(min = 48.dp)
+                            .padding(start = 24.dp, end = 12.dp, bottom = 2.dp),
                 )
             }
             Spacer(Modifier.height(4.dp))
@@ -437,14 +449,12 @@ private fun DrawerAccordionGroup(
 
     HorizontalDivider(
         modifier = Modifier.padding(horizontal = 16.dp),
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
     )
 }
 
 @Composable
-private fun NavigationContent(
-    onMenuClick: () -> Unit
-) {
+private fun NavigationContent(onMenuClick: () -> Unit) {
     val navController = LocalNavController.current
     // CartViewModel is created here (Activity scope) so PosScreen, CartScreen,
     // and PaymentScreen all share the SAME instance — items added in PosScreen
@@ -459,49 +469,53 @@ private fun NavigationContent(
     // paksa kembali ke TenantPicker — user tidak bisa mengakses layar lain.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                scope.launch {
-                    // Gunakan hasRoute (type-safe) — lebih aman dari string contains
-                    val currentDest =
-                        navController.currentBackStackEntry?.destination ?: return@launch
-                    val isExempt = currentDest.hasRoute(Screen.Splash::class) ||
-                                   currentDest.hasRoute(Screen.Login::class) ||
-                                   currentDest.hasRoute(Screen.ForgotPassword::class) ||
-                                   currentDest.hasRoute(Screen.ResetPassword::class) ||
-                                   currentDest.hasRoute(Screen.TenantPicker::class) ||
-                                   currentDest.hasRoute(Screen.Billing::class)
-                    if (isExempt) return@launch
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    scope.launch {
+                        // Gunakan hasRoute (type-safe) — lebih aman dari string contains
+                        val currentDest =
+                            navController.currentBackStackEntry?.destination ?: return@launch
+                        val isExempt =
+                            currentDest.hasRoute(Screen.Splash::class) ||
+                                currentDest.hasRoute(Screen.Login::class) ||
+                                currentDest.hasRoute(Screen.ForgotPassword::class) ||
+                                currentDest.hasRoute(Screen.ResetPassword::class) ||
+                                currentDest.hasRoute(Screen.TenantPicker::class) ||
+                                currentDest.hasRoute(Screen.Billing::class)
+                        if (isExempt) return@launch
 
-                    val storedUuid = authRepository.getCurrentTenantUuid() ?: return@launch
-                    val result = authRepository.getMyTenants()
-                    if (result is Resource.Success) {
-                        val tenant = result.data.find { it.uuid == storedUuid }
-                        val status = tenant?.subscriptionStatus?.lowercase()
-                        val hasIssue = status == "expired" ||
-                                       status == "past_due" ||
-                                       status == "inactive"
-                        if (hasIssue) {
-                            // Re-check setelah network call selesai: user bisa saja sudah
-                            // berpindah ke layar exempt selama jaringan memproses permintaan
-                            // → cegah double-navigate yang duplikat entry TenantPicker.
-                            val destNow = navController.currentBackStackEntry?.destination
-                            val isNowExempt = destNow == null ||
-                                destNow.hasRoute(Screen.Splash::class) ||
-                                destNow.hasRoute(Screen.Login::class) ||
-                                destNow.hasRoute(Screen.ResetPassword::class) ||
-                                destNow.hasRoute(Screen.TenantPicker::class) ||
-                                destNow.hasRoute(Screen.Billing::class)
-                            if (!isNowExempt) {
-                                navController.navigate(Screen.TenantPicker()) {
-                                    popUpTo(0) { inclusive = true }
+                        val storedUuid = authRepository.getCurrentTenantUuid() ?: return@launch
+                        val result = authRepository.getMyTenants()
+                        if (result is Resource.Success) {
+                            val tenant = result.data.find { it.uuid == storedUuid }
+                            val status = tenant?.subscriptionStatus?.lowercase()
+                            val hasIssue =
+                                status == "expired" ||
+                                    status == "past_due" ||
+                                    status == "inactive"
+                            if (hasIssue) {
+                                // Re-check setelah network call selesai: user bisa saja sudah
+                                // berpindah ke layar exempt selama jaringan memproses permintaan
+                                // → cegah double-navigate yang duplikat entry TenantPicker.
+                                val destNow = navController.currentBackStackEntry?.destination
+                                val isNowExempt =
+                                    destNow == null ||
+                                        destNow.hasRoute(Screen.Splash::class) ||
+                                        destNow.hasRoute(Screen.Login::class) ||
+                                        destNow.hasRoute(Screen.ResetPassword::class) ||
+                                        destNow.hasRoute(Screen.TenantPicker::class) ||
+                                        destNow.hasRoute(Screen.Billing::class)
+                                if (!isNowExempt) {
+                                    navController.navigate(Screen.TenantPicker()) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
@@ -511,16 +525,16 @@ private fun NavigationContent(
     // composable lama dan compose pertama composable baru).
     CompositionLocalProvider(
         LocalCartViewModel provides cartViewModel,
-        LocalNavigateToHome provides { navController.navigate(Screen.Pos) { launchSingleTop = true } }
+        LocalNavigateToHome provides { navController.navigate(Screen.Pos) { launchSingleTop = true } },
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            color = MaterialTheme.colorScheme.background,
         ) {
             NavHost(
-                navController    = navController,
+                navController = navController,
                 startDestination = Screen.Splash,
-                modifier         = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 // Transisi slide+fade — gerakan spatial memberi otak sinyal "progress"
                 // sehingga perpindahan terasa lebih responsif vs. pure cross-fade.
                 //
@@ -539,27 +553,27 @@ private fun NavigationContent(
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { w -> (w * 0.15f).toInt() },
-                        animationSpec  = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
                     ) + fadeIn(animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing))
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { w -> -(w * 0.08f).toInt() },
-                        animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing)
+                        animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing),
                     ) + fadeOut(animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing))
                 },
                 popEnterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { w -> -(w * 0.15f).toInt() },
-                        animationSpec  = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+                        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
                     ) + fadeIn(animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing))
                 },
                 popExitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { w -> (w * 0.08f).toInt() },
-                        animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing)
+                        animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing),
                     ) + fadeOut(animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing))
-                }
+                },
             ) {
                 authGraph(navController)
                 kasirGraph(navController, onMenuClick)

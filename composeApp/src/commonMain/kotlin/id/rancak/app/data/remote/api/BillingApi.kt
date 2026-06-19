@@ -14,8 +14,7 @@ import io.ktor.http.contentType
 
 // ── Billing plans (not tenant-scoped) ─────────────────────────────────────────
 
-suspend fun RancakApiService.getBillingPlans(): ApiResponse<List<PlanDto>> =
-    client.get(ApiConstants.BASE_URL + "/billing/plans").body()
+suspend fun RancakApiService.getBillingPlans(): ApiResponse<List<PlanDto>> = client.get(ApiConstants.BASE_URL + "/billing/plans").body()
 
 // ── Tenant subscription ────────────────────────────────────────────────────────
 
@@ -27,13 +26,16 @@ suspend fun RancakApiService.getSubscription(tenantUuid: String): ApiResponse<Su
 suspend fun RancakApiService.getInvoices(tenantUuid: String): ApiResponse<List<InvoiceDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/billing/invoices").body()
 
-suspend fun RancakApiService.getInvoice(tenantUuid: String, invoiceUuid: String): ApiResponse<InvoiceDto> =
+suspend fun RancakApiService.getInvoice(
+    tenantUuid: String,
+    invoiceUuid: String,
+): ApiResponse<InvoiceDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/billing/invoices/$invoiceUuid").body()
 
 suspend fun RancakApiService.createInvoice(
     tenantUuid: String,
     planCode: String,
-    idempotencyKey: String
+    idempotencyKey: String,
 ): ApiResponse<InvoiceDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/billing/invoices") {
         contentType(ContentType.Application.Json)
@@ -41,5 +43,8 @@ suspend fun RancakApiService.createInvoice(
         setBody(mapOf("plan_code" to planCode))
     }.body()
 
-suspend fun RancakApiService.cancelInvoice(tenantUuid: String, invoiceUuid: String): ApiResponse<Unit> =
+suspend fun RancakApiService.cancelInvoice(
+    tenantUuid: String,
+    invoiceUuid: String,
+): ApiResponse<Unit> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/billing/invoices/$invoiceUuid/cancel").body()

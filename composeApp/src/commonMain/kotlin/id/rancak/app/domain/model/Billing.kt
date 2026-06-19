@@ -13,7 +13,7 @@ data class Plan(
     val durationDays: Int,
     val maxUsers: Int?,
     val isTrial: Boolean,
-    val totalPrice: Double
+    val totalPrice: Double,
 )
 
 @Immutable
@@ -23,7 +23,7 @@ data class SubscriptionState(
     val startedAt: String?,
     val expiresAt: String?,
     val maxUsers: Int?,
-    val hadTrial: Boolean
+    val hadTrial: Boolean,
 )
 
 @Immutable
@@ -47,5 +47,5 @@ data class Invoice(
     val xenditQrId: String?,
     val qrString: String?,
     val xenditRefId: String?,
-    val usingWebhook: Boolean
+    val usingWebhook: Boolean,
 )

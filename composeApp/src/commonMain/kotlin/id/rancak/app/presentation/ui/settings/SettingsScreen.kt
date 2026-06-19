@@ -19,21 +19,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.data.printing.PrintMode
 import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.presentation.components.RancakTopBar
-import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.components.rememberRequestBluetoothPermission
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.SettingsAccentKitchen
 import id.rancak.app.presentation.designsystem.SettingsAccentNeutral
 import id.rancak.app.presentation.designsystem.SettingsAccentStore
@@ -61,53 +60,51 @@ private enum class SettingsNav { PRINTER, PRINT_MODE, KITCHEN, STORE, GENERAL, P
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-fun SettingsScreen(
-    onBack: () -> Unit
-) {
+fun SettingsScreen(onBack: () -> Unit) {
     val viewModel: SettingsViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.checkBluetoothState() }
 
     SettingsScreenContent(
-        uiState                = uiState,
-        onBack                 = onBack,
-        onPrinterType          = viewModel::setPrinterType,
-        onScanBluetooth        = viewModel::scanBluetoothPrinters,
-        onSelectPrinter        = viewModel::selectBluetoothPrinter,
-        onDisconnect           = viewModel::disconnectPrinter,
-        onNetworkIp            = viewModel::setNetworkIp,
-        onNetworkPort          = viewModel::setNetworkPort,
-        onSaveNetwork          = viewModel::saveNetworkPrinter,
-        onTestPrint            = viewModel::testPrint,
-        onPrintMode            = viewModel::setPrintMode,
-        onKitchenPrinterType   = viewModel::setKitchenPrinterType,
+        uiState = uiState,
+        onBack = onBack,
+        onPrinterType = viewModel::setPrinterType,
+        onScanBluetooth = viewModel::scanBluetoothPrinters,
+        onSelectPrinter = viewModel::selectBluetoothPrinter,
+        onDisconnect = viewModel::disconnectPrinter,
+        onNetworkIp = viewModel::setNetworkIp,
+        onNetworkPort = viewModel::setNetworkPort,
+        onSaveNetwork = viewModel::saveNetworkPrinter,
+        onTestPrint = viewModel::testPrint,
+        onPrintMode = viewModel::setPrintMode,
+        onKitchenPrinterType = viewModel::setKitchenPrinterType,
         onSelectKitchenPrinter = viewModel::selectKitchenBluetoothPrinter,
-        onDisconnectKitchen    = viewModel::disconnectKitchenPrinter,
-        onKitchenNetworkIp     = viewModel::setKitchenNetworkIp,
-        onKitchenNetworkPort   = viewModel::setKitchenNetworkPort,
-        onSaveKitchenNetwork   = viewModel::saveKitchenNetworkPrinter,
-        onStoreName            = viewModel::setStoreName,
-        onStoreAddress         = viewModel::setStoreAddress,
-        onStorePhone           = viewModel::setStorePhone,
-        onFooterText           = viewModel::setFooterText,
-        onAutoPrint            = viewModel::setAutoPrint,
-        onPaperWidth           = viewModel::setPaperWidth,
-        onReceiptCopies        = viewModel::setReceiptCopies,
-        onAutoPrintQueue       = viewModel::setAutoPrintQueue,
-        onShowLogo             = viewModel::setShowLogo,
-        onReceiptHeader        = viewModel::setReceiptHeader,
-        onReceiptFooter2       = viewModel::setReceiptFooter2,
-        onSeparatorStyle       = viewModel::setSeparatorStyle,
-        onReceiptNameSize      = viewModel::setReceiptNameSize,
-        onFooterPosition       = viewModel::setFooterPosition,
-        onReceiptEmail         = viewModel::setReceiptEmail,
-        onReceiptWebsite       = viewModel::setReceiptWebsite,
-        onReceiptNpwp          = viewModel::setReceiptNpwp,
-        onReceiptInstagram     = viewModel::setReceiptInstagram,
-        onReceiptFacebook      = viewModel::setReceiptFacebook,
-        onReceiptWifiSsid      = viewModel::setReceiptWifiSsid,
-        onReceiptWifiPassword  = viewModel::setReceiptWifiPassword,
-        onClearMessage         = viewModel::clearMessage
+        onDisconnectKitchen = viewModel::disconnectKitchenPrinter,
+        onKitchenNetworkIp = viewModel::setKitchenNetworkIp,
+        onKitchenNetworkPort = viewModel::setKitchenNetworkPort,
+        onSaveKitchenNetwork = viewModel::saveKitchenNetworkPrinter,
+        onStoreName = viewModel::setStoreName,
+        onStoreAddress = viewModel::setStoreAddress,
+        onStorePhone = viewModel::setStorePhone,
+        onFooterText = viewModel::setFooterText,
+        onAutoPrint = viewModel::setAutoPrint,
+        onPaperWidth = viewModel::setPaperWidth,
+        onReceiptCopies = viewModel::setReceiptCopies,
+        onAutoPrintQueue = viewModel::setAutoPrintQueue,
+        onShowLogo = viewModel::setShowLogo,
+        onReceiptHeader = viewModel::setReceiptHeader,
+        onReceiptFooter2 = viewModel::setReceiptFooter2,
+        onSeparatorStyle = viewModel::setSeparatorStyle,
+        onReceiptNameSize = viewModel::setReceiptNameSize,
+        onFooterPosition = viewModel::setFooterPosition,
+        onReceiptEmail = viewModel::setReceiptEmail,
+        onReceiptWebsite = viewModel::setReceiptWebsite,
+        onReceiptNpwp = viewModel::setReceiptNpwp,
+        onReceiptInstagram = viewModel::setReceiptInstagram,
+        onReceiptFacebook = viewModel::setReceiptFacebook,
+        onReceiptWifiSsid = viewModel::setReceiptWifiSsid,
+        onReceiptWifiPassword = viewModel::setReceiptWifiPassword,
+        onClearMessage = viewModel::clearMessage,
     )
 }
 
@@ -155,12 +152,13 @@ fun SettingsScreenContent(
     onReceiptFacebook: (String) -> Unit = {},
     onReceiptWifiSsid: (String) -> Unit = {},
     onReceiptWifiPassword: (String) -> Unit = {},
-    onClearMessage: () -> Unit = {}
+    onClearMessage: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val requestBluetoothPermission = rememberRequestBluetoothPermission { granted ->
-        if (granted) onScanBluetooth()
-    }
+    val requestBluetoothPermission =
+        rememberRequestBluetoothPermission { granted ->
+            if (granted) onScanBluetooth()
+        }
     LaunchedEffect(uiState.printerMessage) {
         uiState.printerMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -171,95 +169,95 @@ fun SettingsScreenContent(
     Scaffold(
         topBar = {
             RancakTopBar(
-                title    = "Pengaturan",
-                icon     = Icons.Default.Settings,
+                title = "Pengaturan",
+                icon = Icons.Default.Settings,
                 subtitle = "Konfigurasi aplikasi",
-                onMenu   = onBack
+                onMenu = onBack,
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
             val sizes = LocalSizes.current
             if (maxWidth >= sizes.tabletBreakpoint) {
                 TabletLayout(
-                    uiState                = uiState,
-                    onScan                 = requestBluetoothPermission,
-                    onPrinterType          = onPrinterType,
-                    onSelectPrinter        = onSelectPrinter,
-                    onDisconnect           = onDisconnect,
-                    onNetworkIp            = onNetworkIp,
-                    onNetworkPort          = onNetworkPort,
-                    onSaveNetwork          = onSaveNetwork,
-                    onTestPrint            = onTestPrint,
-                    onPrintMode            = onPrintMode,
-                    onKitchenPrinterType   = onKitchenPrinterType,
+                    uiState = uiState,
+                    onScan = requestBluetoothPermission,
+                    onPrinterType = onPrinterType,
+                    onSelectPrinter = onSelectPrinter,
+                    onDisconnect = onDisconnect,
+                    onNetworkIp = onNetworkIp,
+                    onNetworkPort = onNetworkPort,
+                    onSaveNetwork = onSaveNetwork,
+                    onTestPrint = onTestPrint,
+                    onPrintMode = onPrintMode,
+                    onKitchenPrinterType = onKitchenPrinterType,
                     onSelectKitchenPrinter = onSelectKitchenPrinter,
-                    onDisconnectKitchen    = onDisconnectKitchen,
-                    onKitchenNetworkIp     = onKitchenNetworkIp,
-                    onKitchenNetworkPort   = onKitchenNetworkPort,
-                    onSaveKitchenNetwork   = onSaveKitchenNetwork,
-                    onStoreName            = onStoreName,
-                    onStoreAddress         = onStoreAddress,
-                    onStorePhone           = onStorePhone,
-                    onFooterText           = onFooterText,
-                    onAutoPrint            = onAutoPrint,
-                    onPaperWidth           = onPaperWidth,
-                    onReceiptCopies        = onReceiptCopies,
-                    onAutoPrintQueue       = onAutoPrintQueue,
-                    onShowLogo             = onShowLogo,
-                    onReceiptHeader        = onReceiptHeader,
-                    onReceiptFooter2       = onReceiptFooter2,
-                    onSeparatorStyle       = onSeparatorStyle,
-                    onReceiptNameSize      = onReceiptNameSize,
-                    onFooterPosition       = onFooterPosition,
-                    onReceiptEmail         = onReceiptEmail,
-                    onReceiptWebsite       = onReceiptWebsite,
-                    onReceiptNpwp          = onReceiptNpwp,
-                    onReceiptInstagram     = onReceiptInstagram,
-                    onReceiptFacebook      = onReceiptFacebook,
-                    onReceiptWifiSsid      = onReceiptWifiSsid,
-                    onReceiptWifiPassword  = onReceiptWifiPassword
+                    onDisconnectKitchen = onDisconnectKitchen,
+                    onKitchenNetworkIp = onKitchenNetworkIp,
+                    onKitchenNetworkPort = onKitchenNetworkPort,
+                    onSaveKitchenNetwork = onSaveKitchenNetwork,
+                    onStoreName = onStoreName,
+                    onStoreAddress = onStoreAddress,
+                    onStorePhone = onStorePhone,
+                    onFooterText = onFooterText,
+                    onAutoPrint = onAutoPrint,
+                    onPaperWidth = onPaperWidth,
+                    onReceiptCopies = onReceiptCopies,
+                    onAutoPrintQueue = onAutoPrintQueue,
+                    onShowLogo = onShowLogo,
+                    onReceiptHeader = onReceiptHeader,
+                    onReceiptFooter2 = onReceiptFooter2,
+                    onSeparatorStyle = onSeparatorStyle,
+                    onReceiptNameSize = onReceiptNameSize,
+                    onFooterPosition = onFooterPosition,
+                    onReceiptEmail = onReceiptEmail,
+                    onReceiptWebsite = onReceiptWebsite,
+                    onReceiptNpwp = onReceiptNpwp,
+                    onReceiptInstagram = onReceiptInstagram,
+                    onReceiptFacebook = onReceiptFacebook,
+                    onReceiptWifiSsid = onReceiptWifiSsid,
+                    onReceiptWifiPassword = onReceiptWifiPassword,
                 )
             } else {
                 PhoneLayout(
-                    uiState                = uiState,
-                    onScan                 = requestBluetoothPermission,
-                    onPrinterType          = onPrinterType,
-                    onSelectPrinter        = onSelectPrinter,
-                    onDisconnect           = onDisconnect,
-                    onNetworkIp            = onNetworkIp,
-                    onNetworkPort          = onNetworkPort,
-                    onSaveNetwork          = onSaveNetwork,
-                    onTestPrint            = onTestPrint,
-                    onPrintMode            = onPrintMode,
-                    onKitchenPrinterType   = onKitchenPrinterType,
+                    uiState = uiState,
+                    onScan = requestBluetoothPermission,
+                    onPrinterType = onPrinterType,
+                    onSelectPrinter = onSelectPrinter,
+                    onDisconnect = onDisconnect,
+                    onNetworkIp = onNetworkIp,
+                    onNetworkPort = onNetworkPort,
+                    onSaveNetwork = onSaveNetwork,
+                    onTestPrint = onTestPrint,
+                    onPrintMode = onPrintMode,
+                    onKitchenPrinterType = onKitchenPrinterType,
                     onSelectKitchenPrinter = onSelectKitchenPrinter,
-                    onDisconnectKitchen    = onDisconnectKitchen,
-                    onKitchenNetworkIp     = onKitchenNetworkIp,
-                    onKitchenNetworkPort   = onKitchenNetworkPort,
-                    onSaveKitchenNetwork   = onSaveKitchenNetwork,
-                    onStoreName            = onStoreName,
-                    onStoreAddress         = onStoreAddress,
-                    onStorePhone           = onStorePhone,
-                    onFooterText           = onFooterText,
-                    onAutoPrint            = onAutoPrint,
-                    onPaperWidth           = onPaperWidth,
-                    onReceiptCopies        = onReceiptCopies,
-                    onAutoPrintQueue       = onAutoPrintQueue,
-                    onShowLogo             = onShowLogo,
-                    onReceiptHeader        = onReceiptHeader,
-                    onReceiptFooter2       = onReceiptFooter2,
-                    onSeparatorStyle       = onSeparatorStyle,
-                    onReceiptNameSize      = onReceiptNameSize,
-                    onFooterPosition       = onFooterPosition,
-                    onReceiptEmail         = onReceiptEmail,
-                    onReceiptWebsite       = onReceiptWebsite,
-                    onReceiptNpwp          = onReceiptNpwp,
-                    onReceiptInstagram     = onReceiptInstagram,
-                    onReceiptFacebook      = onReceiptFacebook,
-                    onReceiptWifiSsid      = onReceiptWifiSsid,
-                    onReceiptWifiPassword  = onReceiptWifiPassword
+                    onDisconnectKitchen = onDisconnectKitchen,
+                    onKitchenNetworkIp = onKitchenNetworkIp,
+                    onKitchenNetworkPort = onKitchenNetworkPort,
+                    onSaveKitchenNetwork = onSaveKitchenNetwork,
+                    onStoreName = onStoreName,
+                    onStoreAddress = onStoreAddress,
+                    onStorePhone = onStorePhone,
+                    onFooterText = onFooterText,
+                    onAutoPrint = onAutoPrint,
+                    onPaperWidth = onPaperWidth,
+                    onReceiptCopies = onReceiptCopies,
+                    onAutoPrintQueue = onAutoPrintQueue,
+                    onShowLogo = onShowLogo,
+                    onReceiptHeader = onReceiptHeader,
+                    onReceiptFooter2 = onReceiptFooter2,
+                    onSeparatorStyle = onSeparatorStyle,
+                    onReceiptNameSize = onReceiptNameSize,
+                    onFooterPosition = onFooterPosition,
+                    onReceiptEmail = onReceiptEmail,
+                    onReceiptWebsite = onReceiptWebsite,
+                    onReceiptNpwp = onReceiptNpwp,
+                    onReceiptInstagram = onReceiptInstagram,
+                    onReceiptFacebook = onReceiptFacebook,
+                    onReceiptWifiSsid = onReceiptWifiSsid,
+                    onReceiptWifiPassword = onReceiptWifiPassword,
                 )
             }
         }
@@ -308,91 +306,99 @@ private fun TabletLayout(
     onReceiptInstagram: (String) -> Unit,
     onReceiptFacebook: (String) -> Unit,
     onReceiptWifiSsid: (String) -> Unit,
-    onReceiptWifiPassword: (String) -> Unit
+    onReceiptWifiPassword: (String) -> Unit,
 ) {
     var selected by remember { mutableStateOf(SettingsNav.PRINTER) }
 
     Row(Modifier.fillMaxSize()) {
         // Panel kiri — kategori
         Column(
-            modifier = Modifier
-                .width(260.dp)
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState())
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier =
+                Modifier
+                    .width(260.dp)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 "KATEGORI",
-                style         = MaterialTheme.typography.labelSmall,
-                fontWeight    = FontWeight.Bold,
-                color         = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 1.sp,
-                modifier      = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             )
 
             SettingsNavItem(
-                icon     = Icons.Default.Print,
-                iconBg   = MaterialTheme.colorScheme.primary,
-                title    = "Printer Kasir",
-                subtitle = if (uiState.hasPrinter)
-                    uiState.savedPrinterName.ifBlank { uiState.savedPrinterAddress }
-                else "Belum diatur",
-                badge    = if (uiState.hasPrinter) "Tersimpan" else null,
-                badgeOk  = uiState.hasPrinter,
+                icon = Icons.Default.Print,
+                iconBg = MaterialTheme.colorScheme.primary,
+                title = "Printer Kasir",
+                subtitle =
+                    if (uiState.hasPrinter) {
+                        uiState.savedPrinterName.ifBlank { uiState.savedPrinterAddress }
+                    } else {
+                        "Belum diatur"
+                    },
+                badge = if (uiState.hasPrinter) "Tersimpan" else null,
+                badgeOk = uiState.hasPrinter,
                 selected = selected == SettingsNav.PRINTER,
-                onClick  = { selected = SettingsNav.PRINTER }
+                onClick = { selected = SettingsNav.PRINTER },
             )
             SettingsNavItem(
-                icon     = Icons.Default.Tune,
-                iconBg   = SettingsAccentTune,
-                title    = "Mode Cetak",
-                subtitle = when (uiState.printMode) {
-                    PrintMode.RECEIPT_ONLY         -> "Struk kasir saja"
-                    PrintMode.DUAL_PRINTER         -> "Dua printer"
-                    PrintMode.SINGLE_KOT_FIRST     -> "Satu printer, KOT dulu"
-                    PrintMode.SINGLE_RECEIPT_FIRST -> "Satu printer, struk dulu"
-                },
+                icon = Icons.Default.Tune,
+                iconBg = SettingsAccentTune,
+                title = "Mode Cetak",
+                subtitle =
+                    when (uiState.printMode) {
+                        PrintMode.RECEIPT_ONLY -> "Struk kasir saja"
+                        PrintMode.DUAL_PRINTER -> "Dua printer"
+                        PrintMode.SINGLE_KOT_FIRST -> "Satu printer, KOT dulu"
+                        PrintMode.SINGLE_RECEIPT_FIRST -> "Satu printer, struk dulu"
+                    },
                 selected = selected == SettingsNav.PRINT_MODE,
-                onClick  = { selected = SettingsNav.PRINT_MODE }
+                onClick = { selected = SettingsNav.PRINT_MODE },
             )
             if (uiState.printMode != PrintMode.RECEIPT_ONLY) {
                 SettingsNavItem(
-                    icon     = Icons.Default.Restaurant,
-                    iconBg   = SettingsAccentKitchen,
-                    title    = "Printer Dapur",
-                    subtitle = if (uiState.hasKitchenPrinter)
-                        uiState.kitchenPrinterName.ifBlank { uiState.kitchenPrinterAddress }
-                    else "Belum diatur",
-                    badge    = if (uiState.hasKitchenPrinter) "Tersimpan" else null,
-                    badgeOk  = uiState.hasKitchenPrinter,
+                    icon = Icons.Default.Restaurant,
+                    iconBg = SettingsAccentKitchen,
+                    title = "Printer Dapur",
+                    subtitle =
+                        if (uiState.hasKitchenPrinter) {
+                            uiState.kitchenPrinterName.ifBlank { uiState.kitchenPrinterAddress }
+                        } else {
+                            "Belum diatur"
+                        },
+                    badge = if (uiState.hasKitchenPrinter) "Tersimpan" else null,
+                    badgeOk = uiState.hasKitchenPrinter,
                     selected = selected == SettingsNav.KITCHEN,
-                    onClick  = { selected = SettingsNav.KITCHEN }
+                    onClick = { selected = SettingsNav.KITCHEN },
                 )
             }
             SettingsNavItem(
-                icon     = Icons.Default.Store,
-                iconBg   = SettingsAccentStore,
-                title    = "Informasi Toko",
+                icon = Icons.Default.Store,
+                iconBg = SettingsAccentStore,
+                title = "Informasi Toko",
                 subtitle = uiState.storeName.ifBlank { "Belum diisi" },
                 selected = selected == SettingsNav.STORE,
-                onClick  = { selected = SettingsNav.STORE }
+                onClick = { selected = SettingsNav.STORE },
             )
             SettingsNavItem(
-                icon     = Icons.Default.Settings,
-                iconBg   = SettingsAccentNeutral,
-                title    = "Umum",
+                icon = Icons.Default.Settings,
+                iconBg = SettingsAccentNeutral,
+                title = "Umum",
                 subtitle = if (uiState.autoPrint) "Auto print aktif" else "Auto print mati",
                 selected = selected == SettingsNav.GENERAL,
-                onClick  = { selected = SettingsNav.GENERAL }
+                onClick = { selected = SettingsNav.GENERAL },
             )
             SettingsNavItem(
-                icon     = Icons.Default.Receipt,
-                iconBg   = MaterialTheme.colorScheme.primary,
-                title    = "Preview Struk",
+                icon = Icons.Default.Receipt,
+                iconBg = MaterialTheme.colorScheme.primary,
+                title = "Preview Struk",
                 subtitle = "${uiState.paperWidth} mm",
                 selected = selected == SettingsNav.PREVIEW,
-                onClick  = { selected = SettingsNav.PREVIEW }
+                onClick = { selected = SettingsNav.PREVIEW },
             )
         }
 
@@ -400,95 +406,102 @@ private fun TabletLayout(
 
         // Panel kanan — konten
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState())
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             when (selected) {
-                SettingsNav.PRINTER -> PrinterContent(
-                    uiState         = uiState,
-                    onPrinterType   = onPrinterType,
-                    onScan          = onScan,
-                    onSelectPrinter = onSelectPrinter,
-                    onDisconnect    = onDisconnect,
-                    onNetworkIp     = onNetworkIp,
-                    onNetworkPort   = onNetworkPort,
-                    onSaveNetwork   = onSaveNetwork,
-                    onTestPrint     = onTestPrint
-                )
-                SettingsNav.PRINT_MODE -> PrintModeContent(
-                    printMode   = uiState.printMode,
-                    onPrintMode = onPrintMode
-                )
-                SettingsNav.KITCHEN -> KitchenContent(
-                    uiState                = uiState,
-                    onKitchenPrinterType   = onKitchenPrinterType,
-                    onScan                 = onScan,
-                    onSelectKitchenPrinter = onSelectKitchenPrinter,
-                    onDisconnectKitchen    = onDisconnectKitchen,
-                    onKitchenNetworkIp     = onKitchenNetworkIp,
-                    onKitchenNetworkPort   = onKitchenNetworkPort,
-                    onSaveKitchenNetwork   = onSaveKitchenNetwork,
-                    onTestPrint            = onTestPrint
-                )
-                SettingsNav.STORE -> StoreContent(
-                    storeName            = uiState.storeName,
-                    storeAddress         = uiState.storeAddress,
-                    storePhone           = uiState.storePhone,
-                    footerText           = uiState.footerText,
-                    receiptHeader        = uiState.receiptHeader,
-                    receiptFooter2       = uiState.receiptFooter2,
-                    showLogo             = uiState.showLogo,
-                    receiptNameSize      = uiState.receiptNameSize,
-                    separatorStyle       = uiState.separatorStyle,
-                    footerPosition       = uiState.footerPosition,
-                    receiptEmail         = uiState.receiptEmail,
-                    receiptWebsite       = uiState.receiptWebsite,
-                    receiptNpwp          = uiState.receiptNpwp,
-                    receiptInstagram     = uiState.receiptInstagram,
-                    receiptFacebook      = uiState.receiptFacebook,
-                    receiptWifiSsid      = uiState.receiptWifiSsid,
-                    receiptWifiPassword  = uiState.receiptWifiPassword,
-                    onStoreName          = onStoreName,
-                    onStoreAddress       = onStoreAddress,
-                    onStorePhone         = onStorePhone,
-                    onFooterText         = onFooterText,
-                    onReceiptHeader      = onReceiptHeader,
-                    onReceiptFooter2     = onReceiptFooter2,
-                    onShowLogo           = onShowLogo,
-                    onReceiptNameSize    = onReceiptNameSize,
-                    onSeparatorStyle     = onSeparatorStyle,
-                    onFooterPosition     = onFooterPosition,
-                    onReceiptEmail       = onReceiptEmail,
-                    onReceiptWebsite     = onReceiptWebsite,
-                    onReceiptNpwp        = onReceiptNpwp,
-                    onReceiptInstagram   = onReceiptInstagram,
-                    onReceiptFacebook    = onReceiptFacebook,
-                    onReceiptWifiSsid    = onReceiptWifiSsid,
-                    onReceiptWifiPassword = onReceiptWifiPassword
-                )
-                SettingsNav.GENERAL -> GeneralContent(
-                    autoPrint        = uiState.autoPrint,
-                    paperWidth       = uiState.paperWidth,
-                    receiptCopies    = uiState.receiptCopies,
-                    autoPrintQueue   = uiState.autoPrintQueue,
-                    onAutoPrint      = onAutoPrint,
-                    onPaperWidth     = onPaperWidth,
-                    onReceiptCopies  = onReceiptCopies,
-                    onAutoPrintQueue = onAutoPrintQueue
-                )
-                SettingsNav.PREVIEW -> ReceiptPreviewContent(
-                    storeName       = uiState.storeName,
-                    storeAddress    = uiState.storeAddress,
-                    storePhone      = uiState.storePhone,
-                    footerText      = uiState.footerText,
-                    paperWidthMm    = uiState.paperWidth,
-                    showLogo        = uiState.showLogo,
-                    receiptSettings = uiState.toReceiptSettingsConfig()
-                )
+                SettingsNav.PRINTER ->
+                    PrinterContent(
+                        uiState = uiState,
+                        onPrinterType = onPrinterType,
+                        onScan = onScan,
+                        onSelectPrinter = onSelectPrinter,
+                        onDisconnect = onDisconnect,
+                        onNetworkIp = onNetworkIp,
+                        onNetworkPort = onNetworkPort,
+                        onSaveNetwork = onSaveNetwork,
+                        onTestPrint = onTestPrint,
+                    )
+                SettingsNav.PRINT_MODE ->
+                    PrintModeContent(
+                        printMode = uiState.printMode,
+                        onPrintMode = onPrintMode,
+                    )
+                SettingsNav.KITCHEN ->
+                    KitchenContent(
+                        uiState = uiState,
+                        onKitchenPrinterType = onKitchenPrinterType,
+                        onScan = onScan,
+                        onSelectKitchenPrinter = onSelectKitchenPrinter,
+                        onDisconnectKitchen = onDisconnectKitchen,
+                        onKitchenNetworkIp = onKitchenNetworkIp,
+                        onKitchenNetworkPort = onKitchenNetworkPort,
+                        onSaveKitchenNetwork = onSaveKitchenNetwork,
+                        onTestPrint = onTestPrint,
+                    )
+                SettingsNav.STORE ->
+                    StoreContent(
+                        storeName = uiState.storeName,
+                        storeAddress = uiState.storeAddress,
+                        storePhone = uiState.storePhone,
+                        footerText = uiState.footerText,
+                        receiptHeader = uiState.receiptHeader,
+                        receiptFooter2 = uiState.receiptFooter2,
+                        showLogo = uiState.showLogo,
+                        receiptNameSize = uiState.receiptNameSize,
+                        separatorStyle = uiState.separatorStyle,
+                        footerPosition = uiState.footerPosition,
+                        receiptEmail = uiState.receiptEmail,
+                        receiptWebsite = uiState.receiptWebsite,
+                        receiptNpwp = uiState.receiptNpwp,
+                        receiptInstagram = uiState.receiptInstagram,
+                        receiptFacebook = uiState.receiptFacebook,
+                        receiptWifiSsid = uiState.receiptWifiSsid,
+                        receiptWifiPassword = uiState.receiptWifiPassword,
+                        onStoreName = onStoreName,
+                        onStoreAddress = onStoreAddress,
+                        onStorePhone = onStorePhone,
+                        onFooterText = onFooterText,
+                        onReceiptHeader = onReceiptHeader,
+                        onReceiptFooter2 = onReceiptFooter2,
+                        onShowLogo = onShowLogo,
+                        onReceiptNameSize = onReceiptNameSize,
+                        onSeparatorStyle = onSeparatorStyle,
+                        onFooterPosition = onFooterPosition,
+                        onReceiptEmail = onReceiptEmail,
+                        onReceiptWebsite = onReceiptWebsite,
+                        onReceiptNpwp = onReceiptNpwp,
+                        onReceiptInstagram = onReceiptInstagram,
+                        onReceiptFacebook = onReceiptFacebook,
+                        onReceiptWifiSsid = onReceiptWifiSsid,
+                        onReceiptWifiPassword = onReceiptWifiPassword,
+                    )
+                SettingsNav.GENERAL ->
+                    GeneralContent(
+                        autoPrint = uiState.autoPrint,
+                        paperWidth = uiState.paperWidth,
+                        receiptCopies = uiState.receiptCopies,
+                        autoPrintQueue = uiState.autoPrintQueue,
+                        onAutoPrint = onAutoPrint,
+                        onPaperWidth = onPaperWidth,
+                        onReceiptCopies = onReceiptCopies,
+                        onAutoPrintQueue = onAutoPrintQueue,
+                    )
+                SettingsNav.PREVIEW ->
+                    ReceiptPreviewContent(
+                        storeName = uiState.storeName,
+                        storeAddress = uiState.storeAddress,
+                        storePhone = uiState.storePhone,
+                        footerText = uiState.footerText,
+                        paperWidthMm = uiState.paperWidth,
+                        showLogo = uiState.showLogo,
+                        receiptSettings = uiState.toReceiptSettingsConfig(),
+                    )
             }
         }
     }
@@ -536,26 +549,26 @@ private fun PhoneLayout(
     onReceiptInstagram: (String) -> Unit,
     onReceiptFacebook: (String) -> Unit,
     onReceiptWifiSsid: (String) -> Unit,
-    onReceiptWifiPassword: (String) -> Unit
+    onReceiptWifiPassword: (String) -> Unit,
 ) {
     LazyColumn(
-        modifier            = Modifier.fillMaxSize(),
-        contentPadding      = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
             ContentSectionTitle(Icons.Default.Print, "Printer Kasir", SettingsAccentStore)
             Spacer(Modifier.height(8.dp))
             PrinterContent(
-                uiState         = uiState,
-                onPrinterType   = onPrinterType,
-                onScan          = onScan,
+                uiState = uiState,
+                onPrinterType = onPrinterType,
+                onScan = onScan,
                 onSelectPrinter = onSelectPrinter,
-                onDisconnect    = onDisconnect,
-                onNetworkIp     = onNetworkIp,
-                onNetworkPort   = onNetworkPort,
-                onSaveNetwork   = onSaveNetwork,
-                onTestPrint     = onTestPrint
+                onDisconnect = onDisconnect,
+                onNetworkIp = onNetworkIp,
+                onNetworkPort = onNetworkPort,
+                onSaveNetwork = onSaveNetwork,
+                onTestPrint = onTestPrint,
             )
         }
         item {
@@ -568,15 +581,15 @@ private fun PhoneLayout(
                 ContentSectionTitle(Icons.Default.Restaurant, "Printer Dapur", SettingsAccentKitchen)
                 Spacer(Modifier.height(8.dp))
                 KitchenContent(
-                    uiState                = uiState,
-                    onKitchenPrinterType   = onKitchenPrinterType,
-                    onScan                 = onScan,
+                    uiState = uiState,
+                    onKitchenPrinterType = onKitchenPrinterType,
+                    onScan = onScan,
                     onSelectKitchenPrinter = onSelectKitchenPrinter,
-                    onDisconnectKitchen    = onDisconnectKitchen,
-                    onKitchenNetworkIp     = onKitchenNetworkIp,
-                    onKitchenNetworkPort   = onKitchenNetworkPort,
-                    onSaveKitchenNetwork   = onSaveKitchenNetwork,
-                    onTestPrint            = onTestPrint
+                    onDisconnectKitchen = onDisconnectKitchen,
+                    onKitchenNetworkIp = onKitchenNetworkIp,
+                    onKitchenNetworkPort = onKitchenNetworkPort,
+                    onSaveKitchenNetwork = onSaveKitchenNetwork,
+                    onTestPrint = onTestPrint,
                 )
             }
         }
@@ -584,67 +597,67 @@ private fun PhoneLayout(
             ContentSectionTitle(Icons.Default.Store, "Informasi Toko", SettingsAccentStore)
             Spacer(Modifier.height(8.dp))
             StoreContent(
-                storeName            = uiState.storeName,
-                storeAddress         = uiState.storeAddress,
-                storePhone           = uiState.storePhone,
-                footerText           = uiState.footerText,
-                receiptHeader        = uiState.receiptHeader,
-                    receiptFooter2       = uiState.receiptFooter2,
-                    showLogo             = uiState.showLogo,
-                receiptNameSize      = uiState.receiptNameSize,
-                separatorStyle       = uiState.separatorStyle,
-                footerPosition       = uiState.footerPosition,
-                receiptEmail         = uiState.receiptEmail,
-                receiptWebsite       = uiState.receiptWebsite,
-                receiptNpwp          = uiState.receiptNpwp,
-                receiptInstagram     = uiState.receiptInstagram,
-                receiptFacebook      = uiState.receiptFacebook,
-                receiptWifiSsid      = uiState.receiptWifiSsid,
-                receiptWifiPassword  = uiState.receiptWifiPassword,
-                onStoreName          = onStoreName,
-                onStoreAddress       = onStoreAddress,
-                onStorePhone         = onStorePhone,
-                onFooterText         = onFooterText,
-                onReceiptHeader      = onReceiptHeader,
-                onReceiptFooter2     = onReceiptFooter2,
-                onShowLogo           = onShowLogo,
-                onReceiptNameSize    = onReceiptNameSize,
-                onSeparatorStyle     = onSeparatorStyle,
-                onFooterPosition     = onFooterPosition,
-                onReceiptEmail       = onReceiptEmail,
-                onReceiptWebsite     = onReceiptWebsite,
-                onReceiptNpwp        = onReceiptNpwp,
-                onReceiptInstagram   = onReceiptInstagram,
-                onReceiptFacebook    = onReceiptFacebook,
-                onReceiptWifiSsid    = onReceiptWifiSsid,
-                onReceiptWifiPassword = onReceiptWifiPassword
+                storeName = uiState.storeName,
+                storeAddress = uiState.storeAddress,
+                storePhone = uiState.storePhone,
+                footerText = uiState.footerText,
+                receiptHeader = uiState.receiptHeader,
+                receiptFooter2 = uiState.receiptFooter2,
+                showLogo = uiState.showLogo,
+                receiptNameSize = uiState.receiptNameSize,
+                separatorStyle = uiState.separatorStyle,
+                footerPosition = uiState.footerPosition,
+                receiptEmail = uiState.receiptEmail,
+                receiptWebsite = uiState.receiptWebsite,
+                receiptNpwp = uiState.receiptNpwp,
+                receiptInstagram = uiState.receiptInstagram,
+                receiptFacebook = uiState.receiptFacebook,
+                receiptWifiSsid = uiState.receiptWifiSsid,
+                receiptWifiPassword = uiState.receiptWifiPassword,
+                onStoreName = onStoreName,
+                onStoreAddress = onStoreAddress,
+                onStorePhone = onStorePhone,
+                onFooterText = onFooterText,
+                onReceiptHeader = onReceiptHeader,
+                onReceiptFooter2 = onReceiptFooter2,
+                onShowLogo = onShowLogo,
+                onReceiptNameSize = onReceiptNameSize,
+                onSeparatorStyle = onSeparatorStyle,
+                onFooterPosition = onFooterPosition,
+                onReceiptEmail = onReceiptEmail,
+                onReceiptWebsite = onReceiptWebsite,
+                onReceiptNpwp = onReceiptNpwp,
+                onReceiptInstagram = onReceiptInstagram,
+                onReceiptFacebook = onReceiptFacebook,
+                onReceiptWifiSsid = onReceiptWifiSsid,
+                onReceiptWifiPassword = onReceiptWifiPassword,
             )
         }
         item {
             ContentSectionTitle(Icons.Default.Settings, "Umum", SettingsAccentNeutral)
             Spacer(Modifier.height(8.dp))
             GeneralContent(
-                autoPrint        = uiState.autoPrint,
-                paperWidth       = uiState.paperWidth,
-                receiptCopies    = uiState.receiptCopies,
-                autoPrintQueue   = uiState.autoPrintQueue,
-                onAutoPrint      = onAutoPrint,
-                onPaperWidth     = onPaperWidth,
-                onReceiptCopies  = onReceiptCopies,
-                onAutoPrintQueue = onAutoPrintQueue
+                autoPrint = uiState.autoPrint,
+                paperWidth = uiState.paperWidth,
+                receiptCopies = uiState.receiptCopies,
+                autoPrintQueue = uiState.autoPrintQueue,
+                onAutoPrint = onAutoPrint,
+                onPaperWidth = onPaperWidth,
+                onReceiptCopies = onReceiptCopies,
+                onAutoPrintQueue = onAutoPrintQueue,
             )
         }
         item {
             ContentSectionTitle(Icons.Default.Receipt, "Preview Struk", MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(8.dp))
             ReceiptPreviewContent(
-                storeName       = uiState.storeName,
-                storeAddress    = uiState.storeAddress,
-                storePhone      = uiState.storePhone,
-                footerText      = uiState.footerText,
-                paperWidthMm    = uiState.paperWidth,
-                showLogo        = uiState.showLogo,
-                receiptSettings = uiState.toReceiptSettingsConfig()
+                storeName = uiState.storeName,
+                storeAddress = uiState.storeAddress,
+                storePhone = uiState.storePhone,
+                footerText = uiState.footerText,
+                paperWidthMm = uiState.paperWidth,
+                showLogo = uiState.showLogo,
+                receiptSettings = uiState.toReceiptSettingsConfig(),
             )
         }
         item { Spacer(Modifier.height(16.dp)) }
@@ -655,7 +668,7 @@ private fun PhoneLayout(
 // Preview — memanggil SettingsScreenContent dengan state default
 // ─────────────────────────────────────────────────────────────────────────────
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Settings – Phone",  widthDp = 390, heightDp = 844)
+@androidx.compose.ui.tooling.preview.Preview(name = "Settings – Phone", widthDp = 390, heightDp = 844)
 @Composable
 private fun SettingsScreenPhonePreview() {
     id.rancak.app.presentation.designsystem.RancakTheme {

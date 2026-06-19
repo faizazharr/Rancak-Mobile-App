@@ -2,12 +2,12 @@ package id.rancak.app.presentation.ui.reports
 
 import androidx.compose.ui.graphics.Color
 import id.rancak.app.presentation.designsystem.chartPalette
-import kotlin.time.Clock
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 /** Periode laporan yang bisa dipilih dari [PeriodSelectorRow]. */
 internal enum class ReportPeriod(val label: String) {
@@ -15,7 +15,7 @@ internal enum class ReportPeriod(val label: String) {
     WEEK("7 Hari"),
     THIS_MONTH("Bulan Ini"),
     LAST_MONTH("Bulan Lalu"),
-    CUSTOM("Pilih")
+    CUSTOM("Pilih"),
 }
 
 /**
@@ -40,7 +40,7 @@ internal fun ReportPeriod.toDateRange(): Pair<String, String>? {
         ReportPeriod.LAST_MONTH -> {
             val firstThisMonth = LocalDate(today.year, today.monthNumber, 1)
             val firstLastMonth = firstThisMonth.minus(DatePeriod(months = 1))
-            val lastLastMonth  = firstThisMonth.minus(DatePeriod(days = 1))
+            val lastLastMonth = firstThisMonth.minus(DatePeriod(days = 1))
             firstLastMonth.toString() to lastLastMonth.toString()
         }
 

@@ -37,35 +37,35 @@ internal fun KitchenContent(
     onKitchenNetworkIp: (String) -> Unit,
     onKitchenNetworkPort: (String) -> Unit,
     onSaveKitchenNetwork: () -> Unit,
-    @Suppress("UNUSED_PARAMETER") onTestPrint: () -> Unit
+    @Suppress("UNUSED_PARAMETER") onTestPrint: () -> Unit,
 ) {
     if (uiState.hasKitchenPrinter) {
         SavedKitchenPrinterCard(
             uiState = uiState,
-            onDisconnect = onDisconnectKitchen
+            onDisconnect = onDisconnectKitchen,
         )
     }
 
     KitchenConnectionTypePicker(
-        currentType          = uiState.kitchenPrinterType,
-        onKitchenPrinterType = onKitchenPrinterType
+        currentType = uiState.kitchenPrinterType,
+        onKitchenPrinterType = onKitchenPrinterType,
     )
 
     if (uiState.kitchenPrinterType == SettingsStore.TYPE_BLUETOOTH) {
         KitchenBluetoothSection(
-            uiState         = uiState,
-            onScan          = onScan,
-            onSelectPrinter = onSelectKitchenPrinter
+            uiState = uiState,
+            onScan = onScan,
+            onSelectPrinter = onSelectKitchenPrinter,
         )
     }
 
     if (uiState.kitchenPrinterType == SettingsStore.TYPE_NETWORK) {
         KitchenNetworkSection(
-            networkIp            = uiState.kitchenNetworkIp,
-            networkPort          = uiState.kitchenNetworkPort,
-            onKitchenNetworkIp   = onKitchenNetworkIp,
+            networkIp = uiState.kitchenNetworkIp,
+            networkPort = uiState.kitchenNetworkPort,
+            onKitchenNetworkIp = onKitchenNetworkIp,
             onKitchenNetworkPort = onKitchenNetworkPort,
-            onSaveKitchenNetwork = onSaveKitchenNetwork
+            onSaveKitchenNetwork = onSaveKitchenNetwork,
         )
     }
 }
@@ -73,51 +73,54 @@ internal fun KitchenContent(
 @Composable
 private fun SavedKitchenPrinterCard(
     uiState: SettingsUiState,
-    onDisconnect: () -> Unit
+    onDisconnect: () -> Unit,
 ) {
     SettingsCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(
-                if (uiState.kitchenPrinterType == SettingsStore.TYPE_BLUETOOTH) Icons.Default.Bluetooth
-                else Icons.Default.Wifi,
+                if (uiState.kitchenPrinterType == SettingsStore.TYPE_BLUETOOTH) {
+                    Icons.Default.Bluetooth
+                } else {
+                    Icons.Default.Wifi
+                },
                 contentDescription = null,
-                tint     = SettingsAccentKitchen,
-                modifier = Modifier.size(20.dp)
+                tint = SettingsAccentKitchen,
+                modifier = Modifier.size(20.dp),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     uiState.kitchenPrinterName.ifBlank { uiState.kitchenPrinterAddress },
-                    style      = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Text(
                     uiState.kitchenPrinterAddress,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Surface(
                 shape = MaterialTheme.shapes.medium,
-                color = SettingsAccentKitchen.copy(alpha = 0.12f)
+                color = SettingsAccentKitchen.copy(alpha = 0.12f),
             ) {
                 Text(
                     "Printer Dapur",
-                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                    style      = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color      = SettingsAccentKitchen
+                    color = SettingsAccentKitchen,
                 )
             }
         }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
-            onClick  = onDisconnect,
+            onClick = onDisconnect,
             modifier = Modifier.fillMaxWidth(),
-            colors   = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
         ) {
             Icon(Icons.Default.LinkOff, contentDescription = null, modifier = Modifier.size(14.dp))
             Spacer(Modifier.width(6.dp))
@@ -129,30 +132,30 @@ private fun SavedKitchenPrinterCard(
 @Composable
 private fun KitchenConnectionTypePicker(
     currentType: String,
-    onKitchenPrinterType: (String) -> Unit
+    onKitchenPrinterType: (String) -> Unit,
 ) {
     SettingsCard {
         Text(
             "Tipe Koneksi Dapur",
-            style      = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
-            color      = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             PrimaryFilterChip(
-                selected    = currentType == SettingsStore.TYPE_BLUETOOTH,
-                onClick     = { onKitchenPrinterType(SettingsStore.TYPE_BLUETOOTH) },
-                label       = { Text("Bluetooth", style = MaterialTheme.typography.labelMedium) },
+                selected = currentType == SettingsStore.TYPE_BLUETOOTH,
+                onClick = { onKitchenPrinterType(SettingsStore.TYPE_BLUETOOTH) },
+                label = { Text("Bluetooth", style = MaterialTheme.typography.labelMedium) },
                 leadingIcon = { Icon(Icons.Default.Bluetooth, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                modifier    = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             PrimaryFilterChip(
-                selected    = currentType == SettingsStore.TYPE_NETWORK,
-                onClick     = { onKitchenPrinterType(SettingsStore.TYPE_NETWORK) },
-                label       = { Text("Wi-Fi / LAN", style = MaterialTheme.typography.labelMedium) },
+                selected = currentType == SettingsStore.TYPE_NETWORK,
+                onClick = { onKitchenPrinterType(SettingsStore.TYPE_NETWORK) },
+                label = { Text("Wi-Fi / LAN", style = MaterialTheme.typography.labelMedium) },
                 leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                modifier    = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -162,19 +165,19 @@ private fun KitchenConnectionTypePicker(
 private fun KitchenBluetoothSection(
     uiState: SettingsUiState,
     onScan: () -> Unit,
-    onSelectPrinter: (PrinterDevice) -> Unit
+    onSelectPrinter: (PrinterDevice) -> Unit,
 ) {
     SettingsCard {
         Button(
             onClick = onScan,
             enabled = !uiState.isScanning && !uiState.isConnecting && uiState.isBluetoothOn,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             if (uiState.isScanning) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(14.dp),
                     strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
                 Spacer(Modifier.width(6.dp))
             }
@@ -182,22 +185,22 @@ private fun KitchenBluetoothSection(
             Spacer(Modifier.width(6.dp))
             Text(
                 if (uiState.isScanning) "Mencari…" else "Cari Printer Dapur",
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelMedium,
             )
         }
         AnimatedVisibility(visible = uiState.discoveredPrinters.isNotEmpty()) {
             Column(
                 modifier = Modifier.padding(top = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 HorizontalDivider()
                 Spacer(Modifier.height(4.dp))
                 uiState.discoveredPrinters.forEach { device ->
                     PrinterDeviceRow(
-                        device       = device,
-                        isSaved      = device.address == uiState.kitchenPrinterAddress,
+                        device = device,
+                        isSaved = device.address == uiState.kitchenPrinterAddress,
                         isConnecting = uiState.isConnecting,
-                        onClick      = { onSelectPrinter(device) }
+                        onClick = { onSelectPrinter(device) },
                     )
                 }
             }
@@ -211,22 +214,25 @@ private fun KitchenNetworkSection(
     networkPort: String,
     onKitchenNetworkIp: (String) -> Unit,
     onKitchenNetworkPort: (String) -> Unit,
-    onSaveKitchenNetwork: () -> Unit
+    onSaveKitchenNetwork: () -> Unit,
 ) {
-    val ipError = when {
-        networkIp.isBlank() -> null
-        !networkIp.matches(Regex("""^(\d{1,3}\.){3}\d{1,3}$""")) -> "Format IP tidak valid (mis. 192.168.1.101)"
-        else -> null
-    }
+    val ipError =
+        when {
+            networkIp.isBlank() -> null
+            !networkIp.matches(Regex("""^(\d{1,3}\.){3}\d{1,3}$""")) -> "Format IP tidak valid (mis. 192.168.1.101)"
+            else -> null
+        }
     val portNum = networkPort.toIntOrNull()
-    val portError = when {
-        networkPort.isBlank() -> null
-        portNum == null -> "Port tidak valid"
-        portNum !in 1..65535 -> "Port harus 1–65535"
-        else -> null
-    }
-    val canSave = networkIp.isNotBlank() && ipError == null &&
-        networkPort.isNotBlank() && portError == null
+    val portError =
+        when {
+            networkPort.isBlank() -> null
+            portNum == null -> "Port tidak valid"
+            portNum !in 1..65535 -> "Port harus 1–65535"
+            else -> null
+        }
+    val canSave =
+        networkIp.isNotBlank() && ipError == null &&
+            networkPort.isNotBlank() && portError == null
 
     SettingsCard {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -241,7 +247,7 @@ private fun KitchenNetworkSection(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) },
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
             OutlinedTextField(
                 value = networkPort,
@@ -253,7 +259,7 @@ private fun KitchenNetworkSection(
                 supportingText = portError?.let { err -> { Text(err) } },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.width(90.dp),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
         }
         Spacer(Modifier.height(4.dp))
@@ -271,26 +277,28 @@ private fun KitchenContentPreview() {
     RancakTheme {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             KitchenContent(
-                uiState = SettingsUiState(
-                    kitchenPrinterName    = "Kitchen XP-80",
-                    kitchenPrinterAddress = "AA:BB:CC:DD:EE:10",
-                    kitchenPrinterType    = SettingsStore.TYPE_BLUETOOTH,
-                    isBluetoothOn         = true,
-                    discoveredPrinters = listOf(
-                        PrinterDevice("Kitchen XP-80", "AA:BB:CC:DD:EE:10", PrinterConnectionType.BLUETOOTH)
-                    )
-                ),
-                onKitchenPrinterType   = {},
-                onScan                 = {},
+                uiState =
+                    SettingsUiState(
+                        kitchenPrinterName = "Kitchen XP-80",
+                        kitchenPrinterAddress = "AA:BB:CC:DD:EE:10",
+                        kitchenPrinterType = SettingsStore.TYPE_BLUETOOTH,
+                        isBluetoothOn = true,
+                        discoveredPrinters =
+                            listOf(
+                                PrinterDevice("Kitchen XP-80", "AA:BB:CC:DD:EE:10", PrinterConnectionType.BLUETOOTH),
+                            ),
+                    ),
+                onKitchenPrinterType = {},
+                onScan = {},
                 onSelectKitchenPrinter = {},
-                onDisconnectKitchen    = {},
-                onKitchenNetworkIp     = {},
-                onKitchenNetworkPort   = {},
-                onSaveKitchenNetwork   = {},
-                onTestPrint            = {}
+                onDisconnectKitchen = {},
+                onKitchenNetworkIp = {},
+                onKitchenNetworkPort = {},
+                onSaveKitchenNetwork = {},
+                onTestPrint = {},
             )
         }
     }

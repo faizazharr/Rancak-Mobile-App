@@ -13,35 +13,41 @@ import androidx.compose.ui.unit.dp
 import id.rancak.app.presentation.designsystem.Primary
 
 @Composable
-fun SmallBadge(label: String, color: Color) {
+fun SmallBadge(
+    label: String,
+    color: Color,
+) {
     Surface(shape = CircleShape, color = color.copy(alpha = 0.12f)) {
         Text(
             label,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             color = color,
-            modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
         )
     }
 }
 
 @Composable
-fun SectionLabel(icon: ImageVector, title: String) {
+fun SectionLabel(
+    icon: ImageVector,
+    title: String,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Icon(icon, null, modifier = Modifier.size(16.dp), tint = Primary)
         Text(
             title,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
         )
     }
 }

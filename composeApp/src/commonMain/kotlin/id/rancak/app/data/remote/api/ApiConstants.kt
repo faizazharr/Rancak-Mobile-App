@@ -49,10 +49,12 @@ object ApiConstants {
     const val RECEIPT_SETTINGS = "/receipt-settings"
 
     // Receipt endpoints (return raw ESC/POS bytes)
-    fun qrPayment(saleUuid: String)   = "$SALES/$saleUuid/qr-payment"
+    fun qrPayment(saleUuid: String) = "$SALES/$saleUuid/qr-payment"
 
     fun receiptEscpos(saleUuid: String) = "$SALES/$saleUuid/receipt/escpos"
+
     fun receiptKitchen(saleUuid: String) = "$SALES/$saleUuid/receipt/kitchen"
+
     fun receiptCombined(saleUuid: String) = "$SALES/$saleUuid/receipt/combined"
 
     fun tenantPath(tenantUuid: String) = "/tenants/$tenantUuid"

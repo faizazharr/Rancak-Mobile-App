@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.OpnameItemEntry
@@ -33,14 +32,13 @@ data class StockOpnameUiState(
     val showCreateDialog: Boolean = false,
     val showFinalizeConfirm: Boolean = false,
     val isSubmitting: Boolean = false,
-    val filterStatus: String? = null
+    val filterStatus: String? = null,
 )
 
 class StockOpnameViewModel(
     private val inventoryRepository: InventoryRepository,
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(StockOpnameUiState())
     val uiState: StateFlow<StockOpnameUiState> = _uiState.asStateFlow()
 
@@ -53,7 +51,7 @@ class StockOpnameViewModel(
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = inventoryRepository.getStockOpnames(status)) {
                 is Resource.Success -> _uiState.update { it.copy(isLoading = false, opnames = result.data.toImmutableList()) }
-                is Resource.Error   -> _uiState.update { it.copy(isLoading = false, error = result.message) }
+                is Resource.Error -> _uiState.update { it.copy(isLoading = false, error = result.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -65,6 +63,7 @@ class StockOpnameViewModel(
     }
 
     fun openCreateDialog() = _uiState.update { it.copy(showCreateDialog = true) }
+
     fun closeCreateDialog() = _uiState.update { it.copy(showCreateDialog = false) }
 
     fun createOpname(note: String?) {
@@ -78,7 +77,7 @@ class StockOpnameViewModel(
                             isSubmitting = false,
                             showCreateDialog = false,
                             opnames = (listOf(newOpname) + state.opnames).toImmutableList(),
-                            successMessage = "Sesi opname #${newOpname.opnameNo} berhasil dibuat"
+                            successMessage = "Sesi opname #${newOpname.opnameNo} berhasil dibuat",
                         )
                     }
                     loadDetail(newOpname.uuid)
@@ -101,7 +100,7 @@ class StockOpnameViewModel(
             }
             when (val result = inventoryRepository.getStockOpnameDetail(opnameId)) {
                 is Resource.Success -> _uiState.update { it.copy(isLoadingDetail = false, detail = result.data) }
-                is Resource.Error   -> _uiState.update { it.copy(isLoadingDetail = false, error = result.message) }
+                is Resource.Error -> _uiState.update { it.copy(isLoadingDetail = false, error = result.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -118,13 +117,14 @@ class StockOpnameViewModel(
                     _uiState.update { it.copy(isSubmitting = false, successMessage = "Item berhasil disimpan") }
                     loadDetail(opnameId)
                 }
-                is Resource.Error   -> _uiState.update { it.copy(isSubmitting = false, error = result.message) }
+                is Resource.Error -> _uiState.update { it.copy(isSubmitting = false, error = result.message) }
                 is Resource.Loading -> {}
             }
         }
     }
 
     fun openFinalizeConfirm() = _uiState.update { it.copy(showFinalizeConfirm = true) }
+
     fun closeFinalizeConfirm() = _uiState.update { it.copy(showFinalizeConfirm = false) }
 
     fun finalizeOpname() {
@@ -133,7 +133,12 @@ class StockOpnameViewModel(
             _uiState.update { it.copy(isSubmitting = true, showFinalizeConfirm = false) }
             when (val result = inventoryRepository.finalizeStockOpname(opnameId)) {
                 is Resource.Success -> {
-                    _uiState.update { it.copy(isSubmitting = false, successMessage = "Opname berhasil difinalisasi. Stok telah disesuaikan.") }
+                    _uiState.update {
+                        it.copy(
+                            isSubmitting = false,
+                            successMessage = "Opname berhasil difinalisasi. Stok telah disesuaikan.",
+                        )
+                    }
                     // Reload detail to get finalized state, then refresh the list
                     loadDetail(opnameId)
                     loadOpnames()
@@ -151,8 +156,8 @@ class StockOpnameViewModel(
                     _uiState.update { state ->
                         state.copy(
                             opnames = state.opnames.filter { it.uuid != opname.uuid }.toImmutableList(),
-                            detail  = if (state.detail?.opname?.uuid == opname.uuid) null else state.detail,
-                            successMessage = "Opname #${opname.opnameNo} dihapus"
+                            detail = if (state.detail?.opname?.uuid == opname.uuid) null else state.detail,
+                            successMessage = "Opname #${opname.opnameNo} dihapus",
                         )
                     }
                 }
@@ -167,12 +172,13 @@ class StockOpnameViewModel(
         viewModelScope.launch {
             when (val result = inventoryRepository.deleteOpnameItem(opnameId, productUuid)) {
                 is Resource.Success -> loadDetail(opnameId)
-                is Resource.Error   -> _uiState.update { it.copy(error = result.message) }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }
     }
 
     fun clearSuccessMessage() = _uiState.update { it.copy(successMessage = null) }
+
     fun clearError() = _uiState.update { it.copy(error = null) }
 }

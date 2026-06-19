@@ -12,7 +12,7 @@ data class CreateSurchargeRequest(
     val amount: String,
     @SerialName("is_percentage") val isPercentage: Boolean = false,
     @SerialName("max_amount") val maxAmount: String? = null,
-    @SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("sort_order") val sortOrder: Int = 0,
 )
 
 @Serializable
@@ -22,7 +22,7 @@ data class UpdateSurchargeRequest(
     @SerialName("is_percentage") val isPercentage: Boolean? = null,
     @SerialName("max_amount") val maxAmount: String? = null,
     @SerialName("is_active") val isActive: Boolean? = null,
-    @SerialName("sort_order") val sortOrder: Int? = null
+    @SerialName("sort_order") val sortOrder: Int? = null,
 )
 
 // ── Vouchers ───────────────────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ data class CreateVoucherRequest(
     @SerialName("usage_limit") val usageLimit: Int? = null,
     @SerialName("valid_from") val validFrom: String,
     @SerialName("valid_until") val validUntil: String? = null,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("is_active") val isActive: Boolean = true,
 )
 
 @Serializable
@@ -52,7 +52,7 @@ data class UpdateVoucherRequest(
     @SerialName("usage_limit") val usageLimit: Int? = null,
     @SerialName("valid_from") val validFrom: String? = null,
     @SerialName("valid_until") val validUntil: String? = null,
-    @SerialName("is_active") val isActive: Boolean? = null
+    @SerialName("is_active") val isActive: Boolean? = null,
 )
 
 // ── Tax Configs ────────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ data class CreateTaxConfigRequest(
     val name: String,
     val rate: String,
     @SerialName("apply_to") val applyTo: String = "after_discount",
-    @SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("sort_order") val sortOrder: Int = 0,
 )
 
 @Serializable
@@ -71,7 +71,7 @@ data class UpdateTaxConfigRequest(
     val rate: String? = null,
     @SerialName("apply_to") val applyTo: String? = null,
     @SerialName("sort_order") val sortOrder: Int? = null,
-    @SerialName("is_active") val isActive: Boolean? = null
+    @SerialName("is_active") val isActive: Boolean? = null,
 )
 
 // ── Tables ─────────────────────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ data class CreateTableRequest(
     val area: String? = null,
     val capacity: Int = 2,
     @SerialName("is_active") val isActive: Boolean = true,
-    @SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("sort_order") val sortOrder: Int = 0,
 )
 
 @Serializable
@@ -92,7 +92,7 @@ data class UpdateTableRequest(
     val capacity: Int? = null,
     val status: String? = null,
     @SerialName("is_active") val isActive: Boolean? = null,
-    @SerialName("sort_order") val sortOrder: Int? = null
+    @SerialName("sort_order") val sortOrder: Int? = null,
 )
 
 // ── Bundles ────────────────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ data class UpdateTableRequest(
 @Serializable
 data class BundleItemRequest(
     @SerialName("product_uuid") val productUuid: String,
-    val qty: String = "1"
+    val qty: String = "1",
 )
 
 @Serializable
@@ -111,7 +111,7 @@ data class CreateBundleRequest(
     val description: String? = null,
     val sku: String? = null,
     @SerialName("is_active") val isActive: Boolean = true,
-    @SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("sort_order") val sortOrder: Int = 0,
 )
 
 @Serializable
@@ -122,7 +122,7 @@ data class UpdateBundleRequest(
     val sku: String? = null,
     @SerialName("is_active") val isActive: Boolean? = null,
     @SerialName("sort_order") val sortOrder: Int? = null,
-    val items: List<BundleItemRequest>? = null
+    val items: List<BundleItemRequest>? = null,
 )
 
 // ── Modifiers ──────────────────────────────────────────────────────────────────
@@ -131,14 +131,14 @@ data class UpdateBundleRequest(
 data class CreateModifierRequest(
     val name: String,
     @SerialName("sort_order") val sortOrder: Int = 0,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("is_active") val isActive: Boolean = true,
 )
 
 @Serializable
 data class UpdateModifierRequest(
     val name: String? = null,
     @SerialName("sort_order") val sortOrder: Int? = null,
-    @SerialName("is_active") val isActive: Boolean? = null
+    @SerialName("is_active") val isActive: Boolean? = null,
 )
 
 // ── Discount Rules ─────────────────────────────────────────────────────────────
@@ -157,7 +157,7 @@ data class CreateDiscountRuleRequest(
     val priority: Int = 0,
     val stackable: Boolean = false,
     @SerialName("max_discount") val maxDiscount: Double? = null,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("is_active") val isActive: Boolean = true,
 )
 
 @Serializable
@@ -174,7 +174,7 @@ data class UpdateDiscountRuleRequest(
     val priority: Int? = null,
     val stackable: Boolean? = null,
     @SerialName("max_discount") val maxDiscount: Double? = null,
-    @SerialName("is_active") val isActive: Boolean? = null
+    @SerialName("is_active") val isActive: Boolean? = null,
 )
 
 // ── Variant Groups & Variants ──────────────────────────────────────────────────
@@ -183,14 +183,14 @@ data class UpdateDiscountRuleRequest(
 data class CreateVariantGroupRequest(
     val name: String,
     @SerialName("is_required") val isRequired: Boolean = false,
-    @SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("sort_order") val sortOrder: Int = 0,
 )
 
 @Serializable
 data class UpdateVariantGroupRequest(
     val name: String? = null,
     @SerialName("is_required") val isRequired: Boolean? = null,
-    @SerialName("sort_order") val sortOrder: Int? = null
+    @SerialName("sort_order") val sortOrder: Int? = null,
 )
 
 @Serializable
@@ -199,7 +199,7 @@ data class CreateVariantRequest(
     @SerialName("price_adjustment") val priceAdjustment: String = "0",
     @SerialName("is_default") val isDefault: Boolean = false,
     @SerialName("is_active") val isActive: Boolean = true,
-    @SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("sort_order") val sortOrder: Int = 0,
 )
 
 @Serializable
@@ -208,7 +208,7 @@ data class UpdateVariantRequest(
     @SerialName("price_adjustment") val priceAdjustment: String? = null,
     @SerialName("is_default") val isDefault: Boolean? = null,
     @SerialName("is_active") val isActive: Boolean? = null,
-    @SerialName("sort_order") val sortOrder: Int? = null
+    @SerialName("sort_order") val sortOrder: Int? = null,
 )
 
 // ── Product create / update ────────────────────────────────────────────────────
@@ -224,7 +224,7 @@ data class CreateProductRequest(
     val unit: String? = null,
     val stock: Double = 0.0,
     @SerialName("has_expiry") val hasExpiry: Boolean = false,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("is_active") val isActive: Boolean = true,
 )
 
 @Serializable
@@ -236,7 +236,7 @@ data class UpdateProductRequest(
     val barcode: String? = null,
     @SerialName("category_uuid") val categoryUuid: String? = null,
     val unit: String? = null,
-    @SerialName("is_active") val isActive: Boolean? = null
+    @SerialName("is_active") val isActive: Boolean? = null,
 )
 
 // ── Category create / update ───────────────────────────────────────────────────
@@ -244,13 +244,13 @@ data class UpdateProductRequest(
 @Serializable
 data class CreateCategoryRequest(
     val name: String,
-    val description: String? = null
+    val description: String? = null,
 )
 
 @Serializable
 data class UpdateCategoryRequest(
     val name: String? = null,
-    val description: String? = null
+    val description: String? = null,
 )
 
 // ── Product batch (restock) ───────────────────────────────────────────────────
@@ -262,7 +262,7 @@ data class CreateProductBatchRequest(
     @SerialName("cost_price") val costPrice: Long? = null,
     @SerialName("batch_number") val batchNumber: String? = null,
     val note: String? = null,
-    @SerialName("received_at") val receivedAt: String? = null
+    @SerialName("received_at") val receivedAt: String? = null,
 )
 
 // ── Stock adjustment ───────────────────────────────────────────────────────────
@@ -271,7 +271,7 @@ data class CreateProductBatchRequest(
 data class StockAdjustmentRequest(
     @SerialName("adjustment_type") val adjustmentType: String,
     val quantity: Double,
-    val note: String? = null
+    val note: String? = null,
 )
 
 @Serializable
@@ -281,7 +281,7 @@ data class StockAdjustmentResponseDto(
     @SerialName("stock_before") val stockBefore: Double,
     @SerialName("stock_after") val stockAfter: Double,
     @SerialName("adjustment_type") val adjustmentType: String,
-    val quantity: Double
+    val quantity: Double,
 )
 
 // ── Receipt settings update ────────────────────────────────────────────────────
@@ -304,5 +304,5 @@ data class UpdateReceiptSettingsRequest(
     @SerialName("receipt_instagram") val receiptInstagram: String? = null,
     @SerialName("receipt_facebook") val receiptFacebook: String? = null,
     @SerialName("receipt_wifi_ssid") val receiptWifiSsid: String? = null,
-    @SerialName("receipt_wifi_password") val receiptWifiPassword: String? = null
+    @SerialName("receipt_wifi_password") val receiptWifiPassword: String? = null,
 )

@@ -1,0 +1,40 @@
+# AI Ignore file for Cursor inside Rancak-Mobile-App
+
+# Ignore parent worktrees if any
+*.worktrees/
+../Rancak-Mobile-App.worktrees/
+
+# Ignore documentation/design files from parent folder
+../*.pdf
+../*.docx
+../*.html
+
+# Ignore build artifacts and package directories
+build/
+**/build/
+.gradle/
+**/.gradle/
+.kotlin/
+**/.kotlin/
+node_modules/
+**/node_modules/
+
+# Ignore local properties and system/IDE configs
+local.properties
+**/local.properties
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/*.iml
+
+# Ignore native builds
+.externalNativeBuild/
+**/.externalNativeBuild/
+.cxx/
+**/.cxx/
+captures/
+**/captures/

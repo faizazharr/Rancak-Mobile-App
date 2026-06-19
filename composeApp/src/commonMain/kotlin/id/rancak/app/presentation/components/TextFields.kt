@@ -5,8 +5,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
@@ -24,7 +24,7 @@ fun RancakTextField(
     readOnly: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     leadingIcon: @Composable (() -> Unit)? = null,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     Column(modifier = modifier) {
         OutlinedTextField(
@@ -41,14 +41,14 @@ fun RancakTextField(
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
             shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
         if (isError && errorMessage != null) {
             Text(
                 text = errorMessage,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp),
             )
         }
     }
@@ -68,7 +68,7 @@ private fun RancakTextFieldPreview() {
                 onValueChange = {},
                 label = "Password",
                 isError = true,
-                errorMessage = "Password minimal 6 karakter"
+                errorMessage = "Password minimal 6 karakter",
             )
         }
     }

@@ -1,6 +1,5 @@
 package id.rancak.app.presentation.ui.products
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -13,21 +12,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.rancak.app.presentation.components.BackHandler
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.ProductManagementUiState
 import id.rancak.app.presentation.viewmodel.ProductManagementViewModel
-import kotlinx.coroutines.launch
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ProductManagementScreen(
     onBack: () -> Unit,
     onStockOpname: () -> Unit = {},
-    onModifierManagement: () -> Unit = {}
+    onModifierManagement: () -> Unit = {},
 ) {
     val viewModel: ProductManagementViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -58,17 +58,17 @@ fun ProductManagementScreen(
     if (showLeaveFormDialog) {
         AlertDialog(
             onDismissRequest = { showLeaveFormDialog = false },
-            title            = { Text("Tinggalkan perubahan?") },
-            text             = { Text("Perubahan yang belum disimpan akan hilang.") },
-            confirmButton    = {
+            title = { Text("Tinggalkan perubahan?") },
+            text = { Text("Perubahan yang belum disimpan akan hilang.") },
+            confirmButton = {
                 TextButton(onClick = {
                     showLeaveFormDialog = false
                     viewModel.closeProductForm()
                 }) { Text("Tinggalkan") }
             },
-            dismissButton    = {
+            dismissButton = {
                 TextButton(onClick = { showLeaveFormDialog = false }) { Text("Batalkan") }
-            }
+            },
         )
     }
 
@@ -79,18 +79,18 @@ fun ProductManagementScreen(
         Scaffold(
             topBar = {
                 RancakTopBar(
-                    title    = "Manajemen Produk",
-                    icon     = Icons.Default.Inventory2,
-                    onMenu   = onBack,
+                    title = "Manajemen Produk",
+                    icon = Icons.Default.Inventory2,
+                    onMenu = onBack,
                     subtitle = "${uiState.filteredProducts.size} produk",
-                    actions  = {
+                    actions = {
                         IconButton(onClick = onStockOpname) {
                             Icon(Icons.Default.Inventory, contentDescription = "Stok Opname")
                         }
                         IconButton(onClick = onModifierManagement) {
                             Icon(Icons.Default.Extension, contentDescription = "Add-ons")
                         }
-                    }
+                    },
                 )
             },
             floatingActionButton = {
@@ -100,39 +100,39 @@ fun ProductManagementScreen(
                     }
                 }
             },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
+            snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding ->
             val isInitialLoad = uiState.isLoading && uiState.products.isEmpty() && uiState.categories.isEmpty()
             if (isInitialLoad) {
                 LoadingScreen(Modifier.padding(padding))
             } else {
                 ProductListContent(
-                    uiState          = uiState,
-                    isTablet         = isTablet,
-                    isLoading        = uiState.isLoading,
-                    onAddProduct     = viewModel::openProductForm,
-                    onSearchChange   = viewModel::setSearchQuery,
+                    uiState = uiState,
+                    isTablet = isTablet,
+                    isLoading = uiState.isLoading,
+                    onAddProduct = viewModel::openProductForm,
+                    onSearchChange = viewModel::setSearchQuery,
                     onCategorySelect = viewModel::setCategory,
-                    onAdjustStock    = viewModel::openAdjustDialog,
-                    onAddBatch       = viewModel::openBatchDialog,
-                    on86Toggle       = viewModel::toggle86,
-                    onEditProduct    = viewModel::openProductForm,
-                    onDeleteProduct  = viewModel::openDeleteConfirm,
-                    onAddCategory    = { viewModel.openCategoryForm() },
-                    onEditCategory   = { viewModel.openCategoryForm(it) },
+                    onAdjustStock = viewModel::openAdjustDialog,
+                    onAddBatch = viewModel::openBatchDialog,
+                    on86Toggle = viewModel::toggle86,
+                    onEditProduct = viewModel::openProductForm,
+                    onDeleteProduct = viewModel::openDeleteConfirm,
+                    onAddCategory = { viewModel.openCategoryForm() },
+                    onEditCategory = { viewModel.openCategoryForm(it) },
                     onDeleteCategory = { viewModel.deleteCategory(it) },
-                    onFormConfirm    = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->
+                    onFormConfirm = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->
                         viewModel.saveProduct(name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry)
                     },
-                    onFormDismiss    = viewModel::closeProductForm,
-                    onAdjustConfirm  = { type, qty, note ->
+                    onFormDismiss = viewModel::closeProductForm,
+                    onAdjustConfirm = { type, qty, note ->
                         viewModel.adjustStock(uiState.actionProduct!!.uuid, type, qty, note)
                     },
-                    onAdjustDismiss     = viewModel::closeAdjustDialog,
-                    onSortChange        = viewModel::setSort,
+                    onAdjustDismiss = viewModel::closeAdjustDialog,
+                    onSortChange = viewModel::setSort,
                     onStockFilterChange = viewModel::setStockFilter,
                     onPriceFilterChange = viewModel::setPriceFilter,
-                    modifier            = Modifier.padding(padding)
+                    modifier = Modifier.padding(padding),
                 )
             }
 
@@ -140,64 +140,67 @@ fun ProductManagementScreen(
 
             if (uiState.showAdjustDialog && uiState.actionProduct != null) {
                 StockAdjustDialog(
-                    product      = uiState.actionProduct!!,
+                    product = uiState.actionProduct!!,
                     isSubmitting = uiState.isSubmitting,
-                    onDismiss    = viewModel::closeAdjustDialog,
-                    onConfirm    = { type, qty, note ->
+                    onDismiss = viewModel::closeAdjustDialog,
+                    onConfirm = { type, qty, note ->
                         viewModel.adjustStock(uiState.actionProduct!!.uuid, type, qty, note)
-                    }
+                    },
                 )
             }
 
             if (uiState.showBatchDialog && uiState.actionProduct != null) {
                 AddBatchDialog(
-                    product      = uiState.actionProduct!!,
+                    product = uiState.actionProduct!!,
                     isSubmitting = uiState.isSubmitting,
-                    onDismiss    = viewModel::closeBatchDialog,
-                    onConfirm    = { qty, expiry, cost, batch, note ->
+                    onDismiss = viewModel::closeBatchDialog,
+                    onConfirm = { qty, expiry, cost, batch, note ->
                         viewModel.createBatch(uiState.actionProduct!!.uuid, qty, expiry, cost, batch, note)
-                    }
+                    },
                 )
             }
 
             if (uiState.showProductFormDialog) {
                 ProductFormDialog(
-                    editingProduct      = uiState.actionProduct,
-                    categories          = uiState.categories.toImmutableList(),
-                    isSubmitting        = uiState.isSubmitting,
+                    editingProduct = uiState.actionProduct,
+                    categories = uiState.categories.toImmutableList(),
+                    isSubmitting = uiState.isSubmitting,
                     initialCategoryUuid = uiState.selectedCategory?.uuid,
-                    onDismiss           = viewModel::closeProductForm,
-                    onConfirm           = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->
+                    onDismiss = viewModel::closeProductForm,
+                    onConfirm = { name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry ->
                         viewModel.saveProduct(name, price, desc, sku, barcode, catUuid, unit, stock, hasExpiry)
-                    }
+                    },
                 )
             }
 
             if (uiState.showDeleteConfirmDialog && uiState.actionProduct != null) {
                 AlertDialog(
                     onDismissRequest = { if (!uiState.isSubmitting) viewModel.closeDeleteConfirm() },
-                    title            = { Text("Hapus Produk") },
-                    text             = { Text("Hapus produk \"${uiState.actionProduct!!.name}\"? Tindakan ini tidak dapat dibatalkan.") },
-                    confirmButton    = {
+                    title = { Text("Hapus Produk") },
+                    text = { Text("Hapus produk \"${uiState.actionProduct!!.name}\"? Tindakan ini tidak dapat dibatalkan.") },
+                    confirmButton = {
                         TextButton(onClick = viewModel::deleteProduct, enabled = !uiState.isSubmitting) {
-                            if (uiState.isSubmitting) CircularProgressIndicator(Modifier.size(16.dp))
-                            else Text("Hapus", color = MaterialTheme.colorScheme.error)
+                            if (uiState.isSubmitting) {
+                                CircularProgressIndicator(Modifier.size(16.dp))
+                            } else {
+                                Text("Hapus", color = MaterialTheme.colorScheme.error)
+                            }
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = viewModel::closeDeleteConfirm, enabled = !uiState.isSubmitting) {
                             Text("Batal")
                         }
-                    }
+                    },
                 )
             }
 
             if (uiState.showCategoryFormDialog) {
                 CategoryFormDialog(
                     editingCategory = uiState.editingCategory,
-                    isSubmitting    = uiState.isSubmitting,
-                    onDismiss       = viewModel::closeCategoryForm,
-                    onConfirm       = { name, desc -> viewModel.saveCategory(name, desc) }
+                    isSubmitting = uiState.isSubmitting,
+                    onDismiss = viewModel::closeCategoryForm,
+                    onConfirm = { name, desc -> viewModel.saveCategory(name, desc) },
                 )
             }
         }
@@ -213,33 +216,33 @@ private fun ProductManagementScreenPreview() {
         Scaffold(
             topBar = {
                 RancakTopBar(
-                    title    = "Manajemen Produk",
-                    icon     = Icons.Default.Inventory2,
-                    onBack   = {},
-                    subtitle = "0 produk"
+                    title = "Manajemen Produk",
+                    icon = Icons.Default.Inventory2,
+                    onBack = {},
+                    subtitle = "0 produk",
                 )
             },
             floatingActionButton = {
                 FloatingActionButton(onClick = {}) {
                     Icon(Icons.Default.Add, contentDescription = "Tambah produk")
                 }
-            }
+            },
         ) { padding ->
             ProductListContent(
-                uiState          = ProductManagementUiState(),
-                isTablet         = false,
-                onAddProduct     = {},
-                onSearchChange   = {},
+                uiState = ProductManagementUiState(),
+                isTablet = false,
+                onAddProduct = {},
+                onSearchChange = {},
                 onCategorySelect = {},
-                onAdjustStock    = {},
-                onAddBatch       = {},
-                on86Toggle       = {},
-                onEditProduct    = {},
-                onDeleteProduct  = {},
-                onAddCategory    = {},
-                onEditCategory   = {},
+                onAdjustStock = {},
+                onAddBatch = {},
+                on86Toggle = {},
+                onEditProduct = {},
+                onDeleteProduct = {},
+                onAddCategory = {},
+                onEditCategory = {},
                 onDeleteCategory = {},
-                modifier         = Modifier.padding(padding)
+                modifier = Modifier.padding(padding),
             )
         }
     }

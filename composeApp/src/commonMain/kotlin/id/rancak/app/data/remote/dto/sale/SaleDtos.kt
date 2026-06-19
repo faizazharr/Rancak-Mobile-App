@@ -27,7 +27,7 @@ data class CreateSaleRequest(
     val note: String? = null,
     val hold: Boolean? = false,
     @SerialName("device_created_at") val deviceCreatedAt: String? = null,
-    @SerialName("device_id") val deviceId: String? = null
+    @SerialName("device_id") val deviceId: String? = null,
 )
 
 @Serializable
@@ -41,20 +41,20 @@ data class SaleItemRequest(
     @SerialName("discount_pct") val discountPct: Int? = null,
     @SerialName("override_reason") val overrideReason: String? = null,
     val note: String? = null,
-    val addons: List<AddonRequest>? = null
+    val addons: List<AddonRequest>? = null,
 )
 
 @Serializable
 data class AddonRequest(
     val name: String,
     val price: Long,
-    val qty: Int = 1
+    val qty: Int = 1,
 )
 
 @Serializable
 data class SplitPaymentRequest(
     val method: String,
-    val amount: Long
+    val amount: Long,
 )
 
 // ── Response DTOs ──
@@ -89,7 +89,7 @@ data class SaleDto(
     val payments: List<SalePaymentDto> = emptyList(),
     val delivery: DeliveryResponseDto? = null,
     @SerialName("created_at") val createdAt: String? = null,
-    @SerialName("served_at") val servedAt: String? = null
+    @SerialName("served_at") val servedAt: String? = null,
 )
 
 @Serializable
@@ -104,7 +104,7 @@ data class SaleItemDto(
     @Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
     @SerialName("variant_name") val variantName: String? = null,
     val note: String? = null,
-    val addons: List<SaleItemAddonDto> = emptyList()
+    val addons: List<SaleItemAddonDto> = emptyList(),
 )
 
 @Serializable
@@ -112,7 +112,7 @@ data class SaleItemAddonDto(
     val name: String,
     @Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
     val qty: Double = 1.0,
-    @Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0
+    @Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
 )
 
 @Serializable
@@ -120,7 +120,7 @@ data class SalePaymentDto(
     val uuid: String? = null,
     val method: String,
     @Serializable(with = FlexibleLongSerializer::class) val amount: Long = 0,
-    val note: String? = null
+    val note: String? = null,
 )
 
 @Serializable
@@ -131,7 +131,7 @@ data class DeliveryResponseDto(
     val address: String? = null,
     val lat: Double? = null,
     val lng: Double? = null,
-    val note: String? = null
+    val note: String? = null,
 )
 
 @Serializable
@@ -141,7 +141,7 @@ data class DeliveryInputDto(
     val address: String? = null,
     val lat: Double? = null,
     val lng: Double? = null,
-    val note: String? = null
+    val note: String? = null,
 )
 
 /** Pay a held order. */
@@ -149,7 +149,7 @@ data class DeliveryInputDto(
 data class PayHeldOrderRequest(
     @SerialName("payment_method") val paymentMethod: String? = null,
     @SerialName("paid_amount") val paidAmount: Long? = null,
-    val payments: List<SplitPaymentRequest>? = null
+    val payments: List<SplitPaymentRequest>? = null,
 )
 
 /** Refund request (per-item). */
@@ -157,13 +157,13 @@ data class PayHeldOrderRequest(
 
 @Serializable
 data class SplitBillRequest(
-    @SerialName("item_ids") val itemIds: List<String>
+    @SerialName("item_ids") val itemIds: List<String>,
 )
 
 @Serializable
 data class SplitBillResponseDto(
     val original: SaleDto,
-    @SerialName("new_sale") val newSale: SaleDto
+    @SerialName("new_sale") val newSale: SaleDto,
 )
 
 // ── Open Bill / Hold Order — add/remove items ──
@@ -171,19 +171,19 @@ data class SplitBillResponseDto(
 /** Tambah item ke hold order: POST /sales/:id/items */
 @Serializable
 data class AddHeldOrderItemsRequest(
-    val items: List<SaleItemRequest>
+    val items: List<SaleItemRequest>,
 )
 
 @Serializable
 data class RefundItemRequest(
     @SerialName("sale_item_uuid") val saleItemUuid: String,
-    val qty: Int
+    val qty: Int,
 )
 
 @Serializable
 data class RefundRequest(
     val items: List<RefundItemRequest>,
-    val reason: String? = null
+    val reason: String? = null,
 )
 
 @Serializable
@@ -191,7 +191,7 @@ data class RefundItemResponseDto(
     @SerialName("sale_item_uuid") val saleItemUuid: String,
     @SerialName("product_name") val productName: String,
     val qty: Double = 0.0,
-    @Serializable(with = FlexibleLongSerializer::class) @SerialName("refund_amount") val refundAmount: Long = 0
+    @Serializable(with = FlexibleLongSerializer::class) @SerialName("refund_amount") val refundAmount: Long = 0,
 )
 
 @Serializable
@@ -201,12 +201,12 @@ data class RefundResponseDto(
     @Serializable(with = FlexibleLongSerializer::class) @SerialName("refund_amount") val refundAmount: Long = 0,
     val reason: String? = null,
     val items: List<RefundItemResponseDto> = emptyList(),
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("created_at") val createdAt: String? = null,
 )
 
 @Serializable
 data class BatchSalesRequest(
-    val sales: List<BatchSaleItem>
+    val sales: List<BatchSaleItem>,
 )
 
 @Serializable
@@ -228,7 +228,7 @@ data class BatchSaleItem(
     @SerialName("delivery_fee") val deliveryFee: Long? = null,
     val tip: Long? = null,
     @SerialName("voucher_code") val voucherCode: String? = null,
-    @SerialName("table_uuid") val tableUuid: String? = null
+    @SerialName("table_uuid") val tableUuid: String? = null,
 )
 
 // ── QRIS / Xendit ──
@@ -236,13 +236,13 @@ data class BatchSaleItem(
 @Serializable
 data class QrPaymentDto(
     val uuid: String,
-    @SerialName("sale_uuid")    val saleUuid: String,
+    @SerialName("sale_uuid") val saleUuid: String,
     @SerialName("xendit_qr_id") val xenditQrId: String? = null,
-    @SerialName("qr_string")    val qrString: String = "",
+    @SerialName("qr_string") val qrString: String = "",
     val amount: String = "0",
     val status: String = "pending",
-    @SerialName("expires_at")   val expiresAt: String? = null,
-    @SerialName("using_webhook") val usingWebhook: Boolean = false
+    @SerialName("expires_at") val expiresAt: String? = null,
+    @SerialName("using_webhook") val usingWebhook: Boolean = false,
 )
 
 @Serializable
@@ -251,7 +251,7 @@ data class BatchSalesResponse(
     val created: Int,
     val duplicate: Int,
     val errors: Int,
-    val results: List<BatchSaleResult>
+    val results: List<BatchSaleResult>,
 )
 
 @Serializable
@@ -259,12 +259,12 @@ data class BatchSaleResult(
     @SerialName("idempotency_key") val idempotencyKey: String,
     val status: String,
     @SerialName("invoice_no") val invoiceNo: String? = null,
-    @SerialName("sale_uuid") val saleUuid: String? = null
+    @SerialName("sale_uuid") val saleUuid: String? = null,
 )
 
 /** Response untuk POST /sales/{id}/reprint — wrapper data + sale lengkap. */
 @Serializable
 data class ReprintResponseDto(
     @SerialName("print_type") val printType: String,
-    val sale: SaleDto
+    val sale: SaleDto,
 )

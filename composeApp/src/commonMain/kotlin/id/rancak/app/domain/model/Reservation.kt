@@ -23,7 +23,7 @@ data class Reservation(
     val cancelledAt: String? = null,
     val cancelReason: String? = null,
     val createdBy: String? = null,
-    val createdAt: String
+    val createdAt: String,
 )
 
 @Immutable
@@ -34,5 +34,5 @@ data class ReservationInput(
     val reservedAt: String,
     val durationMinutes: Int = 90,
     val tableUuid: String? = null,
-    val note: String? = null
+    val note: String? = null,
 )

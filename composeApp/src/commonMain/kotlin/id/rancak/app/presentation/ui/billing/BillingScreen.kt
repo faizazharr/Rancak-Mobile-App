@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.ui.billing.components.BillingContent
 import id.rancak.app.presentation.ui.billing.components.BillingQrPaymentDialog
@@ -14,7 +15,6 @@ import id.rancak.app.presentation.ui.billing.components.CancelInvoiceDialog
 import id.rancak.app.presentation.ui.billing.components.SubscribeConfirmDialog
 import id.rancak.app.presentation.viewmodel.BillingViewModel
 import kotlinx.collections.immutable.toImmutableList
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.viewmodel.koinViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ fun BillingScreen(
     onBack: (() -> Unit)? = null,
     onNavigateUp: (() -> Unit)? = null,
     /** Dipanggil setelah pembayaran subscription dikonfirmasi — navigasi ke POS. */
-    onPaymentComplete: () -> Unit = {}
+    onPaymentComplete: () -> Unit = {},
 ) {
     val viewModel: BillingViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,14 +60,15 @@ fun BillingScreen(
                 title = "Billing & Langganan",
                 icon = Icons.Default.CreditCard,
                 onMenu = onBack,
-                onBack = onNavigateUp
+                onBack = onNavigateUp,
             )
-        }
+        },
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             when {
                 state.isLoading -> {
@@ -82,7 +83,7 @@ fun BillingScreen(
                         onCancelInvoice = { viewModel.openCancelDialog(it) },
                         onShowQr = { viewModel.showQrPayment(it) },
                         onRefresh = { viewModel.refresh() },
-                        isRefreshing = state.isRefreshing
+                        isRefreshing = state.isRefreshing,
                     )
                 }
             }
@@ -97,7 +98,7 @@ fun BillingScreen(
             plan = state.selectedPlan!!,
             isSubmitting = state.isSubmitting,
             onConfirm = { viewModel.subscribe() },
-            onDismiss = { viewModel.closeSubscribeDialog() }
+            onDismiss = { viewModel.closeSubscribeDialog() },
         )
     }
 
@@ -105,9 +106,9 @@ fun BillingScreen(
     //    Polling berjalan di ViewModel; dialog ditutup otomatis saat status = "paid".
     if (state.qrInvoice != null) {
         BillingQrPaymentDialog(
-            invoice   = state.qrInvoice!!,
+            invoice = state.qrInvoice!!,
             isPolling = state.isPolling,
-            onDismiss = { viewModel.dismissQrPayment() }
+            onDismiss = { viewModel.dismissQrPayment() },
         )
     }
 
@@ -117,11 +118,7 @@ fun BillingScreen(
             invoice = state.cancelTargetInvoice!!,
             isSubmitting = state.isSubmitting,
             onConfirm = { viewModel.cancelInvoice() },
-            onDismiss = { viewModel.closeCancelDialog() }
+            onDismiss = { viewModel.closeCancelDialog() },
         )
     }
 }
-
-
-
-

@@ -8,39 +8,39 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LoginRequest(
     val email: String,
-    val password: String
+    val password: String,
 )
 
 @Serializable
 data class GoogleLoginRequest(
-    @SerialName("id_token") val idToken: String
+    @SerialName("id_token") val idToken: String,
 )
 
 @Serializable
 data class RefreshTokenRequest(
-    @SerialName("refresh_token") val refreshToken: String
+    @SerialName("refresh_token") val refreshToken: String,
 )
 
 @Serializable
 data class LogoutRequest(
-    @SerialName("refresh_token") val refreshToken: String
+    @SerialName("refresh_token") val refreshToken: String,
 )
 
 @Serializable
 data class ChangePasswordRequest(
     @SerialName("current_password") val currentPassword: String,
-    @SerialName("new_password") val newPassword: String
+    @SerialName("new_password") val newPassword: String,
 )
 
 @Serializable
 data class ForgotPasswordRequest(
-    val email: String
+    val email: String,
 )
 
 @Serializable
 data class ResetPasswordRequest(
     val token: String,
-    @SerialName("new_password") val newPassword: String
+    @SerialName("new_password") val newPassword: String,
 )
 
 // ── Response DTOs ──
@@ -52,7 +52,7 @@ data class LoginResponse(
     @SerialName("expires_in") val expiresIn: Long,
     @SerialName("refresh_token") val refreshToken: String,
     @SerialName("refresh_expires_at") val refreshExpiresAt: String,
-    val user: UserDto
+    val user: UserDto,
 )
 
 @Serializable
@@ -60,14 +60,14 @@ data class UserDto(
     val uuid: String,
     val name: String,
     val email: String,
-    val tenants: List<TenantMembershipDto> = emptyList()
+    val tenants: List<TenantMembershipDto> = emptyList(),
 )
 
 /** Minimal tenant ref returned inside UserDto/AuthResponse. */
 @Serializable
 data class TenantMembershipDto(
     val uuid: String,
-    val name: String
+    val name: String,
 )
 
 /**
@@ -82,7 +82,7 @@ data class MyTenantDto(
     val phone: String? = null,
     val role: String? = null,
     @SerialName("subscription_status") val subscriptionStatus: String? = null,
-    @SerialName("subscription_expires_at") val subscriptionExpiresAt: String? = null
+    @SerialName("subscription_expires_at") val subscriptionExpiresAt: String? = null,
 )
 
 /** Tenant settings returned by GET /tenants/{id}/settings. */
@@ -100,7 +100,7 @@ data class TenantSettingsDto(
     @SerialName("subscription_started_at") val subscriptionStartedAt: String? = null,
     @SerialName("subscription_expires_at") val subscriptionExpiresAt: String? = null,
     @SerialName("max_users") val maxUsers: Int? = null,
-    @SerialName("current_users") val currentUsers: Int? = null
+    @SerialName("current_users") val currentUsers: Int? = null,
 )
 
 /** Receipt settings returned by GET /tenants/{id}/receipt-settings. */
@@ -122,7 +122,7 @@ data class ReceiptSettingsDto(
     @SerialName("receipt_instagram") val receiptInstagram: String? = null,
     @SerialName("receipt_facebook") val receiptFacebook: String? = null,
     @SerialName("receipt_wifi_ssid") val receiptWifiSsid: String? = null,
-    @SerialName("receipt_wifi_password") val receiptWifiPassword: String? = null
+    @SerialName("receipt_wifi_password") val receiptWifiPassword: String? = null,
 )
 
 /** Session info returned by GET /auth/sessions. */
@@ -133,5 +133,5 @@ data class SessionDto(
     @SerialName("issued_at") val issuedAt: String? = null,
     @SerialName("last_used_at") val lastUsedAt: String? = null,
     @SerialName("expires_at") val expiresAt: String? = null,
-    val current: Boolean = false
+    val current: Boolean = false,
 )

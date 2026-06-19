@@ -5,26 +5,28 @@ import androidx.work.*
 import java.util.concurrent.TimeUnit
 
 actual class SyncManager(private val context: Context) : SyncScheduler {
-
     actual override fun scheduleSync() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
+        val constraints =
+            Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
 
-        val request = OneTimeWorkRequestBuilder<SyncWorker>()
-            .setConstraints(constraints)
-            .setBackoffCriteria(
-                BackoffPolicy.EXPONENTIAL,
-                30_000L,
-                TimeUnit.MILLISECONDS
-            )
-            .build()
+        val request =
+            OneTimeWorkRequestBuilder<SyncWorker>()
+                .setConstraints(constraints)
+                .setBackoffCriteria(
+                    BackoffPolicy.EXPONENTIAL,
+                    30_000L,
+                    TimeUnit.MILLISECONDS,
+                )
+                .build()
 
         WorkManager.getInstance(context)
             .enqueueUniqueWork(
                 WORK_NAME,
-                ExistingWorkPolicy.KEEP,  // Don't replace if already queued
-                request
+                // Don't replace if already queued
+                ExistingWorkPolicy.KEEP,
+                request,
             )
     }
 

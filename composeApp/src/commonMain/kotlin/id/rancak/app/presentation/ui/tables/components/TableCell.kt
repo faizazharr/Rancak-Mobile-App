@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Chair
-import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,92 +34,119 @@ fun TableCell(
     table: Table,
     size: Dp = 100.dp,
     enabled: Boolean = table.status == TableStatus.AVAILABLE,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val semantic = RancakColors.semantic
     val statusColor by animateColorAsState(
-        targetValue = when (table.status) {
-            TableStatus.AVAILABLE -> semantic.statusAvailable
-            TableStatus.OCCUPIED  -> semantic.statusOccupied
-            TableStatus.INACTIVE  -> semantic.statusMaintenance
-        },
+        targetValue =
+            when (table.status) {
+                TableStatus.AVAILABLE -> semantic.statusAvailable
+                TableStatus.OCCUPIED -> semantic.statusOccupied
+                TableStatus.INACTIVE -> semantic.statusMaintenance
+            },
         animationSpec = tween(300),
-        label = "tableStatusColor"
+        label = "tableStatusColor",
     )
 
     val isInactive = table.status == TableStatus.INACTIVE
-    val bgAlpha   = if (isInactive) 0.05f else 0.10f
+    val bgAlpha = if (isInactive) 0.05f else 0.10f
     val elevation = if (table.status == TableStatus.AVAILABLE && enabled) 2.dp else 0.dp
 
     Box(
-        modifier = Modifier
-            .size(size)
-            .then(if (isInactive) Modifier.alpha(0.45f) else Modifier)
+        modifier =
+            Modifier
+                .size(size)
+                .then(if (isInactive) Modifier.alpha(0.45f) else Modifier),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .shadow(elevation, shape = MaterialTheme.shapes.medium)
-                .clip(MaterialTheme.shapes.medium)
-                .background(
-                    if (isInactive) MaterialTheme.colorScheme.surfaceVariant
-                    else MaterialTheme.colorScheme.surface
-                )
-                .border(
-                    width = if (isInactive) 1.dp
-                            else if (table.status == TableStatus.AVAILABLE && enabled) 1.5.dp
-                            else 1.dp,
-                    color = if (isInactive) MaterialTheme.colorScheme.outlineVariant
-                            else statusColor.copy(alpha = 0.6f),
-                    shape = MaterialTheme.shapes.medium
-                )
-                .then(if (enabled) Modifier.clickable { onClick() } else Modifier)
-        ) {
-        // Status accent strip di atas
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(if (isInactive) 3.dp else 4.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .shadow(elevation, shape = MaterialTheme.shapes.medium)
+                    .clip(MaterialTheme.shapes.medium)
                     .background(
-                        if (isInactive) MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        else statusColor
+                        if (isInactive) {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        },
                     )
+                    .border(
+                        width =
+                            if (isInactive) {
+                                1.dp
+                            } else if (table.status == TableStatus.AVAILABLE && enabled) {
+                                1.5.dp
+                            } else {
+                                1.dp
+                            },
+                        color =
+                            if (isInactive) {
+                                MaterialTheme.colorScheme.outlineVariant
+                            } else {
+                                statusColor.copy(alpha = 0.6f)
+                            },
+                        shape = MaterialTheme.shapes.medium,
+                    )
+                    .then(if (enabled) Modifier.clickable { onClick() } else Modifier),
+        ) {
+            // Status accent strip di atas
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(if (isInactive) 3.dp else 4.dp)
+                        .background(
+                            if (isInactive) {
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                            } else {
+                                statusColor
+                            },
+                        ),
             )
 
             // Konten meja — dipusatkan dalam sisa ruang
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
+                verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
             ) {
                 // Nama meja
                 Text(
-                    text       = table.name,
-                    style      = if (size >= 120.dp) MaterialTheme.typography.titleSmall
-                                 else MaterialTheme.typography.bodyMedium,
+                    text = table.name,
+                    style =
+                        if (size >= 120.dp) {
+                            MaterialTheme.typography.titleSmall
+                        } else {
+                            MaterialTheme.typography.bodyMedium
+                        },
                     fontWeight = FontWeight.Bold,
-                    color     = if (isInactive)
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                else MaterialTheme.colorScheme.onSurface,
+                    color =
+                        if (isInactive) {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                     textAlign = TextAlign.Center,
-                    maxLines  = 1,
-                    overflow  = TextOverflow.Ellipsis
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 // Status label chip
                 Surface(
                     shape = CircleShape,
-                    color = statusColor.copy(alpha = bgAlpha + 0.05f)
+                    color = statusColor.copy(alpha = bgAlpha + 0.05f),
                 ) {
                     Text(
-                        text  = statusLabel(table.status),
+                        text = statusLabel(table.status),
                         style = MaterialTheme.typography.labelSmall,
                         color = statusColor.copy(alpha = if (isInactive) 0.5f else 1f),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        maxLines = 1
+                        maxLines = 1,
                     )
                 }
 
@@ -128,18 +154,18 @@ fun TableCell(
                 table.capacity?.let { cap ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Icon(
-                            imageVector        = Icons.Default.Chair,
+                            imageVector = Icons.Default.Chair,
                             contentDescription = null,
-                            modifier           = Modifier.size(10.dp),
-                            tint               = MaterialTheme.colorScheme.outline.copy(alpha = if (isInactive) 0.4f else 1f)
+                            modifier = Modifier.size(10.dp),
+                            tint = MaterialTheme.colorScheme.outline.copy(alpha = if (isInactive) 0.4f else 1f),
                         )
                         Text(
-                            text  = "$cap",
+                            text = "$cap",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = if (isInactive) 0.4f else 1f)
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = if (isInactive) 0.4f else 1f),
                         )
                     }
                 }
@@ -147,9 +173,10 @@ fun TableCell(
                 // Dot "ada transaksi aktif" saat occupied
                 if (table.status == TableStatus.OCCUPIED) {
                     Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(statusColor, CircleShape)
+                        modifier =
+                            Modifier
+                                .size(6.dp)
+                                .background(statusColor, CircleShape),
                     )
                 }
             }
@@ -158,28 +185,30 @@ fun TableCell(
         // Overlay scrim + ikon Block untuk meja INACTIVE
         if (isInactive) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector        = Icons.Default.Block,
+                    imageVector = Icons.Default.Block,
                     contentDescription = "Nonaktif",
-                    modifier           = Modifier.size(if (size >= 120.dp) 32.dp else 26.dp),
-                    tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                    modifier = Modifier.size(if (size >= 120.dp) 32.dp else 26.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                 )
             }
         }
     }
 }
 
-private fun statusLabel(status: TableStatus) = when (status) {
-    TableStatus.AVAILABLE -> "Tersedia"
-    TableStatus.OCCUPIED  -> "Dipakai"
-    TableStatus.INACTIVE  -> "Nonaktif"
-}
+private fun statusLabel(status: TableStatus) =
+    when (status) {
+        TableStatus.AVAILABLE -> "Tersedia"
+        TableStatus.OCCUPIED -> "Dipakai"
+        TableStatus.INACTIVE -> "Nonaktif"
+    }
 
 // ── Previews ─────────────────────────────────────────────────────────────────
 
@@ -189,22 +218,49 @@ private fun TableCellAvailablePreview() {
     RancakTheme {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             TableCell(
-                table = Table(uuid = "1", name = "Meja 1", area = "Indoor", capacity = 4,
-                    status = TableStatus.AVAILABLE, isActive = true, sortOrder = 1, activeSaleUuid = null),
-                onClick = {}
+                table =
+                    Table(
+                        uuid = "1",
+                        name = "Meja 1",
+                        area = "Indoor",
+                        capacity = 4,
+                        status = TableStatus.AVAILABLE,
+                        isActive = true,
+                        sortOrder = 1,
+                        activeSaleUuid = null,
+                    ),
+                onClick = {},
             )
             TableCell(
-                table = Table(uuid = "2", name = "B3", area = "Outdoor", capacity = 6,
-                    status = TableStatus.OCCUPIED, isActive = true, sortOrder = 2, activeSaleUuid = "sale-1"),
-                onClick = {}
+                table =
+                    Table(
+                        uuid = "2",
+                        name = "B3",
+                        area = "Outdoor",
+                        capacity = 6,
+                        status = TableStatus.OCCUPIED,
+                        isActive = true,
+                        sortOrder = 2,
+                        activeSaleUuid = "sale-1",
+                    ),
+                onClick = {},
             )
             TableCell(
-                table = Table(uuid = "3", name = "VIP", area = "Private", capacity = 8,
-                    status = TableStatus.INACTIVE, isActive = false, sortOrder = 3, activeSaleUuid = null),
-                onClick = {}
+                table =
+                    Table(
+                        uuid = "3",
+                        name = "VIP",
+                        area = "Private",
+                        capacity = 8,
+                        status = TableStatus.INACTIVE,
+                        isActive = false,
+                        sortOrder = 3,
+                        activeSaleUuid = null,
+                    ),
+                onClick = {},
             )
         }
     }

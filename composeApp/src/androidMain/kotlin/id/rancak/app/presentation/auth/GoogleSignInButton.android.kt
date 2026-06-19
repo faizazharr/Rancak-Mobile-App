@@ -30,7 +30,7 @@ actual fun GoogleSignInButton(
     modifier: Modifier,
     enabled: Boolean,
     onIdToken: (String) -> Unit,
-    onError: (String) -> Unit
+    onError: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -45,13 +45,15 @@ actual fun GoogleSignInButton(
                 isLoading = true
                 dlog { "Tombol Google Sign-In ditekan" }
                 try {
-                    val signInOption = GetSignInWithGoogleOption
-                        .Builder(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                        .build()
+                    val signInOption =
+                        GetSignInWithGoogleOption
+                            .Builder(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                            .build()
 
-                    val request = GetCredentialRequest.Builder()
-                        .addCredentialOption(signInOption)
-                        .build()
+                    val request =
+                        GetCredentialRequest.Builder()
+                            .addCredentialOption(signInOption)
+                            .build()
 
                     val result = credentialManager.getCredential(context, request)
                     val credential = result.credential
@@ -94,6 +96,6 @@ actual fun GoogleSignInButton(
         },
         modifier = modifier,
         isLoading = isLoading,
-        enabled = enabled
+        enabled = enabled,
     )
 }

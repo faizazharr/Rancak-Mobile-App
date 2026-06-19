@@ -10,12 +10,12 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.RefundLine
@@ -32,7 +32,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun RefundBottomSheet(
     sale: Sale,
     onDismiss: () -> Unit,
-    onRefundSuccess: () -> Unit
+    onRefundSuccess: () -> Unit,
 ) {
     val viewModel: RefundViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -56,28 +56,28 @@ fun RefundBottomSheet(
             viewModel.reset()
             onDismiss()
         },
-        sheetState = sheetState
+        sheetState = sheetState,
     ) {
         RefundSheetContent(
-            state          = state,
-            onSetQty       = viewModel::setQty,
-            onSetReason    = viewModel::setReason,
-            onRefundFull   = viewModel::refundFull,
-            onClearQty     = viewModel::clearQty,
-            onSubmitClick  = { showConfirm = true },
-            onDismissError = viewModel::clearError
+            state = state,
+            onSetQty = viewModel::setQty,
+            onSetReason = viewModel::setReason,
+            onRefundFull = viewModel::refundFull,
+            onClearQty = viewModel::clearQty,
+            onSubmitClick = { showConfirm = true },
+            onDismissError = viewModel::clearError,
         )
     }
 
     if (showConfirm) {
         AlertDialog(
             onDismissRequest = { showConfirm = false },
-            title   = { Text("Konfirmasi Refund") },
-            text    = {
+            title = { Text("Konfirmasi Refund") },
+            text = {
                 Text(
                     "Refund ${state.totalQty} item senilai " +
                         "${formatRupiah(state.totalRefund)}. " +
-                        "Tindakan ini tidak dapat dibatalkan."
+                        "Tindakan ini tidak dapat dibatalkan.",
                 )
             },
             confirmButton = {
@@ -88,7 +88,7 @@ fun RefundBottomSheet(
             },
             dismissButton = {
                 TextButton(onClick = { showConfirm = false }) { Text("Batal") }
-            }
+            },
         )
     }
 }
@@ -101,39 +101,40 @@ private fun RefundSheetContent(
     onRefundFull: () -> Unit,
     onClearQty: () -> Unit,
     onSubmitClick: () -> Unit,
-    onDismissError: () -> Unit
+    onDismissError: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             "Refund Item",
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
         if (state.invoiceNo != null) {
             Text(
                 "Invoice ${state.invoiceNo}",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         // Quick actions
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             AssistChip(
                 onClick = onRefundFull,
-                label   = { Text("Refund Penuh") }
+                label = { Text("Refund Penuh") },
             )
             AssistChip(
                 onClick = onClearQty,
-                label   = { Text("Reset") }
+                label = { Text("Reset") },
             )
         }
 
@@ -142,7 +143,7 @@ private fun RefundSheetContent(
         // Items list
         LazyColumn(
             modifier = Modifier.heightIn(max = 360.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(state.lines, key = { it.saleItemUuid }) { line ->
                 RefundLineRow(line = line, onSetQty = onSetQty)
@@ -153,18 +154,18 @@ private fun RefundSheetContent(
 
         // Reason
         OutlinedTextField(
-            value         = state.reason,
+            value = state.reason,
             onValueChange = onSetReason,
-            label         = { Text("Alasan refund (opsional)") },
-            modifier      = Modifier.fillMaxWidth(),
-            maxLines      = 3
+            label = { Text("Alasan refund (opsional)") },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 3,
         )
 
         // Total
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column {
                 Text("Total Refund", style = MaterialTheme.typography.bodySmall)
@@ -172,31 +173,32 @@ private fun RefundSheetContent(
                     formatRupiah(state.totalRefund),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
             Text(
                 "${state.totalQty} item",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         if (state.error != null) {
             Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                    ),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         state.error,
                         modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onErrorContainer
+                        color = MaterialTheme.colorScheme.onErrorContainer,
                     )
                     TextButton(onClick = onDismissError) { Text("Tutup") }
                 }
@@ -204,15 +206,15 @@ private fun RefundSheetContent(
         }
 
         Button(
-            onClick  = onSubmitClick,
-            enabled  = state.canSubmit,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            onClick = onSubmitClick,
+            enabled = state.canSubmit,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
         ) {
             if (state.isProcessing) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
             } else {
                 Icon(Icons.Default.CheckCircle, contentDescription = null)
@@ -226,39 +228,40 @@ private fun RefundSheetContent(
 @Composable
 private fun RefundLineRow(
     line: RefundLine,
-    onSetQty: (String, Int) -> Unit
+    onSetQty: (String, Int) -> Unit,
 ) {
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         line.productName,
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                     if (line.variantName != null) {
                         Text(
                             line.variantName,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     Text(
                         "${formatRupiah(line.unitPrice)} × ${line.maxQty}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 if (line.qtyToRefund > 0) {
@@ -266,7 +269,7 @@ private fun RefundLineRow(
                         formatRupiah(line.lineRefund),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -275,42 +278,43 @@ private fun RefundLineRow(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     "Qty refund",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     IconButton(
                         onClick = { onSetQty(line.saleItemUuid, line.qtyToRefund - 1) },
                         enabled = line.qtyToRefund > 0,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.dp),
                     ) { Icon(Icons.Default.Remove, contentDescription = "Kurangi") }
 
                     Box(
-                        modifier = Modifier
-                            .widthIn(min = 40.dp)
-                            .clip(MaterialTheme.shapes.large)
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .widthIn(min = 40.dp)
+                                .clip(MaterialTheme.shapes.large)
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             "${line.qtyToRefund}",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
                         )
                     }
 
                     IconButton(
                         onClick = { onSetQty(line.saleItemUuid, line.qtyToRefund + 1) },
                         enabled = line.qtyToRefund < line.maxQty,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.dp),
                     ) { Icon(Icons.Default.Add, contentDescription = "Tambah") }
                 }
             }

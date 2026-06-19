@@ -31,7 +31,7 @@ suspend fun RancakApiService.getCashIns(
     dateTo: String? = null,
     shiftUuid: String? = null,
     page: Int = 1,
-    limit: Int = 50
+    limit: Int = 50,
 ): ApiResponse<List<CashInDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.CASH_INS) {
         dateFrom?.let { parameter("date_from", it) }
@@ -41,7 +41,10 @@ suspend fun RancakApiService.getCashIns(
         parameter("limit", limit)
     }.body()
 
-suspend fun RancakApiService.getCashIn(tenantUuid: String, cashInId: String): ApiResponse<CashInDto> =
+suspend fun RancakApiService.getCashIn(
+    tenantUuid: String,
+    cashInId: String,
+): ApiResponse<CashInDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.CASH_INS}/$cashInId").body()
 
 suspend fun RancakApiService.createCashIn(
@@ -50,14 +53,17 @@ suspend fun RancakApiService.createCashIn(
     source: String,
     description: String,
     note: String? = null,
-    cashInDate: String? = null
+    cashInDate: String? = null,
 ): ApiResponse<CashInDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.CASH_INS) {
         contentType(ContentType.Application.Json)
         setBody(CreateCashInRequest(amount = amount, source = source, description = description, note = note, cashInDate = cashInDate))
     }.body()
 
-suspend fun RancakApiService.deleteCashIn(tenantUuid: String, cashInId: String): ApiResponse<Unit> =
+suspend fun RancakApiService.deleteCashIn(
+    tenantUuid: String,
+    cashInId: String,
+): ApiResponse<Unit> =
     client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.CASH_INS}/$cashInId").body()
 
 // ── Expenses ──
@@ -68,7 +74,7 @@ suspend fun RancakApiService.getExpenses(
     dateTo: String? = null,
     categoryUuid: String? = null,
     page: Int = 1,
-    limit: Int = 50
+    limit: Int = 50,
 ): ApiResponse<List<ExpenseDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.EXPENSES) {
         dateFrom?.let { parameter("date_from", it) }
@@ -78,7 +84,10 @@ suspend fun RancakApiService.getExpenses(
         parameter("limit", limit)
     }.body()
 
-suspend fun RancakApiService.getExpense(tenantUuid: String, expenseId: String): ApiResponse<ExpenseDto> =
+suspend fun RancakApiService.getExpense(
+    tenantUuid: String,
+    expenseId: String,
+): ApiResponse<ExpenseDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/$expenseId").body()
 
 suspend fun RancakApiService.createExpense(
@@ -87,11 +96,19 @@ suspend fun RancakApiService.createExpense(
     description: String,
     note: String? = null,
     categoryUuid: String? = null,
-    expenseDate: String? = null
+    expenseDate: String? = null,
 ): ApiResponse<ExpenseDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.EXPENSES) {
         contentType(ContentType.Application.Json)
-        setBody(CreateExpenseRequest(amount = amount, description = description, note = note, categoryUuid = categoryUuid, expenseDate = expenseDate))
+        setBody(
+            CreateExpenseRequest(
+                amount = amount,
+                description = description,
+                note = note,
+                categoryUuid = categoryUuid,
+                expenseDate = expenseDate,
+            ),
+        )
     }.body()
 
 suspend fun RancakApiService.updateExpense(
@@ -101,14 +118,25 @@ suspend fun RancakApiService.updateExpense(
     description: String? = null,
     note: String? = null,
     categoryUuid: String? = null,
-    expenseDate: String? = null
+    expenseDate: String? = null,
 ): ApiResponse<ExpenseDto> =
     client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/$expenseId") {
         contentType(ContentType.Application.Json)
-        setBody(UpdateExpenseRequest(amount = amount, description = description, note = note, categoryUuid = categoryUuid, expenseDate = expenseDate))
+        setBody(
+            UpdateExpenseRequest(
+                amount = amount,
+                description = description,
+                note = note,
+                categoryUuid = categoryUuid,
+                expenseDate = expenseDate,
+            ),
+        )
     }.body()
 
-suspend fun RancakApiService.deleteExpense(tenantUuid: String, expenseId: String): ApiResponse<Unit> =
+suspend fun RancakApiService.deleteExpense(
+    tenantUuid: String,
+    expenseId: String,
+): ApiResponse<Unit> =
     client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/$expenseId").body()
 
 // ── Expense categories CRUD ─────────────────────────────────────────────────
@@ -116,12 +144,15 @@ suspend fun RancakApiService.deleteExpense(tenantUuid: String, expenseId: String
 suspend fun RancakApiService.getExpenseCategories(tenantUuid: String): ApiResponse<List<ExpenseCategoryDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/categories").body()
 
-suspend fun RancakApiService.getExpenseCategory(tenantUuid: String, categoryId: String): ApiResponse<ExpenseCategoryDto> =
+suspend fun RancakApiService.getExpenseCategory(
+    tenantUuid: String,
+    categoryId: String,
+): ApiResponse<ExpenseCategoryDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/categories/$categoryId").body()
 
 suspend fun RancakApiService.createExpenseCategory(
     tenantUuid: String,
-    request: CreateExpenseCategoryRequest
+    request: CreateExpenseCategoryRequest,
 ): ApiResponse<ExpenseCategoryDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/categories") {
         contentType(ContentType.Application.Json)
@@ -131,7 +162,7 @@ suspend fun RancakApiService.createExpenseCategory(
 suspend fun RancakApiService.updateExpenseCategory(
     tenantUuid: String,
     categoryId: String,
-    request: UpdateExpenseCategoryRequest
+    request: UpdateExpenseCategoryRequest,
 ): ApiResponse<ExpenseCategoryDto> =
     client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/categories/$categoryId") {
         contentType(ContentType.Application.Json)
@@ -140,6 +171,6 @@ suspend fun RancakApiService.updateExpenseCategory(
 
 suspend fun RancakApiService.deleteExpenseCategory(
     tenantUuid: String,
-    categoryId: String
+    categoryId: String,
 ): ApiResponse<Unit> =
     client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.EXPENSES}/categories/$categoryId").body()

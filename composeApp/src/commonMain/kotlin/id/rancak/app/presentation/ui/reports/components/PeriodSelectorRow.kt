@@ -21,38 +21,41 @@ import id.rancak.app.presentation.ui.reports.ReportPeriod
 @Composable
 internal fun PeriodSelectorRow(
     selected: ReportPeriod,
-    onSelect: (ReportPeriod) -> Unit
+    onSelect: (ReportPeriod) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 7.dp),
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 7.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         ReportPeriod.entries.forEach { period ->
             FilterChip(
                 selected = selected == period,
-                onClick  = { onSelect(period) },
-                label    = {
+                onClick = { onSelect(period) },
+                label = {
                     Text(
                         period.label,
                         style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1
+                        maxLines = 1,
                     )
                 },
                 modifier = Modifier.weight(1f),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                    selectedLabelColor     = MaterialTheme.colorScheme.primary
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled             = true,
-                    selected            = selected == period,
-                    selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                    selectedBorderWidth = 1.2.dp,
-                    borderColor         = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-                    borderWidth         = 0.8.dp
-                )
+                colors =
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        selectedLabelColor = MaterialTheme.colorScheme.primary,
+                    ),
+                border =
+                    FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = selected == period,
+                        selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                        selectedBorderWidth = 1.2.dp,
+                        borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                        borderWidth = 0.8.dp,
+                    ),
             )
         }
     }

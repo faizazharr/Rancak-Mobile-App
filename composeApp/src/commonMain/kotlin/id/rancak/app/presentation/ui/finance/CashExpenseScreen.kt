@@ -4,18 +4,19 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.domain.model.CashIn
 import id.rancak.app.domain.model.Expense
 import id.rancak.app.presentation.components.EmptyScreen
@@ -24,17 +25,16 @@ import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakColors
-import id.rancak.app.presentation.ui.finance.components.CashInList
-import id.rancak.app.presentation.ui.finance.components.CashInItemCard
-import id.rancak.app.presentation.ui.finance.components.CashInFormDialog
-import id.rancak.app.presentation.ui.finance.components.ExpenseList
-import id.rancak.app.presentation.ui.finance.components.ExpenseItemCard
-import id.rancak.app.presentation.ui.finance.components.ExpenseFormDialog
 import id.rancak.app.presentation.designsystem.RancakTheme
+import id.rancak.app.presentation.ui.finance.components.CashInFormDialog
+import id.rancak.app.presentation.ui.finance.components.CashInItemCard
+import id.rancak.app.presentation.ui.finance.components.CashInList
+import id.rancak.app.presentation.ui.finance.components.ExpenseFormDialog
+import id.rancak.app.presentation.ui.finance.components.ExpenseItemCard
+import id.rancak.app.presentation.ui.finance.components.ExpenseList
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.CashExpenseUiState
 import id.rancak.app.presentation.viewmodel.CashExpenseViewModel
-import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
@@ -51,35 +51,36 @@ data class CashExpenseActions(
     val onSubmitCashIn: () -> Unit = {},
     val onSubmitExpense: () -> Unit = {},
     val onDeleteCashIn: (String) -> Unit = {},
-    val onDeleteExpense: (String) -> Unit = {}
+    val onDeleteExpense: (String) -> Unit = {},
 )
 
 @Composable
 fun CashExpenseScreen(
     onBack: () -> Unit,
-    onViewReports: () -> Unit = {}
+    onViewReports: () -> Unit = {},
 ) {
     val viewModel: CashExpenseViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.loadAll() }
 
     CashExpenseScreenContent(
-        uiState       = uiState,
-        onBack        = onBack,
+        uiState = uiState,
+        onBack = onBack,
         onViewReports = onViewReports,
-        actions = CashExpenseActions(
-            onRetry              = viewModel::loadAll,
-            onToggleCashInForm   = viewModel::toggleCashInForm,
-            onToggleExpenseForm  = viewModel::toggleExpenseForm,
-            onAmountChange       = viewModel::onAmountChange,
-            onSourceChange       = viewModel::onSourceChange,
-            onDescriptionChange  = viewModel::onDescriptionChange,
-            onNoteChange         = viewModel::onNoteChange,
-            onSubmitCashIn       = viewModel::submitCashIn,
-            onSubmitExpense      = viewModel::submitExpense,
-            onDeleteCashIn       = viewModel::deleteCashIn,
-            onDeleteExpense      = viewModel::deleteExpense
-        )
+        actions =
+            CashExpenseActions(
+                onRetry = viewModel::loadAll,
+                onToggleCashInForm = viewModel::toggleCashInForm,
+                onToggleExpenseForm = viewModel::toggleExpenseForm,
+                onAmountChange = viewModel::onAmountChange,
+                onSourceChange = viewModel::onSourceChange,
+                onDescriptionChange = viewModel::onDescriptionChange,
+                onNoteChange = viewModel::onNoteChange,
+                onSubmitCashIn = viewModel::submitCashIn,
+                onSubmitExpense = viewModel::submitExpense,
+                onDeleteCashIn = viewModel::deleteCashIn,
+                onDeleteExpense = viewModel::deleteExpense,
+            ),
     )
 }
 
@@ -89,7 +90,7 @@ fun CashExpenseScreenContent(
     uiState: CashExpenseUiState,
     onBack: () -> Unit,
     onViewReports: () -> Unit = {},
-    actions: CashExpenseActions
+    actions: CashExpenseActions,
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -107,7 +108,7 @@ fun CashExpenseScreenContent(
                     IconButton(onClick = onViewReports) {
                         Icon(Icons.Default.BarChart, contentDescription = "Laporan")
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
@@ -122,7 +123,7 @@ fun CashExpenseScreenContent(
                     }
                 }
             }
-        }
+        },
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding).fillMaxSize()) {
             val sizes = LocalSizes.current
@@ -130,15 +131,17 @@ fun CashExpenseScreenContent(
             when {
                 uiState.isLoading -> LoadingScreen()
                 uiState.error != null -> ErrorScreen(uiState.error, onRetry = actions.onRetry)
-                isTablet -> Column(Modifier.fillMaxSize()) {
-                    FinanceSummaryRow(uiState.cashIns, uiState.expenses)
-                    HorizontalDivider()
-                    TabletCashLayout(uiState, actions, modifier = Modifier.weight(1f))
-                }
-                else -> Column(Modifier.fillMaxSize()) {
-                    FinanceSummaryRow(uiState.cashIns, uiState.expenses)
-                    PhoneCashLayout(uiState, selectedTab, { selectedTab = it }, actions)
-                }
+                isTablet ->
+                    Column(Modifier.fillMaxSize()) {
+                        FinanceSummaryRow(uiState.cashIns, uiState.expenses)
+                        HorizontalDivider()
+                        TabletCashLayout(uiState, actions, modifier = Modifier.weight(1f))
+                    }
+                else ->
+                    Column(Modifier.fillMaxSize()) {
+                        FinanceSummaryRow(uiState.cashIns, uiState.expenses)
+                        PhoneCashLayout(uiState, selectedTab, { selectedTab = it }, actions)
+                    }
             }
         }
     }
@@ -147,33 +150,34 @@ fun CashExpenseScreenContent(
 @Composable
 private fun FinanceSummaryRow(
     cashIns: ImmutableList<CashIn>,
-    expenses: ImmutableList<Expense>
+    expenses: ImmutableList<Expense>,
 ) {
     val semantic = RancakColors.semantic
     val totalIn = cashIns.sumOf { it.amount }
     val totalOut = expenses.sumOf { it.amount }
     val balance = totalIn - totalOut
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         SummaryChip(
             label = "Kas Masuk",
             amount = totalIn,
-            icon = Icons.Default.TrendingUp,
+            icon = Icons.AutoMirrored.Filled.TrendingUp,
             iconTint = semantic.success,
             amountColor = semantic.success,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
         SummaryChip(
             label = "Pengeluaran",
             amount = totalOut,
-            icon = Icons.Default.TrendingDown,
+            icon = Icons.AutoMirrored.Filled.TrendingDown,
             iconTint = MaterialTheme.colorScheme.error,
             amountColor = MaterialTheme.colorScheme.error,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
         SummaryChip(
             label = "Saldo",
@@ -181,7 +185,7 @@ private fun FinanceSummaryRow(
             icon = Icons.Default.AccountBalance,
             iconTint = if (balance >= 0) semantic.success else MaterialTheme.colorScheme.error,
             amountColor = if (balance >= 0) semantic.success else MaterialTheme.colorScheme.error,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -193,19 +197,19 @@ private fun SummaryChip(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     iconTint: androidx.compose.ui.graphics.Color,
     amountColor: androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
         Column(
             modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(14.dp))
                 Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -214,7 +218,7 @@ private fun SummaryChip(
                 text = formatRupiah(amount),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = amountColor
+                color = amountColor,
             )
         }
     }
@@ -224,27 +228,28 @@ private fun SummaryChip(
 private fun TabletCashLayout(
     uiState: CashExpenseUiState,
     actions: CashExpenseActions,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(modifier.fillMaxWidth()) {
         // Kiri — Kas Masuk
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState())
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     "Kas Masuk",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 FilledTonalButton(onClick = actions.onToggleCashInForm) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -265,22 +270,23 @@ private fun TabletCashLayout(
 
         // Kanan — Pengeluaran
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState())
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     "Pengeluaran",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 FilledTonalButton(onClick = actions.onToggleExpenseForm) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -304,7 +310,7 @@ private fun PhoneCashLayout(
     uiState: CashExpenseUiState,
     selectedTab: Int,
     onTabChange: (Int) -> Unit,
-    actions: CashExpenseActions
+    actions: CashExpenseActions,
 ) {
     Column(Modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTab) {
@@ -327,11 +333,12 @@ private fun PhoneCashLayout(
 private fun CashInListPreview() {
     RancakTheme {
         CashInList(
-            items = persistentListOf(
-                CashIn(uuid = "1", amount = 500000, source = "Modal", description = "Kas Awal", note = null, cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null),
-                CashIn(uuid = "2", amount = 200000, source = "Pinjaman", description = "Tambahan Modal", note = "Dari owner", cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null)
-            ),
-            onDelete = {}
+            items =
+                persistentListOf(
+                    CashIn(uuid = "1", amount = 500000, source = "Modal", description = "Kas Awal", note = null, cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null),
+                    CashIn(uuid = "2", amount = 200000, source = "Pinjaman", description = "Tambahan Modal", note = "Dari owner", cashierUuid = null, cashierName = null, shiftUuid = null, cashInDate = null, createdAt = null),
+                ),
+            onDelete = {},
         )
     }
 }
@@ -341,11 +348,12 @@ private fun CashInListPreview() {
 private fun ExpenseListPreview() {
     RancakTheme {
         ExpenseList(
-            items = persistentListOf(
-                Expense(uuid = "1", amount = 50000, description = "Beli Gas", note = "2 tabung", categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null),
-                Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null, categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null)
-            ),
-            onDelete = {}
+            items =
+                persistentListOf(
+                    Expense(uuid = "1", amount = 50000, description = "Beli Gas", note = "2 tabung", categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null),
+                    Expense(uuid = "2", amount = 25000, description = "Beli Tisu", note = null, categoryUuid = null, categoryName = null, cashierUuid = null, cashierName = null, expenseDate = null, createdAt = null, updatedAt = null),
+                ),
+            onDelete = {},
         )
     }
 }
@@ -355,20 +363,26 @@ private fun ExpenseListPreview() {
 private fun CashExpenseScreenPreview() {
     RancakTheme {
         CashExpenseScreenContent(
-            uiState = CashExpenseUiState(
-                cashIns = persistentListOf(
-                    CashIn(uuid = "1", amount = 500_000, source = "Modal",
-                        description = "Kas Awal", note = null,
-                        cashierUuid = null, cashierName = null, shiftUuid = null,
-                        cashInDate = null, createdAt = null),
-                    CashIn(uuid = "2", amount = 200_000, source = "Pinjaman",
-                        description = "Tambahan Modal", note = "Dari owner",
-                        cashierUuid = null, cashierName = null, shiftUuid = null,
-                        cashInDate = null, createdAt = null)
-                )
-            ),
-            onBack  = {},
-            actions = CashExpenseActions()
+            uiState =
+                CashExpenseUiState(
+                    cashIns =
+                        persistentListOf(
+                            CashIn(
+                                uuid = "1", amount = 500_000, source = "Modal",
+                                description = "Kas Awal", note = null,
+                                cashierUuid = null, cashierName = null, shiftUuid = null,
+                                cashInDate = null, createdAt = null,
+                            ),
+                            CashIn(
+                                uuid = "2", amount = 200_000, source = "Pinjaman",
+                                description = "Tambahan Modal", note = "Dari owner",
+                                cashierUuid = null, cashierName = null, shiftUuid = null,
+                                cashInDate = null, createdAt = null,
+                            ),
+                        ),
+                ),
+            onBack = {},
+            actions = CashExpenseActions(),
         )
     }
 }

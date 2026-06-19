@@ -9,8 +9,7 @@ fun formatPlanPrice(amount: Double): String {
     return "Rp ${parts.reversed()}"
 }
 
-fun Brush.Companion.linearGradientBrush(colors: List<Color>) =
-    linearGradient(colors)
+fun Brush.Companion.linearGradientBrush(colors: List<Color>) = linearGradient(colors)
 
 /** Helper to avoid destructuring ambiguity in when-expressions. */
 data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)

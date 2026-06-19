@@ -39,31 +39,31 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ReservationScreen(
     onBack: () -> Unit,
-    onMeja: () -> Unit = {}
+    onMeja: () -> Unit = {},
 ) {
     val viewModel: ReservationViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.load() }
 
     ReservationScreenContent(
-        uiState           = uiState,
-        onBack            = onBack,
-        onMeja            = onMeja,
-        onRetry           = viewModel::loadReservations,
-        onFilterChange    = viewModel::setStatusFilter,
-        onAdd             = viewModel::openCreateDialog,
-        onEdit            = viewModel::openEditDialog,
-        onConfirm         = viewModel::confirm,
-        onSeat            = viewModel::requestSeat,
-        onComplete        = viewModel::complete,
-        onCancel          = viewModel::requestCancel,
-        onDismissDialog   = viewModel::dismissDialog,
-        onSubmitForm      = viewModel::saveReservation,
-        onDismissCancel   = viewModel::dismissCancel,
-        onConfirmCancel   = viewModel::confirmCancel,
-        onDismissSeat     = viewModel::cancelSeat,
-        onConfirmSeat     = viewModel::confirmSeat,
-        onConsumeSnackbar = viewModel::consumeSnackbar
+        uiState = uiState,
+        onBack = onBack,
+        onMeja = onMeja,
+        onRetry = viewModel::loadReservations,
+        onFilterChange = viewModel::setStatusFilter,
+        onAdd = viewModel::openCreateDialog,
+        onEdit = viewModel::openEditDialog,
+        onConfirm = viewModel::confirm,
+        onSeat = viewModel::requestSeat,
+        onComplete = viewModel::complete,
+        onCancel = viewModel::requestCancel,
+        onDismissDialog = viewModel::dismissDialog,
+        onSubmitForm = viewModel::saveReservation,
+        onDismissCancel = viewModel::dismissCancel,
+        onConfirmCancel = viewModel::confirmCancel,
+        onDismissSeat = viewModel::cancelSeat,
+        onConfirmSeat = viewModel::confirmSeat,
+        onConsumeSnackbar = viewModel::consumeSnackbar,
     )
 }
 
@@ -86,7 +86,7 @@ fun ReservationScreenContent(
     onConfirmCancel: (String?) -> Unit,
     onDismissSeat: () -> Unit,
     onConfirmSeat: (String) -> Unit,
-    onConsumeSnackbar: () -> Unit
+    onConsumeSnackbar: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -104,11 +104,11 @@ fun ReservationScreenContent(
         // ── Phone: form opens full-screen (early return) ──────────────────
         if (!isTablet && uiState.showFormDialog) {
             ReservationFormContent(
-                editing      = uiState.editingReservation,
-                tables       = uiState.tables.toImmutableList(),
+                editing = uiState.editingReservation,
+                tables = uiState.tables.toImmutableList(),
                 isSubmitting = uiState.isSubmitting,
-                onBack       = onDismissDialog,
-                onConfirm    = onSubmitForm
+                onBack = onDismissDialog,
+                onConfirm = onSubmitForm,
             )
             return@BoxWithConstraints
         }
@@ -116,11 +116,11 @@ fun ReservationScreenContent(
         Scaffold(
             topBar = {
                 RancakTopBar(
-                    title    = "Reservasi",
-                    icon     = Icons.Default.EventSeat,
+                    title = "Reservasi",
+                    icon = Icons.Default.EventSeat,
                     subtitle = "Manajemen reservasi meja",
-                    onMenu   = onBack,
-                    actions  = {
+                    onMenu = onBack,
+                    actions = {
                         IconButton(onClick = onMeja) {
                             Icon(Icons.Default.TableBar, contentDescription = "Denah Meja")
                         }
@@ -128,80 +128,81 @@ fun ReservationScreenContent(
                             Icon(
                                 Icons.Default.Add,
                                 contentDescription = "Tambah Reservasi",
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                tint = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
-                    }
+                    },
                 )
             },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
+            snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding ->
             if (isTablet) {
                 // ── Tablet: split two-pane layout ─────────────────────────
                 Row(
                     Modifier
                         .padding(padding)
-                        .fillMaxSize()
+                        .fillMaxSize(),
                 ) {
                     // Left: filter + list (42%)
                     Column(
                         Modifier
                             .weight(0.42f)
-                            .fillMaxHeight()
+                            .fillMaxHeight(),
                     ) {
                         ReservationListContent(
-                            uiState        = uiState,
-                            onRetry        = onRetry,
+                            uiState = uiState,
+                            onRetry = onRetry,
                             onFilterChange = onFilterChange,
-                            onConfirm      = onConfirm,
-                            onSeat         = onSeat,
-                            onComplete     = onComplete,
-                            onCancel       = onCancel,
-                            onEdit         = onEdit,
-                            bottomPadding  = 16.dp
+                            onConfirm = onConfirm,
+                            onSeat = onSeat,
+                            onComplete = onComplete,
+                            onCancel = onCancel,
+                            onEdit = onEdit,
+                            bottomPadding = 16.dp,
                         )
                     }
 
                     VerticalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                     )
 
                     // Right: form panel or placeholder (58%)
                     Box(
                         Modifier
                             .weight(0.58f)
-                            .fillMaxHeight()
+                            .fillMaxHeight(),
                     ) {
                         if (uiState.showFormDialog) {
                             ReservationFormPanel(
-                                editing      = uiState.editingReservation,
-                                tables       = uiState.tables.toImmutableList(),
+                                editing = uiState.editingReservation,
+                                tables = uiState.tables.toImmutableList(),
                                 isSubmitting = uiState.isSubmitting,
-                                onClose      = onDismissDialog,
-                                onConfirm    = onSubmitForm
+                                onClose = onDismissDialog,
+                                onConfirm = onSubmitForm,
                             )
                         } else {
                             Column(
                                 Modifier.fillMaxSize(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
+                                verticalArrangement = Arrangement.Center,
                             ) {
                                 Icon(
-                                    Icons.Default.CalendarMonth, null,
+                                    Icons.Default.CalendarMonth,
+                                    null,
                                     Modifier.size(72.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f),
                                 )
                                 Spacer(Modifier.height(16.dp))
                                 Text(
                                     "Pilih reservasi untuk diedit",
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     "atau tekan + untuk membuat baru",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 )
                             }
                         }
@@ -210,16 +211,16 @@ fun ReservationScreenContent(
             } else {
                 // ── Phone: list only ──────────────────────────────────────
                 ReservationListContent(
-                    uiState        = uiState,
-                    onRetry        = onRetry,
+                    uiState = uiState,
+                    onRetry = onRetry,
                     onFilterChange = onFilterChange,
-                    onConfirm      = onConfirm,
-                    onSeat         = onSeat,
-                    onComplete     = onComplete,
-                    onCancel       = onCancel,
-                    onEdit         = onEdit,
-                    modifier       = Modifier.padding(padding),
-                    bottomPadding  = 16.dp
+                    onConfirm = onConfirm,
+                    onSeat = onSeat,
+                    onComplete = onComplete,
+                    onCancel = onCancel,
+                    onEdit = onEdit,
+                    modifier = Modifier.padding(padding),
+                    bottomPadding = 16.dp,
                 )
             }
         }
@@ -234,14 +235,14 @@ fun ReservationScreenContent(
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             "Reservasi atas nama ${target.customerName} akan dibatalkan.",
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                         OutlinedTextField(
-                            value         = reason,
+                            value = reason,
                             onValueChange = { reason = it },
-                            label         = { Text("Alasan pembatalan (opsional)") },
-                            maxLines      = 3,
-                            modifier      = Modifier.fillMaxWidth()
+                            label = { Text("Alasan pembatalan (opsional)") },
+                            maxLines = 3,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 },
@@ -249,15 +250,18 @@ fun ReservationScreenContent(
                     Button(
                         onClick = { onConfirmCancel(reason.ifBlank { null }) },
                         enabled = !uiState.isSubmitting,
-                        colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     ) {
-                        if (uiState.isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                        else Text("Batalkan Reservasi")
+                        if (uiState.isSubmitting) {
+                            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                        } else {
+                            Text("Batalkan Reservasi")
+                        }
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = onDismissCancel, enabled = !uiState.isSubmitting) { Text("Tutup") }
-                }
+                },
             )
         }
 
@@ -273,54 +277,61 @@ fun ReservationScreenContent(
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
                             "${target.customerName} (${target.partySize} orang) hadir.",
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                         HorizontalDivider()
                         if (available.isEmpty()) {
                             Text(
                                 "Tidak ada meja tersedia saat ini.",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         } else {
                             Text(
                                 "Pilih meja:",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             available.forEach { t ->
-                                val statusColor = when (t.status) {
-                                    TableStatus.AVAILABLE -> RancakColors.semantic.statusAvailable
-                                    TableStatus.OCCUPIED  -> RancakColors.semantic.statusOccupied
-                                    TableStatus.INACTIVE  -> RancakColors.semantic.statusMaintenance
-                                }
+                                val statusColor =
+                                    when (t.status) {
+                                        TableStatus.AVAILABLE -> RancakColors.semantic.statusAvailable
+                                        TableStatus.OCCUPIED -> RancakColors.semantic.statusOccupied
+                                        TableStatus.INACTIVE -> RancakColors.semantic.statusMaintenance
+                                    }
                                 Surface(
-                                    shape  = MaterialTheme.shapes.small,
-                                    color  = if (selected == t.uuid)
-                                        MaterialTheme.colorScheme.primaryContainer
-                                    else
-                                        MaterialTheme.colorScheme.surface,
+                                    shape = MaterialTheme.shapes.small,
+                                    color =
+                                        if (selected == t.uuid) {
+                                            MaterialTheme.colorScheme.primaryContainer
+                                        } else {
+                                            MaterialTheme.colorScheme.surface
+                                        },
                                     tonalElevation = if (selected == t.uuid) 0.dp else 1.dp,
-                                    onClick = { selected = t.uuid }
+                                    onClick = { selected = t.uuid },
                                 ) {
                                     Row(
-                                        verticalAlignment     = Alignment.CenterVertically,
+                                        verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier              = Modifier.fillMaxWidth().padding(10.dp)
+                                        modifier = Modifier.fillMaxWidth().padding(10.dp),
                                     ) {
                                         RadioButton(selected = selected == t.uuid, onClick = { selected = t.uuid })
-                                        Icon(Icons.Default.TableBar, null,
-                                            modifier = Modifier.size(16.dp), tint = statusColor)
+                                        Icon(
+                                            Icons.Default.TableBar,
+                                            null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = statusColor,
+                                        )
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
                                                 "${t.name}${t.area?.let { a -> " · $a" } ?: ""}",
                                                 style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.Medium
+                                                fontWeight = FontWeight.Medium,
                                             )
                                             Text(
                                                 "${t.capacity} kursi",
                                                 style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             )
                                         }
                                     }
@@ -332,15 +343,18 @@ fun ReservationScreenContent(
                 confirmButton = {
                     Button(
                         onClick = { selected?.let(onConfirmSeat) },
-                        enabled = !uiState.isSubmitting && selected != null
+                        enabled = !uiState.isSubmitting && selected != null,
                     ) {
-                        if (uiState.isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                        else Text("Dudukkan Tamu")
+                        if (uiState.isSubmitting) {
+                            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                        } else {
+                            Text("Dudukkan Tamu")
+                        }
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = onDismissSeat, enabled = !uiState.isSubmitting) { Text("Batal") }
-                }
+                },
             )
         }
     }
@@ -359,7 +373,7 @@ private fun ReservationListContent(
     onCancel: (Reservation) -> Unit,
     onEdit: (Reservation) -> Unit,
     modifier: Modifier = Modifier,
-    bottomPadding: androidx.compose.ui.unit.Dp = 16.dp
+    bottomPadding: androidx.compose.ui.unit.Dp = 16.dp,
 ) {
     Column(modifier.fillMaxSize()) {
         if (uiState.reservations.isNotEmpty()) {
@@ -367,24 +381,26 @@ private fun ReservationListContent(
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             ReservationStatusFilter.entries.forEach { filter ->
-                val count = when (filter) {
-                    ReservationStatusFilter.ALL -> uiState.reservations.size
-                    else -> uiState.reservations.count { it.status == filter.apiValue }
-                }
+                val count =
+                    when (filter) {
+                        ReservationStatusFilter.ALL -> uiState.reservations.size
+                        else -> uiState.reservations.count { it.status == filter.apiValue }
+                    }
                 FilterChip(
                     selected = uiState.statusFilter == filter,
-                    onClick  = { onFilterChange(filter) },
-                    label    = {
+                    onClick = { onFilterChange(filter) },
+                    label = {
                         val countText = if (count > 0) " $count" else ""
                         Text("${filter.label}$countText", style = MaterialTheme.typography.labelMedium)
-                    }
+                    },
                 )
             }
         }
@@ -393,34 +409,38 @@ private fun ReservationListContent(
 
         Box(Modifier.fillMaxSize()) {
             when {
-                uiState.isLoading  -> LoadingScreen()
+                uiState.isLoading -> LoadingScreen()
                 uiState.error != null -> ErrorScreen(uiState.error, onRetry = onRetry)
-                uiState.reservations.isEmpty() -> EmptyScreen(
-                    if (uiState.statusFilter == ReservationStatusFilter.ALL)
-                        "Belum ada reservasi"
-                    else
-                        "Tidak ada reservasi dengan status '${uiState.statusFilter.label}'"
-                )
-                else -> LazyColumn(
-                    contentPadding      = PaddingValues(
-                        start  = 12.dp,
-                        end    = 12.dp,
-                        top    = 10.dp,
-                        bottom = bottomPadding
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(uiState.reservations, key = { it.uuid }) { r ->
-                        ReservationCard(
-                            reservation = r,
-                            onConfirm   = { onConfirm(r) },
-                            onSeat      = { onSeat(r) },
-                            onComplete  = { onComplete(r) },
-                            onCancel    = { onCancel(r) },
-                            onEdit      = { onEdit(r) }
-                        )
+                uiState.reservations.isEmpty() ->
+                    EmptyScreen(
+                        if (uiState.statusFilter == ReservationStatusFilter.ALL) {
+                            "Belum ada reservasi"
+                        } else {
+                            "Tidak ada reservasi dengan status '${uiState.statusFilter.label}'"
+                        },
+                    )
+                else ->
+                    LazyColumn(
+                        contentPadding =
+                            PaddingValues(
+                                start = 12.dp,
+                                end = 12.dp,
+                                top = 10.dp,
+                                bottom = bottomPadding,
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(uiState.reservations, key = { it.uuid }) { r ->
+                            ReservationCard(
+                                reservation = r,
+                                onConfirm = { onConfirm(r) },
+                                onSeat = { onSeat(r) },
+                                onComplete = { onComplete(r) },
+                                onCancel = { onCancel(r) },
+                                onEdit = { onEdit(r) },
+                            )
+                        }
                     }
-                }
             }
         }
     }
@@ -430,45 +450,62 @@ private fun ReservationListContent(
 
 @Composable
 private fun ReservationSummaryStrip(reservations: ImmutableList<Reservation>) {
-    val pending   = reservations.count { it.status == "pending" }
+    val pending = reservations.count { it.status == "pending" }
     val confirmed = reservations.count { it.status == "confirmed" }
-    val seated    = reservations.count { it.status == "seated" }
-    val total     = reservations.size
+    val seated = reservations.count { it.status == "seated" }
+    val total = reservations.size
 
     Surface(
         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             SummaryItem("Total", "$total", MaterialTheme.colorScheme.onSurface)
             VerticalDivider(modifier = Modifier.height(30.dp))
-            SummaryItem("Menunggu", "$pending", if (pending > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+            SummaryItem(
+                "Menunggu",
+                "$pending",
+                if (pending > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             VerticalDivider(modifier = Modifier.height(30.dp))
-            SummaryItem("Konfirm", "$confirmed", if (confirmed > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+            SummaryItem(
+                "Konfirm",
+                "$confirmed",
+                if (confirmed > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             VerticalDivider(modifier = Modifier.height(30.dp))
-            SummaryItem("Hadir", "$seated", if (seated > 0) RancakColors.semantic.statusAvailable else MaterialTheme.colorScheme.onSurfaceVariant)
+            SummaryItem(
+                "Hadir",
+                "$seated",
+                if (seated > 0) RancakColors.semantic.statusAvailable else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
 
 @Composable
-private fun SummaryItem(label: String, value: String, color: androidx.compose.ui.graphics.Color) {
+private fun SummaryItem(
+    label: String,
+    value: String,
+    color: androidx.compose.ui.graphics.Color,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             value,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = color
+            color = color,
         )
         Text(
             label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

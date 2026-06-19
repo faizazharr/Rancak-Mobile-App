@@ -24,17 +24,23 @@ object FlexibleLongSerializer : KSerializer<Long> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("FlexibleLong", PrimitiveKind.LONG)
 
-    override fun serialize(encoder: Encoder, value: Long) = encoder.encodeLong(value)
+    override fun serialize(
+        encoder: Encoder,
+        value: Long,
+    ) = encoder.encodeLong(value)
 
     override fun deserialize(decoder: Decoder): Long {
-        val jsonDecoder = decoder as? JsonDecoder
-            ?: return decoder.decodeLong()
+        val jsonDecoder =
+            decoder as? JsonDecoder
+                ?: return decoder.decodeLong()
         return when (val el = jsonDecoder.decodeJsonElement()) {
-            is JsonPrimitive -> when {
-                el.isString -> el.content.toDoubleOrNull()?.toLong()
-                    ?: el.content.toLongOrNull() ?: 0L
-                else -> el.longOrNull ?: el.doubleOrNull?.toLong() ?: 0L
-            }
+            is JsonPrimitive ->
+                when {
+                    el.isString ->
+                        el.content.toDoubleOrNull()?.toLong()
+                            ?: el.content.toLongOrNull() ?: 0L
+                    else -> el.longOrNull ?: el.doubleOrNull?.toLong() ?: 0L
+                }
             else -> 0L
         }
     }

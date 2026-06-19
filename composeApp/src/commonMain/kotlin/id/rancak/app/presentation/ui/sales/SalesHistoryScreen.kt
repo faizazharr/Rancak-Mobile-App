@@ -10,11 +10,16 @@ import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.rancak.app.domain.model.OrderType
+import id.rancak.app.domain.model.PaymentMethod
+import id.rancak.app.domain.model.Sale
+import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
@@ -23,20 +28,15 @@ import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.sales.components.RefundBottomSheet
 import id.rancak.app.presentation.ui.sales.components.SaleCard
-import kotlinx.coroutines.launch
 import id.rancak.app.presentation.ui.sales.components.SaleDetailPanel
 import id.rancak.app.presentation.ui.sales.components.SalesSummaryPanel
 import id.rancak.app.presentation.ui.sales.components.SearchAndFilterBar
 import id.rancak.app.presentation.viewmodel.DateFilter
 import id.rancak.app.presentation.viewmodel.SalesHistoryUiState
 import id.rancak.app.presentation.viewmodel.SalesHistoryViewModel
-import id.rancak.app.domain.model.Sale
-import id.rancak.app.domain.model.SaleStatus
-import id.rancak.app.domain.model.PaymentMethod
-import id.rancak.app.domain.model.OrderType
-import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -54,7 +54,7 @@ data class SalesHistoryActions(
     val onSplitBill: (String) -> Unit = {},
     val onAddItems: (String) -> Unit = {},
     val onRefund: (Sale) -> Unit = {},
-    val onReprint: (saleUuid: String) -> Unit = {}
+    val onReprint: (saleUuid: String) -> Unit = {},
 )
 
 /**
@@ -73,7 +73,7 @@ fun SalesHistoryScreen(
     onPayHeldOrder: (String) -> Unit = {},
     onSplitBill: (String) -> Unit = {},
     onAddItems: (String) -> Unit = {},
-    initialStatusFilter: id.rancak.app.domain.model.SaleStatus? = null
+    initialStatusFilter: id.rancak.app.domain.model.SaleStatus? = null,
 ) {
     val viewModel: SalesHistoryViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -87,36 +87,37 @@ fun SalesHistoryScreen(
     }
 
     SalesHistoryScreenContent(
-        uiState       = uiState,
-        onBack        = onBack,
+        uiState = uiState,
+        onBack = onBack,
         onViewReports = onViewReports,
-        onRetry       = viewModel::loadSales,
+        onRetry = viewModel::loadSales,
         snackbarHostState = snackbarHostState,
-        actions   = SalesHistoryActions(
-            onSearch        = viewModel::setSearchQuery,
-            onDateFilter    = viewModel::setDateFilter,
-            onStatusFilter  = viewModel::setStatusFilter,
-            onCustomRange   = viewModel::setCustomDateRange,
-            onClearFilters  = viewModel::clearFilters,
-            onSelect        = { sale -> if (sale == null) viewModel.selectSale(null) else viewModel.selectSaleAndFetchDetail(sale) },
-            onPayHeldOrder  = onPayHeldOrder,
-            onSplitBill     = onSplitBill,
-            onAddItems      = onAddItems,
-            onRefund        = { sale -> refundTarget = sale },
-            onReprint       = viewModel::reprintSale
-        )
+        actions =
+            SalesHistoryActions(
+                onSearch = viewModel::setSearchQuery,
+                onDateFilter = viewModel::setDateFilter,
+                onStatusFilter = viewModel::setStatusFilter,
+                onCustomRange = viewModel::setCustomDateRange,
+                onClearFilters = viewModel::clearFilters,
+                onSelect = { sale -> if (sale == null) viewModel.selectSale(null) else viewModel.selectSaleAndFetchDetail(sale) },
+                onPayHeldOrder = onPayHeldOrder,
+                onSplitBill = onSplitBill,
+                onAddItems = onAddItems,
+                onRefund = { sale -> refundTarget = sale },
+                onReprint = viewModel::reprintSale,
+            ),
     )
 
     refundTarget?.let { sale ->
         RefundBottomSheet(
-            sale            = sale,
-            onDismiss       = { refundTarget = null },
+            sale = sale,
+            onDismiss = { refundTarget = null },
             onRefundSuccess = {
                 refundTarget = null
                 viewModel.selectSaleAndFetchDetail(sale)
                 viewModel.loadSales()
                 scope.launch { snackbarHostState.showSnackbar("Refund berhasil diproses") }
-            }
+            },
         )
     }
 
@@ -139,41 +140,47 @@ fun SalesHistoryScreenContent(
     onViewReports: () -> Unit = {},
     onRetry: () -> Unit,
     actions: SalesHistoryActions,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         topBar = {
             RancakTopBar(
-                title    = "Riwayat Penjualan",
-                icon     = Icons.Default.Receipt,
+                title = "Riwayat Penjualan",
+                icon = Icons.Default.Receipt,
                 subtitle = "Catatan seluruh transaksi",
-                onMenu   = onBack,
-                actions  = {
+                onMenu = onBack,
+                actions = {
                     IconButton(onClick = onViewReports) {
                         Icon(Icons.Default.BarChart, contentDescription = "Laporan")
                     }
-                }
+                },
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         when {
             uiState.isLoading -> LoadingScreen(Modifier.padding(padding))
-            uiState.error != null -> ErrorScreen(
-                uiState.error,
-                onRetry  = onRetry,
-                modifier = Modifier.padding(padding)
-            )
-            uiState.allSales.isEmpty() -> EmptyScreen(
-                "Belum ada transaksi",
-                Modifier.padding(padding)
-            )
-            else -> BoxWithConstraints(modifier = Modifier.padding(padding).fillMaxSize()) {
-                val sizes = LocalSizes.current
-                val isTablet = maxWidth >= sizes.tabletBreakpoint
-                if (isTablet) TabletLayout(uiState, actions)
-                else          PhoneLayout(uiState, actions)
-            }
+            uiState.error != null ->
+                ErrorScreen(
+                    uiState.error,
+                    onRetry = onRetry,
+                    modifier = Modifier.padding(padding),
+                )
+            uiState.allSales.isEmpty() ->
+                EmptyScreen(
+                    "Belum ada transaksi",
+                    Modifier.padding(padding),
+                )
+            else ->
+                BoxWithConstraints(modifier = Modifier.padding(padding).fillMaxSize()) {
+                    val sizes = LocalSizes.current
+                    val isTablet = maxWidth >= sizes.tabletBreakpoint
+                    if (isTablet) {
+                        TabletLayout(uiState, actions)
+                    } else {
+                        PhoneLayout(uiState, actions)
+                    }
+                }
         }
     }
 }
@@ -183,17 +190,17 @@ fun SalesHistoryScreenContent(
 @Composable
 private fun TabletLayout(
     uiState: SalesHistoryUiState,
-    actions: SalesHistoryActions
+    actions: SalesHistoryActions,
 ) {
     Row(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(0.38f).fillMaxHeight()) {
             SalesFilterBar(uiState, actions)
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             SalesList(
-                uiState       = uiState,
-                actions       = actions,
+                uiState = uiState,
+                actions = actions,
                 reflectSelect = true,
-                modifier      = Modifier.weight(1f).fillMaxHeight()
+                modifier = Modifier.weight(1f).fillMaxHeight(),
             )
         }
 
@@ -203,13 +210,13 @@ private fun TabletLayout(
             val selected = uiState.selectedSale
             if (selected != null) {
                 SaleDetailPanel(
-                    sale           = selected,
+                    sale = selected,
                     onPayHeldOrder = actions.onPayHeldOrder,
-                    onSplitBill    = actions.onSplitBill,
-                    onAddItems     = actions.onAddItems,
-                    onRefund       = actions.onRefund,
-                    onReprint      = { actions.onReprint(selected.uuid) },
-                    modifier       = Modifier.fillMaxSize()
+                    onSplitBill = actions.onSplitBill,
+                    onAddItems = actions.onAddItems,
+                    onRefund = actions.onRefund,
+                    onReprint = { actions.onReprint(selected.uuid) },
+                    modifier = Modifier.fillMaxSize(),
                 )
             } else {
                 SalesSummaryPanel(sales = uiState.sales.toImmutableList(), modifier = Modifier.fillMaxSize())
@@ -221,16 +228,16 @@ private fun TabletLayout(
 @Composable
 private fun PhoneLayout(
     uiState: SalesHistoryUiState,
-    actions: SalesHistoryActions
+    actions: SalesHistoryActions,
 ) {
     Column(Modifier.fillMaxSize()) {
         SalesFilterBar(uiState, actions)
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
         SalesList(
-            uiState       = uiState,
-            actions       = actions,
+            uiState = uiState,
+            actions = actions,
             reflectSelect = false,
-            modifier      = Modifier.weight(1f).fillMaxSize()
+            modifier = Modifier.weight(1f).fillMaxSize(),
         )
     }
 
@@ -241,12 +248,12 @@ private fun PhoneLayout(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         "Detail Transaksi",
-                        style      = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                     )
                     IconButton(onClick = { actions.onSelect(null) }) {
                         Icon(Icons.Default.Close, "Tutup")
@@ -255,18 +262,18 @@ private fun PhoneLayout(
             },
             text = {
                 SaleDetailPanel(
-                    sale           = sale,
+                    sale = sale,
                     onPayHeldOrder = actions.onPayHeldOrder,
-                    onSplitBill    = actions.onSplitBill,
-                    onAddItems     = actions.onAddItems,
-                    onRefund       = actions.onRefund,
-                    onReprint      = { actions.onReprint(sale.uuid) },
-                    modifier       = Modifier.fillMaxWidth()
+                    onSplitBill = actions.onSplitBill,
+                    onAddItems = actions.onAddItems,
+                    onRefund = actions.onRefund,
+                    onReprint = { actions.onReprint(sale.uuid) },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
             confirmButton = {
                 TextButton(onClick = { actions.onSelect(null) }) { Text("Tutup") }
-            }
+            },
         )
     }
 }
@@ -277,22 +284,23 @@ private fun PhoneLayout(
 @Composable
 private fun SalesFilterBar(
     uiState: SalesHistoryUiState,
-    actions: SalesHistoryActions
+    actions: SalesHistoryActions,
 ) {
     SearchAndFilterBar(
-        query             = uiState.searchQuery,
-        dateFilter        = uiState.dateFilter,
-        statusFilter      = uiState.statusFilter,
-        customDateFrom    = uiState.customDateFrom,
-        customDateTo      = uiState.customDateTo,
-        onQueryChange     = actions.onSearch,
-        onDateFilter      = actions.onDateFilter,
-        onStatusFilter    = actions.onStatusFilter,
+        query = uiState.searchQuery,
+        dateFilter = uiState.dateFilter,
+        statusFilter = uiState.statusFilter,
+        customDateFrom = uiState.customDateFrom,
+        customDateTo = uiState.customDateTo,
+        onQueryChange = actions.onSearch,
+        onDateFilter = actions.onDateFilter,
+        onStatusFilter = actions.onStatusFilter,
         onCustomDateRange = actions.onCustomRange,
-        onClear           = actions.onClearFilters,
-        hasActiveFilter   = uiState.searchQuery.isNotBlank() ||
-                            uiState.dateFilter != DateFilter.ALL ||
-                            uiState.statusFilter != null
+        onClear = actions.onClearFilters,
+        hasActiveFilter =
+            uiState.searchQuery.isNotBlank() ||
+                uiState.dateFilter != DateFilter.ALL ||
+                uiState.statusFilter != null,
     )
 }
 
@@ -301,24 +309,24 @@ private fun SalesList(
     uiState: SalesHistoryUiState,
     actions: SalesHistoryActions,
     reflectSelect: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (uiState.sales.isEmpty()) {
         NoResultsBox(
-            onClear  = actions.onClearFilters,
-            modifier = modifier
+            onClear = actions.onClearFilters,
+            modifier = modifier,
         )
     } else {
         LazyColumn(
-            modifier            = modifier,
-            contentPadding      = PaddingValues(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = modifier,
+            contentPadding = PaddingValues(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             items(uiState.sales, key = { it.uuid }) { sale ->
                 SaleCard(
-                    sale       = sale,
+                    sale = sale,
                     isSelected = reflectSelect && sale.uuid == uiState.selectedSale?.uuid,
-                    onClick    = { actions.onSelect(sale) }
+                    onClick = { actions.onSelect(sale) },
                 )
             }
         }
@@ -328,27 +336,28 @@ private fun SalesList(
 @Composable
 private fun NoResultsBox(
     onClear: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Icon(
-                Icons.Default.SearchOff, contentDescription = null,
+                Icons.Default.SearchOff,
+                contentDescription = null,
                 modifier = Modifier.size(40.dp),
-                tint     = MaterialTheme.colorScheme.outlineVariant
+                tint = MaterialTheme.colorScheme.outlineVariant,
             )
             Text(
                 "Tidak ada hasil",
-                style      = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
             )
             Text(
                 "Coba ubah kata kunci atau filter",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             TextButton(onClick = onClear) { Text("Reset Filter") }
         }
@@ -359,24 +368,25 @@ private fun NoResultsBox(
 // Previews — memanggil SalesHistoryScreenContent langsung
 // ─────────────────────────────────────────────────────────────────────────────
 
-private val previewSales = persistentListOf(
-    Sale(
-        uuid = "s1", invoiceNo = "INV-001", orderType = OrderType.DINE_IN,
-        queueNumber = 1, status = SaleStatus.PAID, customerName = "Andi",
-        subtotal = 50_000, discount = 0, surcharge = 0,
-        tax = 5_000, total = 55_000, paymentMethod = PaymentMethod.CASH,
-        paidAmount = 60_000, changeAmount = 5_000,
-        items = persistentListOf(), createdAt = "2026-01-01T10:00:00"
-    ),
-    Sale(
-        uuid = "s2", invoiceNo = "INV-002", orderType = OrderType.TAKEAWAY,
-        queueNumber = 2, status = SaleStatus.PAID, customerName = "Budi",
-        subtotal = 30_000, discount = 0, surcharge = 0,
-        tax = 3_000, total = 33_000, paymentMethod = PaymentMethod.QRIS,
-        paidAmount = 33_000, changeAmount = 0,
-        items = persistentListOf(), createdAt = "2026-01-01T11:00:00"
+private val previewSales =
+    persistentListOf(
+        Sale(
+            uuid = "s1", invoiceNo = "INV-001", orderType = OrderType.DINE_IN,
+            queueNumber = 1, status = SaleStatus.PAID, customerName = "Andi",
+            subtotal = 50_000, discount = 0, surcharge = 0,
+            tax = 5_000, total = 55_000, paymentMethod = PaymentMethod.CASH,
+            paidAmount = 60_000, changeAmount = 5_000,
+            items = persistentListOf(), createdAt = "2026-01-01T10:00:00",
+        ),
+        Sale(
+            uuid = "s2", invoiceNo = "INV-002", orderType = OrderType.TAKEAWAY,
+            queueNumber = 2, status = SaleStatus.PAID, customerName = "Budi",
+            subtotal = 30_000, discount = 0, surcharge = 0,
+            tax = 3_000, total = 33_000, paymentMethod = PaymentMethod.QRIS,
+            paidAmount = 33_000, changeAmount = 0,
+            items = persistentListOf(), createdAt = "2026-01-01T11:00:00",
+        ),
     )
-)
 
 @Preview(name = "Sales – Empty", widthDp = 390, heightDp = 844)
 @Composable
@@ -384,9 +394,9 @@ private fun SalesHistoryEmptyPreview() {
     RancakTheme {
         SalesHistoryScreenContent(
             uiState = SalesHistoryUiState(),
-            onBack  = {},
+            onBack = {},
             onRetry = {},
-            actions = SalesHistoryActions()
+            actions = SalesHistoryActions(),
         )
     }
 }
@@ -396,13 +406,14 @@ private fun SalesHistoryEmptyPreview() {
 private fun SalesHistoryPhonePreview() {
     RancakTheme {
         SalesHistoryScreenContent(
-            uiState = SalesHistoryUiState(
-                allSales = previewSales,
-                sales = previewSales
-            ),
-            onBack  = {},
+            uiState =
+                SalesHistoryUiState(
+                    allSales = previewSales,
+                    sales = previewSales,
+                ),
+            onBack = {},
             onRetry = {},
-            actions = SalesHistoryActions()
+            actions = SalesHistoryActions(),
         )
     }
 }
@@ -412,13 +423,14 @@ private fun SalesHistoryPhonePreview() {
 private fun SalesHistoryTabletPreview() {
     RancakTheme {
         SalesHistoryScreenContent(
-            uiState = SalesHistoryUiState(
-                allSales = previewSales,
-                sales = previewSales
-            ),
-            onBack  = {},
+            uiState =
+                SalesHistoryUiState(
+                    allSales = previewSales,
+                    sales = previewSales,
+                ),
+            onBack = {},
             onRetry = {},
-            actions = SalesHistoryActions()
+            actions = SalesHistoryActions(),
         )
     }
 }

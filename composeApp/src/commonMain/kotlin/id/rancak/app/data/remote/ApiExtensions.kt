@@ -23,10 +23,15 @@ internal suspend inline fun <reified T> HttpResponse.safeBody(): ApiResponse<T> 
     return if (ct != null && ct.match(ContentType.Application.Json)) {
         body()
     } else {
-        val text = try { bodyAsText() } catch (_: Exception) { status.description }
+        val text =
+            try {
+                bodyAsText()
+            } catch (_: Exception) {
+                status.description
+            }
         ApiResponse(
             statusCode = status.value,
-            message = text.ifBlank { "Terjadi kesalahan (${status.value})" }
+            message = text.ifBlank { "Terjadi kesalahan (${status.value})" },
         )
     }
 }

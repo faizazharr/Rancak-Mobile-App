@@ -40,5 +40,5 @@ data class ReceiptSettingsConfig(
     /** Nama SSID WiFi toko. */
     val receiptWifiSsid: String? = null,
     /** Password WiFi — hanya tampil jika wifiSsid juga diisi. */
-    val receiptWifiPassword: String? = null
+    val receiptWifiPassword: String? = null,
 )

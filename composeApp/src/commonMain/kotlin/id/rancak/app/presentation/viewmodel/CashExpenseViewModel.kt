@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.CashIn
@@ -29,20 +28,19 @@ data class CashExpenseUiState(
     val formAmount: String = "",
     val formDescription: String = "",
     val formSource: String = "",
-    val formNote: String = ""
+    val formNote: String = "",
 )
 
 class CashExpenseViewModel(
-    private val financeRepository: FinanceRepository
+    private val financeRepository: FinanceRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(CashExpenseUiState())
     val uiState: StateFlow<CashExpenseUiState> = _uiState.asStateFlow()
 
     fun loadAll() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            
+
             val cashInsDeferred = async { financeRepository.getCashIns() }
             val expensesDeferred = async { financeRepository.getExpenses() }
 
@@ -54,29 +52,58 @@ class CashExpenseViewModel(
                     isLoading = false,
                     cashIns = (cashInsRes as? Resource.Success)?.data?.toImmutableList() ?: state.cashIns,
                     expenses = (expensesRes as? Resource.Success)?.data?.toImmutableList() ?: state.expenses,
-                    error = when {
-                        cashInsRes is Resource.Error -> cashInsRes.message
-                        expensesRes is Resource.Error -> expensesRes.message
-                        else -> null
-                    }
+                    error =
+                        when {
+                            cashInsRes is Resource.Error -> cashInsRes.message
+                            expensesRes is Resource.Error -> expensesRes.message
+                            else -> null
+                        },
                 )
             }
         }
     }
 
-    fun toggleCashInForm() { _uiState.update { it.copy(showCashInForm = !it.showCashInForm, formAmount = "", formDescription = "", formSource = "", formNote = "") } }
-    fun toggleExpenseForm() { _uiState.update { it.copy(showExpenseForm = !it.showExpenseForm, formAmount = "", formDescription = "", formNote = "") } }
-    fun onAmountChange(v: String) { _uiState.update { it.copy(formAmount = v) } }
-    fun onDescriptionChange(v: String) { _uiState.update { it.copy(formDescription = v) } }
-    fun onSourceChange(v: String) { _uiState.update { it.copy(formSource = v) } }
-    fun onNoteChange(v: String) { _uiState.update { it.copy(formNote = v) } }
+    fun toggleCashInForm() {
+        _uiState.update {
+            it.copy(
+                showCashInForm = !it.showCashInForm,
+                formAmount = "",
+                formDescription = "",
+                formSource = "",
+                formNote = "",
+            )
+        }
+    }
+
+    fun toggleExpenseForm() {
+        _uiState.update { it.copy(showExpenseForm = !it.showExpenseForm, formAmount = "", formDescription = "", formNote = "") }
+    }
+
+    fun onAmountChange(v: String) {
+        _uiState.update { it.copy(formAmount = v) }
+    }
+
+    fun onDescriptionChange(v: String) {
+        _uiState.update { it.copy(formDescription = v) }
+    }
+
+    fun onSourceChange(v: String) {
+        _uiState.update { it.copy(formSource = v) }
+    }
+
+    fun onNoteChange(v: String) {
+        _uiState.update { it.copy(formNote = v) }
+    }
 
     fun submitCashIn() {
         val s = _uiState.value
         val amount = s.formAmount.toLongOrNull() ?: return
         viewModelScope.launch {
             when (val result = financeRepository.createCashIn(amount, s.formSource, s.formDescription, s.formNote.ifBlank { null })) {
-                is Resource.Success -> { toggleCashInForm(); loadAll() }
+                is Resource.Success -> {
+                    toggleCashInForm()
+                    loadAll()
+                }
                 is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
@@ -88,7 +115,10 @@ class CashExpenseViewModel(
         val amount = s.formAmount.toLongOrNull() ?: return
         viewModelScope.launch {
             when (val result = financeRepository.createExpense(amount, s.formDescription, s.formNote.ifBlank { null })) {
-                is Resource.Success -> { toggleExpenseForm(); loadAll() }
+                is Resource.Success -> {
+                    toggleExpenseForm()
+                    loadAll()
+                }
                 is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }

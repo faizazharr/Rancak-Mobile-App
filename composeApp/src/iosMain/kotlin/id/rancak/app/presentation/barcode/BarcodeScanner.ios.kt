@@ -11,20 +11,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitView
 import kotlinx.cinterop.*
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.time.Clock
 import platform.AVFoundation.*
 import platform.CoreGraphics.*
 import platform.Foundation.NSError
+import platform.QuartzCore.*
 import platform.UIKit.*
 import platform.darwin.NSObject
 import platform.darwin.dispatch_get_main_queue
 import kotlin.coroutines.resume
+import kotlin.time.Clock
 
 /**
  * iOS barcode scanner menggunakan AVFoundation.
@@ -45,39 +45,42 @@ import kotlin.coroutines.resume
 @Composable
 actual fun BarcodeScannerView(
     onBarcodeDetected: (String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     // null = checking, true = granted, false = denied
     var hasPermission by remember { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(Unit) {
         val status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)
-        hasPermission = when (status) {
-            AVAuthorizationStatusAuthorized -> true
-            AVAuthorizationStatusNotDetermined -> {
-                // Minta izin — callback dipanggil di main thread
-                suspendCancellableCoroutine { cont ->
-                    AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
-                        cont.resume(granted)
+        hasPermission =
+            when (status) {
+                AVAuthorizationStatusAuthorized -> true
+                AVAuthorizationStatusNotDetermined -> {
+                    // Minta izin — callback dipanggil di main thread
+                    suspendCancellableCoroutine { cont ->
+                        AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
+                            cont.resume(granted)
+                        }
                     }
                 }
+                else -> false // AVAuthorizationStatusDenied / Restricted
             }
-            else -> false  // AVAuthorizationStatusDenied / Restricted
-        }
     }
 
     when (hasPermission) {
-        true  -> CameraBarcodeScannerContent(
-            onBarcodeDetected = onBarcodeDetected,
-            onClose           = onClose
-        )
+        true ->
+            CameraBarcodeScannerContent(
+                onBarcodeDetected = onBarcodeDetected,
+                onClose = onClose,
+            )
         false -> NoCameraPermissionContent(onClose = onClose)
-        null  -> Box(
-            modifier          = Modifier.fillMaxSize().background(Color.Black),
-            contentAlignment  = Alignment.Center
-        ) {
-            CircularProgressIndicator(color = Color.White)
-        }
+        null ->
+            Box(
+                modifier = Modifier.fillMaxSize().background(Color.Black),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = Color.White)
+            }
     }
 }
 
@@ -89,17 +92,16 @@ actual fun BarcodeScannerView(
 @Composable
 private fun CameraBarcodeScannerContent(
     onBarcodeDetected: (String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     // Delegate hidup selama composable aktif
     val scannerDelegate = remember { BarcodeScannerDelegate(onBarcodeDetected) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-
         // ── Native camera preview (UIKitView) ──────────────────────────────────
-        UIKitView(
+        UIKitView<CameraPreviewView>(
             factory = {
-                val containerView = UIView()
+                val containerView = CameraPreviewView(CGRectZero.readValue())
                 containerView.backgroundColor = UIColor.blackColor
 
                 val session = AVCaptureSession()
@@ -108,10 +110,11 @@ private fun CameraBarcodeScannerContent(
                 // Input: kamera belakang
                 val device = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
                 if (device != null) {
-                    @Suppress("UNCHECKED_CAST")
-                    val input = AVCaptureDeviceInput.deviceInputWithDevice(
-                        device, null as CPointer<ObjCObjectVar<NSError?>>?
-                    ) as? AVCaptureDeviceInput
+                    val input =
+                        AVCaptureDeviceInput.deviceInputWithDevice(
+                            device,
+                            null as CPointer<ObjCObjectVar<NSError?>>?,
+                        )
                     if (input != null && session.canAddInput(input)) {
                         session.addInput(input)
                     }
@@ -124,66 +127,65 @@ private fun CameraBarcodeScannerContent(
                     // Delegate harus diset SETELAH addOutput agar metadataObjectTypes valid
                     metadataOutput.setMetadataObjectsDelegate(
                         scannerDelegate,
-                        queue = dispatch_get_main_queue()
+                        queue = dispatch_get_main_queue(),
                     )
-                    metadataOutput.metadataObjectTypes = listOf(
-                        AVMetadataObjectTypeQRCode,
-                        AVMetadataObjectTypeEAN13Code,
-                        AVMetadataObjectTypeEAN8Code,
-                        AVMetadataObjectTypeCode128Code,
-                        AVMetadataObjectTypeCode39Code,
-                        AVMetadataObjectTypeDataMatrixCode
-                    )
+                    metadataOutput.metadataObjectTypes =
+                        listOf(
+                            AVMetadataObjectTypeQRCode,
+                            AVMetadataObjectTypeEAN13Code,
+                            AVMetadataObjectTypeEAN8Code,
+                            AVMetadataObjectTypeCode128Code,
+                            AVMetadataObjectTypeCode39Code,
+                            AVMetadataObjectTypeDataMatrixCode,
+                        )
                 }
 
                 // Preview layer
                 val previewLayer = AVCaptureVideoPreviewLayer(session = session)
                 previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
                 containerView.layer.addSublayer(previewLayer)
+                containerView.setPreviewLayer(previewLayer)
 
                 // Simpan referensi untuk resize & cleanup
-                scannerDelegate.session      = session
+                scannerDelegate.session = session
                 scannerDelegate.previewLayer = previewLayer
 
                 session.startRunning()
                 containerView
             },
-            onResize = { _, rect ->
-                // Update frame preview layer setiap kali ukuran view berubah
-                scannerDelegate.previewLayer?.setFrame(rect)
-            },
             onRelease = { _ ->
                 // Stop capture session saat composable dihapus dari tree
                 scannerDelegate.session?.stopRunning()
             },
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         )
 
         // ── Close button ──────────────────────────────────────────────────────
         Box(
-            modifier         = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(end = 8.dp, top = 4.dp),
-            contentAlignment = Alignment.TopEnd
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(end = 8.dp, top = 4.dp),
+            contentAlignment = Alignment.TopEnd,
         ) {
             IconButton(onClick = {
                 scannerDelegate.session?.stopRunning()
                 onClose()
             }) {
                 Icon(
-                    imageVector        = Icons.Default.Close,
+                    imageVector = Icons.Default.Close,
                     contentDescription = "Tutup scanner",
-                    tint               = Color.White
+                    tint = Color.White,
                 )
             }
         }
 
         // ── Viewfinder overlay ────────────────────────────────────────────────
         Column(
-            modifier              = Modifier.fillMaxSize(),
-            horizontalAlignment   = Alignment.CenterHorizontally,
-            verticalArrangement   = Arrangement.Center
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
@@ -216,10 +218,10 @@ private fun CameraBarcodeScannerContent(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text      = "Arahkan kamera ke barcode produk",
-                color     = Color.White.copy(alpha = 0.85f),
-                style     = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
+                text = "Arahkan kamera ke barcode produk",
+                color = Color.White.copy(alpha = 0.85f),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
             )
 
             Spacer(modifier = Modifier.weight(1.5f))
@@ -234,32 +236,34 @@ private fun CameraBarcodeScannerContent(
 @Composable
 private fun NoCameraPermissionContent(onClose: () -> Unit) {
     Box(
-        modifier         = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black),
+        contentAlignment = Alignment.Center,
     ) {
         Column(
-            modifier              = Modifier.padding(32.dp),
-            horizontalAlignment   = Alignment.CenterHorizontally,
-            verticalArrangement   = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text  = "Akses Kamera Diperlukan",
+                text = "Akses Kamera Diperlukan",
                 color = Color.White,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
             Text(
-                text      = "Buka Settings › Privacy & Security › Kamera,\n" +
-                             "lalu aktifkan akses untuk aplikasi ini.",
-                color     = Color.White.copy(alpha = 0.7f),
-                style     = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
+                text =
+                    "Buka Settings › Privacy & Security › Kamera,\n" +
+                        "lalu aktifkan akses untuk aplikasi ini.",
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = onClose,
-                colors  = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
             ) {
                 Text("Tutup")
             }
@@ -273,10 +277,9 @@ private fun NoCameraPermissionContent(onClose: () -> Unit) {
 
 @OptIn(ExperimentalForeignApi::class)
 private class BarcodeScannerDelegate(
-    private val onDetected: (String) -> Unit
+    private val onDetected: (String) -> Unit,
 ) : NSObject(), AVCaptureMetadataOutputObjectsDelegateProtocol {
-
-    var session:      AVCaptureSession?          = null
+    var session: AVCaptureSession? = null
     var previewLayer: AVCaptureVideoPreviewLayer? = null
 
     /** Epoch millis saat barcode terakhir berhasil di-scan (debounce 1 detik). */
@@ -285,18 +288,38 @@ private class BarcodeScannerDelegate(
     override fun captureOutput(
         output: AVCaptureOutput,
         didOutputMetadataObjects: List<*>,
-        fromConnection: AVCaptureConnection
+        fromConnection: AVCaptureConnection,
     ) {
         val now = Clock.System.now().toEpochMilliseconds()
-        if (now - lastScanTime < 1_000L) return  // debounce 1 detik
+        if (now - lastScanTime < 1_000L) return // debounce 1 detik
 
-        val barcode = didOutputMetadataObjects
-            .filterIsInstance<AVMetadataMachineReadableCodeObject>()
-            .firstOrNull()
-            ?.stringValue
-            ?: return
+        val barcode =
+            didOutputMetadataObjects
+                .filterIsInstance<AVMetadataMachineReadableCodeObject>()
+                .firstOrNull()
+                ?.stringValue
+                ?: return
 
         lastScanTime = now
         onDetected(barcode)
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+@ExportObjCClass
+private class CameraPreviewView(frame: CValue<CGRect>) : UIView(frame = frame) {
+    private var previewLayer: AVCaptureVideoPreviewLayer? = null
+
+    fun setPreviewLayer(layer: AVCaptureVideoPreviewLayer) {
+        this.previewLayer = layer
+        layer.setFrame(this.bounds)
+    }
+
+    override fun layoutSubviews() {
+        super.layoutSubviews()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        previewLayer?.setFrame(this.bounds)
+        CATransaction.commit()
     }
 }

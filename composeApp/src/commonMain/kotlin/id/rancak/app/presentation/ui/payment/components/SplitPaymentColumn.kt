@@ -36,50 +36,56 @@ private val splitMethods = listOf(PaymentMethod.CASH, PaymentMethod.QRIS)
  */
 @Composable
 internal fun SplitPaymentColumn(
-    groupNumber:        Int,
+    groupNumber: Int,
     currentItemSubtotal: Long,
-    groupActualTotal:   Long,
-    hasFeeShare:        Boolean,
-    currentMethod:      PaymentMethod,
-    currentCashInput:   String,
-    change:             Long,
-    canConfirm:         Boolean,
-    allAssigned:        Boolean,
+    groupActualTotal: Long,
+    hasFeeShare: Boolean,
+    currentMethod: PaymentMethod,
+    currentCashInput: String,
+    change: Long,
+    canConfirm: Boolean,
+    allAssigned: Boolean,
     hasConfirmedGroups: Boolean,
-    isProcessing:       Boolean,
-    anyItemSelected:    Boolean,
+    isProcessing: Boolean,
+    anyItemSelected: Boolean,
     merchantQrisString: String,
-    onSetMethod:        (PaymentMethod) -> Unit,
-    onSetCashInput:     (String) -> Unit,
-    onConfirmGroup:     () -> Unit,
-    onConfirmAndPrint:  () -> Unit,
-    onProcess:          () -> Unit,
-    modifier:           Modifier = Modifier
+    onSetMethod: (PaymentMethod) -> Unit,
+    onSetCashInput: (String) -> Unit,
+    onConfirmGroup: () -> Unit,
+    onConfirmAndPrint: () -> Unit,
+    onProcess: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var showQrisConfirmDialog by remember { mutableStateOf(false) }
 
     if (showQrisConfirmDialog) {
         QrisConfirmDialog(
-            groupNumber        = groupNumber,
-            groupActualTotal   = groupActualTotal,
+            groupNumber = groupNumber,
+            groupActualTotal = groupActualTotal,
             merchantQrisString = merchantQrisString,
-            onConfirm          = { showQrisConfirmDialog = false; onConfirmGroup() },
-            onConfirmAndPrint  = { showQrisConfirmDialog = false; onConfirmAndPrint() },
-            onDismiss          = { showQrisConfirmDialog = false }
+            onConfirm = {
+                showQrisConfirmDialog = false
+                onConfirmGroup()
+            },
+            onConfirmAndPrint = {
+                showQrisConfirmDialog = false
+                onConfirmAndPrint()
+            },
+            onDismiss = { showQrisConfirmDialog = false },
         )
     }
 
     Column(modifier = modifier) {
         SplitGroupHeader(
-            groupNumber      = groupNumber,
-            anyItemSelected  = anyItemSelected,
-            groupActualTotal = groupActualTotal
+            groupNumber = groupNumber,
+            anyItemSelected = anyItemSelected,
+            groupActualTotal = groupActualTotal,
         )
 
         if (anyItemSelected && hasFeeShare) {
             SplitFeeShareBanner(
                 currentItemSubtotal = currentItemSubtotal,
-                groupActualTotal    = groupActualTotal
+                groupActualTotal = groupActualTotal,
             )
         }
 
@@ -90,26 +96,35 @@ internal fun SplitPaymentColumn(
             PaymentMethod.CASH -> {
                 SplitCashInput(
                     currentCashInput = currentCashInput,
-                    change           = change,
-                    anyItemSelected  = anyItemSelected
+                    change = change,
+                    anyItemSelected = anyItemSelected,
                 )
                 SplitQuickAmounts(
                     groupActualTotal = groupActualTotal,
                     currentCashInput = currentCashInput,
-                    onSetCashInput   = onSetCashInput
+                    onSetCashInput = onSetCashInput,
                 )
                 PaymentNumpad(
                     modifier = Modifier.weight(1f),
-                    onKey    = { key ->
-                        val next = when (key) {
-                            "\u232b" -> currentCashInput.dropLast(1)
-                            "000"    -> if (currentCashInput.isEmpty()) currentCashInput
-                                        else (currentCashInput + "000").take(10)
-                            else     -> if (currentCashInput.isEmpty() && key == "0") currentCashInput
-                                        else (currentCashInput + key).take(10)
-                        }
+                    onKey = { key ->
+                        val next =
+                            when (key) {
+                                "\u232b" -> currentCashInput.dropLast(1)
+                                "000" ->
+                                    if (currentCashInput.isEmpty()) {
+                                        currentCashInput
+                                    } else {
+                                        (currentCashInput + "000").take(10)
+                                    }
+                                else ->
+                                    if (currentCashInput.isEmpty() && key == "0") {
+                                        currentCashInput
+                                    } else {
+                                        (currentCashInput + key).take(10)
+                                    }
+                            }
                         onSetCashInput(next)
-                    }
+                    },
                 )
             }
             PaymentMethod.QRIS -> {
@@ -122,20 +137,20 @@ internal fun SplitPaymentColumn(
         Spacer(Modifier.height(8.dp))
 
         SplitActionButtons(
-            canConfirm        = canConfirm,
-            currentMethod     = currentMethod,
-            onConfirmGroup    = onConfirmGroup,
+            canConfirm = canConfirm,
+            currentMethod = currentMethod,
+            onConfirmGroup = onConfirmGroup,
             onConfirmAndPrint = onConfirmAndPrint,
-            onShowQrisDialog  = { showQrisConfirmDialog = true }
+            onShowQrisDialog = { showQrisConfirmDialog = true },
         )
 
         Spacer(Modifier.height(8.dp))
 
         SplitProcessButton(
-            allAssigned        = allAssigned,
+            allAssigned = allAssigned,
             hasConfirmedGroups = hasConfirmedGroups,
-            isProcessing       = isProcessing,
-            onProcess          = onProcess
+            isProcessing = isProcessing,
+            onProcess = onProcess,
         )
     }
 }
@@ -144,38 +159,38 @@ internal fun SplitPaymentColumn(
 
 @Composable
 private fun SplitGroupHeader(
-    groupNumber:      Int,
-    anyItemSelected:  Boolean,
-    groupActualTotal: Long
+    groupNumber: Int,
+    anyItemSelected: Boolean,
+    groupActualTotal: Long,
 ) {
     Row(
-        modifier              = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             "Pelanggan $groupNumber",
-            style      = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
         )
         if (anyItemSelected) {
             Surface(
                 shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Text(
                     formatRupiah(groupActualTotal),
-                    style      = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.primary,
-                    modifier   = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                 )
             }
         } else {
             Text(
                 "Pilih item di sebelah kiri",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             )
         }
     }
@@ -186,33 +201,43 @@ private fun SplitGroupHeader(
 @Composable
 private fun SplitFeeShareBanner(
     currentItemSubtotal: Long,
-    groupActualTotal:    Long
+    groupActualTotal: Long,
 ) {
     val feeShare = groupActualTotal - currentItemSubtotal
     Surface(
-        shape    = MaterialTheme.shapes.small,
-        color    = if (feeShare >= 0)
-            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        else
-            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        shape = MaterialTheme.shapes.small,
+        color =
+            if (feeShare >= 0) {
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+            } else {
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+            },
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
     ) {
         Row(
-            modifier              = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
                 "Item: ${formatRupiah(currentItemSubtotal)}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            val feeLabel = if (feeShare >= 0) "+ ${formatRupiah(feeShare)} biaya"
-                           else "− ${formatRupiah(-feeShare)} diskon"
+            val feeLabel =
+                if (feeShare >= 0) {
+                    "+ ${formatRupiah(feeShare)} biaya"
+                } else {
+                    "− ${formatRupiah(-feeShare)} diskon"
+                }
             Text(
                 feeLabel,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (feeShare >= 0) MaterialTheme.colorScheme.secondary
-                        else MaterialTheme.colorScheme.primary
+                color =
+                    if (feeShare >= 0) {
+                        MaterialTheme.colorScheme.secondary
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
             )
         }
     }
@@ -223,24 +248,24 @@ private fun SplitFeeShareBanner(
 @Composable
 private fun SplitMethodSelector(
     currentMethod: PaymentMethod,
-    onSetMethod:   (PaymentMethod) -> Unit
+    onSetMethod: (PaymentMethod) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             "Metode Pembayaran",
-            style      = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
         )
         Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             splitMethods.forEach { m ->
                 PaymentMethodChip(
-                    method     = m.value,
+                    method = m.value,
                     isSelected = currentMethod == m,
-                    onClick    = { onSetMethod(m) },
-                    modifier   = Modifier.weight(1f)
+                    onClick = { onSetMethod(m) },
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -252,34 +277,40 @@ private fun SplitMethodSelector(
 @Composable
 private fun SplitCashInput(
     currentCashInput: String,
-    change:           Long,
-    anyItemSelected:  Boolean
+    change: Long,
+    anyItemSelected: Boolean,
 ) {
     Surface(
-        shape    = MaterialTheme.shapes.medium,
-        color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        modifier = Modifier.fillMaxWidth()
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier              = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column {
                 Text(
                     "Uang Diterima",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    if (currentCashInput.isEmpty()) "Rp 0"
-                    else formatRupiah(currentCashInput.toLongOrNull() ?: 0L),
-                    style      = MaterialTheme.typography.titleLarge,
+                    if (currentCashInput.isEmpty()) {
+                        "Rp 0"
+                    } else {
+                        formatRupiah(currentCashInput.toLongOrNull() ?: 0L)
+                    },
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color      = if (currentCashInput.isEmpty())
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    else MaterialTheme.colorScheme.onSurface
+                    color =
+                        if (currentCashInput.isEmpty()) {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                 )
             }
             if (anyItemSelected && currentCashInput.isNotEmpty()) {
@@ -287,15 +318,19 @@ private fun SplitCashInput(
                     Text(
                         "Kembalian",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
                         formatRupiah(change),
-                        style      = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color      = if (change >= 0) MaterialTheme.colorScheme.primary
-                                     else MaterialTheme.colorScheme.error
+                        color =
+                            if (change >= 0) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
                     )
                 }
             }
@@ -309,41 +344,49 @@ private fun SplitCashInput(
 private fun SplitQuickAmounts(
     groupActualTotal: Long,
     currentCashInput: String,
-    onSetCashInput:   (String) -> Unit
+    onSetCashInput: (String) -> Unit,
 ) {
-    val quickAmounts = remember(groupActualTotal) {
-        listOf(
-            groupActualTotal,
-            ((groupActualTotal / 10_000) + 1) * 10_000,
-            ((groupActualTotal / 50_000) + 1) * 50_000
-        ).distinct().sorted()
-    }
+    val quickAmounts =
+        remember(groupActualTotal) {
+            listOf(
+                groupActualTotal,
+                ((groupActualTotal / 10_000) + 1) * 10_000,
+                ((groupActualTotal / 50_000) + 1) * 50_000,
+            ).distinct().sorted()
+        }
     Spacer(Modifier.height(4.dp))
     Row(
-        modifier              = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         quickAmounts.forEach { amount ->
             val isActive = currentCashInput == amount.toString()
             FilledTonalButton(
-                onClick        = { onSetCashInput(amount.toString()) },
-                modifier       = Modifier.weight(1f),
-                shape          = MaterialTheme.shapes.small,
+                onClick = { onSetCashInput(amount.toString()) },
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.small,
                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 10.dp),
-                colors         = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = if (isActive)
-                        MaterialTheme.colorScheme.primaryContainer
-                    else MaterialTheme.colorScheme.surfaceVariant
-                )
+                colors =
+                    ButtonDefaults.filledTonalButtonColors(
+                        containerColor =
+                            if (isActive) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                    ),
             ) {
                 Text(
                     formatRupiah(amount),
-                    style     = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
-                    maxLines  = 1,
-                    color     = if (isActive)
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                    maxLines = 1,
+                    color =
+                        if (isActive) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                 )
             }
         }
@@ -356,37 +399,39 @@ private fun SplitQuickAmounts(
 @Composable
 private fun SplitQrisInfo(groupActualTotal: Long) {
     Card(
-        colors   = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-        ),
-        modifier = Modifier.fillMaxWidth()
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+            ),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier              = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Icon(
-                Icons.Default.QrCode2, null,
+                Icons.Default.QrCode2,
+                null,
                 Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
             )
             Column {
                 Text(
                     "Total QRIS",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     formatRupiah(groupActualTotal),
-                    style      = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
                     "Nominal otomatis dari item yang dipilih",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 )
             }
         }
@@ -397,21 +442,22 @@ private fun SplitQrisInfo(groupActualTotal: Long) {
 
 @Composable
 private fun QrisConfirmDialog(
-    groupNumber:        Int,
-    groupActualTotal:   Long,
+    groupNumber: Int,
+    groupActualTotal: Long,
     merchantQrisString: String,
-    onConfirm:          () -> Unit,
-    onConfirmAndPrint:  () -> Unit,
-    onDismiss:          () -> Unit
+    onConfirm: () -> Unit,
+    onConfirmAndPrint: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Default.QrCode2, null,
+                    Icons.Default.QrCode2,
+                    null,
                     Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(Modifier.width(8.dp))
                 Text("QRIS — Pelanggan $groupNumber")
@@ -421,27 +467,27 @@ private fun QrisConfirmDialog(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier            = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Surface(
-                    color    = MaterialTheme.colorScheme.primaryContainer,
-                    shape    = MaterialTheme.shapes.medium,
-                    modifier = Modifier.fillMaxWidth()
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Column(
-                        modifier            = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
                             "Nominal yang harus dibayar",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                         Text(
                             formatRupiah(groupActualTotal),
-                            style      = MaterialTheme.typography.headlineMedium,
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
@@ -449,21 +495,21 @@ private fun QrisConfirmDialog(
                 if (merchantQrisString.isNotBlank()) {
                     QrisQrCode(
                         qrString = merchantQrisString,
-                        size     = 220.dp,
-                        label    = "Scan, lalu masukkan nominal di atas"
+                        size = 220.dp,
+                        label = "Scan, lalu masukkan nominal di atas",
                     )
                 } else {
                     Surface(
-                        color    = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
-                        shape    = MaterialTheme.shapes.small,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
                             "QRIS merchant belum diatur. Buka Pengaturan › Informasi Toko " +
-                            "untuk menambahkan QRIS statis Anda, atau minta customer transfer manual.",
-                            style    = MaterialTheme.typography.bodySmall,
-                            color    = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.padding(12.dp)
+                                "untuk menambahkan QRIS statis Anda, atau minta customer transfer manual.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(12.dp),
                         )
                     }
                 }
@@ -471,7 +517,7 @@ private fun QrisConfirmDialog(
                 Text(
                     "Setelah customer selesai bayar, pilih konfirmasi di bawah.",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
@@ -489,7 +535,7 @@ private fun QrisConfirmDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Batal") }
-        }
+        },
     )
 }
 
@@ -497,32 +543,36 @@ private fun QrisConfirmDialog(
 
 @Composable
 private fun SplitActionButtons(
-    canConfirm:        Boolean,
-    currentMethod:     PaymentMethod,
-    onConfirmGroup:    () -> Unit,
+    canConfirm: Boolean,
+    currentMethod: PaymentMethod,
+    onConfirmGroup: () -> Unit,
     onConfirmAndPrint: () -> Unit,
-    onShowQrisDialog:  () -> Unit
+    onShowQrisDialog: () -> Unit,
 ) {
     Row(
-        modifier              = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         OutlinedButton(
-            onClick  = onConfirmGroup,
-            enabled  = canConfirm,
-            modifier = Modifier.weight(1f)
+            onClick = onConfirmGroup,
+            enabled = canConfirm,
+            modifier = Modifier.weight(1f),
         ) { Text("Bayar Saja") }
 
         Button(
-            onClick  = {
-                if (currentMethod == PaymentMethod.QRIS) onShowQrisDialog()
-                else onConfirmAndPrint()
+            onClick = {
+                if (currentMethod == PaymentMethod.QRIS) {
+                    onShowQrisDialog()
+                } else {
+                    onConfirmAndPrint()
+                }
             },
-            enabled  = canConfirm,
+            enabled = canConfirm,
             modifier = Modifier.weight(1f),
-            colors   = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                ),
         ) {
             Icon(Icons.Default.Print, null, Modifier.size(16.dp))
             Spacer(Modifier.width(4.dp))
@@ -535,17 +585,17 @@ private fun SplitActionButtons(
 
 @Composable
 private fun SplitProcessButton(
-    allAssigned:        Boolean,
+    allAssigned: Boolean,
     hasConfirmedGroups: Boolean,
-    isProcessing:       Boolean,
-    onProcess:          () -> Unit
+    isProcessing: Boolean,
+    onProcess: () -> Unit,
 ) {
     RancakButton(
-        text      = "Proses Pembayaran",
-        onClick   = onProcess,
+        text = "Proses Pembayaran",
+        onClick = onProcess,
         isLoading = isProcessing,
-        enabled   = allAssigned && hasConfirmedGroups && !isProcessing,
-        modifier  = Modifier.fillMaxWidth()
+        enabled = allAssigned && hasConfirmedGroups && !isProcessing,
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
@@ -600,25 +650,25 @@ private fun SplitQrisInfoPreview() {
 private fun SplitPaymentColumnPreview_Cash() {
     RancakTheme {
         SplitPaymentColumn(
-            groupNumber          = 2,
-            currentItemSubtotal  = 36_000L,
-            groupActualTotal     = 39_600L,
-            hasFeeShare          = true,
-            currentMethod        = PaymentMethod.CASH,
-            currentCashInput     = "50000",
-            change               = 10_400L,
-            canConfirm           = true,
-            allAssigned          = false,
-            hasConfirmedGroups   = true,
-            isProcessing         = false,
-            anyItemSelected      = true,
-            merchantQrisString   = "",
-            onSetMethod          = {},
-            onSetCashInput       = {},
-            onConfirmGroup       = {},
-            onConfirmAndPrint    = {},
-            onProcess            = {},
-            modifier             = Modifier.padding(16.dp).fillMaxHeight()
+            groupNumber = 2,
+            currentItemSubtotal = 36_000L,
+            groupActualTotal = 39_600L,
+            hasFeeShare = true,
+            currentMethod = PaymentMethod.CASH,
+            currentCashInput = "50000",
+            change = 10_400L,
+            canConfirm = true,
+            allAssigned = false,
+            hasConfirmedGroups = true,
+            isProcessing = false,
+            anyItemSelected = true,
+            merchantQrisString = "",
+            onSetMethod = {},
+            onSetCashInput = {},
+            onConfirmGroup = {},
+            onConfirmAndPrint = {},
+            onProcess = {},
+            modifier = Modifier.padding(16.dp).fillMaxHeight(),
         )
     }
 }
@@ -628,25 +678,25 @@ private fun SplitPaymentColumnPreview_Cash() {
 private fun SplitPaymentColumnPreview_Qris() {
     RancakTheme {
         SplitPaymentColumn(
-            groupNumber          = 1,
-            currentItemSubtotal  = 22_000L,
-            groupActualTotal     = 22_000L,
-            hasFeeShare          = false,
-            currentMethod        = PaymentMethod.QRIS,
-            currentCashInput     = "",
-            change               = 0L,
-            canConfirm           = true,
-            allAssigned          = false,
-            hasConfirmedGroups   = false,
-            isProcessing         = false,
-            anyItemSelected      = true,
-            merchantQrisString   = "",
-            onSetMethod          = {},
-            onSetCashInput       = {},
-            onConfirmGroup       = {},
-            onConfirmAndPrint    = {},
-            onProcess            = {},
-            modifier             = Modifier.padding(16.dp).fillMaxHeight()
+            groupNumber = 1,
+            currentItemSubtotal = 22_000L,
+            groupActualTotal = 22_000L,
+            hasFeeShare = false,
+            currentMethod = PaymentMethod.QRIS,
+            currentCashInput = "",
+            change = 0L,
+            canConfirm = true,
+            allAssigned = false,
+            hasConfirmedGroups = false,
+            isProcessing = false,
+            anyItemSelected = true,
+            merchantQrisString = "",
+            onSetMethod = {},
+            onSetCashInput = {},
+            onConfirmGroup = {},
+            onConfirmAndPrint = {},
+            onProcess = {},
+            modifier = Modifier.padding(16.dp).fillMaxHeight(),
         )
     }
 }

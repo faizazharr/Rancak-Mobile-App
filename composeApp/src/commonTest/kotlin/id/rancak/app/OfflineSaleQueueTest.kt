@@ -18,7 +18,6 @@ import kotlin.test.assertTrue
  * tests run in commonTest on all targets.
  */
 class OfflineSaleQueueTest {
-
     private lateinit var queue: OfflineSaleQueue
 
     @BeforeTest
@@ -31,17 +30,17 @@ class OfflineSaleQueueTest {
     private fun fakeSale(
         key: String = "idem-key-${++saleCounter}",
         paymentMethod: String = "cash",
-        paidAmount: Long = 50_000L
+        paidAmount: Long = 50_000L,
     ) = PendingSale(
-        idempotencyKey  = key,
-        tenantUuid      = "tenant-001",
-        items           = listOf(PendingSaleItem("prod-001", qty = 2)),
-        paymentMethod   = paymentMethod,
-        paidAmount      = paidAmount,
-        orderType       = "dine_in",
+        idempotencyKey = key,
+        tenantUuid = "tenant-001",
+        items = listOf(PendingSaleItem("prod-001", qty = 2)),
+        paymentMethod = paymentMethod,
+        paidAmount = paidAmount,
+        orderType = "dine_in",
         deviceCreatedAt = "2026-04-22T10:00:00Z",
-        deviceId        = "device-abc",
-        enqueuedAt      = 1_000L
+        deviceId = "device-abc",
+        enqueuedAt = 1_000L,
     )
 
     // ── isEmpty / size ─────────────────────────────────────────────────────────
@@ -62,7 +61,7 @@ class OfflineSaleQueueTest {
     }
 
     @Test
-    fun `enqueue preserves insertion order (FIFO)`() {
+    fun `enqueue preserves insertion order FIFO`() {
         queue.enqueue(fakeSale("first"))
         queue.enqueue(fakeSale("second"))
         queue.enqueue(fakeSale("third"))
@@ -75,12 +74,12 @@ class OfflineSaleQueueTest {
     }
 
     @Test
-    fun `enqueue persists data across queue instances (same settings)`() {
+    fun `enqueue persists data across queue instances same settings`() {
         val settings = MapSettings()
         val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
         val q1 = OfflineSaleQueue(settings, json)
         q1.enqueue(fakeSale("persisted-key"))
- 
+
         val q2 = OfflineSaleQueue(settings, json)
         assertEquals(1, q2.size)
         assertEquals("persisted-key", q2.getAll()[0].idempotencyKey)
@@ -121,29 +120,30 @@ class OfflineSaleQueueTest {
 
     @Test
     fun `sale fields survive serialisation round-trip`() {
-        val original = fakeSale(
-            key           = "rt-key",
-            paymentMethod = "qris",
-            paidAmount    = 99_000L
-        ).copy(
-            customerName = "Budi Santoso",
-            note         = "Tanpa cabai",
-            discount     = 5_000L,
-            tax          = 2_000L
-        )
+        val original =
+            fakeSale(
+                key = "rt-key",
+                paymentMethod = "qris",
+                paidAmount = 99_000L,
+            ).copy(
+                customerName = "Budi Santoso",
+                note = "Tanpa cabai",
+                discount = 5_000L,
+                tax = 2_000L,
+            )
         queue.enqueue(original)
         val restored = queue.getAll().first()
 
-        assertEquals("rt-key",         restored.idempotencyKey)
-        assertEquals("tenant-001",     restored.tenantUuid)
-        assertEquals("qris",           restored.paymentMethod)
-        assertEquals(99_000L,          restored.paidAmount)
-        assertEquals("Budi Santoso",   restored.customerName)
-        assertEquals("Tanpa cabai",    restored.note)
-        assertEquals(5_000L,           restored.discount)
-        assertEquals(2_000L,           restored.tax)
-        assertEquals(1,                restored.items.size)
-        assertEquals("prod-001",       restored.items[0].productUuid)
-        assertEquals(2,                restored.items[0].qty)
+        assertEquals("rt-key", restored.idempotencyKey)
+        assertEquals("tenant-001", restored.tenantUuid)
+        assertEquals("qris", restored.paymentMethod)
+        assertEquals(99_000L, restored.paidAmount)
+        assertEquals("Budi Santoso", restored.customerName)
+        assertEquals("Tanpa cabai", restored.note)
+        assertEquals(5_000L, restored.discount)
+        assertEquals(2_000L, restored.tax)
+        assertEquals(1, restored.items.size)
+        assertEquals("prod-001", restored.items[0].productUuid)
+        assertEquals(2, restored.items[0].qty)
     }
 }

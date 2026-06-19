@@ -36,32 +36,32 @@ internal fun LoginOptionsStep(
     uiState: LoginUiState,
     onEmailClick: () -> Unit,
     onGoogleToken: (String) -> Unit,
-    onGoogleError: (String) -> Unit
+    onGoogleError: (String) -> Unit,
 ) {
     val primary = MaterialTheme.colorScheme.primary
 
     Column(
-        modifier            = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         GoogleSignInButton(
-            modifier  = Modifier.fillMaxWidth(),
-            enabled   = !uiState.isLoading && !uiState.isGoogleLoading,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !uiState.isLoading && !uiState.isGoogleLoading,
             onIdToken = onGoogleToken,
-            onError   = onGoogleError
+            onError = onGoogleError,
         )
 
         Spacer(Modifier.height(16.dp))
 
         Row(
-            modifier          = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             HorizontalDivider(modifier = Modifier.weight(1f))
             Text(
                 "  atau  ",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             HorizontalDivider(modifier = Modifier.weight(1f))
         }
@@ -69,28 +69,30 @@ internal fun LoginOptionsStep(
         Spacer(Modifier.height(16.dp))
 
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.extraLarge)
-                .background(primary)
-                .clickable(onClick = onEmailClick)
-                .padding(vertical = 14.dp),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .background(primary)
+                    .clickable(onClick = onEmailClick)
+                    .padding(vertical = 14.dp),
+            contentAlignment = Alignment.Center,
         ) {
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Icon(
-                    Icons.Default.Email, null,
+                    Icons.Default.Email,
+                    null,
                     Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
                 Text(
                     "Lanjut dengan Email",
-                    style      = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         }
@@ -103,10 +105,10 @@ private fun LoginOptionsStepPreview() {
     RancakTheme {
         Column(Modifier.padding(24.dp)) {
             LoginOptionsStep(
-                uiState       = LoginUiState(),
-                onEmailClick  = {},
+                uiState = LoginUiState(),
+                onEmailClick = {},
                 onGoogleToken = {},
-                onGoogleError = {}
+                onGoogleError = {},
             )
         }
     }

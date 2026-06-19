@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.data.local.LocalOpenBill
@@ -20,9 +19,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-import kotlin.time.Clock
 
 @Immutable
 data class OpenBillUiState(
@@ -38,7 +37,7 @@ data class OpenBillUiState(
     /** Pesan error sinkron ke backend (KDS). Null jika tidak ada error. */
     val syncError: String? = null,
     /** True setelah saveCart() berhasil — Screen menampilkan success dialog. */
-    val showSuccessDialog: Boolean = false
+    val showSuccessDialog: Boolean = false,
 )
 
 /**
@@ -50,20 +49,22 @@ data class OpenBillUiState(
  */
 class OpenBillViewModel(
     private val store: OpenBillStore,
-    private val saleRepository: SaleRepository
+    private val saleRepository: SaleRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(OpenBillUiState(bills = store.getAll().toImmutableList()))
     val uiState: StateFlow<OpenBillUiState> = _uiState.asStateFlow()
 
     // ── Dialog ────────────────────────────────────────────────────────────────
 
-    fun showDialog(initialName: String = "", editingBillId: String? = null) {
+    fun showDialog(
+        initialName: String = "",
+        editingBillId: String? = null,
+    ) {
         _uiState.update {
             it.copy(
-                showNameDialog    = true,
+                showNameDialog = true,
                 dialogInitialName = initialName,
-                editingBillId     = editingBillId
+                editingBillId = editingBillId,
             )
         }
     }
@@ -112,22 +113,31 @@ class OpenBillViewModel(
         tip: Long,
         voucherCode: String,
         editingBillId: String? = null,
-        existingRemoteSaleUuid: String? = null
+        existingRemoteSaleUuid: String? = null,
     ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isSyncing = true, syncError = null) }
 
             // Hitung Rp aktual dari input (mirip CartUiState).
             val subtotal = items.sumOf { it.price * it.qty }
-            val discount = if (discountIsPercent)
-                (subtotal * discountInput / 100L).coerceIn(0L, subtotal)
-            else discountInput
-            val tax = if (taxIsPercent)
-                ((subtotal - discount) * taxInput / 100L).coerceAtLeast(0L)
-            else taxInput
-            val adminFee = if (adminFeeIsPercent)
-                ((subtotal - discount) * adminFeeInput / 100L).coerceAtLeast(0L)
-            else adminFeeInput
+            val discount =
+                if (discountIsPercent) {
+                    (subtotal * discountInput / 100L).coerceIn(0L, subtotal)
+                } else {
+                    discountInput
+                }
+            val tax =
+                if (taxIsPercent) {
+                    ((subtotal - discount) * taxInput / 100L).coerceAtLeast(0L)
+                } else {
+                    taxInput
+                }
+            val adminFee =
+                if (adminFeeIsPercent) {
+                    ((subtotal - discount) * adminFeeInput / 100L).coerceAtLeast(0L)
+                } else {
+                    adminFeeInput
+                }
 
             val now = Clock.System.now().toEpochMilliseconds()
             val existingCreatedAt = editingBillId?.let { store.get(it)?.createdAt } ?: now
@@ -137,82 +147,88 @@ class OpenBillViewModel(
             // Simpan lokal saja dengan UUID lama. Modifikasi item ke KDS harus lewat
             // "Tambah Item" (addItemsToHeldOrder) atau "Hapus Item" (removeHeldOrderItem).
             if (!existingRemoteSaleUuid.isNullOrBlank()) {
-                val bill = LocalOpenBill(
-                    id                = editingBillId ?: Uuid.random().toString(),
-                    name              = name.trim(),
-                    items             = items.map { it.toLocalOpenBillItem() },
-                    orderType         = orderType.name,
-                    tableUuid         = tableUuid,
-                    customerName      = customerName,
-                    note              = note,
-                    pax               = pax,
-                    discountInput     = discountInput,
-                    discountIsPercent = discountIsPercent,
-                    taxInput          = taxInput,
-                    taxIsPercent      = taxIsPercent,
-                    adminFeeInput     = adminFeeInput,
-                    adminFeeIsPercent = adminFeeIsPercent,
-                    deliveryFee       = deliveryFee,
-                    tip               = tip,
-                    voucherCode       = voucherCode,
-                    createdAt         = existingCreatedAt,
-                    remoteSaleUuid    = existingRemoteSaleUuid // tetap pakai UUID lama
-                )
+                val bill =
+                    LocalOpenBill(
+                        id = editingBillId ?: Uuid.random().toString(),
+                        name = name.trim(),
+                        items = items.map { it.toLocalOpenBillItem() },
+                        orderType = orderType.name,
+                        tableUuid = tableUuid,
+                        customerName = customerName,
+                        note = note,
+                        pax = pax,
+                        discountInput = discountInput,
+                        discountIsPercent = discountIsPercent,
+                        taxInput = taxInput,
+                        taxIsPercent = taxIsPercent,
+                        adminFeeInput = adminFeeInput,
+                        adminFeeIsPercent = adminFeeIsPercent,
+                        deliveryFee = deliveryFee,
+                        tip = tip,
+                        voucherCode = voucherCode,
+                        createdAt = existingCreatedAt,
+                        remoteSaleUuid = existingRemoteSaleUuid, // tetap pakai UUID lama
+                    )
                 store.save(bill)
                 _uiState.update { it.copy(isSyncing = false, bills = store.getAll().toImmutableList(), showSuccessDialog = true) }
                 return@launch
             }
 
             // Bill baru (belum punya remoteSaleUuid) — kirim ke backend agar muncul di KDS.
-            val remoteUuid: String? = if (items.isNotEmpty()) {
-                val result = saleRepository.createSale(
-                    items         = items,
-                    paymentMethod = PaymentMethod.CASH, // placeholder; backend abaikan saat hold
-                    paidAmount    = 0L,
-                    orderType     = orderType,
-                    tableUuid     = tableUuid,
-                    customerName  = customerName.takeIf { it.isNotBlank() },
-                    note          = note.takeIf { it.isNotBlank() },
-                    hold          = true,
-                    pax           = pax,
-                    discount      = discount,
-                    tax           = tax,
-                    adminFee      = adminFee,
-                    deliveryFee   = deliveryFee,
-                    tip           = tip,
-                    voucherCode   = voucherCode.takeIf { it.isNotBlank() }
-                )
-                when (result) {
-                    is Resource.Success -> result.data.uuid
-                    is Resource.Error -> {
-                        _uiState.update { it.copy(syncError = result.message) }
-                        null
+            val remoteUuid: String? =
+                if (items.isNotEmpty()) {
+                    val result =
+                        saleRepository.createSale(
+                            items = items,
+                            paymentMethod = PaymentMethod.CASH, // placeholder; backend abaikan saat hold
+                            paidAmount = 0L,
+                            orderType = orderType,
+                            tableUuid = tableUuid,
+                            customerName = customerName.takeIf { it.isNotBlank() },
+                            note = note.takeIf { it.isNotBlank() },
+                            hold = true,
+                            pax = pax,
+                            discount = discount,
+                            tax = tax,
+                            adminFee = adminFee,
+                            deliveryFee = deliveryFee,
+                            tip = tip,
+                            voucherCode = voucherCode.takeIf { it.isNotBlank() },
+                        )
+                    when (result) {
+                        is Resource.Success -> result.data.uuid
+                        is Resource.Error -> {
+                            _uiState.update { it.copy(syncError = result.message) }
+                            null
+                        }
+                        is Resource.Loading -> null
                     }
-                    is Resource.Loading -> null
+                } else {
+                    null
                 }
-            } else null
 
-            val bill = LocalOpenBill(
-                id                = editingBillId ?: Uuid.random().toString(),
-                name              = name.trim(),
-                items             = items.map { it.toLocalOpenBillItem() },
-                orderType         = orderType.name,
-                tableUuid         = tableUuid,
-                customerName      = customerName,
-                note              = note,
-                pax               = pax,
-                discountInput     = discountInput,
-                discountIsPercent = discountIsPercent,
-                taxInput          = taxInput,
-                taxIsPercent      = taxIsPercent,
-                adminFeeInput     = adminFeeInput,
-                adminFeeIsPercent = adminFeeIsPercent,
-                deliveryFee       = deliveryFee,
-                tip               = tip,
-                voucherCode       = voucherCode,
-                createdAt         = existingCreatedAt,
-                remoteSaleUuid    = remoteUuid
-            )
+            val bill =
+                LocalOpenBill(
+                    id = editingBillId ?: Uuid.random().toString(),
+                    name = name.trim(),
+                    items = items.map { it.toLocalOpenBillItem() },
+                    orderType = orderType.name,
+                    tableUuid = tableUuid,
+                    customerName = customerName,
+                    note = note,
+                    pax = pax,
+                    discountInput = discountInput,
+                    discountIsPercent = discountIsPercent,
+                    taxInput = taxInput,
+                    taxIsPercent = taxIsPercent,
+                    adminFeeInput = adminFeeInput,
+                    adminFeeIsPercent = adminFeeIsPercent,
+                    deliveryFee = deliveryFee,
+                    tip = tip,
+                    voucherCode = voucherCode,
+                    createdAt = existingCreatedAt,
+                    remoteSaleUuid = remoteUuid,
+                )
             store.save(bill)
             _uiState.update { it.copy(isSyncing = false, bills = store.getAll().toImmutableList(), showSuccessDialog = true) }
         }

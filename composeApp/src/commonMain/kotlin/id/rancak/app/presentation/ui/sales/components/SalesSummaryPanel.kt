@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Cancel
@@ -15,7 +16,6 @@ import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -45,77 +45,84 @@ import kotlinx.collections.immutable.toImmutableList
  * and void info from the currently filtered [sales] list.
  */
 @Composable
-internal fun SalesSummaryPanel(sales: ImmutableList<Sale>, modifier: Modifier = Modifier) {
+internal fun SalesSummaryPanel(
+    sales: ImmutableList<Sale>,
+    modifier: Modifier = Modifier,
+) {
     val semantic = RancakColors.semantic
 
-    val paidSales    = sales.filter { it.status == SaleStatus.PAID }
-    val heldCount    = sales.count  { it.status == SaleStatus.HELD }
-    val voidCount    = sales.count  { it.status == SaleStatus.VOID || it.status == SaleStatus.CANCELLED }
+    val paidSales = sales.filter { it.status == SaleStatus.PAID }
+    val heldCount = sales.count { it.status == SaleStatus.HELD }
+    val voidCount = sales.count { it.status == SaleStatus.VOID || it.status == SaleStatus.CANCELLED }
     val totalRevenue = paidSales.sumOf { it.total }
-    val avgRevenue   = if (paidSales.isNotEmpty()) totalRevenue / paidSales.size else 0L
+    val avgRevenue = if (paidSales.isNotEmpty()) totalRevenue / paidSales.size else 0L
 
-    val byMethod = paidSales
-        .groupBy { it.paymentMethod?.value?.uppercase() ?: "LAINNYA" }
-        .mapValues { (_, list) -> list.sumOf { it.total } }
-        .entries.sortedByDescending { it.value }
-        .map { it.key to it.value }
-        .toImmutableList()
+    val byMethod =
+        paidSales
+            .groupBy { it.paymentMethod?.value?.uppercase() ?: "LAINNYA" }
+            .mapValues { (_, list) -> list.sumOf { it.total } }
+            .entries.sortedByDescending { it.value }
+            .map { it.key to it.value }
+            .toImmutableList()
 
     Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Icon(
-                Icons.Default.BarChart, contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp)
+                Icons.Default.BarChart,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(22.dp),
             )
             Text(
                 "Ringkasan Transaksi",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             SummaryStatCard(
-                modifier  = Modifier.weight(1f),
-                icon      = Icons.Default.Receipt,
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Receipt,
                 iconColor = MaterialTheme.colorScheme.primary,
-                label     = "Total Transaksi",
-                value     = "${sales.size}",
-                bgColor   = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                label = "Total Transaksi",
+                value = "${sales.size}",
+                bgColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
             )
             SummaryStatCard(
-                modifier  = Modifier.weight(1f),
-                icon      = Icons.Default.Payments,
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Payments,
                 iconColor = semantic.success,
-                label     = "Total Pendapatan",
-                value     = formatRupiah(totalRevenue),
-                bgColor   = semantic.success.copy(alpha = 0.08f)
+                label = "Total Pendapatan",
+                value = formatRupiah(totalRevenue),
+                bgColor = semantic.success.copy(alpha = 0.08f),
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             SummaryStatCard(
-                modifier  = Modifier.weight(1f),
-                icon      = Icons.AutoMirrored.Filled.TrendingUp,
+                modifier = Modifier.weight(1f),
+                icon = Icons.AutoMirrored.Filled.TrendingUp,
                 iconColor = semantic.info,
-                label     = "Rata-rata / Transaksi",
-                value     = formatRupiah(avgRevenue),
-                bgColor   = semantic.info.copy(alpha = 0.08f)
+                label = "Rata-rata / Transaksi",
+                value = formatRupiah(avgRevenue),
+                bgColor = semantic.info.copy(alpha = 0.08f),
             )
             SummaryStatCard(
-                modifier  = Modifier.weight(1f),
-                icon      = Icons.Default.Schedule,
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Schedule,
                 iconColor = semantic.warning,
-                label     = "Belum Bayar",
-                value     = "$heldCount transaksi",
-                bgColor   = semantic.warning.copy(alpha = 0.08f)
+                label = "Belum Bayar",
+                value = "$heldCount transaksi",
+                bgColor = semantic.warning.copy(alpha = 0.08f),
             )
         }
 
@@ -134,54 +141,56 @@ internal fun SalesSummaryPanel(sales: ImmutableList<Sale>, modifier: Modifier = 
 @Composable
 private fun PaymentMethodBreakdown(byMethod: ImmutableList<Pair<String, Long>>) {
     Card(
-        shape     = MaterialTheme.shapes.medium,
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
                 "Metode Pembayaran",
-                style         = MaterialTheme.typography.labelMedium,
-                fontWeight    = FontWeight.Bold,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp,
-                color         = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             byMethod.forEach { (method, amount) ->
-                val pmIcon = when (method) {
-                    "CASH"     -> Icons.Default.Payments
-                    "QRIS"     -> Icons.Default.QrCode2
-                    "CARD"     -> Icons.Default.CreditCard
-                    "TRANSFER" -> Icons.Default.AccountBalance
-                    else       -> Icons.Default.MoreHoriz
-                }
+                val pmIcon =
+                    when (method) {
+                        "CASH" -> Icons.Default.Payments
+                        "QRIS" -> Icons.Default.QrCode2
+                        "CARD" -> Icons.Default.CreditCard
+                        "TRANSFER" -> Icons.Default.AccountBalance
+                        else -> Icons.Default.MoreHoriz
+                    }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Icon(
-                            pmIcon, contentDescription = null,
+                            pmIcon,
+                            contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            tint     = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                         Text(
                             method.lowercase().replaceFirstChar { it.uppercase() },
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                     Text(
                         formatRupiah(amount),
-                        style      = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = FontFamily.Monospace,
                     )
                 }
             }
@@ -192,30 +201,32 @@ private fun PaymentMethodBreakdown(byMethod: ImmutableList<Pair<String, Long>>) 
 @Composable
 private fun VoidInfoBanner(voidCount: Int) {
     Surface(
-        shape  = MaterialTheme.shapes.medium,
-        color  = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f),
-        border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f),
+        border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(
-                Icons.Default.Cancel, contentDescription = null,
-                tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp)
+                Icons.Default.Cancel,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(18.dp),
             )
             Column {
                 Text(
                     "$voidCount transaksi di-void/batal",
-                    style      = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.SemiBold,
-                    color      = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
                 Text(
                     "Tidak dihitung dalam total pendapatan",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -226,21 +237,22 @@ private fun VoidInfoBanner(voidCount: Int) {
 private fun SelectHint() {
     Box(
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Icon(
-                Icons.Default.SubdirectoryArrowLeft, contentDescription = null,
+                Icons.Default.SubdirectoryArrowLeft,
+                contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint     = MaterialTheme.colorScheme.outlineVariant
+                tint = MaterialTheme.colorScheme.outlineVariant,
             )
             Text(
                 "Pilih transaksi di kiri untuk melihat detail",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outlineVariant
+                color = MaterialTheme.colorScheme.outlineVariant,
             )
         }
     }
@@ -249,33 +261,35 @@ private fun SelectHint() {
 /** Single statistic tile inside the summary panel. */
 @Composable
 private fun SummaryStatCard(
-    modifier:  Modifier,
-    icon:      ImageVector,
+    modifier: Modifier,
+    icon: ImageVector,
     iconColor: Color,
-    label:     String,
-    value:     String,
-    bgColor:   Color
+    label: String,
+    value: String,
+    bgColor: Color,
 ) {
     Surface(shape = MaterialTheme.shapes.medium, color = bgColor, modifier = modifier) {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Icon(
-                icon, contentDescription = null,
-                tint = iconColor, modifier = Modifier.size(20.dp)
+                icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(20.dp),
             )
             Text(
                 value,
-                style      = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.ExtraBold,
                 fontFamily = FontFamily.Monospace,
-                maxLines   = 1
+                maxLines = 1,
             )
             Text(
                 label,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -286,8 +300,8 @@ private fun SummaryStatCard(
 private fun SalesSummaryPanelPreview_WithSales() {
     RancakTheme {
         SalesSummaryPanel(
-            sales    = previewSales().toImmutableList(),
-            modifier = Modifier.fillMaxWidth()
+            sales = previewSales().toImmutableList(),
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -297,33 +311,43 @@ private fun SalesSummaryPanelPreview_WithSales() {
 private fun SalesSummaryPanelPreview_Empty() {
     RancakTheme {
         SalesSummaryPanel(
-            sales    = persistentListOf(),
-            modifier = Modifier.fillMaxWidth()
+            sales = persistentListOf(),
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 private fun previewSales(): List<Sale> {
-    fun s(status: SaleStatus, total: Long, pm: PaymentMethod?) = Sale(
+    fun s(
+        status: SaleStatus,
+        total: Long,
+        pm: PaymentMethod?,
+    ) = Sale(
         uuid = "s-$total-$status", invoiceNo = "INV-$total",
         orderType = OrderType.DINE_IN, queueNumber = null, status = status,
         customerName = null, subtotal = total, discount = 0L, surcharge = 0L,
         tax = 0L, total = total, paymentMethod = pm,
         paidAmount = total, changeAmount = 0L,
-        items = persistentListOf(
-            SaleItem(
-                uuid = "i", productUuid = "p", productName = "Menu",
-                qty = "1", price = total, subtotal = total,
-                variantName = null, note = null
-            )
-        ),
-        createdAt = null
+        items =
+            persistentListOf(
+                SaleItem(
+                    uuid = "i",
+                    productUuid = "p",
+                    productName = "Menu",
+                    qty = "1",
+                    price = total,
+                    subtotal = total,
+                    variantName = null,
+                    note = null,
+                ),
+            ),
+        createdAt = null,
     )
     return listOf(
         s(SaleStatus.PAID, 30_000L, PaymentMethod.CASH),
         s(SaleStatus.PAID, 55_000L, PaymentMethod.QRIS),
         s(SaleStatus.PAID, 22_000L, PaymentMethod.CASH),
         s(SaleStatus.HELD, 18_000L, null),
-        s(SaleStatus.VOID, 15_000L, null)
+        s(SaleStatus.VOID, 15_000L, null),
     )
 }

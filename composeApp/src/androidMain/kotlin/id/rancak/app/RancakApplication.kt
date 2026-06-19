@@ -19,7 +19,6 @@ import org.koin.core.logger.Level
  * consume this already-running Koin instance.
  */
 class RancakApplication : Application() {
-
     override fun onCreate() {
         super.onCreate()
 

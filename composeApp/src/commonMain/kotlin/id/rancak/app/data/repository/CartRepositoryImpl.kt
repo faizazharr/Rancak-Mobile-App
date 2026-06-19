@@ -11,11 +11,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class CartRepositoryImpl(private val cartDao: CartDao) : CartRepository {
+    override fun observeItems(): Flow<List<CartItem>> = cartDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
-    override fun observeItems(): Flow<List<CartItem>> =
-        cartDao.observeAll().map { entities -> entities.map { it.toDomain() } }
-
-    override suspend fun addOrIncrement(product: Product, variantUuid: String?, variantName: String?) {
+    override suspend fun addOrIncrement(
+        product: Product,
+        variantUuid: String?,
+        variantName: String?,
+    ) {
         val id = cartItemId(product.uuid, variantUuid)
         val existing = cartDao.findById(id)
         cartDao.upsert(
@@ -23,30 +25,41 @@ class CartRepositoryImpl(private val cartDao: CartDao) : CartRepository {
                 existing.copy(qty = existing.qty + 1)
             } else {
                 CartItemEntity(
-                    id          = id,
+                    id = id,
                     productUuid = product.uuid,
                     productName = product.name,
-                    qty         = 1,
-                    price       = product.price,
+                    qty = 1,
+                    price = product.price,
                     variantUuid = variantUuid,
                     variantName = variantName,
-                    note        = null,
-                    imageUrl    = product.imageUrl
+                    note = null,
+                    imageUrl = product.imageUrl,
                 )
-            }
+            },
         )
     }
 
-    override suspend fun updateQuantity(productUuid: String, variantUuid: String?, qty: Int) {
+    override suspend fun updateQuantity(
+        productUuid: String,
+        variantUuid: String?,
+        qty: Int,
+    ) {
         val id = cartItemId(productUuid, variantUuid)
         if (qty <= 0) cartDao.deleteById(id) else cartDao.updateQty(id, qty)
     }
 
-    override suspend fun updateNote(productUuid: String, variantUuid: String?, note: String) {
+    override suspend fun updateNote(
+        productUuid: String,
+        variantUuid: String?,
+        note: String,
+    ) {
         cartDao.updateNote(cartItemId(productUuid, variantUuid), note.ifBlank { null })
     }
 
-    override suspend fun removeItem(productUuid: String, variantUuid: String?) {
+    override suspend fun removeItem(
+        productUuid: String,
+        variantUuid: String?,
+    ) {
         cartDao.deleteById(cartItemId(productUuid, variantUuid))
     }
 
@@ -59,6 +72,8 @@ class CartRepositoryImpl(private val cartDao: CartDao) : CartRepository {
         cartDao.upsertAll(items.map { it.toEntity() })
     }
 
-    private fun cartItemId(productUuid: String, variantUuid: String?) =
-        "$productUuid:${variantUuid ?: "_"}"
+    private fun cartItemId(
+        productUuid: String,
+        variantUuid: String?,
+    ) = "$productUuid:${variantUuid ?: "_"}"
 }

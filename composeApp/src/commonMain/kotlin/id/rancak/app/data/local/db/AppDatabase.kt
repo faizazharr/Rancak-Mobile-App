@@ -1,4 +1,5 @@
 @file:Suppress("NO_ACTUAL_FOR_EXPECT", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+
 package id.rancak.app.data.local.db
 
 import androidx.room.ConstructedBy
@@ -27,18 +28,23 @@ import id.rancak.app.data.local.db.entity.TableEntity
         SaleEntity::class,
         SaleItemEntity::class,
         ShiftEntity::class,
-        TableEntity::class
+        TableEntity::class,
     ],
     version = 3,
-    exportSchema = false
+    exportSchema = false,
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
+
     abstract fun categoryDao(): CategoryDao
+
     abstract fun cartDao(): CartDao
+
     abstract fun saleDao(): SaleDao
+
     abstract fun shiftDao(): ShiftDao
+
     abstract fun tableDao(): TableDao
 }
 

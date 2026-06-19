@@ -44,25 +44,25 @@ internal fun PaymentSuccessContent(
     printerManager: PrinterManager,
     settingsStore: SettingsStore,
     onNewTransaction: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var showPrintDialog by remember { mutableStateOf(false) }
 
     PaymentSuccessCard(
-        invoiceNo    = sale.invoiceNo,
-        total        = sale.total,
+        invoiceNo = sale.invoiceNo,
+        total = sale.total,
         changeAmount = sale.changeAmount,
-        onPrint      = { showPrintDialog = true },
-        onNewTx      = onNewTransaction,
-        modifier     = modifier
+        onPrint = { showPrintDialog = true },
+        onNewTx = onNewTransaction,
+        modifier = modifier,
     )
 
     if (showPrintDialog) {
         PrintDialog(
-            sale           = sale,
+            sale = sale,
             printerManager = printerManager,
-            settingsStore  = settingsStore,
-            onDismiss      = { showPrintDialog = false }
+            settingsStore = settingsStore,
+            onDismiss = { showPrintDialog = false },
         )
     }
 }
@@ -74,24 +74,25 @@ private fun PaymentSuccessCard(
     changeAmount: Long,
     onPrint: () -> Unit,
     onNewTx: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Card(
-            modifier = Modifier
-                .widthIn(min = 300.dp, max = 520.dp)
-                .fillMaxWidth(0.88f),
-            shape     = MaterialTheme.shapes.extraLarge,
+            modifier =
+                Modifier
+                    .widthIn(min = 300.dp, max = 520.dp)
+                    .fillMaxWidth(0.88f),
+            shape = MaterialTheme.shapes.extraLarge,
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-            colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 SuccessHeader(invoiceNo = invoiceNo)
                 SuccessDetails(
-                    total        = total,
+                    total = total,
                     changeAmount = changeAmount,
-                    onPrint      = onPrint,
-                    onNewTx      = onNewTx
+                    onPrint = onPrint,
+                    onNewTx = onNewTx,
                 )
             }
         }
@@ -101,40 +102,42 @@ private fun PaymentSuccessCard(
 @Composable
 private fun SuccessHeader(invoiceNo: String?) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(vertical = 28.dp, horizontal = 24.dp),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(vertical = 28.dp, horizontal = 24.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Surface(
-                shape    = CircleShape,
-                color    = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(64.dp)
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(64.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        Icons.Default.Check, contentDescription = null,
-                        tint     = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(34.dp)
+                        Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(34.dp),
                     )
                 }
             }
             Text(
                 "Transaksi Berhasil!",
-                style      = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color      = MaterialTheme.colorScheme.onPrimary
+                color = MaterialTheme.colorScheme.onPrimary,
             )
             if (invoiceNo != null) {
                 Text(
                     invoiceNo,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
                 )
             }
         }
@@ -146,11 +149,11 @@ private fun SuccessDetails(
     total: Long,
     changeAmount: Long,
     onPrint: () -> Unit,
-    onNewTx: () -> Unit
+    onNewTx: () -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         DetailRow(label = "Total Pembayaran", value = formatRupiah(total), isTotal = true)
 
@@ -161,50 +164,55 @@ private fun SuccessDetails(
 
         HorizontalDivider(
             modifier = Modifier.padding(bottom = 20.dp),
-            color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             OutlinedButton(
-                onClick  = onPrint,
+                onClick = onPrint,
                 modifier = Modifier.weight(1f),
-                shape    = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
             ) {
                 Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(15.dp))
                 Spacer(Modifier.width(6.dp))
                 Text("Cetak Struk")
             }
             RancakButton(
-                text     = "Transaksi Baru",
-                onClick  = onNewTx,
-                modifier = Modifier.weight(1f)
+                text = "Transaksi Baru",
+                onClick = onNewTx,
+                modifier = Modifier.weight(1f),
             )
         }
     }
 }
 
 @Composable
-private fun DetailRow(label: String, value: String, isTotal: Boolean) {
+private fun DetailRow(
+    label: String,
+    value: String,
+    isTotal: Boolean,
+) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             value,
-            style      = if (isTotal) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
+            style = if (isTotal) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color      = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
     }
 }
@@ -212,32 +220,34 @@ private fun DetailRow(label: String, value: String, isTotal: Boolean) {
 @Composable
 private fun ChangeRow(changeAmount: Long) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             Icon(
-                Icons.Default.SwapHoriz, contentDescription = null,
-                tint     = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.size(15.dp)
+                Icons.Default.SwapHoriz,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.size(15.dp),
             )
             Text(
                 "Kembalian",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Text(
             formatRupiah(changeAmount),
-            style      = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color      = MaterialTheme.colorScheme.secondary
+            color = MaterialTheme.colorScheme.secondary,
         )
     }
 }
@@ -249,12 +259,12 @@ private fun ChangeRow(changeAmount: Long) {
 private fun PaymentSuccessPreview_WithChange() {
     RancakTheme {
         PaymentSuccessCard(
-            invoiceNo    = "INV-2024-0001",
-            total        = 75_000L,
+            invoiceNo = "INV-2024-0001",
+            total = 75_000L,
             changeAmount = 25_000L,
-            onPrint      = {},
-            onNewTx      = {},
-            modifier     = Modifier.fillMaxSize()
+            onPrint = {},
+            onNewTx = {},
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -264,12 +274,12 @@ private fun PaymentSuccessPreview_WithChange() {
 private fun PaymentSuccessPreview_Exact() {
     RancakTheme {
         PaymentSuccessCard(
-            invoiceNo    = "INV-2024-0002",
-            total        = 42_000L,
+            invoiceNo = "INV-2024-0002",
+            total = 42_000L,
             changeAmount = 0L,
-            onPrint      = {},
-            onNewTx      = {},
-            modifier     = Modifier.fillMaxSize()
+            onPrint = {},
+            onNewTx = {},
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -281,37 +291,44 @@ private fun PaymentSuccessPreview_Exact() {
 @Composable
 internal fun PaymentSuccessPreviewContent(modifier: Modifier = Modifier) {
     PaymentSuccessCard(
-        invoiceNo    = "INV-2024-0001",
-        total        = 75_000L,
+        invoiceNo = "INV-2024-0001",
+        total = 75_000L,
         changeAmount = 25_000L,
-        onPrint      = {},
-        onNewTx      = {},
-        modifier     = modifier
+        onPrint = {},
+        onNewTx = {},
+        modifier = modifier,
     )
 }
 
 @Suppress("unused")
-private fun previewSale(): Sale = Sale(
-    uuid          = "s1",
-    invoiceNo     = "INV-2024-0001",
-    orderType     = OrderType.DINE_IN,
-    queueNumber   = 1,
-    status        = SaleStatus.PAID,
-    customerName  = null,
-    subtotal      = 75_000L,
-    discount      = 0L,
-    surcharge     = 0L,
-    tax           = 0L,
-    total         = 75_000L,
-    paymentMethod = PaymentMethod.CASH,
-    paidAmount    = 100_000L,
-    changeAmount  = 25_000L,
-    items = persistentListOf(
-        SaleItem(
-            uuid = "i1", productUuid = "p1", productName = "Kopi",
-            qty = "1", price = 75_000L, subtotal = 75_000L,
-            variantName = null, note = null
-        )
-    ),
-    createdAt = null
-)
+private fun previewSale(): Sale =
+    Sale(
+        uuid = "s1",
+        invoiceNo = "INV-2024-0001",
+        orderType = OrderType.DINE_IN,
+        queueNumber = 1,
+        status = SaleStatus.PAID,
+        customerName = null,
+        subtotal = 75_000L,
+        discount = 0L,
+        surcharge = 0L,
+        tax = 0L,
+        total = 75_000L,
+        paymentMethod = PaymentMethod.CASH,
+        paidAmount = 100_000L,
+        changeAmount = 25_000L,
+        items =
+            persistentListOf(
+                SaleItem(
+                    uuid = "i1",
+                    productUuid = "p1",
+                    productName = "Kopi",
+                    qty = "1",
+                    price = 75_000L,
+                    subtotal = 75_000L,
+                    variantName = null,
+                    note = null,
+                ),
+            ),
+        createdAt = null,
+    )

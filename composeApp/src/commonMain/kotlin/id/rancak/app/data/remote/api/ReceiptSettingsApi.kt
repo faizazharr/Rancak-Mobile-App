@@ -17,19 +17,17 @@ import io.ktor.http.contentType
  * PATCH — update sebagian atau seluruh field (PATCH semantics).
  */
 
-suspend fun RancakApiService.getReceiptSettings(
-    tenantUuid: String
-): ApiResponse<ReceiptSettingsDto> =
+suspend fun RancakApiService.getReceiptSettings(tenantUuid: String): ApiResponse<ReceiptSettingsDto> =
     client.get(
-        ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.RECEIPT_SETTINGS
+        ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.RECEIPT_SETTINGS,
     ).body()
 
 suspend fun RancakApiService.patchReceiptSettings(
     tenantUuid: String,
-    body: UpdateReceiptSettingsDto
+    body: UpdateReceiptSettingsDto,
 ): ApiResponse<ReceiptSettingsDto> =
     client.patch(
-        ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.RECEIPT_SETTINGS
+        ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.RECEIPT_SETTINGS,
     ) {
         contentType(ContentType.Application.Json)
         setBody(body)
@@ -42,26 +40,27 @@ suspend fun RancakApiService.patchReceiptSettings(
  */
 suspend fun RancakApiService.updateReceiptSettings(
     tenantUuid: String,
-    body: UpdateReceiptSettingsRequest
-): ApiResponse<ReceiptSettingsDto> = patchReceiptSettings(
-    tenantUuid,
-    UpdateReceiptSettingsDto(
-        logoUrl = body.logoUrl,
-        email = body.email,
-        website = body.website,
-        npwp = body.npwp,
-        receiptHeader = body.receiptHeader,
-        receiptFooter = body.receiptFooter,
-        receiptFooter2 = body.receiptFooter2,
-        logoPosition = body.logoPosition,
-        logoSizePct = body.logoSizePct,
-        receiptNameSize = body.receiptNameSize,
-        separatorStyle = body.separatorStyle,
-        separatorCount = body.separatorCount,
-        footerPosition = body.footerPosition,
-        receiptInstagram = body.receiptInstagram,
-        receiptFacebook = body.receiptFacebook,
-        receiptWifiSsid = body.receiptWifiSsid,
-        receiptWifiPassword = body.receiptWifiPassword,
+    body: UpdateReceiptSettingsRequest,
+): ApiResponse<ReceiptSettingsDto> =
+    patchReceiptSettings(
+        tenantUuid,
+        UpdateReceiptSettingsDto(
+            logoUrl = body.logoUrl,
+            email = body.email,
+            website = body.website,
+            npwp = body.npwp,
+            receiptHeader = body.receiptHeader,
+            receiptFooter = body.receiptFooter,
+            receiptFooter2 = body.receiptFooter2,
+            logoPosition = body.logoPosition,
+            logoSizePct = body.logoSizePct,
+            receiptNameSize = body.receiptNameSize,
+            separatorStyle = body.separatorStyle,
+            separatorCount = body.separatorCount,
+            footerPosition = body.footerPosition,
+            receiptInstagram = body.receiptInstagram,
+            receiptFacebook = body.receiptFacebook,
+            receiptWifiSsid = body.receiptWifiSsid,
+            receiptWifiPassword = body.receiptWifiPassword,
+        ),
     )
-)

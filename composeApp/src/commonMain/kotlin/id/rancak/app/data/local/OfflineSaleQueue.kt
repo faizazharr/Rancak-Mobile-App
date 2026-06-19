@@ -16,9 +16,8 @@ import kotlinx.serialization.json.Json
  */
 class OfflineSaleQueue(
     private val settings: Settings,
-    private val json: Json
+    private val json: Json,
 ) {
-
     private var cachedQueue: List<PendingSale>? = null
 
     init {
@@ -56,7 +55,7 @@ class OfflineSaleQueue(
     }
 
     val isEmpty: Boolean get() = getAll().isEmpty()
-    val size: Int        get() = getAll().size
+    val size: Int get() = getAll().size
 
     // ── private ──
 

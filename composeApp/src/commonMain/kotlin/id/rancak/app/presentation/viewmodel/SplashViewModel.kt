@@ -29,17 +29,16 @@ enum class SplashDestination { LOGIN, TENANT_PICKER, POS }
  * splash sempat tampil.
  */
 class SplashViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
-
     private val _destination = MutableStateFlow<SplashDestination?>(null)
     val destination: StateFlow<SplashDestination?> = _destination.asStateFlow()
 
     init {
         viewModelScope.launch {
             // Jalankan minimum delay dan validasi secara paralel
-            val minDelay  = async { delay(MIN_SPLASH_MS) }
-            val resolved  = async { resolveDestination() }
+            val minDelay = async { delay(MIN_SPLASH_MS) }
+            val resolved = async { resolveDestination() }
             minDelay.await()
             _destination.value = resolved.await()
         }
@@ -50,8 +49,9 @@ class SplashViewModel(
         if (!authRepository.isLoggedIn()) return SplashDestination.LOGIN
 
         // 2. Login tapi tidak ada tenant yang tersimpan → picker
-        val storedTenantUuid = authRepository.getCurrentTenantUuid()
-            ?: return SplashDestination.TENANT_PICKER
+        val storedTenantUuid =
+            authRepository.getCurrentTenantUuid()
+                ?: return SplashDestination.TENANT_PICKER
 
         // 3. Ada tenant tersimpan → validasi ke server
         return when (val result = authRepository.getMyTenants()) {
@@ -76,7 +76,7 @@ class SplashViewModel(
                 }
             }
             // Jaringan tidak tersedia → percayai data lokal (offline-first)
-            is Resource.Error   -> SplashDestination.POS
+            is Resource.Error -> SplashDestination.POS
             is Resource.Loading -> SplashDestination.POS
         }
     }

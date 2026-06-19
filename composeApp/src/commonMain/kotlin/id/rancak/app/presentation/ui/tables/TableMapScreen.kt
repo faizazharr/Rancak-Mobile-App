@@ -12,8 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AdminPanelSettings
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material.icons.filled.TableBar
@@ -22,12 +20,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
-import id.rancak.app.domain.model.UserRole
-import id.rancak.app.domain.repository.UserSessionProvider
 import id.rancak.app.presentation.components.EmptyScreen
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
@@ -40,9 +37,7 @@ import id.rancak.app.presentation.ui.tables.components.TableFormDialog
 import id.rancak.app.presentation.ui.tables.components.TableSummaryCard
 import id.rancak.app.presentation.viewmodel.TableUiState
 import id.rancak.app.presentation.viewmodel.TableViewModel
-import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.collections.immutable.persistentListOf
-import org.koin.compose.koinInject
 import kotlinx.collections.immutable.toImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -50,7 +45,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun TableMapScreen(
     onBack: () -> Unit,
     onTableSelect: ((String) -> Unit)? = null,
-    onReservasi: () -> Unit = {}
+    onReservasi: () -> Unit = {},
 ) {
     val viewModel: TableViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -59,21 +54,21 @@ fun TableMapScreen(
     LaunchedEffect(Unit) { viewModel.loadTables() }
 
     TableMapScreenContent(
-        uiState         = uiState,
-        canManage       = canManage,
-        onBack          = onBack,
-        onRetry         = viewModel::loadTables,
-        onTableSelect   = onTableSelect,
-        onReservasi     = onReservasi,
-        onToggleAdmin   = { viewModel.setAdminMode(!uiState.adminMode) },
-        onAddTable      = viewModel::openCreateDialog,
-        onEditTable     = viewModel::openEditDialog,
+        uiState = uiState,
+        canManage = canManage,
+        onBack = onBack,
+        onRetry = viewModel::loadTables,
+        onTableSelect = onTableSelect,
+        onReservasi = onReservasi,
+        onToggleAdmin = { viewModel.setAdminMode(!uiState.adminMode) },
+        onAddTable = viewModel::openCreateDialog,
+        onEditTable = viewModel::openEditDialog,
         onRequestDelete = viewModel::requestDelete,
         onDismissDialog = viewModel::dismissDialog,
-        onConfirmSave   = viewModel::saveTable,
-        onCancelDelete  = viewModel::cancelDelete,
+        onConfirmSave = viewModel::saveTable,
+        onCancelDelete = viewModel::cancelDelete,
         onConfirmDelete = viewModel::confirmDelete,
-        onConsumeMsg    = viewModel::consumeSnackbar
+        onConsumeMsg = viewModel::consumeSnackbar,
     )
 }
 
@@ -94,7 +89,7 @@ fun TableMapScreenContent(
     onConfirmSave: (name: String, area: String?, capacity: Int, isActive: Boolean, sortOrder: Int) -> Unit = { _, _, _, _, _ -> },
     onCancelDelete: () -> Unit = {},
     onConfirmDelete: () -> Unit = {},
-    onConsumeMsg: () -> Unit = {}
+    onConsumeMsg: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -108,26 +103,29 @@ fun TableMapScreenContent(
     Scaffold(
         topBar = {
             RancakTopBar(
-                title    = "Denah Meja",
-                icon     = Icons.Default.TableBar,
+                title = "Denah Meja",
+                icon = Icons.Default.TableBar,
                 subtitle = if (uiState.adminMode) "Mode Kelola Meja" else "Manajemen meja",
-                onMenu   = onBack,
-                actions  = {
+                onMenu = onBack,
+                actions = {
                     IconButton(onClick = onReservasi) {
                         Icon(Icons.Default.EventSeat, contentDescription = "Reservasi")
                     }
                     if (canManage) {
                         FilterChip(
                             selected = uiState.adminMode,
-                            onClick  = onToggleAdmin,
-                            label    = { Text(if (uiState.adminMode) "Selesai" else "Kelola") },
+                            onClick = onToggleAdmin,
+                            label = { Text(if (uiState.adminMode) "Selesai" else "Kelola") },
                             leadingIcon = {
-                                Icon(Icons.Default.AdminPanelSettings, contentDescription = null,
-                                    modifier = Modifier.size(16.dp))
-                            }
+                                Icon(
+                                    Icons.Default.AdminPanelSettings,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            },
                         )
                     }
-                }
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -135,11 +133,11 @@ fun TableMapScreenContent(
             if (canManage && uiState.adminMode) {
                 ExtendedFloatingActionButton(
                     onClick = onAddTable,
-                    icon    = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text    = { Text("Tambah Meja") }
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = { Text("Tambah Meja") },
                 )
             }
-        }
+        },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             // ── Status legend strip ────────────────────────────────────────
@@ -148,48 +146,53 @@ fun TableMapScreenContent(
             // ── Admin mode banner ──────────────────────────────────────────
             if (uiState.adminMode) {
                 Surface(
-                    color    = MaterialTheme.colorScheme.tertiaryContainer,
-                    modifier = Modifier.fillMaxWidth()
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Icon(Icons.Default.AdminPanelSettings, null,
+                        Icon(
+                            Icons.Default.AdminPanelSettings,
+                            null,
                             modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer)
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
                         Text(
                             "Mode Kelola — Tap untuk edit, tahan untuk hapus",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                         )
                     }
                 }
             }
 
-        BoxWithConstraints(Modifier.fillMaxSize()) {
-            val sizes = LocalSizes.current
-            val isTablet = maxWidth >= sizes.tabletBreakpoint
-            when {
-                uiState.isLoading                                -> LoadingScreen()
-                uiState.error != null                            -> ErrorScreen(uiState.error, onRetry = onRetry)
-                uiState.tables.isEmpty() && !uiState.adminMode   -> EmptyScreen("Belum ada meja")
-                uiState.tables.isEmpty()                          -> EmptyScreen("Belum ada meja — tap “Tambah Meja”")
-                isTablet                                         -> TabletTableLayout(
-                    uiState         = uiState,
-                    onTableSelect   = onTableSelect,
-                    onEditTable     = onEditTable,
-                    onRequestDelete = onRequestDelete
-                )
-                else -> CompactTableLayout(
-                    uiState         = uiState,
-                    onTableSelect   = onTableSelect,
-                    onEditTable     = onEditTable,
-                    onRequestDelete = onRequestDelete
-                )
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val sizes = LocalSizes.current
+                val isTablet = maxWidth >= sizes.tabletBreakpoint
+                when {
+                    uiState.isLoading -> LoadingScreen()
+                    uiState.error != null -> ErrorScreen(uiState.error, onRetry = onRetry)
+                    uiState.tables.isEmpty() && !uiState.adminMode -> EmptyScreen("Belum ada meja")
+                    uiState.tables.isEmpty() -> EmptyScreen("Belum ada meja — tap “Tambah Meja”")
+                    isTablet ->
+                        TabletTableLayout(
+                            uiState = uiState,
+                            onTableSelect = onTableSelect,
+                            onEditTable = onEditTable,
+                            onRequestDelete = onRequestDelete,
+                        )
+                    else ->
+                        CompactTableLayout(
+                            uiState = uiState,
+                            onTableSelect = onTableSelect,
+                            onEditTable = onEditTable,
+                            onRequestDelete = onRequestDelete,
+                        )
+                }
             }
-        }
         } // end Column
     }
 
@@ -197,11 +200,11 @@ fun TableMapScreenContent(
 
     if (uiState.showFormDialog) {
         TableFormDialog(
-            editingTable  = uiState.editingTable,
-            isSubmitting  = uiState.isSubmitting,
+            editingTable = uiState.editingTable,
+            isSubmitting = uiState.isSubmitting,
             existingAreas = uiState.tables.mapNotNull { it.area }.distinct().sorted().toImmutableList(),
-            onDismiss     = onDismissDialog,
-            onConfirm     = onConfirmSave
+            onDismiss = onDismissDialog,
+            onConfirm = onConfirmSave,
         )
     }
 
@@ -209,20 +212,23 @@ fun TableMapScreenContent(
         AlertDialog(
             onDismissRequest = onCancelDelete,
             title = { Text("Hapus meja?") },
-            text  = { Text("Meja '${target.name}' akan dihapus. Tindakan ini tidak bisa dibatalkan.") },
+            text = { Text("Meja '${target.name}' akan dihapus. Tindakan ini tidak bisa dibatalkan.") },
             confirmButton = {
                 Button(
                     onClick = onConfirmDelete,
                     enabled = !uiState.isSubmitting,
-                    colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 ) {
-                    if (uiState.isSubmitting) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                    else Text("Hapus")
+                    if (uiState.isSubmitting) {
+                        CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text("Hapus")
+                    }
                 }
             },
             dismissButton = {
                 TextButton(onClick = onCancelDelete, enabled = !uiState.isSubmitting) { Text("Batal") }
-            }
+            },
         )
     }
 }
@@ -234,7 +240,7 @@ private fun CompactTableLayout(
     uiState: TableUiState,
     onTableSelect: ((String) -> Unit)?,
     onEditTable: (Table) -> Unit,
-    onRequestDelete: (Table) -> Unit
+    onRequestDelete: (Table) -> Unit,
 ) {
     // Memoize: groupBy iterasi seluruh list; hanya ulangi saat list meja berubah.
     val areas = remember(uiState.tables) { uiState.tables.groupBy { it.area ?: "Umum" } }
@@ -242,7 +248,7 @@ private fun CompactTableLayout(
         columns = GridCells.Adaptive(108.dp),
         contentPadding = PaddingValues(12.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         areas.forEach { (area, tables) ->
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
@@ -250,11 +256,11 @@ private fun CompactTableLayout(
             }
             items(tables, key = { it.uuid }) { table ->
                 AdminAwareTableCell(
-                    table         = table,
-                    adminMode     = uiState.adminMode,
-                    onSelect      = { onTableSelect?.invoke(table.uuid) },
-                    onEdit        = { onEditTable(table) },
-                    onDelete      = { onRequestDelete(table) }
+                    table = table,
+                    adminMode = uiState.adminMode,
+                    onSelect = { onTableSelect?.invoke(table.uuid) },
+                    onEdit = { onEditTable(table) },
+                    onDelete = { onRequestDelete(table) },
                 )
             }
         }
@@ -266,30 +272,32 @@ private fun TabletTableLayout(
     uiState: TableUiState,
     onTableSelect: ((String) -> Unit)?,
     onEditTable: (Table) -> Unit,
-    onRequestDelete: (Table) -> Unit
+    onRequestDelete: (Table) -> Unit,
 ) {
     // Memoize: 4x iterasi list dalam satu remember — hanya ulangi saat list meja berubah.
     // Tanpa ini, 3x count() + 1x groupBy() dijalankan setiap rekomposisi (layout ulang,
     // drawer buka/tutup, dll) yang sangat boros terutama dengan banyak meja.
     data class TableStats(val available: Int, val occupied: Int, val inactive: Int, val areas: Map<String, List<Table>>)
-    val stats = remember(uiState.tables) {
-        var av = 0; var oc = 0; var ia = 0
-        val areaMap = mutableMapOf<String, MutableList<Table>>()
-        for (t in uiState.tables) {
-            when (t.status) {
-                TableStatus.AVAILABLE -> av++
-                TableStatus.OCCUPIED  -> oc++
-                TableStatus.INACTIVE  -> ia++
-                else -> Unit
+    val stats =
+        remember(uiState.tables) {
+            var av = 0
+            var oc = 0
+            var ia = 0
+            val areaMap = mutableMapOf<String, MutableList<Table>>()
+            for (t in uiState.tables) {
+                when (t.status) {
+                    TableStatus.AVAILABLE -> av++
+                    TableStatus.OCCUPIED -> oc++
+                    TableStatus.INACTIVE -> ia++
+                }
+                areaMap.getOrPut(t.area ?: "Umum") { mutableListOf() }.add(t)
             }
-            areaMap.getOrPut(t.area ?: "Umum") { mutableListOf() }.add(t)
+            TableStats(av, oc, ia, areaMap)
         }
-        TableStats(av, oc, ia, areaMap)
-    }
     val available = stats.available
-    val occupied  = stats.occupied
-    val inactive  = stats.inactive
-    val areas     = stats.areas
+    val occupied = stats.occupied
+    val inactive = stats.inactive
+    val areas = stats.areas
 
     Row(Modifier.fillMaxSize()) {
         // Kiri — grid meja
@@ -298,7 +306,7 @@ private fun TabletTableLayout(
             modifier = Modifier.weight(0.65f).fillMaxHeight(),
             contentPadding = PaddingValues(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             areas.forEach { (area, tables) ->
                 item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
@@ -306,12 +314,12 @@ private fun TabletTableLayout(
                 }
                 items(tables, key = { it.uuid }) { table ->
                     AdminAwareTableCell(
-                        table     = table,
+                        table = table,
                         adminMode = uiState.adminMode,
-                        size      = 130.dp,
-                        onSelect  = { onTableSelect?.invoke(table.uuid) },
-                        onEdit    = { onEditTable(table) },
-                        onDelete  = { onRequestDelete(table) }
+                        size = 130.dp,
+                        onSelect = { onTableSelect?.invoke(table.uuid) },
+                        onEdit = { onEditTable(table) },
+                        onDelete = { onRequestDelete(table) },
                     )
                 }
             }
@@ -321,29 +329,30 @@ private fun TabletTableLayout(
 
         // Kanan — statistik + legenda
         Column(
-            modifier = Modifier
-                .weight(0.35f)
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier
+                    .weight(0.35f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Ringkasan", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             TableSummaryCard(
-                total     = uiState.tables.size,
+                total = uiState.tables.size,
                 available = available,
-                occupied  = occupied,
-                inactive  = inactive
+                occupied = occupied,
+                inactive = inactive,
             )
 
             Text("Area", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
             areas.forEach { (area, tables) ->
                 val areaOccupied = tables.count { it.status == TableStatus.OCCUPIED }
                 AreaSummaryCard(
-                    area          = area,
-                    totalCount    = tables.size,
-                    occupiedCount = areaOccupied
+                    area = area,
+                    totalCount = tables.size,
+                    occupiedCount = areaOccupied,
                 )
             }
         }
@@ -363,28 +372,29 @@ private fun AdminAwareTableCell(
     size: androidx.compose.ui.unit.Dp = 100.dp,
     onSelect: () -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
     if (!adminMode) {
         TableCell(table = table, size = size, onClick = onSelect)
         return
     }
     Box(
-        modifier = Modifier
-            .size(size)
-            .combinedClickable(
-                onClick     = onEdit,
-                onLongClick = onDelete
-            )
+        modifier =
+            Modifier
+                .size(size)
+                .combinedClickable(
+                    onClick = onEdit,
+                    onLongClick = onDelete,
+                ),
     ) {
         // Re-use existing visual but disable inner click — outer Box handles it.
         TableCell(table = table, size = size, enabled = false, onClick = {})
         // Indikator pojok kanan-atas: pensil edit
         Icon(
-            imageVector        = Icons.Default.Edit,
+            imageVector = Icons.Default.Edit,
             contentDescription = "Edit",
-            modifier           = Modifier.align(androidx.compose.ui.Alignment.TopEnd).padding(4.dp).size(14.dp),
-            tint               = MaterialTheme.colorScheme.primary
+            modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd).padding(4.dp).size(14.dp),
+            tint = MaterialTheme.colorScheme.primary,
         )
     }
 }
@@ -396,62 +406,73 @@ private fun AdminAwareTableCell(
 private fun TableStatusLegend() {
     val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
     Surface(
-        color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        modifier = Modifier.fillMaxWidth()
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            LegendDot("Tersedia",  semantic.statusAvailable)
-            LegendDot("Dipakai",   semantic.statusOccupied)
-            LegendDot("Nonaktif",  semantic.statusMaintenance)
+            LegendDot("Tersedia", semantic.statusAvailable)
+            LegendDot("Dipakai", semantic.statusOccupied)
+            LegendDot("Nonaktif", semantic.statusMaintenance)
         }
     }
 }
 
 @Composable
-private fun LegendDot(label: String, color: androidx.compose.ui.graphics.Color) {
+private fun LegendDot(
+    label: String,
+    color: androidx.compose.ui.graphics.Color,
+) {
     Row(
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Box(
-            modifier = Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(color)
+            modifier =
+                Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(color),
         )
-        Text(label, style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
 /** Header setiap area dengan jumlah meja. */
 @Composable
-private fun AreaSectionHeader(area: String, count: Int) {
+private fun AreaSectionHeader(
+    area: String,
+    count: Int,
+) {
     Row(
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        modifier = androidx.compose.ui.Modifier.padding(vertical = 6.dp)
+        modifier = androidx.compose.ui.Modifier.padding(vertical = 6.dp),
     ) {
         Text(
             area,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.secondaryContainer
+            color = MaterialTheme.colorScheme.secondaryContainer,
         ) {
             Text(
                 "$count",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = androidx.compose.ui.Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                modifier = androidx.compose.ui.Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
             )
         }
     }
@@ -464,8 +485,18 @@ private fun AreaSectionHeader(area: String, count: Int) {
 private fun TableCellAvailablePreview() {
     RancakTheme {
         TableCell(
-            table = Table(uuid = "1", name = "A1", area = "Indoor", capacity = 4, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 1, activeSaleUuid = null),
-            onClick = {}
+            table =
+                Table(
+                    uuid = "1",
+                    name = "A1",
+                    area = "Indoor",
+                    capacity = 4,
+                    status = TableStatus.AVAILABLE,
+                    isActive = true,
+                    sortOrder = 1,
+                    activeSaleUuid = null,
+                ),
+            onClick = {},
         )
     }
 }
@@ -475,8 +506,18 @@ private fun TableCellAvailablePreview() {
 private fun TableCellOccupiedPreview() {
     RancakTheme {
         TableCell(
-            table = Table(uuid = "2", name = "B3", area = "Outdoor", capacity = 6, status = TableStatus.OCCUPIED, isActive = true, sortOrder = 2, activeSaleUuid = "sale-1"),
-            onClick = {}
+            table =
+                Table(
+                    uuid = "2",
+                    name = "B3",
+                    area = "Outdoor",
+                    capacity = 6,
+                    status = TableStatus.OCCUPIED,
+                    isActive = true,
+                    sortOrder = 2,
+                    activeSaleUuid = "sale-1",
+                ),
+            onClick = {},
         )
     }
 }
@@ -484,18 +525,64 @@ private fun TableCellOccupiedPreview() {
 @Preview(name = "Table Map – Full Screen", widthDp = 600, heightDp = 800)
 @Composable
 private fun TableMapScreenPreview() {
-    val tables = persistentListOf(
-        Table(uuid = "t1", name = "Meja 1", area = "Indoor", capacity = 4, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 1, activeSaleUuid = null),
-        Table(uuid = "t2", name = "Meja 2", area = "Indoor", capacity = 2, status = TableStatus.OCCUPIED,  isActive = true, sortOrder = 2, activeSaleUuid = "sale-1"),
-        Table(uuid = "t3", name = "Meja 3", area = "Indoor", capacity = 4, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 3, activeSaleUuid = null),
-        Table(uuid = "t4", name = "Meja 4", area = "Outdoor",capacity = 6, status = TableStatus.AVAILABLE, isActive = true, sortOrder = 4, activeSaleUuid = null),
-        Table(uuid = "t5", name = "Meja 5", area = "Outdoor",capacity = 2, status = TableStatus.INACTIVE,  isActive = false, sortOrder = 5, activeSaleUuid = null)
-    )
+    val tables =
+        persistentListOf(
+            Table(
+                uuid = "t1",
+                name = "Meja 1",
+                area = "Indoor",
+                capacity = 4,
+                status = TableStatus.AVAILABLE,
+                isActive = true,
+                sortOrder = 1,
+                activeSaleUuid = null,
+            ),
+            Table(
+                uuid = "t2",
+                name = "Meja 2",
+                area = "Indoor",
+                capacity = 2,
+                status = TableStatus.OCCUPIED,
+                isActive = true,
+                sortOrder = 2,
+                activeSaleUuid = "sale-1",
+            ),
+            Table(
+                uuid = "t3",
+                name = "Meja 3",
+                area = "Indoor",
+                capacity = 4,
+                status = TableStatus.AVAILABLE,
+                isActive = true,
+                sortOrder = 3,
+                activeSaleUuid = null,
+            ),
+            Table(
+                uuid = "t4",
+                name = "Meja 4",
+                area = "Outdoor",
+                capacity = 6,
+                status = TableStatus.AVAILABLE,
+                isActive = true,
+                sortOrder = 4,
+                activeSaleUuid = null,
+            ),
+            Table(
+                uuid = "t5",
+                name = "Meja 5",
+                area = "Outdoor",
+                capacity = 2,
+                status = TableStatus.INACTIVE,
+                isActive = false,
+                sortOrder = 5,
+                activeSaleUuid = null,
+            ),
+        )
     RancakTheme {
         TableMapScreenContent(
             uiState = TableUiState(tables = tables),
-            onBack  = {},
-            onRetry = {}
+            onBack = {},
+            onRetry = {},
         )
     }
 }

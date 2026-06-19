@@ -20,38 +20,40 @@ data class ShiftEntity(
     val totalTransactions: Int?,
     val totalExpenses: Long?,
     val totalCashIn: Long?,
-    val cachedAt: Long = 0L
+    val cachedAt: Long = 0L,
 )
 
-fun ShiftEntity.toDomain() = Shift(
-    uuid = uuid,
-    openedAt = openedAt,
-    closedAt = closedAt,
-    status = ShiftStatus.from(status),
-    openingCash = openingCash,
-    closingCash = closingCash,
-    expectedCash = expectedCash,
-    cashDifference = cashDifference,
-    cashierName = cashierName,
-    totalSales = totalSales,
-    totalTransactions = totalTransactions,
-    totalExpenses = totalExpenses,
-    totalCashIn = totalCashIn
-)
+fun ShiftEntity.toDomain() =
+    Shift(
+        uuid = uuid,
+        openedAt = openedAt,
+        closedAt = closedAt,
+        status = ShiftStatus.from(status),
+        openingCash = openingCash,
+        closingCash = closingCash,
+        expectedCash = expectedCash,
+        cashDifference = cashDifference,
+        cashierName = cashierName,
+        totalSales = totalSales,
+        totalTransactions = totalTransactions,
+        totalExpenses = totalExpenses,
+        totalCashIn = totalCashIn,
+    )
 
-fun Shift.toEntity(cachedAt: Long = 0L) = ShiftEntity(
-    uuid = uuid,
-    openedAt = openedAt,
-    closedAt = closedAt,
-    status = status.value,
-    openingCash = openingCash,
-    closingCash = closingCash,
-    expectedCash = expectedCash,
-    cashDifference = cashDifference,
-    cashierName = cashierName,
-    totalSales = totalSales,
-    totalTransactions = totalTransactions,
-    totalExpenses = totalExpenses,
-    totalCashIn = totalCashIn,
-    cachedAt = cachedAt
-)
+fun Shift.toEntity(cachedAt: Long = 0L) =
+    ShiftEntity(
+        uuid = uuid,
+        openedAt = openedAt,
+        closedAt = closedAt,
+        status = status.value,
+        openingCash = openingCash,
+        closingCash = closingCash,
+        expectedCash = expectedCash,
+        cashDifference = cashDifference,
+        cashierName = cashierName,
+        totalSales = totalSales,
+        totalTransactions = totalTransactions,
+        totalExpenses = totalExpenses,
+        totalCashIn = totalCashIn,
+        cachedAt = cachedAt,
+    )

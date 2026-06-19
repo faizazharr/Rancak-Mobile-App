@@ -27,7 +27,6 @@ import id.rancak.app.presentation.designsystem.Primary
 import id.rancak.app.presentation.designsystem.PrimaryGradientEnd
 import id.rancak.app.presentation.designsystem.RancakTheme
 
-
 /**
  * Komponen dialog form standar Rancak POS.
  *
@@ -80,64 +79,66 @@ fun RancakFormDialog(
     isSubmitting: Boolean = false,
     dismissLabel: String = "Batal",
     maxWidth: Dp = 520.dp,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Dialog(
         onDismissRequest = { if (!isSubmitting) onDismissRequest() },
-        properties       = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         BoxWithConstraints(
-            modifier         = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            contentAlignment = Alignment.Center,
         ) {
             // Bound the body height so the footer is always visible.
             // Header ~80dp + footer ~64dp + vertical padding ~40dp ≈ 184dp overhead.
             val bodyMaxHeight = (maxHeight - 184.dp).coerceIn(200.dp, 480.dp)
 
             Card(
-                modifier  = Modifier.widthIn(max = maxWidth).fillMaxWidth(),
-                shape     = MaterialTheme.shapes.extraLarge,
+                modifier = Modifier.widthIn(max = maxWidth).fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraLarge,
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
                 Column {
                     // ── Gradient header ───────────────────────────────────
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd))
-                            )
-                            .padding(horizontal = 20.dp, vertical = 18.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd)),
+                                )
+                                .padding(horizontal = 20.dp, vertical = 18.dp),
                     ) {
                         Row(
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
                         ) {
                             Box(
-                                modifier         = Modifier
-                                    .size(42.dp)
-                                    .background(Color.White.copy(alpha = 0.18f), MaterialTheme.shapes.medium),
-                                contentAlignment = Alignment.Center
+                                modifier =
+                                    Modifier
+                                        .size(42.dp)
+                                        .background(Color.White.copy(alpha = 0.18f), MaterialTheme.shapes.medium),
+                                contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    imageVector        = icon,
+                                    imageVector = icon,
                                     contentDescription = null,
-                                    tint               = Color.White,
-                                    modifier           = Modifier.size(22.dp)
+                                    tint = Color.White,
+                                    modifier = Modifier.size(22.dp),
                                 )
                             }
                             Column {
                                 Text(
-                                    text       = title,
-                                    style      = MaterialTheme.typography.titleMedium,
+                                    text = title,
+                                    style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color      = Color.White
+                                    color = Color.White,
                                 )
                                 Text(
-                                    text  = subtitle,
+                                    text = subtitle,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.78f)
+                                    color = Color.White.copy(alpha = 0.78f),
                                 )
                             }
                         }
@@ -147,66 +148,74 @@ fun RancakFormDialog(
                     // heightIn(max = bodyMaxHeight) ensures the body never grows
                     // past the available space, keeping the footer always on screen.
                     Column(
-                        modifier = Modifier
-                            .heightIn(max = bodyMaxHeight)
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        modifier =
+                            Modifier
+                                .heightIn(max = bodyMaxHeight)
+                                .verticalScroll(rememberScrollState())
+                                .padding(horizontal = 20.dp, vertical = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        content = content
+                        content = content,
                     )
 
                     // ── Footer ────────────────────────────────────────────
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Row(
-                        modifier              = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment     = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         TextButton(
-                            onClick  = onDismissRequest,
-                            enabled  = !isSubmitting,
-                            modifier = Modifier.weight(1f)
+                            onClick = onDismissRequest,
+                            enabled = !isSubmitting,
+                            modifier = Modifier.weight(1f),
                         ) { Text(dismissLabel) }
 
                         Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(
-                                    if (confirmEnabled)
-                                        Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd))
-                                    else
-                                        Brush.horizontalGradient(
-                                            listOf(
-                                                MaterialTheme.colorScheme.surfaceVariant,
-                                                MaterialTheme.colorScheme.surfaceVariant
+                            modifier =
+                                Modifier
+                                    .weight(1f)
+                                    .height(40.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(
+                                        if (confirmEnabled) {
+                                            Brush.horizontalGradient(listOf(Primary, PrimaryGradientEnd))
+                                        } else {
+                                            Brush.horizontalGradient(
+                                                listOf(
+                                                    MaterialTheme.colorScheme.surfaceVariant,
+                                                    MaterialTheme.colorScheme.surfaceVariant,
+                                                ),
                                             )
-                                        )
-                                )
-                                .clickable(
-                                    enabled           = confirmEnabled,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication        = null,
-                                    onClick           = onConfirm
-                                ),
-                            contentAlignment = Alignment.Center
+                                        },
+                                    )
+                                    .clickable(
+                                        enabled = confirmEnabled,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = onConfirm,
+                                    ),
+                            contentAlignment = Alignment.Center,
                         ) {
                             if (isSubmitting) {
                                 CircularProgressIndicator(
-                                    modifier    = Modifier.size(18.dp),
+                                    modifier = Modifier.size(18.dp),
                                     strokeWidth = 2.dp,
-                                    color       = Color.White
+                                    color = Color.White,
                                 )
                             } else {
                                 Text(
-                                    text       = confirmLabel,
-                                    style      = MaterialTheme.typography.labelLarge,
+                                    text = confirmLabel,
+                                    style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.SemiBold,
-                                    color      = if (confirmEnabled) Color.White
-                                                 else MaterialTheme.colorScheme.onSurfaceVariant
+                                    color =
+                                        if (confirmEnabled) {
+                                            Color.White
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
                                 )
                             }
                         }
@@ -224,29 +233,29 @@ fun RancakFormDialog(
 private fun RancakFormDialogPreview() {
     RancakTheme {
         RancakFormDialog(
-            icon             = Icons.Default.Edit,
-            title            = "Tambah Kategori",
-            subtitle         = "Isi detail kategori baru",
+            icon = Icons.Default.Edit,
+            title = "Tambah Kategori",
+            subtitle = "Isi detail kategori baru",
             onDismissRequest = {},
-            confirmLabel     = "Simpan",
-            onConfirm        = {},
-            confirmEnabled   = true,
-            isSubmitting     = false
+            confirmLabel = "Simpan",
+            onConfirm = {},
+            confirmEnabled = true,
+            isSubmitting = false,
         ) {
             OutlinedTextField(
-                value         = "Makanan",
+                value = "Makanan",
                 onValueChange = {},
-                label         = { Text("Nama Kategori *") },
-                modifier      = Modifier.fillMaxWidth(),
-                shape         = MaterialTheme.shapes.medium
+                label = { Text("Nama Kategori *") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
             )
             OutlinedTextField(
-                value         = "",
+                value = "",
                 onValueChange = {},
-                label         = { Text("Deskripsi") },
-                modifier      = Modifier.fillMaxWidth(),
-                maxLines      = 3,
-                shape         = MaterialTheme.shapes.medium
+                label = { Text("Deskripsi") },
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 3,
+                shape = MaterialTheme.shapes.medium,
             )
         }
     }

@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Invoice
@@ -39,13 +38,12 @@ data class BillingUiState(
     /** True saat status invoice menjadi "paid" — trigger navigasi ke POS. */
     val isPaymentComplete: Boolean = false,
     /** True saat pull-to-refresh sedang memuat data terbaru. */
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
 )
 
 class BillingViewModel(
-    private val billingRepository: BillingRepository
+    private val billingRepository: BillingRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(BillingUiState())
     val uiState: StateFlow<BillingUiState> = _uiState.asStateFlow()
 
@@ -69,11 +67,12 @@ class BillingViewModel(
                 if (plansResult is Resource.Success) s = s.copy(plans = plansResult.data)
                 if (invoicesResult is Resource.Success) s = s.copy(invoices = invoicesResult.data)
                 s.copy(
-                    error = when {
-                        subscriptionResult is Resource.Error -> subscriptionResult.message
-                        plansResult is Resource.Error -> plansResult.message
-                        else -> null
-                    }
+                    error =
+                        when {
+                            subscriptionResult is Resource.Error -> subscriptionResult.message
+                            plansResult is Resource.Error -> plansResult.message
+                            else -> null
+                        },
                 )
             }
         }
@@ -111,9 +110,12 @@ class BillingViewModel(
                             // Jika QR tersedia → buka dialog QR langsung.
                             // Jika tidak (mis. trial) → tampilkan notifikasi teks biasa.
                             qrInvoice = invoice.takeIf { inv -> inv.qrString != null },
-                            successMessage = if (invoice.qrString == null)
-                                "Invoice berhasil dibuat. Silakan selesaikan pembayaran."
-                            else null
+                            successMessage =
+                                if (invoice.qrString == null) {
+                                    "Invoice berhasil dibuat. Silakan selesaikan pembayaran."
+                                } else {
+                                    null
+                                },
                         )
                     }
                     if (invoice.qrString != null) {
@@ -125,7 +127,7 @@ class BillingViewModel(
                         it.copy(
                             isSubmitting = false,
                             showSubscribeDialog = false,
-                            error = result.message
+                            error = result.message,
                         )
                     }
                 }
@@ -151,83 +153,86 @@ class BillingViewModel(
      */
     private fun startPolling(invoiceUuid: String) {
         pollingJob?.cancel()
-        pollingJob = viewModelScope.launch {
-            _uiState.update { it.copy(isPolling = true) }
-            var iterations = 0
-            var consecutiveErrors = 0
-            while (isActive && iterations < MAX_POLL_ITERATIONS) {
-                delay(2_000L)
-                iterations++
-                when (val result = billingRepository.getInvoice(invoiceUuid)) {
-                    is Resource.Success -> {
-                        consecutiveErrors = 0
-                        val updated = result.data
-                        // Selalu sinkronkan list invoice agar status terbaru tampil.
-                        _uiState.update { state ->
-                            state.copy(
-                                invoices = state.invoices.map {
-                                    if (it.uuid == invoiceUuid) updated else it
-                                }
-                            )
-                        }
-                        when (updated.status) {
-                            "paid" -> {
-                                // Webhook Xendit diterima backend → konfirmasi sukses.
-                                _uiState.update {
-                                    it.copy(
-                                        isPolling = false,
-                                        qrInvoice = null,
-                                        isPaymentComplete = true
-                                    )
-                                }
-                                return@launch
-                            }
-                            "cancelled", "expired" -> {
-                                _uiState.update {
-                                    it.copy(
-                                        isPolling = false,
-                                        qrInvoice = null,
-                                        error = "Invoice dibatalkan atau kedaluwarsa."
-                                    )
-                                }
-                                return@launch
-                            }
-                            // "pending" → lanjut polling
-                        }
-                    }
-                    is Resource.Error -> {
-                        consecutiveErrors++
-                        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-                            _uiState.update {
-                                it.copy(
-                                    isPolling = false,
-                                    qrInvoice = null,
-                                    error = "Koneksi bermasalah. Buka riwayat invoice untuk cek status pembayaran."
+        pollingJob =
+            viewModelScope.launch {
+                _uiState.update { it.copy(isPolling = true) }
+                var iterations = 0
+                var consecutiveErrors = 0
+                while (isActive && iterations < MAX_POLL_ITERATIONS) {
+                    delay(2_000L)
+                    iterations++
+                    when (val result = billingRepository.getInvoice(invoiceUuid)) {
+                        is Resource.Success -> {
+                            consecutiveErrors = 0
+                            val updated = result.data
+                            // Selalu sinkronkan list invoice agar status terbaru tampil.
+                            _uiState.update { state ->
+                                state.copy(
+                                    invoices =
+                                        state.invoices.map {
+                                            if (it.uuid == invoiceUuid) updated else it
+                                        },
                                 )
                             }
-                            return@launch
+                            when (updated.status) {
+                                "paid" -> {
+                                    // Webhook Xendit diterima backend → konfirmasi sukses.
+                                    _uiState.update {
+                                        it.copy(
+                                            isPolling = false,
+                                            qrInvoice = null,
+                                            isPaymentComplete = true,
+                                        )
+                                    }
+                                    return@launch
+                                }
+                                "cancelled", "expired" -> {
+                                    _uiState.update {
+                                        it.copy(
+                                            isPolling = false,
+                                            qrInvoice = null,
+                                            error = "Invoice dibatalkan atau kedaluwarsa.",
+                                        )
+                                    }
+                                    return@launch
+                                }
+                                // "pending" → lanjut polling
+                            }
                         }
-                        // Error sementara (< threshold) → lanjut polling
+                        is Resource.Error -> {
+                            consecutiveErrors++
+                            if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+                                _uiState.update {
+                                    it.copy(
+                                        isPolling = false,
+                                        qrInvoice = null,
+                                        error = "Koneksi bermasalah. Buka riwayat invoice untuk cek status pembayaran.",
+                                    )
+                                }
+                                return@launch
+                            }
+                            // Error sementara (< threshold) → lanjut polling
+                        }
+                        else -> Unit
                     }
-                    else -> Unit
+                }
+                // Loop selesai karena timeout (bukan dari status terminal)
+                if (isActive) {
+                    _uiState.update {
+                        it.copy(
+                            isPolling = false,
+                            qrInvoice = null,
+                            error = "Waktu tunggu pembayaran habis. Silakan cek riwayat invoice untuk memverifikasi status.",
+                        )
+                    }
                 }
             }
-            // Loop selesai karena timeout (bukan dari status terminal)
-            if (isActive) {
-                _uiState.update {
-                    it.copy(
-                        isPolling = false,
-                        qrInvoice = null,
-                        error = "Waktu tunggu pembayaran habis. Silakan cek riwayat invoice untuk memverifikasi status."
-                    )
-                }
-            }
-        }
     }
 
     companion object {
         /** Batas iterasi polling: 300 × 2 detik = 10 menit. */
         private const val MAX_POLL_ITERATIONS = 300
+
         /** Hentikan polling setelah 5 error jaringan berturut-turut. */
         private const val MAX_CONSECUTIVE_ERRORS = 5
     }
@@ -263,9 +268,10 @@ class BillingViewModel(
                             showCancelDialog = false,
                             cancelTargetInvoice = null,
                             successMessage = "Invoice berhasil dibatalkan.",
-                            invoices = state.invoices.map {
-                                if (it.uuid == invoice.uuid) it.copy(status = "cancelled") else it
-                            }
+                            invoices =
+                                state.invoices.map {
+                                    if (it.uuid == invoice.uuid) it.copy(status = "cancelled") else it
+                                },
                         )
                     }
                 }
@@ -274,7 +280,7 @@ class BillingViewModel(
                         it.copy(
                             isSubmitting = false,
                             showCancelDialog = false,
-                            error = result.message
+                            error = result.message,
                         )
                     }
                 }
@@ -298,6 +304,7 @@ class BillingViewModel(
     }
 
     fun clearError() = _uiState.update { it.copy(error = null) }
+
     fun clearSuccessMessage() = _uiState.update { it.copy(successMessage = null) }
 
     override fun onCleared() {

@@ -58,38 +58,38 @@ internal fun SaleDetailPanel(
     onAddItems: (String) -> Unit = {},
     onRefund: (Sale) -> Unit = {},
     onReprint: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val printerManager: PrinterManager = koinInject()
-    val settingsStore: SettingsStore   = koinInject()
+    val settingsStore: SettingsStore = koinInject()
     var showPrintDialog by remember { mutableStateOf(false) }
 
-    val outletName    = settingsStore.receiptStoreName.ifBlank { "Rancak POS" }
+    val outletName = settingsStore.receiptStoreName.ifBlank { "Rancak POS" }
     val outletAddress = settingsStore.receiptStoreAddress.ifBlank { null }
-    val outletPhone   = settingsStore.receiptStorePhone.ifBlank { null }
+    val outletPhone = settingsStore.receiptStorePhone.ifBlank { null }
 
     SaleDetailBody(
-        sale          = sale,
-        outletName    = outletName,
+        sale = sale,
+        outletName = outletName,
         outletAddress = outletAddress,
-        outletPhone   = outletPhone,
+        outletPhone = outletPhone,
         onRequestPrint = {
             showPrintDialog = true
             onReprint?.invoke()
         },
         onPayHeldOrder = onPayHeldOrder,
-        onSplitBill    = onSplitBill,
-        onAddItems     = onAddItems,
-        onRefund       = onRefund,
-        modifier      = modifier
+        onSplitBill = onSplitBill,
+        onAddItems = onAddItems,
+        onRefund = onRefund,
+        modifier = modifier,
     )
 
     if (showPrintDialog) {
         PrintDialog(
-            sale           = sale,
+            sale = sale,
             printerManager = printerManager,
-            settingsStore  = settingsStore,
-            onDismiss      = { showPrintDialog = false }
+            settingsStore = settingsStore,
+            onDismiss = { showPrintDialog = false },
         )
     }
 }
@@ -106,48 +106,52 @@ private fun SaleDetailBody(
     onSplitBill: (String) -> Unit = {},
     onAddItems: (String) -> Unit = {},
     onRefund: (Sale) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val semantic = RancakColors.semantic
-    val statusColor = when (sale.status) {
-        SaleStatus.PAID                       -> semantic.success
-        SaleStatus.HELD                       -> semantic.warning
-        SaleStatus.VOID, SaleStatus.CANCELLED -> MaterialTheme.colorScheme.error
-        SaleStatus.REFUNDED                   -> semantic.info
-    }
-    val statusLabel = when (sale.status) {
-        SaleStatus.PAID      -> "✓ LUNAS"
-        SaleStatus.HELD      -> "⏳ BELUM BAYAR"
-        SaleStatus.VOID      -> "✗ VOID"
-        SaleStatus.CANCELLED -> "✗ BATAL"
-        SaleStatus.REFUNDED  -> "↩ REFUND"
-    }
+    val statusColor =
+        when (sale.status) {
+            SaleStatus.PAID -> semantic.success
+            SaleStatus.HELD -> semantic.warning
+            SaleStatus.VOID, SaleStatus.CANCELLED -> MaterialTheme.colorScheme.error
+            SaleStatus.REFUNDED -> semantic.info
+        }
+    val statusLabel =
+        when (sale.status) {
+            SaleStatus.PAID -> "✓ LUNAS"
+            SaleStatus.HELD -> "⏳ BELUM BAYAR"
+            SaleStatus.VOID -> "✗ VOID"
+            SaleStatus.CANCELLED -> "✗ BATAL"
+            SaleStatus.REFUNDED -> "↩ REFUND"
+        }
 
     Box(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.TopCenter
+        modifier =
+            modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.TopCenter,
     ) {
         Card(
-            modifier = Modifier
-                .widthIn(max = 520.dp)
-                .fillMaxWidth(),
-            shape  = MaterialTheme.shapes.extraLarge,
-            colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            modifier =
+                Modifier
+                    .widthIn(max = 520.dp)
+                    .fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 ReceiptHeader(
-                    outletName    = outletName,
+                    outletName = outletName,
                     outletAddress = outletAddress,
-                    outletPhone   = outletPhone
+                    outletPhone = outletPhone,
                 )
                 ReceiptNotch(atTop = true)
 
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     ReceiptInvoiceHeader(sale, statusColor, statusLabel)
                     ReceiptInfoChips(sale)
@@ -158,7 +162,7 @@ private fun SaleDetailBody(
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = 2.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     ReceiptItems(sale.items.toImmutableList())
 
@@ -190,9 +194,9 @@ private fun SaleDetailBody(
 
                 if (sale.status == SaleStatus.HELD) {
                     HeldOrderActions(
-                        onPay      = { onPayHeldOrder(sale.uuid) },
-                        onSplit    = { onSplitBill(sale.uuid) },
-                        onAddItems = { onAddItems(sale.uuid) }
+                        onPay = { onPayHeldOrder(sale.uuid) },
+                        onSplit = { onSplitBill(sale.uuid) },
+                        onAddItems = { onAddItems(sale.uuid) },
                     )
                 }
             }
@@ -204,19 +208,19 @@ private fun SaleDetailBody(
 private fun HeldOrderActions(
     onPay: () -> Unit,
     onSplit: () -> Unit,
-    onAddItems: () -> Unit
+    onAddItems: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Button(
             onClick = onPay,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) { Text("Bayar Sekarang") }
         OutlinedButton(
             onClick = onAddItems,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) { Text("Tambah Item") }
     }
 }
@@ -225,35 +229,43 @@ private fun HeldOrderActions(
 private fun RefundActionButton(onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .heightIn(min = 48.dp),
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.error
-        )
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .heightIn(min = 48.dp),
+        colors =
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error,
+            ),
     ) { Text("Refund Item") }
 }
 
 // ── Sub-sections ────────────────────────────────────────────────────────────
 
 @Composable
-private fun ReceiptHeader(outletName: String, outletAddress: String?, outletPhone: String?) {
+private fun ReceiptHeader(
+    outletName: String,
+    outletAddress: String?,
+    outletPhone: String?,
+) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             modifier = Modifier.padding(vertical = 14.dp, horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(3.dp)
+            verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Icon(
-                Icons.Default.Store, contentDescription = null,
+                Icons.Default.Store,
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
             Text(
                 outletName.uppercase(),
@@ -261,7 +273,7 @@ private fun ReceiptHeader(outletName: String, outletAddress: String?, outletPhon
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 3.sp,
                 color = MaterialTheme.colorScheme.onPrimary,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             if (outletAddress != null) {
                 Text(
@@ -269,7 +281,7 @@ private fun ReceiptHeader(outletName: String, outletAddress: String?, outletPhon
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f),
                     letterSpacing = 0.sp,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
             if (outletPhone != null) {
@@ -277,7 +289,7 @@ private fun ReceiptHeader(outletName: String, outletAddress: String?, outletPhon
                     outletPhone,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
         }
@@ -288,65 +300,75 @@ private fun ReceiptHeader(outletName: String, outletAddress: String?, outletPhon
 private fun ReceiptNotch(atTop: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        val leftShape = if (atTop)
-            RoundedCornerShape(bottomEnd = 100.dp, topEnd = 0.dp)
-        else
-            RoundedCornerShape(topEnd = 100.dp)
-        val rightShape = if (atTop)
-            RoundedCornerShape(bottomStart = 100.dp)
-        else
-            RoundedCornerShape(topStart = 100.dp)
+        val leftShape =
+            if (atTop) {
+                RoundedCornerShape(bottomEnd = 100.dp, topEnd = 0.dp)
+            } else {
+                RoundedCornerShape(topEnd = 100.dp)
+            }
+        val rightShape =
+            if (atTop) {
+                RoundedCornerShape(bottomStart = 100.dp)
+            } else {
+                RoundedCornerShape(topStart = 100.dp)
+            }
         Box(
-            modifier = Modifier
-                .size(width = 16.dp, height = 14.dp)
-                .clip(leftShape)
-                .background(MaterialTheme.colorScheme.background)
+            modifier =
+                Modifier
+                    .size(width = 16.dp, height = 14.dp)
+                    .clip(leftShape)
+                    .background(MaterialTheme.colorScheme.background),
         )
         Box(
-            modifier = Modifier
-                .size(width = 16.dp, height = 14.dp)
-                .clip(rightShape)
-                .background(MaterialTheme.colorScheme.background)
+            modifier =
+                Modifier
+                    .size(width = 16.dp, height = 14.dp)
+                    .clip(rightShape)
+                    .background(MaterialTheme.colorScheme.background),
         )
     }
 }
 
 @Composable
-private fun ReceiptInvoiceHeader(sale: Sale, statusColor: Color, statusLabel: String) {
+private fun ReceiptInvoiceHeader(
+    sale: Sale,
+    statusColor: Color,
+    statusLabel: String,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column {
             Text(
                 sale.invoiceNo ?: "-",
-                style      = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace
+                fontFamily = FontFamily.Monospace,
             )
             sale.createdAt?.take(16)?.replace("T", " ")?.let { time ->
                 Text(
                     time,
-                    style      = MaterialTheme.typography.labelSmall,
-                    color      = MaterialTheme.colorScheme.outline,
-                    fontFamily = FontFamily.Monospace
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.outline,
+                    fontFamily = FontFamily.Monospace,
                 )
             }
         }
         Surface(
-            shape  = MaterialTheme.shapes.medium,
-            color  = statusColor.copy(alpha = 0.12f),
-            border = BorderStroke(1.dp, statusColor.copy(alpha = 0.4f))
+            shape = MaterialTheme.shapes.medium,
+            color = statusColor.copy(alpha = 0.12f),
+            border = BorderStroke(1.dp, statusColor.copy(alpha = 0.4f)),
         ) {
             Text(
                 statusLabel,
-                modifier   = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                style      = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color      = statusColor
+                color = statusColor,
             )
         }
     }
@@ -356,33 +378,34 @@ private fun ReceiptInvoiceHeader(sale: Sale, statusColor: Color, statusLabel: St
 private fun ReceiptInfoChips(sale: Sale) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         InfoChip(
             Icons.Default.TableBar,
-            sale.orderType.value.replace("_", " ").replaceFirstChar { it.uppercase() }
+            sale.orderType.value.replace("_", " ").replaceFirstChar { it.uppercase() },
         )
         sale.paymentMethod?.let { method ->
-            val pmIcon = when (method) {
-                PaymentMethod.CASH     -> Icons.Default.Payments
-                PaymentMethod.QRIS     -> Icons.Default.QrCode2
-                PaymentMethod.CARD     -> Icons.Default.CreditCard
-                PaymentMethod.TRANSFER -> Icons.Default.AccountBalance
-                else                   -> Icons.Default.MoreHoriz
-            }
+            val pmIcon =
+                when (method) {
+                    PaymentMethod.CASH -> Icons.Default.Payments
+                    PaymentMethod.QRIS -> Icons.Default.QrCode2
+                    PaymentMethod.CARD -> Icons.Default.CreditCard
+                    PaymentMethod.TRANSFER -> Icons.Default.AccountBalance
+                    else -> Icons.Default.MoreHoriz
+                }
             InfoChip(pmIcon, method.value.replaceFirstChar { it.uppercase() })
         }
         sale.queueNumber?.let { num ->
             Surface(
                 shape = MaterialTheme.shapes.extraSmall,
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
             ) {
                 Text(
                     "#$num",
-                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                    style      = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -396,38 +419,39 @@ private fun ReceiptItems(items: ImmutableList<SaleItem>) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.Top
+                verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                     Text(
                         item.productName,
-                        style      = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
                     )
-                    val sub = buildList {
-                        val variant = item.variantName
-                        if (!variant.isNullOrBlank()) add(variant)
-                        add("${item.qty}x @ ${formatRupiah(item.price)}")
-                    }.joinToString("  •  ")
+                    val sub =
+                        buildList {
+                            val variant = item.variantName
+                            if (!variant.isNullOrBlank()) add(variant)
+                            add("${item.qty}x @ ${formatRupiah(item.price)}")
+                        }.joinToString("  •  ")
                     Text(
                         sub,
-                        style      = MaterialTheme.typography.labelSmall,
-                        color      = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontFamily = FontFamily.Monospace
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontFamily = FontFamily.Monospace,
                     )
                     if (!item.note.isNullOrBlank()) {
                         Text(
                             "📝 ${item.note}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.outline
+                            color = MaterialTheme.colorScheme.outline,
                         )
                     }
                 }
                 Text(
                     formatRupiah(item.subtotal),
-                    style      = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.SemiBold,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace,
                 )
             }
         }
@@ -442,44 +466,45 @@ private fun ReceiptPricingSummary(sale: Sale) {
             ReceiptRow(
                 "Diskon",
                 "- ${formatRupiah(sale.discount)}",
-                valueColor = MaterialTheme.colorScheme.error
+                valueColor = MaterialTheme.colorScheme.error,
             )
         }
-        if (sale.surcharge > 0)  ReceiptRow("Biaya Tambahan", formatRupiah(sale.surcharge))
-        if (sale.tax > 0)        ReceiptRow("Pajak",          formatRupiah(sale.tax))
-        if (sale.adminFee > 0)   ReceiptRow("Biaya Admin",    formatRupiah(sale.adminFee))
-        if (sale.deliveryFee > 0) ReceiptRow("Ongkir",        formatRupiah(sale.deliveryFee))
-        if (sale.tip > 0)        ReceiptRow("Tip",            formatRupiah(sale.tip))
+        if (sale.surcharge > 0) ReceiptRow("Biaya Tambahan", formatRupiah(sale.surcharge))
+        if (sale.tax > 0) ReceiptRow("Pajak", formatRupiah(sale.tax))
+        if (sale.adminFee > 0) ReceiptRow("Biaya Admin", formatRupiah(sale.adminFee))
+        if (sale.deliveryFee > 0) ReceiptRow("Ongkir", formatRupiah(sale.deliveryFee))
+        if (sale.tip > 0) ReceiptRow("Tip", formatRupiah(sale.tip))
     }
 }
 
 @Composable
 private fun ReceiptTotalRow(sale: Sale) {
     Surface(
-        shape  = MaterialTheme.shapes.large,
-        color  = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 "TOTAL",
-                style         = MaterialTheme.typography.titleSmall,
-                fontWeight    = FontWeight.ExtraBold,
-                letterSpacing = 1.sp
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.sp,
             )
             Text(
                 formatRupiah(sale.total),
-                style      = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color      = MaterialTheme.colorScheme.primary,
-                fontFamily = FontFamily.Monospace
+                color = MaterialTheme.colorScheme.primary,
+                fontFamily = FontFamily.Monospace,
             )
         }
     }
@@ -495,7 +520,7 @@ private fun ReceiptPaymentInfo(sale: Sale) {
             ReceiptRow(
                 "Kembalian",
                 formatRupiah(sale.changeAmount),
-                valueColor = MaterialTheme.colorScheme.secondary
+                valueColor = MaterialTheme.colorScheme.secondary,
             )
         }
     }
@@ -504,23 +529,24 @@ private fun ReceiptPaymentInfo(sale: Sale) {
 @Composable
 private fun ReceiptFooter() {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Text(
             "Terima kasih!",
-            style      = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
-            color      = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
         Text(
             "Kami menunggu kunjungan Anda",
-            style     = MaterialTheme.typography.labelSmall,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
     }
 }
@@ -529,20 +555,22 @@ private fun ReceiptFooter() {
 private fun ReprintButton(onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
         shape = MaterialTheme.shapes.medium,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        )
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
     ) {
         Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
         Text(
             "Print Ulang Struk",
-            style      = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }
@@ -551,25 +579,29 @@ private fun ReprintButton(onClick: () -> Unit) {
 
 /** Small label chip used in the receipt detail. */
 @Composable
-internal fun InfoChip(icon: ImageVector, label: String) {
+internal fun InfoChip(
+    icon: ImageVector,
+    label: String,
+) {
     Surface(
         shape = MaterialTheme.shapes.extraSmall,
-        color = MaterialTheme.colorScheme.surfaceVariant
+        color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(3.dp)
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Icon(
-                icon, contentDescription = null,
+                icon,
+                contentDescription = null,
                 modifier = Modifier.size(11.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 label,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -580,24 +612,24 @@ internal fun InfoChip(icon: ImageVector, label: String) {
 internal fun ReceiptRow(
     label: String,
     value: String,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             value,
-            style      = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.SemiBold,
-            color      = valueColor,
-            fontFamily = FontFamily.Monospace
+            color = valueColor,
+            fontFamily = FontFamily.Monospace,
         )
     }
 }
@@ -609,12 +641,12 @@ internal fun ReceiptRow(
 private fun SaleDetailPreview_Paid() {
     RancakTheme {
         SaleDetailBody(
-            sale          = previewSale(SaleStatus.PAID),
-            outletName    = "Warung Kopi Sinar",
+            sale = previewSale(SaleStatus.PAID),
+            outletName = "Warung Kopi Sinar",
             outletAddress = "Jl. Merdeka 10, Bandung",
-            outletPhone   = "0812-3456-7890",
+            outletPhone = "0812-3456-7890",
             onRequestPrint = {},
-            modifier      = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -624,42 +656,54 @@ private fun SaleDetailPreview_Paid() {
 private fun SaleDetailPreview_Held() {
     RancakTheme {
         SaleDetailBody(
-            sale          = previewSale(SaleStatus.HELD),
-            outletName    = "Warung Kopi Sinar",
+            sale = previewSale(SaleStatus.HELD),
+            outletName = "Warung Kopi Sinar",
             outletAddress = null,
-            outletPhone   = null,
+            outletPhone = null,
             onRequestPrint = {},
-            modifier      = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
-private fun previewSale(status: SaleStatus) = Sale(
-    uuid          = "s1",
-    invoiceNo     = "INV-20260422-0001",
-    orderType     = OrderType.DINE_IN,
-    queueNumber   = 7,
-    status        = status,
-    customerName  = "Budi",
-    subtotal      = 40_000L,
-    discount      = 5_000L,
-    surcharge     = 0L,
-    tax           = 3_000L,
-    total         = 38_000L,
-    paymentMethod = if (status == SaleStatus.PAID) PaymentMethod.CASH else null,
-    paidAmount    = if (status == SaleStatus.PAID) 40_000L else 0L,
-    changeAmount  = if (status == SaleStatus.PAID) 2_000L else 0L,
-    items = persistentListOf(
-        SaleItem(
-            uuid = "i1", productUuid = "p1", productName = "Kopi Susu Gula Aren",
-            qty = "2", price = 18_000L, subtotal = 36_000L,
-            variantName = "Large", note = "less sugar"
-        ),
-        SaleItem(
-            uuid = "i2", productUuid = "p2", productName = "Roti Bakar",
-            qty = "1", price = 4_000L, subtotal = 4_000L,
-            variantName = null, note = null
-        )
-    ),
-    createdAt = "2026-04-22T10:15:00"
-)
+private fun previewSale(status: SaleStatus) =
+    Sale(
+        uuid = "s1",
+        invoiceNo = "INV-20260422-0001",
+        orderType = OrderType.DINE_IN,
+        queueNumber = 7,
+        status = status,
+        customerName = "Budi",
+        subtotal = 40_000L,
+        discount = 5_000L,
+        surcharge = 0L,
+        tax = 3_000L,
+        total = 38_000L,
+        paymentMethod = if (status == SaleStatus.PAID) PaymentMethod.CASH else null,
+        paidAmount = if (status == SaleStatus.PAID) 40_000L else 0L,
+        changeAmount = if (status == SaleStatus.PAID) 2_000L else 0L,
+        items =
+            persistentListOf(
+                SaleItem(
+                    uuid = "i1",
+                    productUuid = "p1",
+                    productName = "Kopi Susu Gula Aren",
+                    qty = "2",
+                    price = 18_000L,
+                    subtotal = 36_000L,
+                    variantName = "Large",
+                    note = "less sugar",
+                ),
+                SaleItem(
+                    uuid = "i2",
+                    productUuid = "p2",
+                    productName = "Roti Bakar",
+                    qty = "1",
+                    price = 4_000L,
+                    subtotal = 4_000L,
+                    variantName = null,
+                    note = null,
+                ),
+            ),
+        createdAt = "2026-04-22T10:15:00",
+    )

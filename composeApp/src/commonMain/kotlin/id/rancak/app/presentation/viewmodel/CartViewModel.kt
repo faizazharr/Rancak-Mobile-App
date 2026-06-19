@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.data.local.LocalOpenBill
@@ -10,15 +9,13 @@ import id.rancak.app.data.local.toDomain
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Product
-import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Surcharge
 import id.rancak.app.domain.model.TaxConfig
 import id.rancak.app.domain.repository.CartRepository
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -76,16 +73,15 @@ data class CartUiState(
     val adminFee: Long = 0,
     val autoSurcharge: Long = 0,
     val totalSurcharge: Long = 0,
-    val total: Long = 0
+    val total: Long = 0,
 ) {
     val isEmpty: Boolean get() = items.isEmpty()
 }
 
 class CartViewModel(
     private val cartRepository: CartRepository,
-    private val pricingStore: PricingConfigStore
+    private val pricingStore: PricingConfigStore,
 ) : ViewModel() {
-
     private data class CartExtras(
         val orderType: OrderType = OrderType.DINE_IN,
         val tableUuid: String? = null,
@@ -103,7 +99,7 @@ class CartViewModel(
         val voucherCode: String = "",
         val activeOpenBillId: String? = null,
         val activeOpenBillName: String = "",
-        val activeOpenBillSaleUuid: String? = null
+        val activeOpenBillSaleUuid: String? = null,
     )
 
     private val _extras = MutableStateFlow(CartExtras())
@@ -123,137 +119,193 @@ class CartViewModel(
     }
 
     // Repository emits whenever the cart_items table changes — UI auto-updates
-    val uiState: StateFlow<CartUiState> = combine(
-        cartRepository.observeItems(),
-        _extras,
-        pricingStore.taxConfigs,
-        pricingStore.surcharges
-    ) { items, extras, taxConfigs, surcharges ->
-        // Hanya konfigurasi yang `isActive` yang ikut diperhitungkan di kasir.
-        val activeTax = taxConfigs.filter { it.isActive }.toImmutableList()
-        val activeSurcharges = surcharges.filter { it.isActive }
-        // Surcharge yang berlaku: yang orderType-nya null (semua), atau cocok dengan orderType saat ini.
-        val orderTypeKey = extras.orderType.name.lowercase()
-        val applicableSurcharges = activeSurcharges.filter { sc ->
-            sc.orderType.isNullOrBlank() || sc.orderType.equals(orderTypeKey, ignoreCase = true)
-        }.toImmutableList()
+    val uiState: StateFlow<CartUiState> =
+        combine(
+            cartRepository.observeItems(),
+            _extras,
+            pricingStore.taxConfigs,
+            pricingStore.surcharges,
+        ) { items, extras, taxConfigs, surcharges ->
+            // Hanya konfigurasi yang `isActive` yang ikut diperhitungkan di kasir.
+            val activeTax = taxConfigs.filter { it.isActive }.toImmutableList()
+            val activeSurcharges = surcharges.filter { it.isActive }
+            // Surcharge yang berlaku: yang orderType-nya null (semua), atau cocok dengan orderType saat ini.
+            val orderTypeKey = extras.orderType.name.lowercase()
+            val applicableSurcharges =
+                activeSurcharges.filter { sc ->
+                    sc.orderType.isNullOrBlank() || sc.orderType.equals(orderTypeKey, ignoreCase = true)
+                }.toImmutableList()
 
-        val subtotal = items.sumOf { it.subtotal }
-        val itemCount = items.sumOf { it.qty }
-        val discount = if (extras.discountIsPercent)
-            (subtotal * extras.discountInput / 100L).coerceIn(0L, subtotal)
-        else extras.discountInput
+            val subtotal = items.sumOf { it.subtotal }
+            val itemCount = items.sumOf { it.qty }
+            val discount =
+                if (extras.discountIsPercent) {
+                    (subtotal * extras.discountInput / 100L).coerceIn(0L, subtotal)
+                } else {
+                    extras.discountInput
+                }
 
-        val adminFee = if (extras.adminFeeIsPercent)
-            ((subtotal - discount) * extras.adminFeeInput / 100L).coerceAtLeast(0L)
-        else extras.adminFeeInput
+            val adminFee =
+                if (extras.adminFeeIsPercent) {
+                    ((subtotal - discount) * extras.adminFeeInput / 100L).coerceAtLeast(0L)
+                } else {
+                    extras.adminFeeInput
+                }
 
-        val autoSurcharge = applicableSurcharges.sumOf { sc ->
-            val raw = if (sc.isPercentage) {
-                val basis = (subtotal - discount).coerceAtLeast(0L)
-                (basis * sc.amount / 100L).coerceAtLeast(0L)
-            } else sc.amount
-            sc.maxAmount?.let { cap -> raw.coerceAtMost(cap) } ?: raw
-        }
-        val totalSurcharge = adminFee + autoSurcharge
+            val autoSurcharge =
+                applicableSurcharges.sumOf { sc ->
+                    val raw =
+                        if (sc.isPercentage) {
+                            val basis = (subtotal - discount).coerceAtLeast(0L)
+                            (basis * sc.amount / 100L).coerceAtLeast(0L)
+                        } else {
+                            sc.amount
+                        }
+                    sc.maxAmount?.let { cap -> raw.coerceAtMost(cap) } ?: raw
+                }
+            val totalSurcharge = adminFee + autoSurcharge
 
-        val tax = if (extras.taxIsPercent)
-            ((subtotal - discount) * extras.taxInput / 100L).coerceAtLeast(0L)
-        else extras.taxInput
+            val tax =
+                if (extras.taxIsPercent) {
+                    ((subtotal - discount) * extras.taxInput / 100L).coerceAtLeast(0L)
+                } else {
+                    extras.taxInput
+                }
 
-        val autoTax = activeTax.sumOf { cfg ->
-            val basis = if (cfg.applyTo == "subtotal") subtotal
-            else (subtotal - discount + totalSurcharge).coerceAtLeast(0L)
-            ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
-        }
-        val totalTax = tax + autoTax
+            val autoTax =
+                activeTax.sumOf { cfg ->
+                    val basis =
+                        if (cfg.applyTo == "subtotal") {
+                            subtotal
+                        } else {
+                            (subtotal - discount + totalSurcharge).coerceAtLeast(0L)
+                        }
+                    ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
+                }
+            val totalTax = tax + autoTax
 
-        val total = subtotal - discount + totalTax + totalSurcharge + extras.deliveryFee + extras.tip
+            val total = subtotal - discount + totalTax + totalSurcharge + extras.deliveryFee + extras.tip
 
-        CartUiState(
-            items = items.toImmutableList(),
-            orderType = extras.orderType,
-            tableUuid = extras.tableUuid,
-            customerName = extras.customerName,
-            note = extras.note,
-            pax = extras.pax,
-            discountInput = extras.discountInput,
-            discountIsPercent = extras.discountIsPercent,
-            taxInput = extras.taxInput,
-            taxIsPercent = extras.taxIsPercent,
-            adminFeeInput = extras.adminFeeInput,
-            adminFeeIsPercent = extras.adminFeeIsPercent,
-            deliveryFee = extras.deliveryFee,
-            tip = extras.tip,
-            voucherCode = extras.voucherCode,
-            activeOpenBillId       = extras.activeOpenBillId,
-            activeOpenBillName     = extras.activeOpenBillName,
-            activeOpenBillSaleUuid = extras.activeOpenBillSaleUuid,
-            activeTaxConfigs       = activeTax,
-            activeSurcharges       = applicableSurcharges,
-            subtotal = subtotal,
-            itemCount = itemCount,
-            discount = discount,
-            tax = tax,
-            autoTax = autoTax,
-            totalTax = totalTax,
-            adminFee = adminFee,
-            autoSurcharge = autoSurcharge,
-            totalSurcharge = totalSurcharge,
-            total = total
-        )
-    }.flowOn(Dispatchers.Default)
-     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CartUiState())
+            CartUiState(
+                items = items.toImmutableList(),
+                orderType = extras.orderType,
+                tableUuid = extras.tableUuid,
+                customerName = extras.customerName,
+                note = extras.note,
+                pax = extras.pax,
+                discountInput = extras.discountInput,
+                discountIsPercent = extras.discountIsPercent,
+                taxInput = extras.taxInput,
+                taxIsPercent = extras.taxIsPercent,
+                adminFeeInput = extras.adminFeeInput,
+                adminFeeIsPercent = extras.adminFeeIsPercent,
+                deliveryFee = extras.deliveryFee,
+                tip = extras.tip,
+                voucherCode = extras.voucherCode,
+                activeOpenBillId = extras.activeOpenBillId,
+                activeOpenBillName = extras.activeOpenBillName,
+                activeOpenBillSaleUuid = extras.activeOpenBillSaleUuid,
+                activeTaxConfigs = activeTax,
+                activeSurcharges = applicableSurcharges,
+                subtotal = subtotal,
+                itemCount = itemCount,
+                discount = discount,
+                tax = tax,
+                autoTax = autoTax,
+                totalTax = totalTax,
+                adminFee = adminFee,
+                autoSurcharge = autoSurcharge,
+                totalSurcharge = totalSurcharge,
+                total = total,
+            )
+        }.flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CartUiState())
 
-    fun addProduct(product: Product, variantUuid: String? = null, variantName: String? = null) {
+    fun addProduct(
+        product: Product,
+        variantUuid: String? = null,
+        variantName: String? = null,
+    ) {
         viewModelScope.launch {
             cartRepository.addOrIncrement(product, variantUuid, variantName)
         }
     }
 
-    fun updateQuantity(productUuid: String, variantUuid: String?, qty: Int) {
+    fun updateQuantity(
+        productUuid: String,
+        variantUuid: String?,
+        qty: Int,
+    ) {
         viewModelScope.launch {
             cartRepository.updateQuantity(productUuid, variantUuid, qty)
         }
     }
 
-    fun removeItem(productUuid: String, variantUuid: String?) {
+    fun removeItem(
+        productUuid: String,
+        variantUuid: String?,
+    ) {
         viewModelScope.launch {
             cartRepository.removeItem(productUuid, variantUuid)
         }
     }
 
-    fun updateItemNote(productUuid: String, variantUuid: String?, note: String) {
+    fun updateItemNote(
+        productUuid: String,
+        variantUuid: String?,
+        note: String,
+    ) {
         viewModelScope.launch {
             cartRepository.updateNote(productUuid, variantUuid, note)
         }
     }
 
     fun setOrderType(orderType: OrderType) = _extras.update { it.copy(orderType = orderType) }
+
     fun setTable(tableUuid: String?) = _extras.update { it.copy(tableUuid = tableUuid) }
+
     fun setCustomerName(name: String) = _extras.update { it.copy(customerName = name) }
+
     fun setNote(note: String) = _extras.update { it.copy(note = note) }
-    fun setPax(pax: Int) { if (pax >= 1) _extras.update { it.copy(pax = pax) } }
-    fun setDiscount(value: Long, isPercent: Boolean = false) = _extras.update {
+
+    fun setPax(pax: Int) {
+        if (pax >= 1) _extras.update { it.copy(pax = pax) }
+    }
+
+    fun setDiscount(
+        value: Long,
+        isPercent: Boolean = false,
+    ) = _extras.update {
         it.copy(
-            discountInput     = value.coerceIn(0L, if (isPercent) 100L else Long.MAX_VALUE),
-            discountIsPercent = isPercent
+            discountInput = value.coerceIn(0L, if (isPercent) 100L else Long.MAX_VALUE),
+            discountIsPercent = isPercent,
         )
     }
-    fun setTax(value: Long, isPercent: Boolean = false) = _extras.update {
+
+    fun setTax(
+        value: Long,
+        isPercent: Boolean = false,
+    ) = _extras.update {
         it.copy(
-            taxInput     = value.coerceIn(0L, if (isPercent) 100L else Long.MAX_VALUE),
-            taxIsPercent = isPercent
+            taxInput = value.coerceIn(0L, if (isPercent) 100L else Long.MAX_VALUE),
+            taxIsPercent = isPercent,
         )
     }
-    fun setAdminFee(value: Long, isPercent: Boolean = false) = _extras.update {
+
+    fun setAdminFee(
+        value: Long,
+        isPercent: Boolean = false,
+    ) = _extras.update {
         it.copy(
-            adminFeeInput     = value.coerceIn(0L, if (isPercent) 100L else Long.MAX_VALUE),
-            adminFeeIsPercent = isPercent
+            adminFeeInput = value.coerceIn(0L, if (isPercent) 100L else Long.MAX_VALUE),
+            adminFeeIsPercent = isPercent,
         )
     }
+
     fun setDeliveryFee(deliveryFee: Long) = _extras.update { it.copy(deliveryFee = deliveryFee.coerceAtLeast(0L)) }
+
     fun setTip(tip: Long) = _extras.update { it.copy(tip = tip.coerceAtLeast(0L)) }
+
     fun setVoucherCode(code: String) = _extras.update { it.copy(voucherCode = code) }
 
     fun clearCart() {
@@ -271,24 +323,25 @@ class CartViewModel(
             cartRepository.replaceAll(bill.items.map { it.toDomain() })
             _extras.update {
                 it.copy(
-                    orderType          = runCatching { OrderType.valueOf(bill.orderType) }
-                                            .getOrDefault(OrderType.DINE_IN),
-                    tableUuid          = bill.tableUuid,
-                    customerName       = bill.customerName,
-                    note               = bill.note,
-                    pax                = bill.pax,
-                    discountInput      = bill.discountInput,
-                    discountIsPercent  = bill.discountIsPercent,
-                    taxInput           = bill.taxInput,
-                    taxIsPercent       = bill.taxIsPercent,
-                    adminFeeInput      = bill.adminFeeInput,
-                    adminFeeIsPercent  = bill.adminFeeIsPercent,
-                    deliveryFee        = bill.deliveryFee,
-                    tip                = bill.tip,
-                    voucherCode        = bill.voucherCode,
-                    activeOpenBillId       = bill.id,
-                    activeOpenBillName     = bill.name,
-                    activeOpenBillSaleUuid = bill.remoteSaleUuid
+                    orderType =
+                        runCatching { OrderType.valueOf(bill.orderType) }
+                            .getOrDefault(OrderType.DINE_IN),
+                    tableUuid = bill.tableUuid,
+                    customerName = bill.customerName,
+                    note = bill.note,
+                    pax = bill.pax,
+                    discountInput = bill.discountInput,
+                    discountIsPercent = bill.discountIsPercent,
+                    taxInput = bill.taxInput,
+                    taxIsPercent = bill.taxIsPercent,
+                    adminFeeInput = bill.adminFeeInput,
+                    adminFeeIsPercent = bill.adminFeeIsPercent,
+                    deliveryFee = bill.deliveryFee,
+                    tip = bill.tip,
+                    voucherCode = bill.voucherCode,
+                    activeOpenBillId = bill.id,
+                    activeOpenBillName = bill.name,
+                    activeOpenBillSaleUuid = bill.remoteSaleUuid,
                 )
             }
         }

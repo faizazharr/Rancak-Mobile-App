@@ -25,13 +25,12 @@ data class GroupDashboardUiState(
     val branches: ImmutableList<BranchReport> = persistentListOf(),
     val isLoadingGroups: Boolean = false,
     val isLoadingDetail: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
 )
 
 class GroupDashboardViewModel(
-    private val groupsRepository: GroupsRepository
+    private val groupsRepository: GroupsRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(GroupDashboardUiState())
     val uiState: StateFlow<GroupDashboardUiState> = _uiState.asStateFlow()
 
@@ -49,9 +48,12 @@ class GroupDashboardViewModel(
                     // Auto-select first group
                     groups.firstOrNull()?.let { selectGroup(it) }
                 }
-                is Resource.Error -> _uiState.update {
-                    it.copy(isLoadingGroups = false, error = result.message)
-                }
+                is Resource.Error ->
+                    _uiState.update {
+                        it.copy(isLoadingGroups = false, error = result.message)
+                    }
+
+                else -> {}
             }
         }
     }
@@ -66,10 +68,12 @@ class GroupDashboardViewModel(
                 state.copy(
                     isLoadingDetail = false,
                     overview = (overviewResult as? Resource.Success)?.data ?: state.overview,
-                    branches = (branchesResult as? Resource.Success)?.data?.toImmutableList()
-                        ?: state.branches,
-                    error = (overviewResult as? Resource.Error)?.message
-                        ?: (branchesResult as? Resource.Error)?.message
+                    branches =
+                        (branchesResult as? Resource.Success)?.data?.toImmutableList()
+                            ?: state.branches,
+                    error =
+                        (overviewResult as? Resource.Error)?.message
+                            ?: (branchesResult as? Resource.Error)?.message,
                 )
             }
         }

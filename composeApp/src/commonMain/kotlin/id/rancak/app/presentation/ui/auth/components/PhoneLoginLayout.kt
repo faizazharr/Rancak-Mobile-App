@@ -45,29 +45,31 @@ internal fun PhoneLoginLayout(
     onGoogleError: (String) -> Unit,
     onShowEmailForm: () -> Unit,
     onBackToOptions: () -> Unit,
-    onForgotPassword: () -> Unit = {}
+    onForgotPassword: () -> Unit = {},
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .imePadding()
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .imePadding()
+                .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Box(
-            modifier = Modifier
-                .size(72.dp)
-                .clip(MaterialTheme.shapes.extraLarge)
-                .background(MaterialTheme.colorScheme.primary),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(72.dp)
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .background(MaterialTheme.colorScheme.primary),
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 "R",
-                style      = MaterialTheme.typography.displaySmall,
-                color      = MaterialTheme.colorScheme.onPrimary,
-                fontWeight = FontWeight.ExtraBold
+                style = MaterialTheme.typography.displaySmall,
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.ExtraBold,
             )
         }
 
@@ -75,49 +77,49 @@ internal fun PhoneLoginLayout(
 
         Text(
             "Rancak",
-            style      = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
-            color      = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onBackground,
         )
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 "Powered by",
-                style    = MaterialTheme.typography.labelSmall,
-                color    = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
             )
             Image(
-                painter            = painterResource(Res.drawable.tias_logo),
+                painter = painterResource(Res.drawable.tias_logo),
                 contentDescription = "TIAS",
-                contentScale       = ContentScale.FillHeight,
-                modifier           = Modifier.height(16.dp).clip(MaterialTheme.shapes.small)
+                contentScale = ContentScale.FillHeight,
+                modifier = Modifier.height(16.dp).clip(MaterialTheme.shapes.small),
             )
         }
         Spacer(Modifier.height(4.dp))
         Text(
             "Masuk ke akun Anda untuk melanjutkan",
-            style     = MaterialTheme.typography.bodyMedium,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
 
         Spacer(Modifier.height(40.dp))
 
         LoginContent(
-            uiState          = uiState,
-            showEmailForm    = showEmailForm,
-            passwordVisible  = passwordVisible,
+            uiState = uiState,
+            showEmailForm = showEmailForm,
+            passwordVisible = passwordVisible,
             onPasswordToggle = onPasswordToggle,
-            onEmailChange    = onEmailChange,
+            onEmailChange = onEmailChange,
             onPasswordChange = onPasswordChange,
-            onLogin          = onLogin,
-            onGoogleToken    = onGoogleToken,
-            onGoogleError    = onGoogleError,
-            onShowEmailForm  = onShowEmailForm,
-            onBackToOptions  = onBackToOptions,
-            onForgotPassword = onForgotPassword
+            onLogin = onLogin,
+            onGoogleToken = onGoogleToken,
+            onGoogleError = onGoogleError,
+            onShowEmailForm = onShowEmailForm,
+            onBackToOptions = onBackToOptions,
+            onForgotPassword = onForgotPassword,
         )
     }
 }
@@ -127,17 +129,17 @@ internal fun PhoneLoginLayout(
 private fun PhoneLoginLayoutPreview_Options() {
     RancakTheme {
         PhoneLoginLayout(
-            uiState          = LoginUiState(),
-            showEmailForm    = false,
-            passwordVisible  = false,
+            uiState = LoginUiState(),
+            showEmailForm = false,
+            passwordVisible = false,
             onPasswordToggle = {},
-            onEmailChange    = {},
+            onEmailChange = {},
             onPasswordChange = {},
-            onLogin          = {},
-            onGoogleToken    = {},
-            onGoogleError    = {},
-            onShowEmailForm  = {},
-            onBackToOptions  = {}
+            onLogin = {},
+            onGoogleToken = {},
+            onGoogleError = {},
+            onShowEmailForm = {},
+            onBackToOptions = {},
         )
     }
 }
@@ -147,17 +149,17 @@ private fun PhoneLoginLayoutPreview_Options() {
 private fun PhoneLoginLayoutPreview_EmailForm() {
     RancakTheme {
         PhoneLoginLayout(
-            uiState          = LoginUiState(email = "user@example.com"),
-            showEmailForm    = true,
-            passwordVisible  = false,
+            uiState = LoginUiState(email = "user@example.com"),
+            showEmailForm = true,
+            passwordVisible = false,
             onPasswordToggle = {},
-            onEmailChange    = {},
+            onEmailChange = {},
             onPasswordChange = {},
-            onLogin          = {},
-            onGoogleToken    = {},
-            onGoogleError    = {},
-            onShowEmailForm  = {},
-            onBackToOptions  = {}
+            onLogin = {},
+            onGoogleToken = {},
+            onGoogleError = {},
+            onShowEmailForm = {},
+            onBackToOptions = {},
         )
     }
 }

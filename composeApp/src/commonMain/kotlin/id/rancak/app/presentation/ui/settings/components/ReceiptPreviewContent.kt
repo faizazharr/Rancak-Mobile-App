@@ -49,34 +49,46 @@ internal fun ReceiptPreviewContent(
     footerText: String,
     paperWidthMm: Int,
     showLogo: Boolean = false,
-    receiptSettings: ReceiptSettingsConfig? = null
+    receiptSettings: ReceiptSettingsConfig? = null,
 ) {
     // Local state: lebar preview yang sedang ditampilkan — terpisah dari setting
     // aktual agar user bisa bandingkan tanpa mengubah konfigurasi printer.
     var previewWidth by remember(paperWidthMm) { mutableIntStateOf(paperWidthMm) }
 
-    val data = ReceiptTextRenderer.sample(
-        storeName    = storeName,
-        storeAddress = storeAddress,
-        storePhone   = storePhone,
-        footerText   = footerText
-    )
+    val data =
+        ReceiptTextRenderer.sample(
+            storeName = storeName,
+            storeAddress = storeAddress,
+            storePhone = storePhone,
+            footerText = footerText,
+        )
     val text = ReceiptTextRenderer.render(data, previewWidth, receiptSettings)
 
     // Lebar card kertas: 58 mm → 220 dp, 70 mm → 260 dp, 80 mm → 300 dp
-    val paperWidthDp = when {
-        previewWidth >= 80 -> 300.dp
-        previewWidth >= 70 -> 260.dp
-        else               -> 220.dp
-    }
+    val paperWidthDp =
+        when {
+            previewWidth >= 80 -> 300.dp
+            previewWidth >= 70 -> 260.dp
+            else -> 220.dp
+        }
 
     // Font: makin lebar kertas makin besar sedikit agar teks terisi natural
-    val fontSize   = when { previewWidth >= 80 -> 10.sp; previewWidth >= 70 -> 9.5.sp; else -> 9.sp }
-    val lineHeight = when { previewWidth >= 80 -> 13.sp; previewWidth >= 70 -> 12.5.sp; else -> 12.sp }
+    val fontSize =
+        when {
+            previewWidth >= 80 -> 10.sp
+            previewWidth >= 70 -> 9.5.sp
+            else -> 9.sp
+        }
+    val lineHeight =
+        when {
+            previewWidth >= 80 -> 13.sp
+            previewWidth >= 70 -> 12.5.sp
+            else -> 12.sp
+        }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         // ── Header row ─────────────────────────────────────────────────────
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -84,64 +96,69 @@ internal fun ReceiptPreviewContent(
                 Icons.Default.Receipt,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 "Preview Struk",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
         }
 
         Text(
             "Tampilan akan tercetak seperti ini saat struk dikirim ke printer thermal.",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         // ── Pemilih lebar kertas ────────────────────────────────────────────
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 "Lebar kertas:",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             listOf(58, 70, 80).forEach { widthOption ->
                 FilterChip(
                     selected = previewWidth == widthOption,
-                    onClick  = { previewWidth = widthOption },
-                    label    = { Text("${widthOption} mm") },
-                    colors   = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor     = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    onClick = { previewWidth = widthOption },
+                    label = { Text("$widthOption mm") },
+                    colors =
+                        FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
                 )
             }
         }
 
         // ── Paper card ──────────────────────────────────────────────────────
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    shape = RancakDesign.shapes.medium
-                )
-                .padding(vertical = 16.dp),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = RancakDesign.shapes.medium,
+                    )
+                    .padding(vertical = 16.dp),
+            contentAlignment = Alignment.Center,
         ) {
             Card(
                 modifier = Modifier.width(paperWidthDp),
-                shape    = RoundedCornerShape(
-                    topStart    = 4.dp, topEnd    = 4.dp,
-                    bottomStart = 12.dp, bottomEnd = 12.dp
-                ),
-                colors    = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = RancakDesign.elevation.raised)
+                shape =
+                    RoundedCornerShape(
+                        topStart = 4.dp,
+                        topEnd = 4.dp,
+                        bottomStart = 12.dp,
+                        bottomEnd = 12.dp,
+                    ),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = RancakDesign.elevation.raised),
             ) {
                 Column {
                     // Decorative torn-paper notch on top
@@ -150,37 +167,39 @@ internal fun ReceiptPreviewContent(
                     // Logo placeholder (hanya tampil bila showLogo aktif)
                     if (showLogo) {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                                .height(40.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .border(
-                                    width = 1.dp,
-                                    color = Color(0xFFAAAAAA),
-                                    shape = RoundedCornerShape(4.dp)
-                                ),
-                            contentAlignment = Alignment.Center
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                                    .height(40.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color(0xFFAAAAAA),
+                                        shape = RoundedCornerShape(4.dp),
+                                    ),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Text(
                                 "[ LOGO TOKO ]",
                                 fontFamily = FontFamily.Monospace,
-                                fontSize   = 8.sp,
-                                color      = Color(0xFF888888),
-                                textAlign  = TextAlign.Center
+                                fontSize = 8.sp,
+                                color = Color(0xFF888888),
+                                textAlign = TextAlign.Center,
                             )
                         }
                     }
 
                     Text(
-                        text       = text,
-                        modifier   = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp, vertical = 12.dp),
+                        text = text,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 10.dp, vertical = 12.dp),
                         fontFamily = FontFamily.Monospace,
-                        fontSize   = fontSize,
+                        fontSize = fontSize,
                         lineHeight = lineHeight,
-                        color      = Color(0xFF222222)
+                        color = Color(0xFF222222),
                     )
                     PaperNotchEdge()
                 }
@@ -195,13 +214,14 @@ private fun PaperNotchEdge() {
     Row(modifier = Modifier.fillMaxWidth().height(6.dp)) {
         repeat(40) {
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(
-                        color = if (it % 2 == 0) Color.White else Color.Transparent,
-                        shape = RoundedCornerShape(bottomStart = 2.dp, bottomEnd = 2.dp)
-                    )
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(
+                            color = if (it % 2 == 0) Color.White else Color.Transparent,
+                            shape = RoundedCornerShape(bottomStart = 2.dp, bottomEnd = 2.dp),
+                        ),
             )
         }
     }
@@ -213,12 +233,12 @@ private fun ReceiptPreviewContent58Preview() {
     RancakTheme {
         Box(Modifier.padding(16.dp)) {
             ReceiptPreviewContent(
-                storeName    = "Warung Kopi Senja",
+                storeName = "Warung Kopi Senja",
                 storeAddress = "Jl. Mawar No. 12, Bandung",
-                storePhone   = "0812-3456-7890",
-                footerText   = "Terima kasih, hati-hati di jalan!",
+                storePhone = "0812-3456-7890",
+                footerText = "Terima kasih, hati-hati di jalan!",
                 paperWidthMm = 58,
-                showLogo     = true
+                showLogo = true,
             )
         }
     }
@@ -230,11 +250,11 @@ private fun ReceiptPreviewContent70Preview() {
     RancakTheme {
         Box(Modifier.padding(16.dp)) {
             ReceiptPreviewContent(
-                storeName    = "Warung Kopi Senja",
+                storeName = "Warung Kopi Senja",
                 storeAddress = "Jl. Mawar No. 12, Bandung",
-                storePhone   = "0812-3456-7890",
-                footerText   = "Terima kasih, hati-hati di jalan!",
-                paperWidthMm = 70
+                storePhone = "0812-3456-7890",
+                footerText = "Terima kasih, hati-hati di jalan!",
+                paperWidthMm = 70,
             )
         }
     }
@@ -246,13 +266,12 @@ private fun ReceiptPreviewContent80Preview() {
     RancakTheme {
         Box(Modifier.padding(16.dp)) {
             ReceiptPreviewContent(
-                storeName    = "Warung Kopi Senja",
+                storeName = "Warung Kopi Senja",
                 storeAddress = "Jl. Mawar No. 12, Bandung",
-                storePhone   = "0812-3456-7890",
-                footerText   = "Terima kasih, hati-hati di jalan!",
-                paperWidthMm = 80
+                storePhone = "0812-3456-7890",
+                footerText = "Terima kasih, hati-hati di jalan!",
+                paperWidthMm = 80,
             )
         }
     }
 }
-

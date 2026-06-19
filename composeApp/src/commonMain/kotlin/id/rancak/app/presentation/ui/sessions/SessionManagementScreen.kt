@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,18 +42,18 @@ fun SessionManagementScreen(onBack: () -> Unit) {
             text = {
                 Text(
                     "Perangkat \"${uiState.sessionToRevoke?.userAgent ?: "tidak dikenal"}\" " +
-                        "akan dikeluarkan dan harus login ulang."
+                        "akan dikeluarkan dan harus login ulang.",
                 )
             },
             confirmButton = {
                 TextButton(
                     onClick = viewModel::confirmRevoke,
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 ) { Text("Cabut") }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::cancelRevoke) { Text("Batal") }
-            }
+            },
         )
     }
 
@@ -63,33 +64,33 @@ fun SessionManagementScreen(onBack: () -> Unit) {
         Scaffold(
             topBar = {
                 RancakTopBar(
-                    title    = "Sesi Aktif",
-                    icon     = Icons.Default.DevicesOther,
-                    onMenu   = onBack,
-                    subtitle = "${uiState.sessions.size} perangkat terhubung"
+                    title = "Sesi Aktif",
+                    icon = Icons.Default.DevicesOther,
+                    onMenu = onBack,
+                    subtitle = "${uiState.sessions.size} perangkat terhubung",
                 )
             },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
+            snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { paddingValues ->
             when {
                 uiState.isLoading -> LoadingScreen()
                 uiState.sessions.isEmpty() -> {
                     Box(
                         Modifier.fillMaxSize().padding(paddingValues),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 Icons.Default.DevicesOther,
                                 contentDescription = null,
                                 modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.outline
+                                tint = MaterialTheme.colorScheme.outline,
                             )
                             Spacer(Modifier.height(12.dp))
                             Text(
                                 "Tidak ada sesi aktif",
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.outline
+                                color = MaterialTheme.colorScheme.outline,
                             )
                         }
                     }
@@ -99,11 +100,11 @@ fun SessionManagementScreen(onBack: () -> Unit) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(paddingValues),
                         contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         // Current session first — full width
                         val current = uiState.sessions.filter { it.current }
-                        val others  = uiState.sessions.filter { !it.current }
+                        val others = uiState.sessions.filter { !it.current }
 
                         if (current.isNotEmpty()) {
                             item {
@@ -112,7 +113,7 @@ fun SessionManagementScreen(onBack: () -> Unit) {
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.outline,
-                                    modifier = Modifier.padding(bottom = 4.dp)
+                                    modifier = Modifier.padding(bottom = 4.dp),
                                 )
                             }
                             items(current, key = { it.sessionId }) { session ->
@@ -127,7 +128,7 @@ fun SessionManagementScreen(onBack: () -> Unit) {
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.outline,
-                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
                                 )
                             }
                             // Pair up sessions for 2-column grid on tablet
@@ -135,14 +136,14 @@ fun SessionManagementScreen(onBack: () -> Unit) {
                             items(pairs, key = { it.first().sessionId }) { pair ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
                                     pair.forEach { session ->
                                         Box(Modifier.weight(1f)) {
                                             SessionCard(
-                                                session    = session,
+                                                session = session,
                                                 isRevoking = uiState.revoking == session.sessionId,
-                                                onRevoke   = { viewModel.requestRevoke(session) }
+                                                onRevoke = { viewModel.requestRevoke(session) },
                                             )
                                         }
                                     }
@@ -158,13 +159,13 @@ fun SessionManagementScreen(onBack: () -> Unit) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(paddingValues),
                         contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         items(uiState.sessions, key = { it.sessionId }) { session ->
                             SessionCard(
-                                session    = session,
+                                session = session,
                                 isRevoking = uiState.revoking == session.sessionId,
-                                onRevoke   = { viewModel.requestRevoke(session) }
+                                onRevoke = { viewModel.requestRevoke(session) },
                             )
                         }
                     }
@@ -178,29 +179,34 @@ fun SessionManagementScreen(onBack: () -> Unit) {
 private fun SessionCard(
     session: Session,
     isRevoking: Boolean,
-    onRevoke: () -> Unit
+    onRevoke: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = if (session.current)
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        else
-            CardDefaults.cardColors()
+        colors =
+            if (session.current) {
+                CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            } else {
+                CardDefaults.cardColors()
+            },
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = if (session.current) Icons.Default.PhoneAndroid else Icons.Default.Devices,
                 contentDescription = null,
                 modifier = Modifier.size(40.dp),
-                tint = if (session.current)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.outline
+                tint =
+                    if (session.current) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outline
+                    },
             )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
@@ -208,7 +214,7 @@ private fun SessionCard(
                     Text(
                         text = session.userAgent ?: "Perangkat tidak dikenal",
                         style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier.weight(1f, fill = false),
                     )
                     if (session.current) {
                         Spacer(Modifier.width(6.dp))
@@ -219,14 +225,14 @@ private fun SessionCard(
                     Text(
                         text = "Terakhir aktif: $it",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline
+                        color = MaterialTheme.colorScheme.outline,
                     )
                 }
                 session.issuedAt?.let {
                     Text(
                         text = "Login: $it",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline
+                        color = MaterialTheme.colorScheme.outline,
                     )
                 }
             }
@@ -236,9 +242,9 @@ private fun SessionCard(
                 } else {
                     IconButton(onClick = onRevoke) {
                         Icon(
-                            Icons.Default.Logout,
+                            Icons.AutoMirrored.Filled.Logout,
                             contentDescription = "Cabut sesi",
-                            tint = MaterialTheme.colorScheme.error
+                            tint = MaterialTheme.colorScheme.error,
                         )
                     }
                 }

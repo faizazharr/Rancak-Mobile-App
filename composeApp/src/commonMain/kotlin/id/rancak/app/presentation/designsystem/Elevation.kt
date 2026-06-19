@@ -28,7 +28,7 @@ data class Elevation(
     /** Modal / dialog / bottom-sheet. */
     val modal: Dp = 8.dp,
     /** FAB pressed state. */
-    val pressed: Dp = 12.dp
+    val pressed: Dp = 12.dp,
 )
 
 val LocalElevation = staticCompositionLocalOf { Elevation() }

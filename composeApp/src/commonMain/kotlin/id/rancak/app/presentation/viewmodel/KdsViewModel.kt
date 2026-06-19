@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.KdsOrder
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Clock
 
 private const val KDS_POLL_INTERVAL_MS = 15_000L
 
@@ -33,17 +33,17 @@ data class KdsUiState(
     /** Epoch-ms dari polling terakhir berhasil; null jika belum pernah load. */
     val lastUpdatedMs: Long? = null,
     // Precomputed agar tidak diulang di setiap rekomposisi.
-    val displayOrders: ImmutableList<KdsOrder> = persistentListOf()
+    val displayOrders: ImmutableList<KdsOrder> = persistentListOf(),
 ) {
-    suspend fun recompute() = withContext(Dispatchers.Default) {
-        copy(displayOrders = if (showCompleted) completedOrders else activeOrders)
-    }
+    suspend fun recompute() =
+        withContext(Dispatchers.Default) {
+            copy(displayOrders = if (showCompleted) completedOrders else activeOrders)
+        }
 }
 
 class KdsViewModel(
-    private val operationsRepository: OperationsRepository
+    private val operationsRepository: OperationsRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(KdsUiState())
     val uiState: StateFlow<KdsUiState> = _uiState.asStateFlow()
 
@@ -68,13 +68,14 @@ class KdsViewModel(
                 is Resource.Success -> {
                     val orders = result.data
                     withContext(Dispatchers.Default) {
-                        val active    = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
+                        val active = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
                         val completed = orders.filter { it.status == KdsStatus.DONE }.toImmutableList()
-                        _uiState.value = _uiState.value.copy(
-                            activeOrders    = active,
-                            completedOrders = completed,
-                            lastUpdatedMs   = System.currentTimeMillis()
-                        ).recompute()
+                        _uiState.value =
+                            _uiState.value.copy(
+                                activeOrders = active,
+                                completedOrders = completed,
+                                lastUpdatedMs = Clock.System.now().toEpochMilliseconds(),
+                            ).recompute()
                     }
                 }
                 is Resource.Error -> { /* silent — preserve stale data */ }
@@ -97,14 +98,15 @@ class KdsViewModel(
                 is Resource.Success -> {
                     val orders = result.data
                     withContext(Dispatchers.Default) {
-                        val active    = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
+                        val active = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
                         val completed = orders.filter { it.status == KdsStatus.DONE }.toImmutableList()
-                        _uiState.value = _uiState.value.copy(
-                            activeOrders    = active,
-                            completedOrders = completed,
-                            isLoading       = false,
-                            lastUpdatedMs   = System.currentTimeMillis()
-                        ).recompute()
+                        _uiState.value =
+                            _uiState.value.copy(
+                                activeOrders = active,
+                                completedOrders = completed,
+                                isLoading = false,
+                                lastUpdatedMs = Clock.System.now().toEpochMilliseconds(),
+                            ).recompute()
                     }
                 }
                 is Resource.Error -> {
@@ -115,7 +117,10 @@ class KdsViewModel(
         }
     }
 
-    fun updateOrderStatus(kdsUuid: String, status: KdsStatus) {
+    fun updateOrderStatus(
+        kdsUuid: String,
+        status: KdsStatus,
+    ) {
         viewModelScope.launch {
             when (val result = operationsRepository.updateKdsStatus(kdsUuid, status)) {
                 is Resource.Success -> loadOrders()

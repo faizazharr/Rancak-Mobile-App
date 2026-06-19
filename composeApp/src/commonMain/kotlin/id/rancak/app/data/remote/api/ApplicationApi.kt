@@ -17,9 +17,7 @@ import io.ktor.http.contentType
  * outlet langsung dibuat dengan demo trial 14 hari.
  */
 
-suspend fun RancakApiService.submitApplication(
-    request: SubmitApplicationRequest
-): ApiResponse<TenantApplicationDto> =
+suspend fun RancakApiService.submitApplication(request: SubmitApplicationRequest): ApiResponse<TenantApplicationDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.APPLICATIONS) {
         contentType(ContentType.Application.Json)
         setBody(request)

@@ -1,7 +1,5 @@
 package id.rancak.app.domain.repository
 
-import androidx.compose.runtime.Immutable
-
 import id.rancak.app.domain.model.CashCount
 import id.rancak.app.domain.model.DiscountPreview
 import id.rancak.app.domain.model.DiscountRule
@@ -17,30 +15,58 @@ import id.rancak.app.domain.model.VoucherValidation
 
 interface OperationsRepository {
     suspend fun getTables(): Resource<List<Table>>
+
     suspend fun getCurrentShift(): Resource<Shift?>
+
     suspend fun openShift(openingCash: String): Resource<Shift>
-    suspend fun closeShift(closingCash: String, note: String?): Resource<Shift>
+
+    suspend fun closeShift(
+        closingCash: String,
+        note: String?,
+    ): Resource<Shift>
+
     suspend fun getKdsOrders(): Resource<List<KdsOrder>>
-    suspend fun updateKdsStatus(kdsUuid: String, status: KdsStatus): Resource<Unit>
+
+    suspend fun updateKdsStatus(
+        kdsUuid: String,
+        status: KdsStatus,
+    ): Resource<Unit>
+
     suspend fun getSurcharges(): Resource<List<Surcharge>>
+
     suspend fun getTaxConfigs(): Resource<List<TaxConfig>>
+
     suspend fun getDiscountRules(): Resource<List<DiscountRule>>
-    suspend fun validateVoucher(code: String, subtotal: Long): Resource<VoucherValidation>
+
+    suspend fun validateVoucher(
+        code: String,
+        subtotal: Long,
+    ): Resource<VoucherValidation>
+
     suspend fun previewDiscount(total: Long): Resource<DiscountPreview>
+
     suspend fun syncCatalog(updatedAfter: String? = null): Resource<Unit>
+
     suspend fun syncStatus(): Resource<Boolean>
+
     suspend fun getShiftSummaryById(shiftUuid: String): Resource<ShiftSummary>
 
     // ── Cash count (rekonsiliasi kas) ───────────────────────────────────────
     suspend fun getCashCounts(shiftUuid: String): Resource<List<CashCount>>
+
     suspend fun submitCashCount(
         shiftUuid: String,
         actualCash: Double,
         denominations: Map<String, Int>? = null,
-        note: String? = null
+        note: String? = null,
     ): Resource<CashCount>
 
     // ── KDS detail + item-level ─────────────────────────────────────────────
     suspend fun getKdsDetail(kdsUuid: String): Resource<KdsOrder>
-    suspend fun updateKdsItemStatus(kdsUuid: String, itemUuid: String, status: String): Resource<Unit>
+
+    suspend fun updateKdsItemStatus(
+        kdsUuid: String,
+        itemUuid: String,
+        status: String,
+    ): Resource<Unit>
 }

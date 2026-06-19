@@ -13,23 +13,22 @@ import id.rancak.app.domain.repository.ReceiptSettingsRepository
 
 class ReceiptSettingsRepositoryImpl(
     private val api: RancakApiService,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
 ) : ReceiptSettingsRepository {
-
     private val tenantUuid: String
         get() = tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")
 
     override suspend fun getReceiptSettings(): Resource<ReceiptSettingsConfig> =
         safe(
-            block    = { api.getReceiptSettings(tenantUuid) },
-            map      = { it.toDomain() },
-            errorMsg = "Gagal memuat pengaturan struk"
+            block = { api.getReceiptSettings(tenantUuid) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal memuat pengaturan struk",
         )
 
     override suspend fun updateReceiptSettings(settings: ReceiptSettingsConfig): Resource<ReceiptSettingsConfig> =
         safe(
-            block    = { api.patchReceiptSettings(tenantUuid, settings.toUpdateDto()) },
-            map      = { it.toDomain() },
-            errorMsg = "Gagal menyimpan pengaturan struk"
+            block = { api.patchReceiptSettings(tenantUuid, settings.toUpdateDto()) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal menyimpan pengaturan struk",
         )
 }

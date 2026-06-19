@@ -30,46 +30,49 @@ internal fun PosSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onScanClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val primary          = MaterialTheme.colorScheme.primary
+    val primary = MaterialTheme.colorScheme.primary
 
     BasicTextField(
-        value         = query,
+        value = query,
         onValueChange = onQueryChange,
-        singleLine    = true,
-        textStyle     = MaterialTheme.typography.bodyMedium.copy(
-            color    = MaterialTheme.colorScheme.onSurface
-        ),
+        singleLine = true,
+        textStyle =
+            MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSurface,
+            ),
         cursorBrush = SolidColor(primary),
-        modifier    = modifier,
+        modifier = modifier,
         decorationBox = { inner ->
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.extraLarge)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
-                    .border(
-                        1.dp,
-                        MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
-                        MaterialTheme.shapes.extraLarge
-                    )
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant.copy(0.5f),
+                            MaterialTheme.shapes.extraLarge,
+                        )
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(
-                    Icons.Default.Search, null,
+                    Icons.Default.Search,
+                    null,
                     Modifier.size(18.dp),
-                    tint = onSurfaceVariant
+                    tint = onSurfaceVariant,
                 )
                 Box(Modifier.weight(1f)) {
                     if (query.isEmpty()) {
                         Text(
                             "Cari produk atau scan barcode...",
-                            style    = MaterialTheme.typography.bodyMedium,
-                            color    = onSurfaceVariant.copy(0.55f)
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = onSurfaceVariant.copy(0.55f),
                         )
                     }
                     inner()
@@ -81,7 +84,7 @@ internal fun PosSearchBar(
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.outlineVariant.copy(0.35f))
                             .clickable { onQueryChange("") },
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(Icons.Default.Close, null, Modifier.size(11.dp), tint = onSurfaceVariant)
                     }
@@ -92,17 +95,18 @@ internal fun PosSearchBar(
                             .clip(MaterialTheme.shapes.large)
                             .background(primary.copy(0.1f))
                             .clickable(onClick = onScanClick),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            Icons.Default.QrCodeScanner, null,
+                            Icons.Default.QrCodeScanner,
+                            null,
                             Modifier.size(16.dp),
-                            tint = primary
+                            tint = primary,
                         )
                     }
                 }
             }
-        }
+        },
     )
 }
 

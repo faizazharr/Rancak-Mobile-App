@@ -34,88 +34,97 @@ internal fun GlassOutletCard(
     isSelected: Boolean,
     colorIndex: Int,
     onClick: () -> Unit,
-    subscriptionStatus: String? = null
+    subscriptionStatus: String? = null,
 ) {
     val glassAlpha by animateColorAsState(
-        targetValue   = if (isSelected) Color.White.copy(0.28f) else Color.White.copy(0.12f),
-        animationSpec = tween(200), label = "glass"
+        targetValue = if (isSelected) Color.White.copy(0.28f) else Color.White.copy(0.12f),
+        animationSpec = tween(200),
+        label = "glass",
     )
     val borderAlpha by animateColorAsState(
-        targetValue   = if (isSelected) Color.White.copy(0.70f) else Color.White.copy(0.25f),
-        animationSpec = tween(200), label = "border"
+        targetValue = if (isSelected) Color.White.copy(0.70f) else Color.White.copy(0.25f),
+        animationSpec = tween(200),
+        label = "border",
     )
-    val accentColors = listOf(
-        Color(0xFFFFD580), Color(0xFF80D4FF), Color(0xFFB8FF80), Color(0xFFFF9580)
-    )
-    val accent  = accentColors[colorIndex % accentColors.size]
+    val accentColors =
+        listOf(
+            Color(0xFFFFD580),
+            Color(0xFF80D4FF),
+            Color(0xFFB8FF80),
+            Color(0xFFFF9580),
+        )
+    val accent = accentColors[colorIndex % accentColors.size]
     val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.extraLarge)
-            .background(glassAlpha)
-            .border(if (isSelected) 1.5.dp else 1.dp, borderAlpha, MaterialTheme.shapes.extraLarge)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(glassAlpha)
+                .border(if (isSelected) 1.5.dp else 1.dp, borderAlpha, MaterialTheme.shapes.extraLarge)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(if (isSelected) accent.copy(0.9f) else accent.copy(0.20f))
-                    .border(1.dp, if (isSelected) accent else accent.copy(0.40f), CircleShape),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) accent.copy(0.9f) else accent.copy(0.20f))
+                        .border(1.dp, if (isSelected) accent else accent.copy(0.40f), CircleShape),
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     initial,
-                    style      = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color      = if (isSelected) Color.White else accent
+                    color = if (isSelected) Color.White else accent,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     name,
-                    style      = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color      = Color.White
+                    color = Color.White,
                 )
                 val (statusLabel, statusColor) = billingStatusInfo(subscriptionStatus)
                 if (statusLabel != null) {
                     Spacer(Modifier.height(4.dp))
                     Box(
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.small)
-                            .background(statusColor.copy(alpha = 0.22f))
-                            .border(0.5.dp, statusColor.copy(alpha = 0.55f), MaterialTheme.shapes.small)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                        modifier =
+                            Modifier
+                                .clip(MaterialTheme.shapes.small)
+                                .background(statusColor.copy(alpha = 0.22f))
+                                .border(0.5.dp, statusColor.copy(alpha = 0.55f), MaterialTheme.shapes.small)
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
                     ) {
                         Text(
                             statusLabel,
-                            style      = MaterialTheme.typography.labelSmall,
-                            color      = statusColor,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.labelSmall,
+                            color = statusColor,
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
                 } else {
                     Row(
-                        verticalAlignment     = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        modifier              = Modifier.padding(top = 3.dp)
+                        modifier = Modifier.padding(top = 3.dp),
                     ) {
                         Box(
                             Modifier.size(5.dp).clip(CircleShape)
-                                .background(if (isSelected) accent else Color.White.copy(0.40f))
+                                .background(if (isSelected) accent else Color.White.copy(0.40f)),
                         )
                         Text(
                             "Outlet Kasir",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(0.65f)
+                            color = Color.White.copy(0.65f),
                         )
                     }
                 }
@@ -123,12 +132,13 @@ internal fun GlassOutletCard(
             if (isSelected) {
                 Box(
                     Modifier.size(28.dp).clip(CircleShape).background(Color.White),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        Icons.Default.CheckCircle, null,
-                        tint     = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
+                        Icons.Default.CheckCircle,
+                        null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp),
                     )
                 }
             } else {
@@ -146,14 +156,24 @@ private fun GlassOutletCardPreview() {
         Box(
             Modifier
                 .background(Brush.verticalGradient(listOf(primary, primary.copy(alpha = 0.55f))))
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                GlassOutletCard("Warung Rancak",  isSelected = true,  colorIndex = 0, onClick = {})
-                GlassOutletCard("Cafe Sederhana", isSelected = false, colorIndex = 1, onClick = {},
-                    subscriptionStatus = "expired")
-                GlassOutletCard("Kedai Mie",      isSelected = false, colorIndex = 2, onClick = {},
-                    subscriptionStatus = "inactive")
+                GlassOutletCard("Warung Rancak", isSelected = true, colorIndex = 0, onClick = {})
+                GlassOutletCard(
+                    "Cafe Sederhana",
+                    isSelected = false,
+                    colorIndex = 1,
+                    onClick = {},
+                    subscriptionStatus = "expired",
+                )
+                GlassOutletCard(
+                    "Kedai Mie",
+                    isSelected = false,
+                    colorIndex = 2,
+                    onClick = {},
+                    subscriptionStatus = "inactive",
+                )
             }
         }
     }

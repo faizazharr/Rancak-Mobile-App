@@ -8,19 +8,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.data.security.DeviceIntegrity
+import id.rancak.app.presentation.components.DeviceIntegrityWarningDialog
 import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.designsystem.LocalSizes
-import id.rancak.app.presentation.components.DeviceIntegrityWarningDialog
 import id.rancak.app.presentation.ui.auth.components.PhoneLoginLayout
 import id.rancak.app.presentation.ui.auth.components.TabletLoginLayout
 import id.rancak.app.presentation.viewmodel.LoginViewModel
@@ -33,12 +32,12 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onForgotPassword: () -> Unit = {}
+    onForgotPassword: () -> Unit = {},
 ) {
     val viewModel: LoginViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var passwordVisible by remember { mutableStateOf(false) }
-    var showEmailForm   by remember { mutableStateOf(false) }
+    var showEmailForm by remember { mutableStateOf(false) }
 
     // ── Device integrity check (soft-warn only) ───────────────────────────
     // Deteksi rooted/jailbroken device sekali per layar login. Hasil di-
@@ -55,55 +54,57 @@ fun LoginScreen(
     }
 
     BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
     ) {
         val sizes = LocalSizes.current
         val isTablet = maxWidth >= sizes.tabletBreakpoint
 
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-                .zIndex(10f)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .zIndex(10f),
         ) {
             ErrorBanner(
-                error     = uiState.error,
+                error = uiState.error,
                 onDismiss = viewModel::clearError,
-                modifier  = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
         if (isTablet) {
             TabletLoginLayout(
-                uiState          = uiState,
-                showEmailForm    = showEmailForm,
-                passwordVisible  = passwordVisible,
+                uiState = uiState,
+                showEmailForm = showEmailForm,
+                passwordVisible = passwordVisible,
                 onPasswordToggle = { passwordVisible = !passwordVisible },
-                onEmailChange    = viewModel::onEmailChange,
+                onEmailChange = viewModel::onEmailChange,
                 onPasswordChange = viewModel::onPasswordChange,
-                onLogin          = viewModel::login,
-                onGoogleToken    = viewModel::loginWithGoogle,
-                onGoogleError    = viewModel::setError,
-                onShowEmailForm  = { showEmailForm = true },
-                onBackToOptions  = { showEmailForm = false },
-                onForgotPassword = onForgotPassword
+                onLogin = viewModel::login,
+                onGoogleToken = viewModel::loginWithGoogle,
+                onGoogleError = viewModel::setError,
+                onShowEmailForm = { showEmailForm = true },
+                onBackToOptions = { showEmailForm = false },
+                onForgotPassword = onForgotPassword,
             )
         } else {
             PhoneLoginLayout(
-                uiState          = uiState,
-                showEmailForm    = showEmailForm,
-                passwordVisible  = passwordVisible,
+                uiState = uiState,
+                showEmailForm = showEmailForm,
+                passwordVisible = passwordVisible,
                 onPasswordToggle = { passwordVisible = !passwordVisible },
-                onEmailChange    = viewModel::onEmailChange,
+                onEmailChange = viewModel::onEmailChange,
                 onPasswordChange = viewModel::onPasswordChange,
-                onLogin          = viewModel::login,
-                onGoogleToken    = viewModel::loginWithGoogle,
-                onGoogleError    = viewModel::setError,
-                onShowEmailForm  = { showEmailForm = true },
-                onBackToOptions  = { showEmailForm = false },
-                onForgotPassword = onForgotPassword
+                onLogin = viewModel::login,
+                onGoogleToken = viewModel::loginWithGoogle,
+                onGoogleError = viewModel::setError,
+                onShowEmailForm = { showEmailForm = true },
+                onBackToOptions = { showEmailForm = false },
+                onForgotPassword = onForgotPassword,
             )
         }
     }
@@ -113,22 +114,22 @@ fun LoginScreen(
 // Preview — memanggil layout yang sama dengan yang dirender oleh LoginScreen
 // ─────────────────────────────────────────────────────────────────────────────
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Login – Phone",  widthDp = 390, heightDp = 844)
+@androidx.compose.ui.tooling.preview.Preview(name = "Login – Phone", widthDp = 390, heightDp = 844)
 @Composable
 private fun LoginScreenPhonePreview() {
     id.rancak.app.presentation.designsystem.RancakTheme {
         PhoneLoginLayout(
-            uiState          = id.rancak.app.presentation.viewmodel.LoginUiState(),
-            showEmailForm    = false,
-            passwordVisible  = false,
+            uiState = id.rancak.app.presentation.viewmodel.LoginUiState(),
+            showEmailForm = false,
+            passwordVisible = false,
             onPasswordToggle = {},
-            onEmailChange    = {},
+            onEmailChange = {},
             onPasswordChange = {},
-            onLogin          = {},
-            onGoogleToken    = {},
-            onGoogleError    = {},
-            onShowEmailForm  = {},
-            onBackToOptions  = {}
+            onLogin = {},
+            onGoogleToken = {},
+            onGoogleError = {},
+            onShowEmailForm = {},
+            onBackToOptions = {},
         )
     }
 }
@@ -138,17 +139,17 @@ private fun LoginScreenPhonePreview() {
 private fun LoginScreenTabletPreview() {
     id.rancak.app.presentation.designsystem.RancakTheme {
         TabletLoginLayout(
-            uiState          = id.rancak.app.presentation.viewmodel.LoginUiState(),
-            showEmailForm    = false,
-            passwordVisible  = false,
+            uiState = id.rancak.app.presentation.viewmodel.LoginUiState(),
+            showEmailForm = false,
+            passwordVisible = false,
             onPasswordToggle = {},
-            onEmailChange    = {},
+            onEmailChange = {},
             onPasswordChange = {},
-            onLogin          = {},
-            onGoogleToken    = {},
-            onGoogleError    = {},
-            onShowEmailForm  = {},
-            onBackToOptions  = {}
+            onLogin = {},
+            onGoogleToken = {},
+            onGoogleError = {},
+            onShowEmailForm = {},
+            onBackToOptions = {},
         )
     }
 }

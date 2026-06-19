@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -21,19 +20,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.ShoppingCart
-import id.rancak.app.presentation.components.RancakFormDialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
@@ -42,7 +39,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -64,11 +60,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.domain.model.PurchaseOrder
 import id.rancak.app.domain.model.PurchaseOrderItem
-import id.rancak.app.domain.model.Supplier
 import id.rancak.app.presentation.components.EmptyScreen
-import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakButton
+import id.rancak.app.presentation.components.RancakFormDialog
 import id.rancak.app.presentation.components.RancakOutlinedButton
 import id.rancak.app.presentation.components.RancakTextField
 import id.rancak.app.presentation.components.RancakTopBar
@@ -81,13 +76,14 @@ import id.rancak.app.presentation.viewmodel.PurchaseOrderViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-private val statusLabels = mapOf(
-    "draft"    to "Draft",
-    "ordered"  to "Dikirim",
-    "partial"  to "Sebagian",
-    "received" to "Diterima",
-    "cancelled" to "Dibatalkan"
-)
+private val statusLabels =
+    mapOf(
+        "draft" to "Draft",
+        "ordered" to "Dikirim",
+        "partial" to "Sebagian",
+        "received" to "Diterima",
+        "cancelled" to "Dibatalkan",
+    )
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Screen (stateful)
@@ -96,7 +92,7 @@ private val statusLabels = mapOf(
 @Composable
 fun PurchaseOrderScreen(
     onBack: () -> Unit,
-    onSupplier: () -> Unit = {}
+    onSupplier: () -> Unit = {},
 ) {
     val viewModel: PurchaseOrderViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -117,46 +113,46 @@ fun PurchaseOrderScreen(
     }
 
     PurchaseOrderContent(
-        uiState              = uiState,
-        onBack               = onBack,
-        onSupplier           = onSupplier,
-        onAdd                = viewModel::openCreateDialog,
-        onSelectOrder        = viewModel::selectOrder,
-        onCloseDetail        = viewModel::closeDetail,
-        onSend               = viewModel::sendOrder,
-        onCancelClick        = viewModel::openCancelDialog,
-        onConfirmCancel      = viewModel::cancelOrder,
-        onCloseCancel        = viewModel::closeCancelDialog,
-        onStatusFilter       = viewModel::setStatusFilter,
-        onCreateOrder        = viewModel::createPurchaseOrder,
-        onCloseCreate        = viewModel::closeCreateDialog,
-        onSupplierChange     = viewModel::onFormSupplierChange,
-        onOrderDateChange    = viewModel::onFormOrderDateChange,
+        uiState = uiState,
+        onBack = onBack,
+        onSupplier = onSupplier,
+        onAdd = viewModel::openCreateDialog,
+        onSelectOrder = viewModel::selectOrder,
+        onCloseDetail = viewModel::closeDetail,
+        onSend = viewModel::sendOrder,
+        onCancelClick = viewModel::openCancelDialog,
+        onConfirmCancel = viewModel::cancelOrder,
+        onCloseCancel = viewModel::closeCancelDialog,
+        onStatusFilter = viewModel::setStatusFilter,
+        onCreateOrder = viewModel::createPurchaseOrder,
+        onCloseCreate = viewModel::closeCreateDialog,
+        onSupplierChange = viewModel::onFormSupplierChange,
+        onOrderDateChange = viewModel::onFormOrderDateChange,
         onExpectedDateChange = viewModel::onFormExpectedDateChange,
-        onNotesChange        = viewModel::onFormNotesChange,
+        onNotesChange = viewModel::onFormNotesChange,
         // Edit header
-        onEditHeader         = viewModel::openEditHeaderDialog,
-        onCloseEditHeader    = viewModel::closeEditHeaderDialog,
-        onSaveHeader         = viewModel::updatePOHeader,
+        onEditHeader = viewModel::openEditHeaderDialog,
+        onCloseEditHeader = viewModel::closeEditHeaderDialog,
+        onSaveHeader = viewModel::updatePOHeader,
         // Item CRUD
-        onOpenAddItem        = viewModel::openAddItemDialog,
-        onCloseAddItem       = viewModel::closeAddItemDialog,
-        onItemProductChange  = viewModel::onItemProductChange,
-        onItemQtyChange      = viewModel::onItemQtyChange,
+        onOpenAddItem = viewModel::openAddItemDialog,
+        onCloseAddItem = viewModel::closeAddItemDialog,
+        onItemProductChange = viewModel::onItemProductChange,
+        onItemQtyChange = viewModel::onItemQtyChange,
         onItemUnitCostChange = viewModel::onItemUnitCostChange,
-        onItemNotesChange    = viewModel::onItemNotesChange,
-        onAddItem            = viewModel::addItem,
-        onOpenEditItem       = viewModel::openEditItemDialog,
-        onCloseEditItem      = viewModel::closeEditItemDialog,
-        onUpdateItem         = viewModel::updateItem,
-        onDeleteItem         = viewModel::deleteItem,
+        onItemNotesChange = viewModel::onItemNotesChange,
+        onAddItem = viewModel::addItem,
+        onOpenEditItem = viewModel::openEditItemDialog,
+        onCloseEditItem = viewModel::closeEditItemDialog,
+        onUpdateItem = viewModel::updateItem,
+        onDeleteItem = viewModel::deleteItem,
         // Receive
-        onOpenReceive        = viewModel::openReceiveDialog,
-        onCloseReceive       = viewModel::closeReceiveDialog,
-        onReceiveQtyChange   = viewModel::onReceiveQtyChange,
+        onOpenReceive = viewModel::openReceiveDialog,
+        onCloseReceive = viewModel::closeReceiveDialog,
+        onReceiveQtyChange = viewModel::onReceiveQtyChange,
         onReceiveNotesChange = viewModel::onReceiveNotesChange,
-        onConfirmReceive     = viewModel::receiveOrder,
-        snackbarHostState    = snackbarHostState
+        onConfirmReceive = viewModel::receiveOrder,
+        snackbarHostState = snackbarHostState,
     )
 }
 
@@ -206,53 +202,53 @@ fun PurchaseOrderContent(
     onReceiveQtyChange: (String, String) -> Unit = { _, _ -> },
     onReceiveNotesChange: (String) -> Unit = {},
     onConfirmReceive: () -> Unit = {},
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     // ── Dialogs ──────────────────────────────────────────────────────────────
     if (uiState.showCancelDialog) {
         AlertDialog(
             onDismissRequest = onCloseCancel,
-            title  = { Text("Batalkan PO") },
-            text   = { Text("Yakin ingin membatalkan purchase order ini? Tindakan tidak dapat diurungkan.") },
+            title = { Text("Batalkan PO") },
+            text = { Text("Yakin ingin membatalkan purchase order ini? Tindakan tidak dapat diurungkan.") },
             confirmButton = {
                 TextButton(onClick = onConfirmCancel) {
                     Text("Batalkan PO", color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = onCloseCancel) { Text("Tutup") } }
+            dismissButton = { TextButton(onClick = onCloseCancel) { Text("Tutup") } },
         )
     }
 
     if (uiState.showAddItemDialog) {
         AddPOItemDialog(
-            uiState             = uiState,
-            onDismiss           = onCloseAddItem,
-            onConfirm           = onAddItem,
-            onProductChange     = onItemProductChange,
-            onQtyChange         = onItemQtyChange,
-            onUnitCostChange    = onItemUnitCostChange,
-            onItemNotesChange   = onItemNotesChange
+            uiState = uiState,
+            onDismiss = onCloseAddItem,
+            onConfirm = onAddItem,
+            onProductChange = onItemProductChange,
+            onQtyChange = onItemQtyChange,
+            onUnitCostChange = onItemUnitCostChange,
+            onItemNotesChange = onItemNotesChange,
         )
     }
 
     if (uiState.showEditItemDialog) {
         EditPOItemDialog(
-            uiState          = uiState,
-            onDismiss        = onCloseEditItem,
-            onConfirm        = onUpdateItem,
-            onQtyChange      = onItemQtyChange,
+            uiState = uiState,
+            onDismiss = onCloseEditItem,
+            onConfirm = onUpdateItem,
+            onQtyChange = onItemQtyChange,
             onUnitCostChange = onItemUnitCostChange,
-            onNotesChange    = onItemNotesChange
+            onNotesChange = onItemNotesChange,
         )
     }
 
     if (uiState.showReceiveDialog) {
         ReceivePODialog(
-            uiState          = uiState,
-            onDismiss        = onCloseReceive,
-            onConfirm        = onConfirmReceive,
-            onQtyChange      = onReceiveQtyChange,
-            onNotesChange    = onReceiveNotesChange
+            uiState = uiState,
+            onDismiss = onCloseReceive,
+            onConfirm = onConfirmReceive,
+            onQtyChange = onReceiveQtyChange,
+            onNotesChange = onReceiveNotesChange,
         )
     }
 
@@ -263,15 +259,15 @@ fun PurchaseOrderContent(
         Scaffold(
             topBar = {
                 RancakTopBar(
-                    title    = "Purchase Order",
-                    icon     = Icons.Default.ShoppingCart,
+                    title = "Purchase Order",
+                    icon = Icons.Default.ShoppingCart,
                     subtitle = "${uiState.orders.size} PO",
-                    onMenu   = onBack,
-                    actions  = {
+                    onMenu = onBack,
+                    actions = {
                         IconButton(onClick = onSupplier) {
                             Icon(Icons.Default.LocalShipping, contentDescription = "Supplier")
                         }
-                    }
+                    },
                 )
             },
             floatingActionButton = {
@@ -282,70 +278,70 @@ fun PurchaseOrderContent(
                 }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.background,
         ) { padding ->
             Box(Modifier.padding(padding).fillMaxSize()) {
                 // Phone full-screen: Create PO
                 if (!isTablet && uiState.showCreateDialog) {
                     CreatePOFormContent(
-                        uiState              = uiState,
-                        onCreate             = onCreateOrder,
-                        onDismiss            = onCloseCreate,
-                        onSupplierChange     = onSupplierChange,
-                        onOrderDateChange    = onOrderDateChange,
+                        uiState = uiState,
+                        onCreate = onCreateOrder,
+                        onDismiss = onCloseCreate,
+                        onSupplierChange = onSupplierChange,
+                        onOrderDateChange = onOrderDateChange,
                         onExpectedDateChange = onExpectedDateChange,
-                        onNotesChange        = onNotesChange,
-                        isEdit               = false,
-                        fullScreen           = true
+                        onNotesChange = onNotesChange,
+                        isEdit = false,
+                        fullScreen = true,
                     )
-                // Phone full-screen: Edit PO header
+                    // Phone full-screen: Edit PO header
                 } else if (!isTablet && uiState.showEditHeaderDialog) {
                     CreatePOFormContent(
-                        uiState              = uiState,
-                        onCreate             = onSaveHeader,
-                        onDismiss            = onCloseEditHeader,
-                        onSupplierChange     = onSupplierChange,
-                        onOrderDateChange    = onOrderDateChange,
+                        uiState = uiState,
+                        onCreate = onSaveHeader,
+                        onDismiss = onCloseEditHeader,
+                        onSupplierChange = onSupplierChange,
+                        onOrderDateChange = onOrderDateChange,
                         onExpectedDateChange = onExpectedDateChange,
-                        onNotesChange        = onNotesChange,
-                        isEdit               = true,
-                        fullScreen           = true
+                        onNotesChange = onNotesChange,
+                        isEdit = true,
+                        fullScreen = true,
                     )
                 } else if (isTablet) {
                     TabletPOLayout(
-                        uiState              = uiState,
-                        onSelectOrder        = onSelectOrder,
-                        onCloseDetail        = onCloseDetail,
-                        onSend               = onSend,
-                        onCancelClick        = onCancelClick,
-                        onFilter             = onStatusFilter,
-                        onCreateOrder        = onCreateOrder,
-                        onCloseCreate        = onCloseCreate,
-                        onSupplierChange     = onSupplierChange,
-                        onOrderDateChange    = onOrderDateChange,
+                        uiState = uiState,
+                        onSelectOrder = onSelectOrder,
+                        onCloseDetail = onCloseDetail,
+                        onSend = onSend,
+                        onCancelClick = onCancelClick,
+                        onFilter = onStatusFilter,
+                        onCreateOrder = onCreateOrder,
+                        onCloseCreate = onCloseCreate,
+                        onSupplierChange = onSupplierChange,
+                        onOrderDateChange = onOrderDateChange,
                         onExpectedDateChange = onExpectedDateChange,
-                        onNotesChange        = onNotesChange,
-                        onEditHeader         = onEditHeader,
-                        onCloseEditHeader    = onCloseEditHeader,
-                        onSaveHeader         = onSaveHeader,
-                        onOpenAddItem        = onOpenAddItem,
-                        onOpenEditItem       = onOpenEditItem,
-                        onDeleteItem         = onDeleteItem,
-                        onOpenReceive        = onOpenReceive
+                        onNotesChange = onNotesChange,
+                        onEditHeader = onEditHeader,
+                        onCloseEditHeader = onCloseEditHeader,
+                        onSaveHeader = onSaveHeader,
+                        onOpenAddItem = onOpenAddItem,
+                        onOpenEditItem = onOpenEditItem,
+                        onDeleteItem = onDeleteItem,
+                        onOpenReceive = onOpenReceive,
                     )
                 } else {
                     PhonePOLayout(
-                        uiState        = uiState,
-                        onSelectOrder  = onSelectOrder,
-                        onCloseDetail  = onCloseDetail,
-                        onSend         = onSend,
-                        onCancelClick  = onCancelClick,
-                        onFilter       = onStatusFilter,
-                        onEditHeader   = onEditHeader,
-                        onOpenAddItem  = onOpenAddItem,
+                        uiState = uiState,
+                        onSelectOrder = onSelectOrder,
+                        onCloseDetail = onCloseDetail,
+                        onSend = onSend,
+                        onCancelClick = onCancelClick,
+                        onFilter = onStatusFilter,
+                        onEditHeader = onEditHeader,
+                        onOpenAddItem = onOpenAddItem,
                         onOpenEditItem = onOpenEditItem,
-                        onDeleteItem   = onDeleteItem,
-                        onOpenReceive  = onOpenReceive
+                        onDeleteItem = onDeleteItem,
+                        onOpenReceive = onOpenReceive,
                     )
                 }
             }
@@ -373,7 +369,7 @@ private fun TabletPOLayout(
     onOpenAddItem: () -> Unit,
     onOpenEditItem: (id.rancak.app.domain.model.PurchaseOrderItem) -> Unit,
     onDeleteItem: (id.rancak.app.domain.model.PurchaseOrderItem) -> Unit,
-    onOpenReceive: () -> Unit
+    onOpenReceive: () -> Unit,
 ) {
     Row(Modifier.fillMaxSize()) {
         // List panel
@@ -383,18 +379,19 @@ private fun TabletPOLayout(
             when {
                 uiState.isLoading -> LoadingScreen()
                 uiState.orders.isEmpty() -> EmptyScreen("Tidak ada PO")
-                else -> LazyColumn(
-                    contentPadding      = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    items(uiState.orders) { po ->
-                        POListItem(
-                            po         = po,
-                            isSelected = uiState.selectedOrder?.uuid == po.uuid,
-                            onClick    = { onSelectOrder(po) }
-                        )
+                else ->
+                    LazyColumn(
+                        contentPadding = PaddingValues(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        items(uiState.orders) { po ->
+                            POListItem(
+                                po = po,
+                                isSelected = uiState.selectedOrder?.uuid == po.uuid,
+                                onClick = { onSelectOrder(po) },
+                            )
+                        }
                     }
-                }
             }
         }
 
@@ -403,48 +400,52 @@ private fun TabletPOLayout(
         // Right panel: form buat PO, edit header, atau detail PO
         Box(Modifier.weight(0.6f).fillMaxHeight()) {
             when {
-                uiState.showCreateDialog -> CreatePOFormContent(
-                    uiState              = uiState,
-                    onCreate             = onCreateOrder,
-                    onDismiss            = onCloseCreate,
-                    onSupplierChange     = onSupplierChange,
-                    onOrderDateChange    = onOrderDateChange,
-                    onExpectedDateChange = onExpectedDateChange,
-                    onNotesChange        = onNotesChange,
-                    isEdit               = false,
-                    fullScreen           = false
-                )
-                uiState.showEditHeaderDialog -> CreatePOFormContent(
-                    uiState              = uiState,
-                    onCreate             = onSaveHeader,
-                    onDismiss            = onCloseEditHeader,
-                    onSupplierChange     = onSupplierChange,
-                    onOrderDateChange    = onOrderDateChange,
-                    onExpectedDateChange = onExpectedDateChange,
-                    onNotesChange        = onNotesChange,
-                    isEdit               = true,
-                    fullScreen           = false
-                )
-                uiState.selectedOrder == null -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Pilih PO untuk melihat detail",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                uiState.showCreateDialog ->
+                    CreatePOFormContent(
+                        uiState = uiState,
+                        onCreate = onCreateOrder,
+                        onDismiss = onCloseCreate,
+                        onSupplierChange = onSupplierChange,
+                        onOrderDateChange = onOrderDateChange,
+                        onExpectedDateChange = onExpectedDateChange,
+                        onNotesChange = onNotesChange,
+                        isEdit = false,
+                        fullScreen = false,
                     )
-                }
+                uiState.showEditHeaderDialog ->
+                    CreatePOFormContent(
+                        uiState = uiState,
+                        onCreate = onSaveHeader,
+                        onDismiss = onCloseEditHeader,
+                        onSupplierChange = onSupplierChange,
+                        onOrderDateChange = onOrderDateChange,
+                        onExpectedDateChange = onExpectedDateChange,
+                        onNotesChange = onNotesChange,
+                        isEdit = true,
+                        fullScreen = false,
+                    )
+                uiState.selectedOrder == null ->
+                    Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            "Pilih PO untuk melihat detail",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 uiState.isLoadingDetail -> LoadingScreen()
-                else -> PODetailContent(
-                    po            = uiState.selectedOrder,
-                    onSend        = onSend,
-                    onCancelClick = onCancelClick,
-                    onEditHeader  = onEditHeader,
-                    onOpenAddItem = onOpenAddItem,
-                    onEditItem    = onOpenEditItem,
-                    onDeleteItem  = onDeleteItem,
-                    onOpenReceive = onOpenReceive
-                )
+                else ->
+                    PODetailContent(
+                        po = uiState.selectedOrder,
+                        onSend = onSend,
+                        onCancelClick = onCancelClick,
+                        onEditHeader = onEditHeader,
+                        onOpenAddItem = onOpenAddItem,
+                        onEditItem = onOpenEditItem,
+                        onDeleteItem = onDeleteItem,
+                        onOpenReceive = onOpenReceive,
+                    )
             }
         }
     }
@@ -462,20 +463,20 @@ private fun PhonePOLayout(
     onOpenAddItem: () -> Unit,
     onOpenEditItem: (id.rancak.app.domain.model.PurchaseOrderItem) -> Unit,
     onDeleteItem: (id.rancak.app.domain.model.PurchaseOrderItem) -> Unit,
-    onOpenReceive: () -> Unit
+    onOpenReceive: () -> Unit,
 ) {
     val detail = uiState.selectedOrder
     if (detail != null && !uiState.isLoadingDetail) {
         PODetailContent(
-            po            = detail,
-            onSend        = onSend,
+            po = detail,
+            onSend = onSend,
             onCancelClick = onCancelClick,
-            onBack        = onCloseDetail,
-            onEditHeader  = onEditHeader,
+            onBack = onCloseDetail,
+            onEditHeader = onEditHeader,
             onOpenAddItem = onOpenAddItem,
-            onEditItem    = onOpenEditItem,
-            onDeleteItem  = onDeleteItem,
-            onOpenReceive = onOpenReceive
+            onEditItem = onOpenEditItem,
+            onDeleteItem = onDeleteItem,
+            onOpenReceive = onOpenReceive,
         )
     } else if (uiState.isLoadingDetail) {
         LoadingScreen()
@@ -486,62 +487,74 @@ private fun PhonePOLayout(
             when {
                 uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
                 uiState.orders.isEmpty() -> EmptyScreen("Tidak ada PO", modifier = Modifier.weight(1f))
-                else -> LazyColumn(
-                    modifier            = Modifier.weight(1f),
-                    contentPadding      = PaddingValues(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(uiState.orders) { po ->
-                        POListItem(po = po, isSelected = false, onClick = { onSelectOrder(po) })
+                else ->
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(uiState.orders) { po ->
+                            POListItem(po = po, isSelected = false, onClick = { onSelectOrder(po) })
+                        }
                     }
-                }
             }
         }
     }
 }
 
 @Composable
-private fun StatusFilterRow(selected: String?, onFilter: (String?) -> Unit) {
+private fun StatusFilterRow(
+    selected: String?,
+    onFilter: (String?) -> Unit,
+) {
     Row(
-        modifier              = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         FilterChip(
             selected = selected == null,
-            onClick  = { onFilter(null) },
-            label    = { Text("Semua") }
+            onClick = { onFilter(null) },
+            label = { Text("Semua") },
         )
         statusLabels.forEach { (key, label) ->
             FilterChip(
                 selected = selected == key,
-                onClick  = { onFilter(key) },
-                label    = { Text(label) }
+                onClick = { onFilter(key) },
+                label = { Text(label) },
             )
         }
     }
 }
 
 @Composable
-private fun POListItem(po: PurchaseOrder, isSelected: Boolean, onClick: () -> Unit) {
+private fun POListItem(
+    po: PurchaseOrder,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
     Card(
-        onClick    = onClick,
-        elevation  = CardDefaults.cardElevation(if (isSelected) 2.dp else 1.dp),
-        colors     = CardDefaults.cardColors(
-            containerColor = if (isSelected)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
-            else
-                MaterialTheme.colorScheme.surface
-        ),
-        shape      = MaterialTheme.shapes.medium,
-        modifier   = Modifier.fillMaxWidth()
+        onClick = onClick,
+        elevation = CardDefaults.cardElevation(if (isSelected) 2.dp else 1.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+            ),
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(po.poNumber, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 POStatusChip(po.status)
@@ -551,9 +564,9 @@ private fun POListItem(po: PurchaseOrder, isSelected: Boolean, onClick: () -> Un
             }
             Text(
                 formatRupiah(po.total.toLong()),
-                style  = MaterialTheme.typography.bodySmall,
-                color  = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium,
             )
             Text(po.orderDate, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -570,7 +583,7 @@ private fun PODetailContent(
     onEditItem: (PurchaseOrderItem) -> Unit = {},
     onDeleteItem: (PurchaseOrderItem) -> Unit = {},
     onOpenReceive: () -> Unit = {},
-    onBack: (() -> Unit)? = null
+    onBack: (() -> Unit)? = null,
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         onBack?.let {
@@ -582,9 +595,9 @@ private fun PODetailContent(
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             // ── Header ────────────────────────────────────────────────────────
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(po.poNumber, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -612,9 +625,9 @@ private fun PODetailContent(
 
             // ── Items ─────────────────────────────────────────────────────────
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("Item", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 if (po.status == "draft") {
@@ -629,34 +642,34 @@ private fun PODetailContent(
                 Text(
                     "Belum ada item",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             po.items.forEach { item ->
                 Row(
-                    modifier          = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
                         Text(item.productName, style = MaterialTheme.typography.bodyMedium)
                         Text(
                             "${formatQty(item.qtyOrdered)} × ${formatRupiah(item.unitCost.toLong())}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         if (item.qtyReceived > 0) {
                             Text(
                                 "Diterima: ${formatQty(item.qtyReceived)}",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
                     Text(
                         formatRupiah(item.subtotal.toLong()),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
                     )
                     if (po.status == "draft") {
                         IconButton(onClick = { onEditItem(item) }) {
@@ -674,12 +687,17 @@ private fun PODetailContent(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     if (po.taxAmount > 0) Text("Pajak: ${formatRupiah(po.taxAmount.toLong())}", style = MaterialTheme.typography.bodySmall)
-                    if (po.shippingCost > 0) Text("Ongkos kirim: ${formatRupiah(po.shippingCost.toLong())}", style = MaterialTheme.typography.bodySmall)
+                    if (po.shippingCost > 0) {
+                        Text(
+                            "Ongkos kirim: ${formatRupiah(po.shippingCost.toLong())}",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                     Text(
                         "Total: ${formatRupiah(po.total.toLong())}",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -687,23 +705,23 @@ private fun PODetailContent(
             // ── Action buttons ────────────────────────────────────────────────
             if (po.status == "draft" && po.items.isNotEmpty()) {
                 RancakButton(
-                    text     = "Kirim ke Supplier",
-                    onClick  = { onSend(po.uuid) },
-                    modifier = Modifier.fillMaxWidth()
+                    text = "Kirim ke Supplier",
+                    onClick = { onSend(po.uuid) },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             if (po.status in listOf("ordered", "partial")) {
                 RancakButton(
-                    text     = "Terima Barang",
-                    onClick  = onOpenReceive,
-                    modifier = Modifier.fillMaxWidth()
+                    text = "Terima Barang",
+                    onClick = onOpenReceive,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             if (po.status in listOf("draft", "ordered")) {
                 RancakOutlinedButton(
-                    text     = "Batalkan PO",
-                    onClick  = onCancelClick,
-                    modifier = Modifier.fillMaxWidth()
+                    text = "Batalkan PO",
+                    onClick = onCancelClick,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -713,15 +731,16 @@ private fun PODetailContent(
 @Composable
 private fun POStatusChip(status: String) {
     val label = statusLabels[status] ?: status
-    val sem   = RancakColors.semantic
-    val color = when (status) {
-        "draft"     -> sem.warning
-        "ordered"   -> MaterialTheme.colorScheme.primary
-        "partial"   -> sem.info
-        "received"  -> sem.success
-        "cancelled" -> MaterialTheme.colorScheme.error
-        else        -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
+    val sem = RancakColors.semantic
+    val color =
+        when (status) {
+            "draft" -> sem.warning
+            "ordered" -> MaterialTheme.colorScheme.primary
+            "partial" -> sem.info
+            "received" -> sem.success
+            "cancelled" -> MaterialTheme.colorScheme.error
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
     StatusChip(text = label, color = color)
 }
 
@@ -736,21 +755,23 @@ private fun CreatePOFormContent(
     onExpectedDateChange: (String) -> Unit,
     onNotesChange: (String) -> Unit,
     isEdit: Boolean,
-    fullScreen: Boolean
+    fullScreen: Boolean,
 ) {
-    val title  = if (isEdit) "Edit Purchase Order" else "Buat Purchase Order"
+    val title = if (isEdit) "Edit Purchase Order" else "Buat Purchase Order"
     val btnLabel = if (isEdit) "Simpan Perubahan" else "Buat PO"
     var supplierExpanded by remember { mutableStateOf(false) }
-    val selectedSupplierName = uiState.suppliers.find { it.uuid == uiState.formSupplierUuid }?.name
-        ?: "Pilih Supplier (opsional)"
+    val selectedSupplierName =
+        uiState.suppliers.find { it.uuid == uiState.formSupplierUuid }?.name
+            ?: "Pilih Supplier (opsional)"
 
     Column(Modifier.fillMaxSize()) {
         // ── Header ────────────────────────────────────────────────────────────
         if (fullScreen) {
             Row(
-                modifier          = Modifier.fillMaxWidth()
-                    .padding(start = 4.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .padding(start = 4.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
@@ -759,10 +780,11 @@ private fun CreatePOFormContent(
             }
         } else {
             Row(
-                modifier              = Modifier.fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 IconButton(onClick = onDismiss) {
@@ -774,82 +796,90 @@ private fun CreatePOFormContent(
 
         // ── Form fields ───────────────────────────────────────────────────────
         Column(
-            modifier            = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ExposedDropdownMenuBox(
-                expanded         = supplierExpanded,
-                onExpandedChange = { supplierExpanded = it }
+                expanded = supplierExpanded,
+                onExpandedChange = { supplierExpanded = it },
             ) {
                 OutlinedTextField(
-                    value         = selectedSupplierName,
+                    value = selectedSupplierName,
                     onValueChange = {},
-                    readOnly      = true,
-                    label         = { Text("Supplier") },
-                    trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(supplierExpanded) },
-                    shape         = MaterialTheme.shapes.medium,
-                    modifier      = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    readOnly = true,
+                    label = { Text("Supplier") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(supplierExpanded) },
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                 )
                 ExposedDropdownMenu(
-                    expanded         = supplierExpanded,
-                    onDismissRequest = { supplierExpanded = false }
+                    expanded = supplierExpanded,
+                    onDismissRequest = { supplierExpanded = false },
                 ) {
                     DropdownMenuItem(
-                        text    = { Text("Tanpa Supplier") },
-                        onClick = { onSupplierChange(null); supplierExpanded = false }
+                        text = { Text("Tanpa Supplier") },
+                        onClick = {
+                            onSupplierChange(null)
+                            supplierExpanded = false
+                        },
                     )
                     uiState.suppliers.forEach { s ->
                         DropdownMenuItem(
-                            text    = { Text(s.name) },
-                            onClick = { onSupplierChange(s.uuid); supplierExpanded = false }
+                            text = { Text(s.name) },
+                            onClick = {
+                                onSupplierChange(s.uuid)
+                                supplierExpanded = false
+                            },
                         )
                     }
                 }
             }
 
             RancakTextField(
-                value         = uiState.formOrderDate,
+                value = uiState.formOrderDate,
                 onValueChange = onOrderDateChange,
-                label         = "Tanggal Order (YYYY-MM-DD)",
-                singleLine    = true
+                label = "Tanggal Order (YYYY-MM-DD)",
+                singleLine = true,
             )
             RancakTextField(
-                value         = uiState.formExpectedDate,
+                value = uiState.formExpectedDate,
                 onValueChange = onExpectedDateChange,
-                label         = "Estimasi Terima (YYYY-MM-DD)",
-                singleLine    = true
+                label = "Estimasi Terima (YYYY-MM-DD)",
+                singleLine = true,
             )
             RancakTextField(
-                value         = uiState.formNotes,
+                value = uiState.formNotes,
                 onValueChange = onNotesChange,
-                label         = "Catatan",
-                singleLine    = false,
-                minLines      = 2
+                label = "Catatan",
+                singleLine = false,
+                minLines = 2,
             )
         }
 
         // ── Bottom actions ────────────────────────────────────────────────────
         HorizontalDivider()
         Row(
-            modifier              = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             RancakOutlinedButton(
-                text     = "Batal",
-                onClick  = onDismiss,
-                modifier = Modifier.weight(1f)
+                text = "Batal",
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f),
             )
             RancakButton(
-                text      = btnLabel,
-                onClick   = onCreate,
-                enabled   = !uiState.isSaving,
+                text = btnLabel,
+                onClick = onCreate,
+                enabled = !uiState.isSaving,
                 isLoading = uiState.isSaving,
-                modifier  = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -866,64 +896,68 @@ private fun AddPOItemDialog(
     onProductChange: (String) -> Unit,
     onQtyChange: (String) -> Unit,
     onUnitCostChange: (String) -> Unit,
-    onItemNotesChange: (String) -> Unit
+    onItemNotesChange: (String) -> Unit,
 ) {
     var productExpanded by remember { mutableStateOf(false) }
-    val selectedProductName = uiState.products.find { it.uuid == uiState.formItemProductUuid }?.name
-        ?: "Pilih Produk"
+    val selectedProductName =
+        uiState.products.find { it.uuid == uiState.formItemProductUuid }?.name
+            ?: "Pilih Produk"
 
     RancakFormDialog(
-        icon             = Icons.Default.ShoppingCart,
-        title            = "Tambah Item",
-        subtitle         = "Pilih produk dan tentukan jumlah",
+        icon = Icons.Default.ShoppingCart,
+        title = "Tambah Item",
+        subtitle = "Pilih produk dan tentukan jumlah",
         onDismissRequest = onDismiss,
-        confirmLabel     = "Tambah",
-        onConfirm        = onConfirm,
-        confirmEnabled   = !uiState.isSaving && uiState.formItemProductUuid.isNotBlank() && uiState.formItemQty.isNotBlank(),
-        isSubmitting     = uiState.isSaving
+        confirmLabel = "Tambah",
+        onConfirm = onConfirm,
+        confirmEnabled = !uiState.isSaving && uiState.formItemProductUuid.isNotBlank() && uiState.formItemQty.isNotBlank(),
+        isSubmitting = uiState.isSaving,
     ) {
         ExposedDropdownMenuBox(
-            expanded         = productExpanded,
-            onExpandedChange = { productExpanded = it }
+            expanded = productExpanded,
+            onExpandedChange = { productExpanded = it },
         ) {
             OutlinedTextField(
-                value         = selectedProductName,
+                value = selectedProductName,
                 onValueChange = {},
-                readOnly      = true,
-                label         = { Text("Produk") },
-                trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(productExpanded) },
-                shape         = MaterialTheme.shapes.medium,
-                modifier      = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                readOnly = true,
+                label = { Text("Produk") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(productExpanded) },
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             )
             ExposedDropdownMenu(
-                expanded         = productExpanded,
-                onDismissRequest = { productExpanded = false }
+                expanded = productExpanded,
+                onDismissRequest = { productExpanded = false },
             ) {
                 uiState.products.forEach { p ->
                     DropdownMenuItem(
-                        text    = { Text(p.name) },
-                        onClick = { onProductChange(p.uuid); productExpanded = false }
+                        text = { Text(p.name) },
+                        onClick = {
+                            onProductChange(p.uuid)
+                            productExpanded = false
+                        },
                     )
                 }
             }
         }
         RancakTextField(
-            value         = uiState.formItemQty,
+            value = uiState.formItemQty,
             onValueChange = onQtyChange,
-            label         = "Jumlah",
-            singleLine    = true
+            label = "Jumlah",
+            singleLine = true,
         )
         RancakTextField(
-            value         = uiState.formItemUnitCost,
+            value = uiState.formItemUnitCost,
             onValueChange = onUnitCostChange,
-            label         = "Harga Satuan (Rp)",
-            singleLine    = true
+            label = "Harga Satuan (Rp)",
+            singleLine = true,
         )
         RancakTextField(
-            value         = uiState.formItemNotes,
+            value = uiState.formItemNotes,
             onValueChange = onItemNotesChange,
-            label         = "Catatan (opsional)",
-            singleLine    = true
+            label = "Catatan (opsional)",
+            singleLine = true,
         )
     }
 }
@@ -937,35 +971,35 @@ private fun EditPOItemDialog(
     onConfirm: () -> Unit,
     onQtyChange: (String) -> Unit,
     onUnitCostChange: (String) -> Unit,
-    onNotesChange: (String) -> Unit
+    onNotesChange: (String) -> Unit,
 ) {
     RancakFormDialog(
-        icon             = Icons.Default.Edit,
-        title            = "Edit Item",
-        subtitle         = uiState.editingItem?.productName.orEmpty(),
+        icon = Icons.Default.Edit,
+        title = "Edit Item",
+        subtitle = uiState.editingItem?.productName.orEmpty(),
         onDismissRequest = onDismiss,
-        confirmLabel     = "Simpan",
-        onConfirm        = onConfirm,
-        confirmEnabled   = !uiState.isSaving && uiState.formItemQty.isNotBlank(),
-        isSubmitting     = uiState.isSaving
+        confirmLabel = "Simpan",
+        onConfirm = onConfirm,
+        confirmEnabled = !uiState.isSaving && uiState.formItemQty.isNotBlank(),
+        isSubmitting = uiState.isSaving,
     ) {
         RancakTextField(
-            value         = uiState.formItemQty,
+            value = uiState.formItemQty,
             onValueChange = onQtyChange,
-            label         = "Jumlah",
-            singleLine    = true
+            label = "Jumlah",
+            singleLine = true,
         )
         RancakTextField(
-            value         = uiState.formItemUnitCost,
+            value = uiState.formItemUnitCost,
             onValueChange = onUnitCostChange,
-            label         = "Harga Satuan (Rp)",
-            singleLine    = true
+            label = "Harga Satuan (Rp)",
+            singleLine = true,
         )
         RancakTextField(
-            value         = uiState.formItemNotes,
+            value = uiState.formItemNotes,
             onValueChange = onNotesChange,
-            label         = "Catatan (opsional)",
-            singleLine    = true
+            label = "Catatan (opsional)",
+            singleLine = true,
         )
     }
 }
@@ -978,7 +1012,7 @@ private fun ReceivePODialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     onQtyChange: (String, String) -> Unit,
-    onNotesChange: (String) -> Unit
+    onNotesChange: (String) -> Unit,
 ) {
     val items = uiState.selectedOrder?.items ?: emptyList()
     AlertDialog(
@@ -987,7 +1021,7 @@ private fun ReceivePODialog(
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 if (items.isEmpty()) {
                     Text("Tidak ada item untuk diterima.", style = MaterialTheme.typography.bodySmall)
@@ -998,41 +1032,39 @@ private fun ReceivePODialog(
                             Text(
                                 "Dipesan: ${formatQty(item.qtyOrdered)} | Sudah diterima: ${formatQty(item.qtyReceived)}",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             RancakTextField(
-                                value         = uiState.receiveEntries[item.uuid] ?: "",
+                                value = uiState.receiveEntries[item.uuid] ?: "",
                                 onValueChange = { onQtyChange(item.uuid, it) },
-                                label         = "Qty diterima sekarang",
-                                singleLine    = true
+                                label = "Qty diterima sekarang",
+                                singleLine = true,
                             )
                         }
                     }
                 }
                 RancakTextField(
-                    value         = uiState.formReceiveNotes,
+                    value = uiState.formReceiveNotes,
                     onValueChange = onNotesChange,
-                    label         = "Catatan penerimaan (opsional)",
-                    singleLine    = true
+                    label = "Catatan penerimaan (opsional)",
+                    singleLine = true,
                 )
             }
         },
         confirmButton = {
             RancakButton(
-                text      = "Konfirmasi",
-                onClick   = onConfirm,
-                enabled   = !uiState.isSaving,
-                isLoading = uiState.isSaving
+                text = "Konfirmasi",
+                onClick = onConfirm,
+                enabled = !uiState.isSaving,
+                isLoading = uiState.isSaving,
             )
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Batal") }
-        }
+        },
     )
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
-private fun formatQty(qty: Double): String =
-    if (qty == qty.toLong().toDouble()) qty.toLong().toString() else qty.toString()
-
+private fun formatQty(qty: Double): String = if (qty == qty.toLong().toDouble()) qty.toLong().toString() else qty.toString()

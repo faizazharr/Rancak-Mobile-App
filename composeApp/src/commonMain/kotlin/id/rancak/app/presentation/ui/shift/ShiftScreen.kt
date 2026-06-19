@@ -5,19 +5,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.domain.model.CashCount
+import id.rancak.app.domain.model.Shift
+import id.rancak.app.domain.model.ShiftStatus
 import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakButton
@@ -29,15 +29,14 @@ import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.util.localizeApiError
 import id.rancak.app.presentation.viewmodel.ShiftUiState
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
-import id.rancak.app.domain.model.Shift
-import id.rancak.app.domain.model.ShiftStatus
+import kotlinx.collections.immutable.ImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShiftScreen(
     onBack: () -> Unit,
-    onViewReport: () -> Unit = {}
+    onViewReport: () -> Unit = {},
 ) {
     val viewModel: ShiftViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -52,17 +51,17 @@ fun ShiftScreen(
     }
 
     ShiftScreenContent(
-        uiState             = uiState,
-        onBack              = onBack,
-        onViewReport        = onViewReport,
+        uiState = uiState,
+        onBack = onBack,
+        onViewReport = onViewReport,
         onOpeningCashChange = viewModel::onOpeningCashChange,
         onClosingCashChange = viewModel::onClosingCashChange,
         onClosingNoteChange = viewModel::onClosingNoteChange,
-        onOpenShift         = viewModel::openShift,
-        onCloseShift        = viewModel::closeShift,
-        onClearError        = viewModel::clearError,
-        onSubmitCashCount   = viewModel::submitCashCount,
-        onClearCashCountSuccess = viewModel::clearCashCountSuccess
+        onOpenShift = viewModel::openShift,
+        onCloseShift = viewModel::closeShift,
+        onClearError = viewModel::clearError,
+        onSubmitCashCount = viewModel::submitCashCount,
+        onClearCashCountSuccess = viewModel::clearCashCountSuccess,
     )
 }
 
@@ -78,7 +77,7 @@ fun ShiftScreenContent(
     onCloseShift: () -> Unit = {},
     onClearError: () -> Unit = {},
     onSubmitCashCount: (actualCash: Double, note: String?) -> Unit = { _, _ -> },
-    onClearCashCountSuccess: () -> Unit = {}
+    onClearCashCountSuccess: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -86,169 +85,179 @@ fun ShiftScreenContent(
                 title = "Shift Kasir",
                 icon = Icons.Default.AccessTime,
                 subtitle = "Kelola jam operasional",
-                onMenu = onBack
+                onMenu = onBack,
             )
-        }
+        },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             // ── Error banner — in-flow so content below doesn't get obscured ──
             ErrorBanner(
-                error     = uiState.error?.let { localizeApiError(it) },
+                error = uiState.error?.let { localizeApiError(it) },
                 onDismiss = onClearError,
-                modifier  = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             BoxWithConstraints(modifier = Modifier.weight(1f)) {
-            val sizes = LocalSizes.current
-            val isTablet = maxWidth >= sizes.tabletBreakpoint
-            val contentModifier = if (isTablet) {
-                Modifier.widthIn(max = 560.dp).align(Alignment.Center).verticalScroll(rememberScrollState())
-            } else {
-                Modifier.fillMaxSize()
-            }
+                val sizes = LocalSizes.current
+                val isTablet = maxWidth >= sizes.tabletBreakpoint
+                val contentModifier =
+                    if (isTablet) {
+                        Modifier.widthIn(max = 560.dp).align(Alignment.Center).verticalScroll(rememberScrollState())
+                    } else {
+                        Modifier.fillMaxSize()
+                    }
 
-            when {
-                uiState.isLoading -> LoadingScreen()
-                uiState.currentShift != null -> {
-                    // Active Shift - Show close shift UI
-                    Column(
-                        modifier = contentModifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Card(
-                            shape = MaterialTheme.shapes.large,
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                            ),
-                            modifier = Modifier.fillMaxWidth()
+                when {
+                    uiState.isLoading -> LoadingScreen()
+                    uiState.currentShift != null -> {
+                        // Active Shift - Show close shift UI
+                        Column(
+                            modifier = contentModifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Column(modifier = Modifier.padding(20.dp)) {
-                                Text(
-                                    "Shift Aktif",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(Modifier.height(12.dp))
-                                SummaryRow("Kas Awal", formatRupiah(uiState.currentShift.openingCash.toDoubleOrNull()?.toLong() ?: 0L))
-                                uiState.currentShift.totalSales?.let {
-                                    SummaryRow("Total Penjualan", formatRupiah(it))
-                                }
-                                uiState.currentShift.totalExpenses?.let {
-                                    SummaryRow("Total Pengeluaran", formatRupiah(it))
+                            Card(
+                                shape = MaterialTheme.shapes.large,
+                                colors =
+                                    CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                                    ),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Column(modifier = Modifier.padding(20.dp)) {
+                                    Text(
+                                        "Shift Aktif",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                    Spacer(Modifier.height(12.dp))
+                                    SummaryRow("Kas Awal", formatRupiah(uiState.currentShift.openingCash.toDoubleOrNull()?.toLong() ?: 0L))
+                                    uiState.currentShift.totalSales?.let {
+                                        SummaryRow("Total Penjualan", formatRupiah(it))
+                                    }
+                                    uiState.currentShift.totalExpenses?.let {
+                                        SummaryRow("Total Pengeluaran", formatRupiah(it))
+                                    }
                                 }
                             }
+
+                            Spacer(Modifier.height(32.dp))
+
+                            Text(
+                                "Tutup Shift",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Spacer(Modifier.height(12.dp))
+
+                            OutlinedTextField(
+                                value = uiState.closingCash,
+                                onValueChange = { v -> onClosingCashChange(v.filter { it.isDigit() }) },
+                                label = { Text("Kas Akhir") },
+                                prefix = { Text("Rp ") },
+                                isError = uiState.closingCash.isNotBlank() && uiState.closingCash.toLongOrNull() == null,
+                                supportingText =
+                                    if (uiState.closingCash.isNotBlank() && uiState.closingCash.toLongOrNull() == null) {
+                                        { Text("Jumlah tidak valid") }
+                                    } else {
+                                        null
+                                    },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                shape = MaterialTheme.shapes.medium,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+
+                            Spacer(Modifier.height(12.dp))
+
+                            OutlinedTextField(
+                                value = uiState.closingNote,
+                                onValueChange = onClosingNoteChange,
+                                label = { Text("Catatan (opsional)") },
+                                shape = MaterialTheme.shapes.medium,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+
+                            Spacer(Modifier.height(24.dp))
+
+                            RancakButton(
+                                text = "Tutup Shift",
+                                onClick = onCloseShift,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+
+                            Spacer(Modifier.height(32.dp))
+
+                            // ── Rekonsiliasi Kas (Cash Count) ──────────────────────────
+                            CashCountSection(
+                                cashCounts = uiState.cashCounts,
+                                isSubmitting = uiState.isCountSubmitting,
+                                submitError = uiState.cashCountError,
+                                submitSuccess = uiState.cashCountSuccess,
+                                onSubmit = onSubmitCashCount,
+                                onClearSuccess = onClearCashCountSuccess,
+                            )
                         }
-
-                        Spacer(Modifier.height(32.dp))
-
-                        Text(
-                            "Tutup Shift",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = uiState.closingCash,
-                            onValueChange = { v -> onClosingCashChange(v.filter { it.isDigit() }) },
-                            label = { Text("Kas Akhir") },
-                            prefix = { Text("Rp ") },
-                            isError = uiState.closingCash.isNotBlank() && uiState.closingCash.toLongOrNull() == null,
-                            supportingText = if (uiState.closingCash.isNotBlank() && uiState.closingCash.toLongOrNull() == null)
-                                { { Text("Jumlah tidak valid") } } else null,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.medium,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = uiState.closingNote,
-                            onValueChange = onClosingNoteChange,
-                            label = { Text("Catatan (opsional)") },
-                            shape = MaterialTheme.shapes.medium,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(Modifier.height(24.dp))
-
-                        RancakButton(
-                            text = "Tutup Shift",
-                            onClick = onCloseShift,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(Modifier.height(32.dp))
-
-                        // ── Rekonsiliasi Kas (Cash Count) ──────────────────────────
-                        CashCountSection(
-                            cashCounts      = uiState.cashCounts,
-                            isSubmitting    = uiState.isCountSubmitting,
-                            submitError     = uiState.cashCountError,
-                            submitSuccess   = uiState.cashCountSuccess,
-                            onSubmit        = onSubmitCashCount,
-                            onClearSuccess  = onClearCashCountSuccess
-                        )
                     }
-                }
-                else -> {
-                    // No Active Shift - Show open shift UI
-                    Column(
-                        modifier = contentModifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            "Buka Shift Baru",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Masukkan jumlah kas awal untuk memulai shift",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.height(32.dp))
-
-                        OutlinedTextField(
-                            value = uiState.openingCash,
-                            onValueChange = { v -> onOpeningCashChange(v.filter { it.isDigit() }) },
-                            label = { Text("Kas Awal") },
-                            prefix = { Text("Rp ") },
-                            isError = uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() == null,
-                            supportingText = if (uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() == null)
-                                { { Text("Jumlah tidak valid") } } else null,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.medium,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(Modifier.height(24.dp))
-
-                        RancakButton(
-                            text = "Buka Shift",
-                            onClick = onOpenShift,
-                            isLoading = uiState.isLoading,
-                            enabled = uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() != null,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        TextButton(
-                            onClick = onViewReport,
-                            modifier = Modifier.fillMaxWidth()
+                    else -> {
+                        // No Active Shift - Show open shift UI
+                        Column(
+                            modifier = contentModifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
                         ) {
-                            Icon(Icons.Default.BarChart, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("Lihat Laporan Shift")
+                            Text(
+                                "Buka Shift Baru",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "Masukkan jumlah kas awal untuk memulai shift",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Spacer(Modifier.height(32.dp))
+
+                            OutlinedTextField(
+                                value = uiState.openingCash,
+                                onValueChange = { v -> onOpeningCashChange(v.filter { it.isDigit() }) },
+                                label = { Text("Kas Awal") },
+                                prefix = { Text("Rp ") },
+                                isError = uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() == null,
+                                supportingText =
+                                    if (uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() == null) {
+                                        { Text("Jumlah tidak valid") }
+                                    } else {
+                                        null
+                                    },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                shape = MaterialTheme.shapes.medium,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+
+                            Spacer(Modifier.height(24.dp))
+
+                            RancakButton(
+                                text = "Buka Shift",
+                                onClick = onOpenShift,
+                                isLoading = uiState.isLoading,
+                                enabled = uiState.openingCash.isNotBlank() && uiState.openingCash.toLongOrNull() != null,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            TextButton(
+                                onClick = onViewReport,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(Icons.Default.BarChart, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Lihat Laporan Shift")
+                            }
                         }
                     }
-                }
-            } // end when
+                } // end when
             } // end BoxWithConstraints
         } // end Column
     }
@@ -258,12 +267,12 @@ fun ShiftScreenContent(
 
 @Composable
 private fun CashCountSection(
-    cashCounts: List<CashCount>,
+    cashCounts: ImmutableList<CashCount>,
     isSubmitting: Boolean,
     submitError: String?,
     submitSuccess: Boolean,
     onSubmit: (actualCash: Double, note: String?) -> Unit,
-    onClearSuccess: () -> Unit
+    onClearSuccess: () -> Unit,
 ) {
     var actualCashInput by remember { mutableStateOf("") }
     var noteInput by remember { mutableStateOf("") }
@@ -277,15 +286,15 @@ private fun CashCountSection(
     }
 
     Card(
-        shape  = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
                 "Rekonsiliasi Kas",
-                style      = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
             )
 
             if (submitError != null) {
@@ -296,41 +305,41 @@ private fun CashCountSection(
             if (cashCounts.isNotEmpty()) {
                 cashCounts.takeLast(3).forEach { count ->
                     SummaryRow(
-                        "Hitung ${count.countedAt?.take(16)?.replace("T", " ") ?: "-"}",
-                        formatRupiah(count.actualCash.toLong())
+                        "Hitung ${count.countedAt.take(16).replace("T", " ")}",
+                        formatRupiah(count.actualCash.toLong()),
                     )
                 }
                 HorizontalDivider(Modifier.padding(vertical = 4.dp))
             }
 
             OutlinedTextField(
-                value         = actualCashInput,
+                value = actualCashInput,
                 onValueChange = { v -> actualCashInput = v.filter { it.isDigit() } },
-                label         = { Text("Jumlah Kas Aktual") },
-                prefix        = { Text("Rp ") },
+                label = { Text("Jumlah Kas Aktual") },
+                prefix = { Text("Rp ") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine    = true,
-                shape         = MaterialTheme.shapes.medium,
-                modifier      = Modifier.fillMaxWidth()
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth(),
             )
 
             OutlinedTextField(
-                value         = noteInput,
+                value = noteInput,
                 onValueChange = { noteInput = it },
-                label         = { Text("Catatan (opsional)") },
-                shape         = MaterialTheme.shapes.medium,
-                modifier      = Modifier.fillMaxWidth()
+                label = { Text("Catatan (opsional)") },
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth(),
             )
 
             RancakButton(
-                text      = "Simpan Rekonsiliasi",
-                onClick   = {
+                text = "Simpan Rekonsiliasi",
+                onClick = {
                     val cash = actualCashInput.toDoubleOrNull() ?: return@RancakButton
                     onSubmit(cash, noteInput.takeIf { it.isNotBlank() })
                 },
                 isLoading = isSubmitting,
-                enabled   = actualCashInput.isNotBlank() && actualCashInput.toDoubleOrNull() != null && !isSubmitting,
-                modifier  = Modifier.fillMaxWidth()
+                enabled = actualCashInput.isNotBlank() && actualCashInput.toDoubleOrNull() != null && !isSubmitting,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -338,38 +347,40 @@ private fun CashCountSection(
 
 // ── Previews — call actual ShiftScreenContent ──
 
-//@Preview
+// @Preview
 @Composable
 private fun ShiftOpenPreview() {
     RancakTheme {
         ShiftScreenContent(
-            uiState = ShiftUiState(openingCash = "500000")
+            uiState = ShiftUiState(openingCash = "500000"),
         )
     }
 }
 
-//@Preview
+// @Preview
 @Composable
 private fun ShiftActivePreview() {
     RancakTheme {
         ShiftScreenContent(
-            uiState = ShiftUiState(
-                currentShift = Shift(
-                    uuid = "shift-1",
-                    openedAt = "2026-04-15T08:00:00",
-                    closedAt = null,
-                    status = ShiftStatus.OPEN,
-                    openingCash = "500000",
-                    closingCash = null,
-                    expectedCash = null,
-                    cashDifference = null,
-                    cashierName = null,
-                    totalSales = 1250000,
-                    totalTransactions = null,
-                    totalExpenses = 75000,
-                    totalCashIn = null
-                )
-            )
+            uiState =
+                ShiftUiState(
+                    currentShift =
+                        Shift(
+                            uuid = "shift-1",
+                            openedAt = "2026-04-15T08:00:00",
+                            closedAt = null,
+                            status = ShiftStatus.OPEN,
+                            openingCash = "500000",
+                            closingCash = null,
+                            expectedCash = null,
+                            cashDifference = null,
+                            cashierName = null,
+                            totalSales = 1250000,
+                            totalTransactions = null,
+                            totalExpenses = 75000,
+                            totalCashIn = null,
+                        ),
+                ),
         )
     }
 }

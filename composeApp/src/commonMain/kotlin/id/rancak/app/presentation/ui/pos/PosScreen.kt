@@ -18,19 +18,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.LifecycleResumeEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.Category
 import id.rancak.app.domain.model.OrderType
 import id.rancak.app.domain.model.Product
-import id.rancak.app.domain.model.CartItem
 import id.rancak.app.presentation.barcode.BarcodeScannerView
+import id.rancak.app.presentation.components.LocalSubscriptionExpired
 import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakColors
+import id.rancak.app.presentation.navigation.LocalCartViewModel
 import id.rancak.app.presentation.ui.pos.components.CartBar
 import id.rancak.app.presentation.ui.pos.components.OpenBillNameDialog
 import id.rancak.app.presentation.ui.pos.components.OrderPanel
@@ -38,7 +40,6 @@ import id.rancak.app.presentation.ui.pos.components.PosCategoryRow
 import id.rancak.app.presentation.ui.pos.components.PosSearchBar
 import id.rancak.app.presentation.ui.pos.components.PosTopBar
 import id.rancak.app.presentation.ui.pos.components.ProductGridContent
-import id.rancak.app.presentation.navigation.LocalCartViewModel
 import id.rancak.app.presentation.viewmodel.CartUiState
 import id.rancak.app.presentation.viewmodel.OpenBillViewModel
 import id.rancak.app.presentation.viewmodel.PosUiState
@@ -46,9 +47,9 @@ import id.rancak.app.presentation.viewmodel.PosViewModel
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
-import kotlinx.collections.immutable.persistentListOf
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -67,50 +68,51 @@ fun PosScreen(
     /** Dipanggil setelah open bill berhasil dibuat — gunakan untuk navigasi ke daftar open bill. */
     onHoldSuccess: () -> Unit = {},
     onOpenBillClick: () -> Unit = {},
-    onShiftClick: () -> Unit = {}
+    onShiftClick: () -> Unit = {},
 ) {
-    val posViewModel: PosViewModel       = koinViewModel()
-    val cartViewModel                    = LocalCartViewModel.current
-    val shiftViewModel: ShiftViewModel   = koinViewModel()
+    val posViewModel: PosViewModel = koinViewModel()
+    val cartViewModel = LocalCartViewModel.current
+    val shiftViewModel: ShiftViewModel = koinViewModel()
     val openBillViewModel: OpenBillViewModel = koinViewModel()
-    val uiState       by posViewModel.uiState.collectAsStateWithLifecycle()
-    val cartState     by cartViewModel.uiState.collectAsStateWithLifecycle()
-    val shiftState    by shiftViewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by posViewModel.uiState.collectAsStateWithLifecycle()
+    val cartState by cartViewModel.uiState.collectAsStateWithLifecycle()
+    val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
     val openBillState by openBillViewModel.uiState.collectAsStateWithLifecycle()
-    var showScanner   by remember { mutableStateOf(false) }
+    val showScannerState = remember { mutableStateOf(false) }
 
     val hasOpenShift = shiftState.currentShift != null
+    val isSubscriptionExpired = LocalSubscriptionExpired.current
 
     // Dialog nama open bill — tampilkan saat openBillState.showNameDialog = true
     if (openBillState.showNameDialog) {
         OpenBillNameDialog(
             initialName = openBillState.dialogInitialName,
-            isUpdate    = openBillState.editingBillId != null,
-            onConfirm   = { name ->
+            isUpdate = openBillState.editingBillId != null,
+            onConfirm = { name ->
                 openBillViewModel.saveCart(
-                    name              = name,
-                    items             = cartState.items,
-                    orderType         = cartState.orderType,
-                    tableUuid         = cartState.tableUuid,
-                    customerName      = cartState.customerName,
-                    note              = cartState.note,
-                    pax               = cartState.pax,
-                    discountInput     = cartState.discountInput,
+                    name = name,
+                    items = cartState.items,
+                    orderType = cartState.orderType,
+                    tableUuid = cartState.tableUuid,
+                    customerName = cartState.customerName,
+                    note = cartState.note,
+                    pax = cartState.pax,
+                    discountInput = cartState.discountInput,
                     discountIsPercent = cartState.discountIsPercent,
-                    taxInput          = cartState.taxInput,
-                    taxIsPercent      = cartState.taxIsPercent,
-                    adminFeeInput     = cartState.adminFeeInput,
+                    taxInput = cartState.taxInput,
+                    taxIsPercent = cartState.taxIsPercent,
+                    adminFeeInput = cartState.adminFeeInput,
                     adminFeeIsPercent = cartState.adminFeeIsPercent,
-                    deliveryFee       = cartState.deliveryFee,
-                    tip               = cartState.tip,
-                    voucherCode       = cartState.voucherCode,
-                    editingBillId          = cartState.activeOpenBillId,
-                    existingRemoteSaleUuid = cartState.activeOpenBillSaleUuid
+                    deliveryFee = cartState.deliveryFee,
+                    tip = cartState.tip,
+                    voucherCode = cartState.voucherCode,
+                    editingBillId = cartState.activeOpenBillId,
+                    existingRemoteSaleUuid = cartState.activeOpenBillSaleUuid,
                 )
                 cartViewModel.clearCart()
                 openBillViewModel.hideDialog()
             },
-            onDismiss = openBillViewModel::hideDialog
+            onDismiss = openBillViewModel::hideDialog,
         )
     }
 
@@ -120,26 +122,31 @@ fun PosScreen(
             onDismissRequest = openBillViewModel::dismissSuccessDialog,
             icon = {
                 Icon(
-                    imageVector        = Icons.Default.Bookmark,
+                    imageVector = Icons.Default.Bookmark,
                     contentDescription = null,
-                    tint               = RancakColors.semantic.warning
+                    tint = RancakColors.semantic.warning,
                 )
             },
             title = {
                 Text(
                     "Open Bill Disimpan",
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             },
             text = {
                 Text("Tagihan berhasil disimpan. Lanjutkan proses dari halaman Open Bill kapan saja.")
             },
             confirmButton = {
-                TextButton(onClick = openBillViewModel::dismissSuccessDialog) {
+                TextButton(
+                    onClick = {
+                        openBillViewModel.dismissSuccessDialog()
+                        onHoldSuccess()
+                    },
+                ) {
                     Text("Oke")
                 }
             },
-            shape = MaterialTheme.shapes.extraLarge
+            shape = MaterialTheme.shapes.extraLarge,
         )
     }
 
@@ -157,13 +164,13 @@ fun PosScreen(
         onPauseOrDispose { }
     }
 
-    if (showScanner) {
+    if (showScannerState.value) {
         BarcodeScannerView(
             onBarcodeDetected = { barcode ->
                 posViewModel.onSearchQueryChange(barcode)
-                showScanner = false
+                showScannerState.value = false
             },
-            onClose = { showScanner = false }
+            onClose = { showScannerState.value = false },
         )
         return
     }
@@ -180,62 +187,65 @@ fun PosScreen(
 
         if (isWide) {
             SplitLayout(
-                uiState          = uiState,
-                cartState        = cartState,
-                cartQtyMap       = cartQtyMap,
-                outletName       = uiState.outletName,
-                onMenuClick      = onMenuClick,
-                onCartClick      = onCartClick,
-                onCheckoutClick  = onCheckoutClick,
-                onSaveClick      = {
-                    openBillViewModel.showDialog(
-                        initialName   = cartState.activeOpenBillName,
-                        editingBillId = cartState.activeOpenBillId
-                    )
+                uiState = uiState,
+                cartState = cartState,
+                cartQtyMap = cartQtyMap,
+                outletName = uiState.outletName,
+                onMenuClick = onMenuClick,
+                onCartClick = onCartClick,
+                onCheckoutClick = { if (!isSubscriptionExpired) onCheckoutClick() },
+                onSaveClick = {
+                    if (!isSubscriptionExpired) {
+                        openBillViewModel.showDialog(
+                            initialName = cartState.activeOpenBillName,
+                            editingBillId = cartState.activeOpenBillId,
+                        )
+                    }
                 },
-                onOpenBillClick  = onOpenBillClick,
-                hasOpenShift     = hasOpenShift,
-                onShiftClick     = onShiftClick,
-                onSearchChange   = posViewModel::onSearchQueryChange,
+                onOpenBillClick = { if (!isSubscriptionExpired) onOpenBillClick() },
+                hasOpenShift = hasOpenShift,
+                onShiftClick = onShiftClick,
+                onSearchChange = posViewModel::onSearchQueryChange,
                 onCategorySelect = posViewModel::onCategorySelected,
-                onRefresh        = posViewModel::refresh,
-                onAdd            = { cartViewModel.addProduct(it) },
-                onUpdateQty      = { item, qty ->
+                onRefresh = posViewModel::refresh,
+                onAdd = { if (!isSubscriptionExpired) cartViewModel.addProduct(it) },
+                isSubscriptionExpired = isSubscriptionExpired,
+                onUpdateQty = { item, qty ->
                     cartViewModel.updateQuantity(item.productUuid, item.variantUuid, qty)
                 },
-                onUpdateNote     = { item, note ->
+                onUpdateNote = { item, note ->
                     cartViewModel.updateItemNote(item.productUuid, item.variantUuid, note)
                 },
-                onClearCart      = { cartViewModel.clearCart() },
-                onOrderType      = { cartViewModel.setOrderType(it) },
-                onCustomerName   = { cartViewModel.setCustomerName(it) },
-                onPax            = { cartViewModel.setPax(it) },
-                onDiscount       = { v, isPercent -> cartViewModel.setDiscount(v, isPercent) },
-                onTax            = { v, isPercent -> cartViewModel.setTax(v, isPercent) },
-                onAdminFee       = { v, isPercent -> cartViewModel.setAdminFee(v, isPercent) },
-                onDeliveryFee    = { cartViewModel.setDeliveryFee(it) },
-                onTip            = { cartViewModel.setTip(it) },
-                onVoucherCode    = { cartViewModel.setVoucherCode(it) },
-                onScanClick      = { showScanner = true },
-                modifierCache    = uiState.modifierCache,
-                onLoadModifiers  = posViewModel::loadModifiersForProduct
+                onClearCart = { cartViewModel.clearCart() },
+                onOrderType = { cartViewModel.setOrderType(it) },
+                onCustomerName = { cartViewModel.setCustomerName(it) },
+                onPax = { cartViewModel.setPax(it) },
+                onDiscount = { v, isPercent -> cartViewModel.setDiscount(v, isPercent) },
+                onTax = { v, isPercent -> cartViewModel.setTax(v, isPercent) },
+                onAdminFee = { v, isPercent -> cartViewModel.setAdminFee(v, isPercent) },
+                onDeliveryFee = { cartViewModel.setDeliveryFee(it) },
+                onTip = { cartViewModel.setTip(it) },
+                onVoucherCode = { cartViewModel.setVoucherCode(it) },
+                onScanClick = { showScannerState.value = true },
+                modifierCache = uiState.modifierCache,
+                onLoadModifiers = posViewModel::loadModifiersForProduct,
             )
         } else {
             PhoneLayout(
-                uiState          = uiState,
-                cartState        = cartState,
-                cartQtyMap       = cartQtyMap,
-                outletName       = uiState.outletName,
-                hasOpenShift     = hasOpenShift,
-                onMenuClick      = onMenuClick,
-                onCartClick      = onCartClick,
-                onOpenBillClick  = onOpenBillClick,
-                onShiftClick     = onShiftClick,
-                onSearchChange   = posViewModel::onSearchQueryChange,
+                uiState = uiState,
+                cartState = cartState,
+                cartQtyMap = cartQtyMap,
+                outletName = uiState.outletName,
+                hasOpenShift = hasOpenShift,
+                onMenuClick = onMenuClick,
+                onCartClick = onCartClick,
+                onOpenBillClick = { if (!isSubscriptionExpired) onOpenBillClick() },
+                onShiftClick = onShiftClick,
+                onSearchChange = posViewModel::onSearchQueryChange,
                 onCategorySelect = posViewModel::onCategorySelected,
-                onRefresh        = posViewModel::refresh,
-                onAdd            = { cartViewModel.addProduct(it) },
-                onScanClick      = { showScanner = true }
+                onRefresh = posViewModel::refresh,
+                onAdd = { if (!isSubscriptionExpired) cartViewModel.addProduct(it) },
+                onScanClick = { showScannerState.value = true },
             )
         }
     }
@@ -258,7 +268,7 @@ private fun PhoneLayout(
     onCategorySelect: (Category?) -> Unit,
     onRefresh: () -> Unit,
     onAdd: (Product) -> Unit,
-    onScanClick: () -> Unit
+    onScanClick: () -> Unit,
 ) {
     val hasCart = cartState.itemCount > 0
     val primary = MaterialTheme.colorScheme.primary
@@ -267,54 +277,56 @@ private fun PhoneLayout(
     Scaffold(
         topBar = {
             PosTopBar(
-                outletName   = outletName,
-                hasCart      = hasCart,
-                itemCount    = cartState.itemCount,
+                outletName = outletName,
+                hasCart = hasCart,
+                itemCount = cartState.itemCount,
                 hasOpenShift = hasOpenShift,
-                onMenuClick  = onMenuClick,
-                onCartClick  = onCartClick,
+                onMenuClick = onMenuClick,
+                onCartClick = onCartClick,
                 onOpenBillClick = onOpenBillClick,
                 onShiftClick = onShiftClick,
-                showCart     = true
+                showCart = true,
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
         ) {
             Column(Modifier.fillMaxSize()) {
                 PosSearchBar(
-                    query         = uiState.searchQuery,
+                    query = uiState.searchQuery,
                     onQueryChange = onSearchChange,
-                    onScanClick   = onScanClick,
-                    modifier      = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp, vertical = 8.dp)
+                    onScanClick = onScanClick,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
                 )
                 PosCategoryRow(immutableCategories, uiState.selectedCategory, onCategorySelect)
                 ProductGridContent(
-                    uiState    = uiState,
+                    uiState = uiState,
                     cartQtyMap = cartQtyMap,
-                    bottomPad  = if (hasCart) 80.dp else 16.dp,
-                    onRefresh  = onRefresh,
-                    onAdd      = onAdd
+                    bottomPad = if (hasCart) 80.dp else 16.dp,
+                    onRefresh = onRefresh,
+                    onAdd = onAdd,
                 )
             }
 
             AnimatedVisibility(
-                visible  = hasCart,
-                enter    = slideInVertically(tween(220)) { it } + fadeIn(tween(220)),
-                exit     = slideOutVertically(tween(180)) { it } + fadeOut(tween(180)),
-                modifier = Modifier.align(Alignment.BottomCenter)
+                visible = hasCart,
+                enter = slideInVertically(tween(220)) { it } + fadeIn(tween(220)),
+                exit = slideOutVertically(tween(180)) { it } + fadeOut(tween(180)),
+                modifier = Modifier.align(Alignment.BottomCenter),
             ) {
                 CartBar(
-                    cartState       = cartState,
-                    primary         = primary,
-                    onCartClick     = onCartClick,
-                    onOpenBillClick = onOpenBillClick
+                    cartState = cartState,
+                    primary = primary,
+                    onCartClick = onCartClick,
+                    onOpenBillClick = onOpenBillClick,
                 )
             }
         }
@@ -354,71 +366,76 @@ private fun SplitLayout(
     onVoucherCode: (String) -> Unit,
     onScanClick: () -> Unit,
     modifierCache: ImmutableMap<String, ImmutableList<id.rancak.app.domain.model.Modifier>> = persistentMapOf(),
-    onLoadModifiers: (String) -> Unit = {}
+    onLoadModifiers: (String) -> Unit = {},
+    isSubscriptionExpired: Boolean = false,
 ) {
     val immutableCategories = uiState.categories
 
     Row(Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(0.58f)
-                .background(MaterialTheme.colorScheme.background)
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .weight(0.58f)
+                    .background(MaterialTheme.colorScheme.background),
         ) {
             PosTopBar(
-                outletName   = outletName,
-                hasCart      = false,
-                itemCount    = 0,
+                outletName = outletName,
+                hasCart = false,
+                itemCount = 0,
                 hasOpenShift = hasOpenShift,
-                onMenuClick  = onMenuClick,
-                onCartClick  = onCartClick,
+                onMenuClick = onMenuClick,
+                onCartClick = onCartClick,
                 onOpenBillClick = onOpenBillClick,
                 onShiftClick = onShiftClick,
-                showCart     = false
+                showCart = false,
             )
             PosSearchBar(
-                query         = uiState.searchQuery,
+                query = uiState.searchQuery,
                 onQueryChange = onSearchChange,
-                onScanClick   = onScanClick,
-                modifier      = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                onScanClick = onScanClick,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
             )
             PosCategoryRow(immutableCategories, uiState.selectedCategory, onCategorySelect)
             ProductGridContent(
-                uiState    = uiState,
+                uiState = uiState,
                 cartQtyMap = cartQtyMap,
-                bottomPad  = 8.dp,
-                onRefresh  = onRefresh,
-                onAdd      = onAdd,
-                minCellDp  = 120
+                bottomPad = 8.dp,
+                onRefresh = onRefresh,
+                onAdd = onAdd,
+                minCellDp = 120,
             )
         }
 
         VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.5f))
 
         OrderPanel(
-            cartState         = cartState,
-            hasOpenShift      = hasOpenShift,
-            onUpdateQty       = onUpdateQty,
-            onUpdateNote      = onUpdateNote,
-            modifierCache     = modifierCache,
-            onLoadModifiers   = onLoadModifiers,
-            onClearCart       = onClearCart,
-            onOrderType       = onOrderType,
-            onCustomerName    = onCustomerName,
-            onPax             = onPax,
-            onDiscount        = onDiscount,
-            onTax             = onTax,
-            onAdminFee        = onAdminFee,
-            onDeliveryFee     = onDeliveryFee,
-            onTip             = onTip,
-            onVoucherCode     = onVoucherCode,
-            onSaveClick       = onSaveClick,
-            onCheckoutClick   = onCheckoutClick,
-            modifier          = Modifier
-                .fillMaxHeight()
-                .weight(0.42f)
+            cartState = cartState,
+            hasOpenShift = hasOpenShift,
+            onUpdateQty = onUpdateQty,
+            onUpdateNote = onUpdateNote,
+            modifierCache = modifierCache,
+            onLoadModifiers = onLoadModifiers,
+            onClearCart = onClearCart,
+            onOrderType = onOrderType,
+            onCustomerName = onCustomerName,
+            onPax = onPax,
+            onDiscount = onDiscount,
+            onTax = onTax,
+            onAdminFee = onAdminFee,
+            onDeliveryFee = onDeliveryFee,
+            onTip = onTip,
+            onVoucherCode = onVoucherCode,
+            onSaveClick = onSaveClick,
+            onCheckoutClick = onCheckoutClick,
+            isSubscriptionExpired = isSubscriptionExpired,
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .weight(0.42f),
         )
     }
 }
@@ -427,52 +444,57 @@ private fun SplitLayout(
 // Previews — memanggil PhoneLayout / SplitLayout apa adanya
 // ─────────────────────────────────────────────────────────────────────────────
 
-private val previewCategory = Category(
-    uuid = "c1", name = "Makanan", description = null
-)
+private val previewCategory =
+    Category(
+        uuid = "c1",
+        name = "Makanan",
+        description = null,
+    )
 private val previewCategoryList = persistentListOf(previewCategory)
 
-private val previewProducts = persistentListOf(
-    Product(
-        uuid = "p1", sku = "SKU-1", barcode = null, name = "Nasi Goreng",
-        description = null, category = previewCategory, price = 25_000,
-        stock = 12.0, unit = "porsi", imageUrl = null, isActive = true,
-        updatedAt = null
-    ),
-    Product(
-        uuid = "p2", sku = "SKU-2", barcode = null, name = "Mie Goreng",
-        description = null, category = previewCategory, price = 22_000,
-        stock = 8.0, unit = "porsi", imageUrl = null, isActive = true,
-        updatedAt = null
-    ),
-    Product(
-        uuid = "p3", sku = "SKU-3", barcode = null, name = "Es Teh",
-        description = null, category = previewCategory, price = 5_000,
-        stock = 50.0, unit = "gelas", imageUrl = null, isActive = true,
-        updatedAt = null
+private val previewProducts =
+    persistentListOf(
+        Product(
+            uuid = "p1", sku = "SKU-1", barcode = null, name = "Nasi Goreng",
+            description = null, category = previewCategory, price = 25_000,
+            stock = 12.0, unit = "porsi", imageUrl = null, isActive = true,
+            updatedAt = null,
+        ),
+        Product(
+            uuid = "p2", sku = "SKU-2", barcode = null, name = "Mie Goreng",
+            description = null, category = previewCategory, price = 22_000,
+            stock = 8.0, unit = "porsi", imageUrl = null, isActive = true,
+            updatedAt = null,
+        ),
+        Product(
+            uuid = "p3", sku = "SKU-3", barcode = null, name = "Es Teh",
+            description = null, category = previewCategory, price = 5_000,
+            stock = 50.0, unit = "gelas", imageUrl = null, isActive = true,
+            updatedAt = null,
+        ),
     )
-)
 
 @androidx.compose.ui.tooling.preview.Preview(name = "POS – Phone", widthDp = 390, heightDp = 844)
 @Composable
 private fun PosScreenPhonePreview() {
     id.rancak.app.presentation.designsystem.RancakTheme {
         PhoneLayout(
-            uiState          = PosUiState(
-                products = previewProducts,
-                categories = previewCategoryList
-            ),
-            cartState        = CartUiState(),
-            cartQtyMap       = persistentMapOf(),
-            outletName       = "Warung Rancak",
-            hasOpenShift     = true,
-            onMenuClick      = {},
-            onCartClick      = {},
-            onSearchChange   = {},
+            uiState =
+                PosUiState(
+                    products = previewProducts,
+                    categories = previewCategoryList,
+                ),
+            cartState = CartUiState(),
+            cartQtyMap = persistentMapOf(),
+            outletName = "Warung Rancak",
+            hasOpenShift = true,
+            onMenuClick = {},
+            onCartClick = {},
+            onSearchChange = {},
             onCategorySelect = {},
-            onRefresh        = {},
-            onAdd            = {},
-            onScanClick      = {}
+            onRefresh = {},
+            onAdd = {},
+            onScanClick = {},
         )
     }
 }
@@ -482,35 +504,36 @@ private fun PosScreenPhonePreview() {
 private fun PosScreenTabletPreview() {
     id.rancak.app.presentation.designsystem.RancakTheme {
         SplitLayout(
-            uiState          = PosUiState(
-                products = previewProducts,
-                categories = previewCategoryList
-            ),
-            cartState        = CartUiState(),
-            cartQtyMap       = persistentMapOf(),
-            outletName       = "Warung Rancak",
-            hasOpenShift     = true,
-            onMenuClick      = {},
-            onCartClick      = {},
-            onCheckoutClick  = {},
-            onSaveClick      = {},
-            onSearchChange   = {},
+            uiState =
+                PosUiState(
+                    products = previewProducts,
+                    categories = previewCategoryList,
+                ),
+            cartState = CartUiState(),
+            cartQtyMap = persistentMapOf(),
+            outletName = "Warung Rancak",
+            hasOpenShift = true,
+            onMenuClick = {},
+            onCartClick = {},
+            onCheckoutClick = {},
+            onSaveClick = {},
+            onSearchChange = {},
             onCategorySelect = {},
-            onRefresh        = {},
-            onAdd            = {},
-            onUpdateQty      = { _, _ -> },
-            onUpdateNote     = { _, _ -> },
-            onClearCart      = {},
-            onOrderType      = {},
-            onCustomerName   = {},
-            onPax            = {},
-            onDiscount       = { _, _ -> },
-            onTax            = { _, _ -> },
-            onAdminFee       = { _, _ -> },
-            onDeliveryFee    = {},
-            onTip            = {},
-            onVoucherCode    = {},
-            onScanClick      = {}
+            onRefresh = {},
+            onAdd = {},
+            onUpdateQty = { _, _ -> },
+            onUpdateNote = { _, _ -> },
+            onClearCart = {},
+            onOrderType = {},
+            onCustomerName = {},
+            onPax = {},
+            onDiscount = { _, _ -> },
+            onTax = { _, _ -> },
+            onAdminFee = { _, _ -> },
+            onDeliveryFee = {},
+            onTip = {},
+            onVoucherCode = {},
+            onScanClick = {},
         )
     }
 }

@@ -13,7 +13,7 @@ import io.ktor.client.request.parameter
 
 suspend fun RancakApiService.syncCatalog(
     tenantUuid: String,
-    updatedAfter: String? = null
+    updatedAfter: String? = null,
 ): ApiResponse<CatalogSyncDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.SYNC_CATALOG) {
         updatedAfter?.let { parameter("updated_after", it) }

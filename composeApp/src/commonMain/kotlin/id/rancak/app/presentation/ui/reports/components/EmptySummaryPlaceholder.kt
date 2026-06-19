@@ -26,21 +26,21 @@ internal fun EmptySummaryPlaceholder() {
         Modifier
             .fillMaxWidth()
             .height(200.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 Icons.Default.BarChart,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint     = MaterialTheme.colorScheme.outlineVariant
+                tint = MaterialTheme.colorScheme.outlineVariant,
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 "Tidak ada data untuk periode ini",
-                style     = MaterialTheme.typography.bodyMedium,
-                color     = MaterialTheme.colorScheme.outline,
-                textAlign = TextAlign.Center
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.outline,
+                textAlign = TextAlign.Center,
             )
         }
     }

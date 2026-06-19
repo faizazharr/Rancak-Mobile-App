@@ -11,8 +11,8 @@ import id.rancak.app.domain.model.Product
     indices = [
         Index(value = ["name"]),
         Index(value = ["sku"]),
-        Index(value = ["barcode"])
-    ]
+        Index(value = ["barcode"]),
+    ],
 )
 data class ProductEntity(
     @PrimaryKey val uuid: String,
@@ -27,36 +27,38 @@ data class ProductEntity(
     val unit: String?,
     val imageUrl: String?,
     val isActive: Boolean,
-    val updatedAt: String?
+    val updatedAt: String?,
 )
 
-fun ProductEntity.toDomain() = Product(
-    uuid = uuid,
-    sku = sku,
-    barcode = barcode,
-    name = name,
-    description = description,
-    category = categoryUuid?.let { Category(uuid = it, name = categoryName ?: "", description = null) },
-    price = price,
-    stock = stock,
-    unit = unit,
-    imageUrl = imageUrl,
-    isActive = isActive,
-    updatedAt = updatedAt
-)
+fun ProductEntity.toDomain() =
+    Product(
+        uuid = uuid,
+        sku = sku,
+        barcode = barcode,
+        name = name,
+        description = description,
+        category = categoryUuid?.let { Category(uuid = it, name = categoryName ?: "", description = null) },
+        price = price,
+        stock = stock,
+        unit = unit,
+        imageUrl = imageUrl,
+        isActive = isActive,
+        updatedAt = updatedAt,
+    )
 
-fun Product.toEntity() = ProductEntity(
-    uuid = uuid,
-    sku = sku,
-    barcode = barcode,
-    name = name,
-    description = description,
-    categoryUuid = category?.uuid,
-    categoryName = category?.name,
-    price = price,
-    stock = stock,
-    unit = unit,
-    imageUrl = imageUrl,
-    isActive = isActive,
-    updatedAt = updatedAt
-)
+fun Product.toEntity() =
+    ProductEntity(
+        uuid = uuid,
+        sku = sku,
+        barcode = barcode,
+        name = name,
+        description = description,
+        categoryUuid = category?.uuid,
+        categoryName = category?.name,
+        price = price,
+        stock = stock,
+        unit = unit,
+        imageUrl = imageUrl,
+        isActive = isActive,
+        updatedAt = updatedAt,
+    )

@@ -16,14 +16,14 @@ data class Product(
     val imageUrl: String?,
     val isActive: Boolean,
     val hasExpiry: Boolean = false,
-    val updatedAt: String?
+    val updatedAt: String?,
 )
 
 @Immutable
 data class Category(
     val uuid: String,
     val name: String,
-    val description: String?
+    val description: String?,
 )
 
 @Immutable
@@ -32,7 +32,7 @@ data class VariantGroup(
     val name: String,
     val isRequired: Boolean = false,
     val sortOrder: Int = 0,
-    val variants: List<Variant>
+    val variants: List<Variant>,
 )
 
 @Immutable
@@ -41,7 +41,7 @@ data class Variant(
     val name: String,
     val priceAdjustment: Long,
     val isDefault: Boolean = false,
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
 )
 
 @Immutable
@@ -56,7 +56,7 @@ data class ProductBatch(
     val note: String?,
     val receivedAt: String?,
     val isExhausted: Boolean,
-    val isExpired: Boolean
+    val isExpired: Boolean,
 )
 
 @Immutable
@@ -69,7 +69,7 @@ data class FavoriteProduct(
     val imageUrl: String?,
     val stock: Double,
     val soldCount: Int,
-    val isLowStock: Boolean
+    val isLowStock: Boolean,
 )
 
 @Immutable
@@ -80,7 +80,7 @@ data class Product86(
     val sku: String?,
     val reason: String?,
     val date: String,
-    val createdAt: String?
+    val createdAt: String?,
 )
 
 @Immutable
@@ -89,7 +89,7 @@ data class StockReport(
     val sku: String?,
     val name: String,
     val stock: Double,
-    val stockAlertThreshold: Double?
+    val stockAlertThreshold: Double?,
 )
 
 @Immutable
@@ -98,7 +98,7 @@ data class LowStock(
     val productName: String,
     val sku: String?,
     val currentStock: Double,
-    val threshold: Double
+    val threshold: Double,
 )
 
 @Immutable
@@ -108,7 +108,7 @@ data class StockAlert(
     val sku: String?,
     val alertType: String,
     val currentStock: Double,
-    val threshold: Double?
+    val threshold: Double?,
 )
 
 @Immutable
@@ -119,5 +119,5 @@ data class ExpiringBatch(
     val batchNumber: String?,
     val expiryDate: String,
     val quantityRemaining: Double,
-    val daysUntilExpiry: Int
+    val daysUntilExpiry: Int,
 )

@@ -4,8 +4,9 @@ import id.rancak.app.data.local.OfflineSaleQueue
 import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.local.toBatchItem
 import id.rancak.app.data.remote.api.RancakApiService
+import id.rancak.app.data.remote.api.batchSales
 import id.rancak.app.data.remote.dto.sale.BatchSalesRequest
-import org.koin.core.context.GlobalContext
+import org.koin.mp.KoinPlatform
 
 /**
  * Menjalankan satu siklus sync offline sales ke backend.
@@ -19,22 +20,23 @@ import org.koin.core.context.GlobalContext
  * yang gagal atau terjadi error (WorkManager akan retry jika false).
  */
 internal suspend fun runIosSync(): Boolean {
-    val koin = GlobalContext.getOrNull() ?: return false  // Koin belum init
+    val koin = try { KoinPlatform.getKoin() } catch (e: Exception) { return false } // Koin belum init
 
-    val queue        = koin.get<OfflineSaleQueue>()
-    val api          = koin.get<RancakApiService>()
+    val queue = koin.get<OfflineSaleQueue>()
+    val api = koin.get<RancakApiService>()
     val tokenManager = koin.get<TokenManager>()
 
-    val tenantUuid = tokenManager.tenantUuid ?: return false  // Belum login
+    val tenantUuid = tokenManager.tenantUuid ?: return false // Belum login
 
     val pending = queue.getAll()
-    if (pending.isEmpty()) return true  // Tidak ada yang perlu di-sync
+    if (pending.isEmpty()) return true // Tidak ada yang perlu di-sync
 
     return try {
-        val response = api.batchSales(
-            tenantUuid = tenantUuid,
-            request    = BatchSalesRequest(sales = pending.map { it.toBatchItem() })
-        )
+        val response =
+            api.batchSales(
+                tenantUuid = tenantUuid,
+                request = BatchSalesRequest(sales = pending.map { it.toBatchItem() }),
+            )
 
         if (response.isSuccess && response.data != null) {
             val data = response.data
@@ -44,12 +46,11 @@ internal suspend fun runIosSync(): Boolean {
                     queue.remove(result.idempotencyKey)
                 }
             }
-            data.errors == 0  // true jika semua item sukses
+            data.errors == 0 // true jika semua item sukses
         } else {
             false
         }
     } catch (_: Exception) {
-        false  // Network error — akan dicoba lagi saat foreground berikutnya
+        false // Network error — akan dicoba lagi saat foreground berikutnya
     }
 }
-

@@ -18,7 +18,7 @@ import io.ktor.client.HttpClient
  */
 class RancakApiService(
     internal val client: HttpClient,
-    private val clearBearerToken: () -> Unit = {}
+    private val clearBearerToken: () -> Unit = {},
 ) {
     fun clearBearerTokenCache() = clearBearerToken()
 }

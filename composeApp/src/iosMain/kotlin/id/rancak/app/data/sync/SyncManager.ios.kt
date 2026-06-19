@@ -1,10 +1,11 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 package id.rancak.app.data.sync
 
 import kotlinx.coroutines.*
 import platform.BackgroundTasks.BGProcessingTaskRequest
 import platform.BackgroundTasks.BGTaskScheduler
 import platform.Foundation.NSNotificationCenter
-import platform.Foundation.NSObjectProtocol
+import platform.darwin.NSObjectProtocol
 import platform.Foundation.NSOperationQueue
 import platform.UIKit.UIApplicationDidBecomeActiveNotification
 
@@ -30,7 +31,6 @@ import platform.UIKit.UIApplicationDidBecomeActiveNotification
  *   </array>
  */
 actual class SyncManager : SyncScheduler {
-
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var activeSyncJob: Job? = null
     private var foregroundObserver: NSObjectProtocol? = null
@@ -50,7 +50,7 @@ actual class SyncManager : SyncScheduler {
         activeSyncJob?.cancel()
         activeSyncJob = null
         unregisterForegroundObserver()
-        BGTaskScheduler.shared.cancelTaskRequestWithIdentifier(TASK_ID)
+        BGTaskScheduler.sharedScheduler.cancelTaskRequestWithIdentifier(TASK_ID)
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -58,21 +58,23 @@ actual class SyncManager : SyncScheduler {
     private fun triggerSync() {
         // Batalkan sync sebelumnya jika masih berjalan, lalu mulai yang baru
         activeSyncJob?.cancel()
-        activeSyncJob = scope.launch {
-            runIosSync()
-        }
+        activeSyncJob =
+            scope.launch {
+                runIosSync()
+            }
     }
 
     private fun registerForegroundObserver() {
-        if (foregroundObserver != null) return  // Sudah terdaftar
+        if (foregroundObserver != null) return // Sudah terdaftar
 
-        foregroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
-            name   = UIApplicationDidBecomeActiveNotification,
-            `object` = null,
-            queue  = NSOperationQueue.mainQueue
-        ) { _ ->
-            triggerSync()
-        }
+        foregroundObserver =
+            NSNotificationCenter.defaultCenter.addObserverForName(
+                name = UIApplicationDidBecomeActiveNotification,
+                `object` = null,
+                queue = NSOperationQueue.mainQueue,
+            ) { _ ->
+                triggerSync()
+            }
     }
 
     private fun unregisterForegroundObserver() {
@@ -88,7 +90,7 @@ actual class SyncManager : SyncScheduler {
         request.requiresExternalPower = false
         // Abaikan error — gagal submit = tidak ada background task, tapi
         // foreground sync (langkah 1 & 2) sudah meng-cover kasus ini.
-        BGTaskScheduler.shared.submitTaskRequest(request, error = null)
+        BGTaskScheduler.sharedScheduler.submitTaskRequest(request, error = null)
     }
 
     companion object {

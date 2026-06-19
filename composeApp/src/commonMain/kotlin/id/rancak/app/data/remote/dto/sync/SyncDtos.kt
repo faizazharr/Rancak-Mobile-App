@@ -15,7 +15,7 @@ data class CatalogSyncDto(
     @SerialName("tax_configs") val taxConfigs: List<TaxConfigDto> = emptyList(),
     @SerialName("discount_rules") val discountRules: List<DiscountRuleDto> = emptyList(),
     val tables: List<TableDto> = emptyList(),
-    @SerialName("current_shift") val currentShift: ShiftDto? = null
+    @SerialName("current_shift") val currentShift: ShiftDto? = null,
 )
 
 @Serializable
@@ -23,7 +23,7 @@ data class SyncStatusDto(
     @SerialName("server_time") val serverTime: String,
     @SerialName("products_updated_at") val productsUpdatedAt: String? = null,
     @SerialName("categories_updated_at") val categoriesUpdatedAt: String? = null,
-    @SerialName("has_open_shift") val hasOpenShift: Boolean = false
+    @SerialName("has_open_shift") val hasOpenShift: Boolean = false,
 )
 
 @Serializable
@@ -35,7 +35,7 @@ data class SurchargeDto(
     @SerialName("is_percentage") val isPercentage: Boolean = false,
     @SerialName("max_amount") val maxAmount: String? = null,
     @SerialName("is_active") val isActive: Boolean = true,
-    @SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("sort_order") val sortOrder: Int = 0,
 )
 
 @Serializable
@@ -45,7 +45,7 @@ data class TaxConfigDto(
     val rate: String,
     @SerialName("apply_to") val applyTo: String? = null,
     @SerialName("sort_order") val sortOrder: Int = 0,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("is_active") val isActive: Boolean = true,
 )
 
 @Serializable
@@ -63,7 +63,7 @@ data class DiscountRuleDto(
     val priority: Int = 0,
     val stackable: Boolean = false,
     @SerialName("max_discount") val maxDiscount: String? = null,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("is_active") val isActive: Boolean = true,
 )
 
 @Serializable
@@ -75,7 +75,7 @@ data class TableDto(
     val status: String = "available",
     @SerialName("is_active") val isActive: Boolean = true,
     @SerialName("sort_order") val sortOrder: Int = 0,
-    @SerialName("active_sale_uuid") val activeSaleUuid: String? = null
+    @SerialName("active_sale_uuid") val activeSaleUuid: String? = null,
 )
 
 @Serializable
@@ -93,12 +93,12 @@ data class ShiftDto(
     @SerialName("total_sales") val totalSales: Long? = null,
     @SerialName("total_transactions") val totalTransactions: Int? = null,
     @SerialName("total_expenses") val totalExpenses: Long? = null,
-    @SerialName("total_cash_in") val totalCashIn: Long? = null
+    @SerialName("total_cash_in") val totalCashIn: Long? = null,
 )
 
 @Serializable
 data class PaymentSummaryDto(
     @SerialName("payment_method") val method: String,
     @SerialName("transaction_count") val transactionCount: Int = 0,
-    val total: Long = 0
+    val total: Long = 0,
 )

@@ -1,13 +1,15 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.CashCount
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Shift
 import id.rancak.app.domain.repository.OperationsRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,17 +27,16 @@ data class ShiftUiState(
     val shiftJustOpened: Boolean = false,
     val shiftJustClosed: Boolean = false,
     // ── Cash count (rekonsiliasi kas) ─────────────────────────────────────────
-    val cashCounts: List<CashCount> = emptyList(),
+    val cashCounts: ImmutableList<CashCount> = persistentListOf(),
     val isCountLoading: Boolean = false,
     val isCountSubmitting: Boolean = false,
     val cashCountError: String? = null,
-    val cashCountSuccess: Boolean = false
+    val cashCountSuccess: Boolean = false,
 )
 
 class ShiftViewModel(
-    private val operationsRepository: OperationsRepository
+    private val operationsRepository: OperationsRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(ShiftUiState())
     val uiState: StateFlow<ShiftUiState> = _uiState.asStateFlow()
 
@@ -77,7 +78,7 @@ class ShiftViewModel(
                             currentShift = result.data,
                             isLoading = false,
                             shiftJustOpened = true,
-                            openingCash = ""
+                            openingCash = "",
                         )
                     }
                 }
@@ -102,7 +103,7 @@ class ShiftViewModel(
                             isLoading = false,
                             shiftJustClosed = true,
                             closingCash = "",
-                            closingNote = ""
+                            closingNote = "",
                         )
                     }
                 }
@@ -117,20 +118,24 @@ class ShiftViewModel(
     fun clearError() = _uiState.update { it.copy(error = null) }
 
     fun clearCashCountError() = _uiState.update { it.copy(cashCountError = null) }
+
     fun clearCashCountSuccess() = _uiState.update { it.copy(cashCountSuccess = false) }
 
     fun loadCashCounts(shiftUuid: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isCountLoading = true, cashCountError = null) }
             when (val result = operationsRepository.getCashCounts(shiftUuid)) {
-                is Resource.Success -> _uiState.update { it.copy(cashCounts = result.data, isCountLoading = false) }
-                is Resource.Error   -> _uiState.update { it.copy(cashCountError = result.message, isCountLoading = false) }
+                is Resource.Success -> _uiState.update { it.copy(cashCounts = result.data.toImmutableList(), isCountLoading = false) }
+                is Resource.Error -> _uiState.update { it.copy(cashCountError = result.message, isCountLoading = false) }
                 is Resource.Loading -> {}
             }
         }
     }
 
-    fun submitCashCount(actualCash: Double, note: String? = null) {
+    fun submitCashCount(
+        actualCash: Double,
+        note: String? = null,
+    ) {
         val shiftUuid = _uiState.value.currentShift?.uuid ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isCountSubmitting = true, cashCountError = null) }
@@ -138,13 +143,13 @@ class ShiftViewModel(
                 is Resource.Success -> {
                     _uiState.update {
                         it.copy(
-                            cashCounts = it.cashCounts + result.data,
+                            cashCounts = (it.cashCounts + result.data).toImmutableList(),
                             isCountSubmitting = false,
-                            cashCountSuccess = true
+                            cashCountSuccess = true,
                         )
                     }
                 }
-                is Resource.Error   -> _uiState.update { it.copy(cashCountError = result.message, isCountSubmitting = false) }
+                is Resource.Error -> _uiState.update { it.copy(cashCountError = result.message, isCountSubmitting = false) }
                 is Resource.Loading -> {}
             }
         }

@@ -23,7 +23,7 @@ fun SurchargeTab(
     onEdit: (Surcharge) -> Unit,
     onDelete: (Surcharge) -> Unit,
     onToggleActive: (Surcharge, Boolean) -> Unit = { _, _ -> },
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (surcharges.isEmpty()) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -34,17 +34,17 @@ fun SurchargeTab(
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         items(surcharges, key = { it.uuid }) { item ->
             val valueLabel = if (item.isPercentage) "${item.amount}%" else formatRupiah(item.amount)
             PricingCard(
-                title    = item.name,
+                title = item.name,
                 subtitle = "$valueLabel · ${item.orderType ?: "Semua"}",
                 isActive = item.isActive,
-                onEdit   = { onEdit(item) },
+                onEdit = { onEdit(item) },
                 onDelete = { onDelete(item) },
-                onToggleActive = { isActive -> onToggleActive(item, isActive) }
+                onToggleActive = { isActive -> onToggleActive(item, isActive) },
             )
         }
     }
@@ -57,12 +57,13 @@ fun SurchargeTab(
 private fun SurchargeTabPreview() {
     RancakTheme {
         SurchargeTab(
-            surcharges = listOf(
-                Surcharge("1", "all",      "Biaya Layanan",   5L,    true,  null, true, 0),
-                Surcharge("2", "delivery", "Biaya Pengiriman", 5000L, false, null, true, 1)
-            ).toImmutableList(),
-            onEdit   = {},
-            onDelete = {}
+            surcharges =
+                listOf(
+                    Surcharge("1", "all", "Biaya Layanan", 5L, true, null, true, 0),
+                    Surcharge("2", "delivery", "Biaya Pengiriman", 5000L, false, null, true, 1),
+                ).toImmutableList(),
+            onEdit = {},
+            onDelete = {},
         )
     }
 }

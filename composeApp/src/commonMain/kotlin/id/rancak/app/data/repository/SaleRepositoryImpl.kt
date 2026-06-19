@@ -5,10 +5,11 @@ import id.rancak.app.data.local.PendingSale
 import id.rancak.app.data.local.PendingSaleItem
 import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.local.db.dao.SaleDao
-import id.rancak.app.data.local.db.entity.toEntity
 import id.rancak.app.data.local.db.entity.toDomain
+import id.rancak.app.data.local.db.entity.toEntity
 import id.rancak.app.data.mapper.toDomain
-import id.rancak.app.data.remote.dto.sale.SplitBillRequest
+import id.rancak.app.data.mapper.toSaleItemRequest
+import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.api.addHeldOrderItems
 import id.rancak.app.data.remote.api.cancelSale
 import id.rancak.app.data.remote.api.createQrPayment
@@ -29,16 +30,14 @@ import id.rancak.app.data.remote.api.openCashDrawer
 import id.rancak.app.data.remote.api.payHeldOrder
 import id.rancak.app.data.remote.api.refundSale
 import id.rancak.app.data.remote.api.reprintSale
-import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.api.serveSale
 import id.rancak.app.data.remote.api.splitBill
 import id.rancak.app.data.remote.api.voidSale
 import id.rancak.app.data.remote.dto.sale.CreateSaleRequest
+import id.rancak.app.data.remote.dto.sale.SplitBillRequest
 import id.rancak.app.data.sync.SyncScheduler
-import id.rancak.app.data.mapper.toSaleItemRequest
 import id.rancak.app.data.util.isNetworkError
 import id.rancak.app.data.util.safe
-import id.rancak.app.data.util.safeUnit
 import id.rancak.app.data.util.toNetworkMessage
 import id.rancak.app.domain.model.CartItem
 import id.rancak.app.domain.model.OrderBoardOrder
@@ -63,9 +62,8 @@ class SaleRepositoryImpl(
     private val tokenManager: TokenManager,
     private val offlineQueue: OfflineSaleQueue,
     private val syncManager: SyncScheduler,
-    private val saleDao: SaleDao
+    private val saleDao: SaleDao,
 ) : SaleRepository {
-
     private val tenantUuid: String
         get() = tokenManager.tenantUuid ?: throw IllegalStateException("Tenant belum dipilih")
 
@@ -85,34 +83,35 @@ class SaleRepositoryImpl(
         adminFee: Long,
         deliveryFee: Long,
         tip: Long,
-        voucherCode: String?
+        voucherCode: String?,
     ): Resource<Sale> {
-        val idempotencyKey  = Uuid.random().toString()
+        val idempotencyKey = Uuid.random().toString()
         val deviceCreatedAt = Clock.System.now().toString()
-        val deviceId        = tokenManager.deviceId
+        val deviceId = tokenManager.deviceId
 
         return try {
-            val request = CreateSaleRequest(
-                items           = items.map { it.toSaleItemRequest() },
-                paymentMethod   = paymentMethod.value,
-                // QRIS: backend creates sale without requiring paid_amount;
-                // payment is confirmed later via Xendit webhook.
-                paidAmount      = if (paymentMethod == PaymentMethod.QRIS) null else paidAmount,
-                orderType       = orderType.value,
-                tableUuid       = tableUuid,
-                customerName    = customerName,
-                pax             = pax.takeIf { it > 0 },
-                discount        = discount.takeIf { it > 0 },
-                tax             = tax.takeIf { it > 0 },
-                adminFee        = adminFee.takeIf { it > 0 },
-                deliveryFee     = deliveryFee.takeIf { it > 0 },
-                tip             = tip.takeIf { it > 0 },
-                voucherCode     = voucherCode?.takeIf { it.isNotBlank() },
-                note            = note,
-                hold            = hold,
-                deviceCreatedAt = deviceCreatedAt,
-                deviceId        = deviceId
-            )
+            val request =
+                CreateSaleRequest(
+                    items = items.map { it.toSaleItemRequest() },
+                    paymentMethod = paymentMethod.value,
+                    // QRIS: backend creates sale without requiring paid_amount;
+                    // payment is confirmed later via Xendit webhook.
+                    paidAmount = if (paymentMethod == PaymentMethod.QRIS) null else paidAmount,
+                    orderType = orderType.value,
+                    tableUuid = tableUuid,
+                    customerName = customerName,
+                    pax = pax.takeIf { it > 0 },
+                    discount = discount.takeIf { it > 0 },
+                    tax = tax.takeIf { it > 0 },
+                    adminFee = adminFee.takeIf { it > 0 },
+                    deliveryFee = deliveryFee.takeIf { it > 0 },
+                    tip = tip.takeIf { it > 0 },
+                    voucherCode = voucherCode?.takeIf { it.isNotBlank() },
+                    note = note,
+                    hold = hold,
+                    deviceCreatedAt = deviceCreatedAt,
+                    deviceId = deviceId,
+                )
             val response = api.createSale(tenantUuid, request, idempotencyKey)
             if ((response.isSuccess || response.statusCode == 409) && response.data != null) {
                 // 409 = idempotency duplicate — treat as success
@@ -131,27 +130,27 @@ class SaleRepositoryImpl(
                 }
                 offlineQueue.enqueue(
                     PendingSale(
-                        idempotencyKey  = idempotencyKey,
-                        tenantUuid      = tenantUuid,
-                        items           = items.map { PendingSaleItem(it.productUuid, it.qty, it.variantUuid, it.note) },
-                        paymentMethod   = paymentMethod.value,
-                        paidAmount      = paidAmount,
-                        orderType       = orderType.value,
-                        tableUuid       = tableUuid,
-                        customerName    = customerName,
-                        pax             = pax,
-                        discount        = discount,
-                        tax             = tax,
-                        adminFee        = adminFee,
-                        deliveryFee     = deliveryFee,
-                        tip             = tip,
-                        voucherCode     = voucherCode,
-                        note            = note,
-                        hold            = hold,
+                        idempotencyKey = idempotencyKey,
+                        tenantUuid = tenantUuid,
+                        items = items.map { PendingSaleItem(it.productUuid, it.qty, it.variantUuid, it.note) },
+                        paymentMethod = paymentMethod.value,
+                        paidAmount = paidAmount,
+                        orderType = orderType.value,
+                        tableUuid = tableUuid,
+                        customerName = customerName,
+                        pax = pax,
+                        discount = discount,
+                        tax = tax,
+                        adminFee = adminFee,
+                        deliveryFee = deliveryFee,
+                        tip = tip,
+                        voucherCode = voucherCode,
+                        note = note,
+                        hold = hold,
                         deviceCreatedAt = deviceCreatedAt,
-                        deviceId        = deviceId,
-                        enqueuedAt      = Clock.System.now().toEpochMilliseconds()
-                    )
+                        deviceId = deviceId,
+                        enqueuedAt = Clock.System.now().toEpochMilliseconds(),
+                    ),
                 )
                 syncManager.scheduleSync()
                 Resource.Error("Offline: penjualan tersimpan, akan dikirim saat online (${offlineQueue.size} antrian)")
@@ -175,36 +174,38 @@ class SaleRepositoryImpl(
         adminFee: Long,
         deliveryFee: Long,
         tip: Long,
-        voucherCode: String?
+        voucherCode: String?,
     ): Resource<Sale> {
-        val idempotencyKey  = Uuid.random().toString()
+        val idempotencyKey = Uuid.random().toString()
         val deviceCreatedAt = Clock.System.now().toString()
-        val deviceId        = tokenManager.deviceId
+        val deviceId = tokenManager.deviceId
 
         return try {
-            val request = CreateSaleRequest(
-                items    = items.map { it.toSaleItemRequest() },
-                payments = payments.map {
-                    id.rancak.app.data.remote.dto.sale.SplitPaymentRequest(
-                        method = it.method.value,
-                        amount = it.amount
-                    )
-                },
-                orderType       = orderType.value,
-                tableUuid       = tableUuid,
-                customerName    = customerName,
-                pax             = pax.takeIf { it > 0 },
-                discount        = discount.takeIf { it > 0 },
-                tax             = tax.takeIf { it > 0 },
-                adminFee        = adminFee.takeIf { it > 0 },
-                deliveryFee     = deliveryFee.takeIf { it > 0 },
-                tip             = tip.takeIf { it > 0 },
-                voucherCode     = voucherCode?.takeIf { it.isNotBlank() },
-                note            = note,
-                hold            = false,
-                deviceCreatedAt = deviceCreatedAt,
-                deviceId        = deviceId
-            )
+            val request =
+                CreateSaleRequest(
+                    items = items.map { it.toSaleItemRequest() },
+                    payments =
+                        payments.map {
+                            id.rancak.app.data.remote.dto.sale.SplitPaymentRequest(
+                                method = it.method.value,
+                                amount = it.amount,
+                            )
+                        },
+                    orderType = orderType.value,
+                    tableUuid = tableUuid,
+                    customerName = customerName,
+                    pax = pax.takeIf { it > 0 },
+                    discount = discount.takeIf { it > 0 },
+                    tax = tax.takeIf { it > 0 },
+                    adminFee = adminFee.takeIf { it > 0 },
+                    deliveryFee = deliveryFee.takeIf { it > 0 },
+                    tip = tip.takeIf { it > 0 },
+                    voucherCode = voucherCode?.takeIf { it.isNotBlank() },
+                    note = note,
+                    hold = false,
+                    deviceCreatedAt = deviceCreatedAt,
+                    deviceId = deviceId,
+                )
             val response = api.createSale(tenantUuid, request, idempotencyKey)
             if ((response.isSuccess || response.statusCode == 409) && response.data != null) {
                 Resource.Success(response.data.toDomain())
@@ -216,7 +217,10 @@ class SaleRepositoryImpl(
         }
     }
 
-    override suspend fun getSales(dateFrom: String?, dateTo: String?): Resource<List<Sale>> {
+    override suspend fun getSales(
+        dateFrom: String?,
+        dateTo: String?,
+    ): Resource<List<Sale>> {
         val isFiltered = !dateFrom.isNullOrBlank() || !dateTo.isNullOrBlank()
         return try {
             val response = api.getSales(tenantUuid, dateFrom, dateTo)
@@ -227,9 +231,10 @@ class SaleRepositoryImpl(
                     val now = Clock.System.now().toEpochMilliseconds()
                     saleDao.upsertSalesWithItems(
                         sales = sales.map { it.toEntity(now) },
-                        items = sales.flatMap { sale ->
-                            sale.items.map { it.toEntity(sale.uuid) }
-                        }
+                        items =
+                            sales.flatMap { sale ->
+                                sale.items.map { it.toEntity(sale.uuid) }
+                            },
                     )
                 }
                 Resource.Success(sales)
@@ -244,9 +249,11 @@ class SaleRepositoryImpl(
     private suspend fun serveCachedSales(errorMessage: String?): Resource<List<Sale>> {
         val cached = saleDao.getAll()
         return if (cached.isNotEmpty()) {
-            Resource.Success(cached.map { entity ->
-                entity.toDomain(saleDao.getItemsForSale(entity.uuid))
-            })
+            Resource.Success(
+                cached.map { entity ->
+                    entity.toDomain(saleDao.getItemsForSale(entity.uuid))
+                },
+            )
         } else {
             Resource.Error(errorMessage ?: "Tidak ada koneksi internet")
         }
@@ -254,9 +261,11 @@ class SaleRepositoryImpl(
 
     override suspend fun getSalesFromCache(): Resource<List<Sale>> {
         val cached = saleDao.getAll()
-        return Resource.Success(cached.map { entity ->
-            entity.toDomain(saleDao.getItemsForSale(entity.uuid))
-        })
+        return Resource.Success(
+            cached.map { entity ->
+                entity.toDomain(saleDao.getItemsForSale(entity.uuid))
+            },
+        )
     }
 
     override suspend fun getSaleDetail(saleUuid: String): Resource<Sale> {
@@ -267,7 +276,7 @@ class SaleRepositoryImpl(
                 val now = Clock.System.now().toEpochMilliseconds()
                 saleDao.upsertSalesWithItems(
                     sales = listOf(sale.toEntity(now)),
-                    items = sale.items.map { it.toEntity(sale.uuid) }
+                    items = sale.items.map { it.toEntity(sale.uuid) },
                 )
                 Resource.Success(sale)
             } else {
@@ -278,7 +287,10 @@ class SaleRepositoryImpl(
         }
     }
 
-    private suspend fun serveCachedSaleDetail(saleUuid: String, errorMessage: String?): Resource<Sale> {
+    private suspend fun serveCachedSaleDetail(
+        saleUuid: String,
+        errorMessage: String?,
+    ): Resource<Sale> {
         val cached = saleDao.findByUuid(saleUuid)
         return if (cached != null) {
             Resource.Success(cached.toDomain(saleDao.getItemsForSale(saleUuid)))
@@ -296,108 +308,145 @@ class SaleRepositoryImpl(
         }
     }
 
-    override suspend fun serveSale(saleUuid: String): Resource<Sale> = safe(
-        block    = { api.serveSale(tenantUuid, saleUuid) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal menyajikan pesanan"
-    )
+    override suspend fun serveSale(saleUuid: String): Resource<Sale> =
+        safe(
+            block = { api.serveSale(tenantUuid, saleUuid) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal menyajikan pesanan",
+        )
 
-    override suspend fun paySale(saleUuid: String, paymentMethod: PaymentMethod, paidAmount: Long): Resource<Sale> = safe(
-        block = {
-            api.payHeldOrder(
-                tenantUuid, saleUuid,
-                id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(paymentMethod.value, paidAmount)
-            )
-        },
-        map = { it.toDomain() },
-        errorMsg = "Gagal membayar pesanan"
-    )
+    override suspend fun paySale(
+        saleUuid: String,
+        paymentMethod: PaymentMethod,
+        paidAmount: Long,
+    ): Resource<Sale> =
+        safe(
+            block = {
+                api.payHeldOrder(
+                    tenantUuid,
+                    saleUuid,
+                    id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(paymentMethod.value, paidAmount),
+                )
+            },
+            map = { it.toDomain() },
+            errorMsg = "Gagal membayar pesanan",
+        )
 
     override suspend fun paySaleWithSplitPayment(
         saleUuid: String,
-        payments: List<SplitPaymentEntry>
-    ): Resource<Sale> = safe(
-        block = {
-            api.payHeldOrder(
-                tenantUuid, saleUuid,
-                id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(
-                    payments = payments.map {
-                        id.rancak.app.data.remote.dto.sale.SplitPaymentRequest(it.method.value, it.amount)
-                    }
+        payments: List<SplitPaymentEntry>,
+    ): Resource<Sale> =
+        safe(
+            block = {
+                api.payHeldOrder(
+                    tenantUuid,
+                    saleUuid,
+                    id.rancak.app.data.remote.dto.sale.PayHeldOrderRequest(
+                        payments =
+                            payments.map {
+                                id.rancak.app.data.remote.dto.sale.SplitPaymentRequest(it.method.value, it.amount)
+                            },
+                    ),
                 )
-            )
-        },
-        map = { it.toDomain() },
-        errorMsg = "Gagal membayar pesanan dengan split payment"
-    )
+            },
+            map = { it.toDomain() },
+            errorMsg = "Gagal membayar pesanan dengan split payment",
+        )
 
-    override suspend fun splitBill(saleUuid: String, itemIds: List<String>): Resource<SplitBillResult> = safe(
-        block = { api.splitBill(tenantUuid, saleUuid, SplitBillRequest(itemIds)) },
-        map = {
-            SplitBillResult(
-                original = it.original.toDomain(),
-                newSale  = it.newSale.toDomain()
-            )
-        },
-        errorMsg = "Gagal memisahkan tagihan"
-    )
+    override suspend fun splitBill(
+        saleUuid: String,
+        itemIds: List<String>,
+    ): Resource<SplitBillResult> =
+        safe(
+            block = { api.splitBill(tenantUuid, saleUuid, SplitBillRequest(itemIds)) },
+            map = {
+                SplitBillResult(
+                    original = it.original.toDomain(),
+                    newSale = it.newSale.toDomain(),
+                )
+            },
+            errorMsg = "Gagal memisahkan tagihan",
+        )
 
     override suspend fun addItemsToHeldOrder(
         saleUuid: String,
-        items: List<CartItem>
-    ): Resource<Sale> = safe(
-        block    = { api.addHeldOrderItems(
-            tenantUuid, saleUuid,
-            id.rancak.app.data.remote.dto.sale.AddHeldOrderItemsRequest(items.map { it.toSaleItemRequest() })
-        ) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal menambah item ke pesanan"
-    )
+        items: List<CartItem>,
+    ): Resource<Sale> =
+        safe(
+            block = {
+                api.addHeldOrderItems(
+                    tenantUuid,
+                    saleUuid,
+                    id.rancak.app.data.remote.dto.sale.AddHeldOrderItemsRequest(items.map { it.toSaleItemRequest() }),
+                )
+            },
+            map = { it.toDomain() },
+            errorMsg = "Gagal menambah item ke pesanan",
+        )
 
-    override suspend fun removeHeldOrderItem(saleUuid: String, itemUuid: String): Resource<Sale> = safe(
-        block    = { api.deleteHeldOrderItem(tenantUuid, saleUuid, itemUuid) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal menghapus item dari pesanan"
-    )
+    override suspend fun removeHeldOrderItem(
+        saleUuid: String,
+        itemUuid: String,
+    ): Resource<Sale> =
+        safe(
+            block = { api.deleteHeldOrderItem(tenantUuid, saleUuid, itemUuid) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal menghapus item dari pesanan",
+        )
 
-    override suspend fun voidSale(saleUuid: String, reason: String?): Resource<Sale> = safe(
-        block    = { api.voidSale(tenantUuid, saleUuid, reason) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal membatalkan penjualan"
-    )
+    override suspend fun voidSale(
+        saleUuid: String,
+        reason: String?,
+    ): Resource<Sale> =
+        safe(
+            block = { api.voidSale(tenantUuid, saleUuid, reason) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal membatalkan penjualan",
+        )
 
-    override suspend fun cancelSale(saleUuid: String, reason: String?): Resource<Sale> = safe(
-        block    = { api.cancelSale(tenantUuid, saleUuid, reason) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal membatalkan pesanan"
-    )
+    override suspend fun cancelSale(
+        saleUuid: String,
+        reason: String?,
+    ): Resource<Sale> =
+        safe(
+            block = { api.cancelSale(tenantUuid, saleUuid, reason) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal membatalkan pesanan",
+        )
 
     override suspend fun refundSale(
         saleUuid: String,
         items: List<RefundItemInput>,
-        reason: String?
-    ): Resource<Refund> = safe(
-        block = {
-            val request = id.rancak.app.data.remote.dto.sale.RefundRequest(
-                items = items.map {
-                    id.rancak.app.data.remote.dto.sale.RefundItemRequest(
-                        saleItemUuid = it.saleItemUuid,
-                        qty          = it.qty
+        reason: String?,
+    ): Resource<Refund> =
+        safe(
+            block = {
+                val request =
+                    id.rancak.app.data.remote.dto.sale.RefundRequest(
+                        items =
+                            items.map {
+                                id.rancak.app.data.remote.dto.sale.RefundItemRequest(
+                                    saleItemUuid = it.saleItemUuid,
+                                    qty = it.qty,
+                                )
+                            },
+                        reason = reason,
                     )
-                },
-                reason = reason
-            )
-            api.refundSale(tenantUuid, saleUuid, request)
-        },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal memproses refund"
-    )
+                api.refundSale(tenantUuid, saleUuid, request)
+            },
+            map = { it.toDomain() },
+            errorMsg = "Gagal memproses refund",
+        )
 
-    override suspend fun moveTable(saleUuid: String, tableUuid: String): Resource<Sale> = safe(
-        block    = { api.moveTable(tenantUuid, saleUuid, tableUuid) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal memindahkan meja"
-    )
+    override suspend fun moveTable(
+        saleUuid: String,
+        tableUuid: String,
+    ): Resource<Sale> =
+        safe(
+            block = { api.moveTable(tenantUuid, saleUuid, tableUuid) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal memindahkan meja",
+        )
 
     override suspend fun createQrPayment(saleUuid: String): Resource<QrPayment> {
         return try {
@@ -413,17 +462,19 @@ class SaleRepositoryImpl(
         }
     }
 
-    override suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment> = safe(
-        block    = { api.getQrPaymentStatus(tenantUuid, saleUuid) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal mengecek status QR"
-    )
+    override suspend fun getQrPaymentStatus(saleUuid: String): Resource<QrPayment> =
+        safe(
+            block = { api.getQrPaymentStatus(tenantUuid, saleUuid) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal mengecek status QR",
+        )
 
-    override suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt> = safe(
-        block    = { api.getSaleReceipt(tenantUuid, saleUuid) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal mengambil struk"
-    )
+    override suspend fun getSaleReceipt(saleUuid: String): Resource<Receipt> =
+        safe(
+            block = { api.getSaleReceipt(tenantUuid, saleUuid) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal mengambil struk",
+        )
 
     override suspend fun getReceiptEscpos(saleUuid: String): Resource<ByteArray> {
         val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
@@ -445,7 +496,10 @@ class SaleRepositoryImpl(
         }
     }
 
-    override suspend fun getReceiptCombined(saleUuid: String, kotFirst: Boolean): Resource<ByteArray> {
+    override suspend fun getReceiptCombined(
+        saleUuid: String,
+        kotFirst: Boolean,
+    ): Resource<ByteArray> {
         val tenantUuid = tokenManager.tenantUuid ?: return Resource.Error("Tenant belum dipilih")
         return try {
             val bytes = api.getReceiptCombined(tenantUuid, saleUuid, kotFirst)
@@ -461,17 +515,25 @@ class SaleRepositoryImpl(
         return Resource.Success(Unit)
     }
 
-    override suspend fun getOrderBoard(date: String?, includeDone: Boolean): Resource<List<OrderBoardOrder>> = safe(
-        block    = { api.getOrderBoard(tenantUuid, date, includeDone) },
-        map      = { list -> list.map { it.toDomain() } },
-        errorMsg = "Gagal mengambil order board"
-    )
+    override suspend fun getOrderBoard(
+        date: String?,
+        includeDone: Boolean,
+    ): Resource<List<OrderBoardOrder>> =
+        safe(
+            block = { api.getOrderBoard(tenantUuid, date, includeDone) },
+            map = { list -> list.map { it.toDomain() } },
+            errorMsg = "Gagal mengambil order board",
+        )
 
-    override suspend fun mergeSale(targetUuid: String, sourceUuid: String): Resource<Sale> = safe(
-        block    = { api.mergeSale(tenantUuid, targetUuid, sourceUuid) },
-        map      = { it.toDomain() },
-        errorMsg = "Gagal menggabungkan order"
-    )
+    override suspend fun mergeSale(
+        targetUuid: String,
+        sourceUuid: String,
+    ): Resource<Sale> =
+        safe(
+            block = { api.mergeSale(tenantUuid, targetUuid, sourceUuid) },
+            map = { it.toDomain() },
+            errorMsg = "Gagal menggabungkan order",
+        )
 
     override suspend fun getReceiptQueue(saleUuid: String): Resource<ByteArray> {
         return try {
@@ -485,17 +547,18 @@ class SaleRepositoryImpl(
     override suspend fun reprintSale(
         saleUuid: String,
         printType: String,
-        reason: String?
-    ): Resource<ReprintResult> = safe(
-        block = { api.reprintSale(tenantUuid, saleUuid, reason, printType) },
-        map = {
-            ReprintResult(
-                printType = it.printType,
-                sale = it.sale.toDomain()
-            )
-        },
-        errorMsg = "Gagal cetak ulang struk"
-    )
+        reason: String?,
+    ): Resource<ReprintResult> =
+        safe(
+            block = { api.reprintSale(tenantUuid, saleUuid, reason, printType) },
+            map = {
+                ReprintResult(
+                    printType = it.printType,
+                    sale = it.sale.toDomain(),
+                )
+            },
+            errorMsg = "Gagal cetak ulang struk",
+        )
 
     override suspend fun openCashDrawer(): Resource<ByteArray> {
         return try {
@@ -506,4 +569,3 @@ class SaleRepositoryImpl(
         }
     }
 }
-

@@ -32,7 +32,7 @@ suspend fun RancakApiService.getProducts(
     query: String? = null,
     categoryId: String? = null,
     page: Int = 1,
-    limit: Int = 50
+    limit: Int = 50,
 ): ApiResponse<List<ProductDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.PRODUCTS) {
         parameter("page", page)
@@ -41,10 +41,16 @@ suspend fun RancakApiService.getProducts(
         categoryId?.let { parameter("category_id", it) }
     }.body()
 
-suspend fun RancakApiService.getProductByUuid(tenantUuid: String, productUuid: String): ApiResponse<ProductDto> =
+suspend fun RancakApiService.getProductByUuid(
+    tenantUuid: String,
+    productUuid: String,
+): ApiResponse<ProductDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productUuid").body()
 
-suspend fun RancakApiService.getProductByBarcode(tenantUuid: String, barcode: String): ApiResponse<ProductDto> =
+suspend fun RancakApiService.getProductByBarcode(
+    tenantUuid: String,
+    barcode: String,
+): ApiResponse<ProductDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/barcode/$barcode").body()
 
 suspend fun RancakApiService.getFavoriteProducts(tenantUuid: String): ApiResponse<List<FavoriteProductDto>> =
@@ -53,13 +59,19 @@ suspend fun RancakApiService.getFavoriteProducts(tenantUuid: String): ApiRespons
 suspend fun RancakApiService.get86Products(tenantUuid: String): ApiResponse<List<Product86Dto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/86").body()
 
-suspend fun RancakApiService.mark86(tenantUuid: String, productUuid: String): ApiResponse<Unit> =
+suspend fun RancakApiService.mark86(
+    tenantUuid: String,
+    productUuid: String,
+): ApiResponse<Unit> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/86") {
         contentType(ContentType.Application.Json)
         setBody(mapOf("product_uuid" to productUuid))
     }.body()
 
-suspend fun RancakApiService.unmark86(tenantUuid: String, productUuid: String): ApiResponse<Unit> =
+suspend fun RancakApiService.unmark86(
+    tenantUuid: String,
+    productUuid: String,
+): ApiResponse<Unit> =
     client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/86/$productUuid").body()
 
 // ── Categories ──
@@ -67,7 +79,10 @@ suspend fun RancakApiService.unmark86(tenantUuid: String, productUuid: String): 
 suspend fun RancakApiService.getCategories(tenantUuid: String): ApiResponse<List<CategoryDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.CATEGORIES).body()
 
-suspend fun RancakApiService.getCategory(tenantUuid: String, categoryId: String): ApiResponse<CategoryDto> =
+suspend fun RancakApiService.getCategory(
+    tenantUuid: String,
+    categoryId: String,
+): ApiResponse<CategoryDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.CATEGORIES}/$categoryId").body()
 
 // ── Stock & Batches ──
@@ -75,7 +90,7 @@ suspend fun RancakApiService.getCategory(tenantUuid: String, categoryId: String)
 suspend fun RancakApiService.adjustStock(
     tenantUuid: String,
     productId: String,
-    request: StockAdjustmentRequest
+    request: StockAdjustmentRequest,
 ): ApiResponse<StockAdjustmentResponseDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId/stock-adjustment") {
         contentType(ContentType.Application.Json)
@@ -84,14 +99,14 @@ suspend fun RancakApiService.adjustStock(
 
 suspend fun RancakApiService.getProductBatches(
     tenantUuid: String,
-    productId: String
+    productId: String,
 ): ApiResponse<List<ProductBatchDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId/batches").body()
 
 suspend fun RancakApiService.createProductBatch(
     tenantUuid: String,
     productId: String,
-    request: CreateProductBatchRequest
+    request: CreateProductBatchRequest,
 ): ApiResponse<ProductBatchDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId/batches") {
         contentType(ContentType.Application.Json)
@@ -102,7 +117,7 @@ suspend fun RancakApiService.createProductBatch(
 
 suspend fun RancakApiService.createProduct(
     tenantUuid: String,
-    request: CreateProductRequest
+    request: CreateProductRequest,
 ): ApiResponse<ProductDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.PRODUCTS) {
         contentType(ContentType.Application.Json)
@@ -112,7 +127,7 @@ suspend fun RancakApiService.createProduct(
 suspend fun RancakApiService.updateProduct(
     tenantUuid: String,
     productId: String,
-    request: UpdateProductRequest
+    request: UpdateProductRequest,
 ): ApiResponse<ProductDto> =
     client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId") {
         contentType(ContentType.Application.Json)
@@ -121,7 +136,7 @@ suspend fun RancakApiService.updateProduct(
 
 suspend fun RancakApiService.deleteProduct(
     tenantUuid: String,
-    productId: String
+    productId: String,
 ): ApiResponse<Unit> =
     client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId").body()
 
@@ -129,7 +144,7 @@ suspend fun RancakApiService.deleteProduct(
 
 suspend fun RancakApiService.createCategory(
     tenantUuid: String,
-    request: CreateCategoryRequest
+    request: CreateCategoryRequest,
 ): ApiResponse<CategoryDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.CATEGORIES) {
         contentType(ContentType.Application.Json)
@@ -139,7 +154,7 @@ suspend fun RancakApiService.createCategory(
 suspend fun RancakApiService.updateCategory(
     tenantUuid: String,
     categoryId: String,
-    request: UpdateCategoryRequest
+    request: UpdateCategoryRequest,
 ): ApiResponse<CategoryDto> =
     client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.CATEGORIES}/$categoryId") {
         contentType(ContentType.Application.Json)
@@ -148,6 +163,6 @@ suspend fun RancakApiService.updateCategory(
 
 suspend fun RancakApiService.deleteCategory(
     tenantUuid: String,
-    categoryId: String
+    categoryId: String,
 ): ApiResponse<Unit> =
     client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.CATEGORIES}/$categoryId").body()

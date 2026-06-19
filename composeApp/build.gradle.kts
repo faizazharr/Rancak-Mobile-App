@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
@@ -25,7 +24,7 @@ kotlin {
 
     listOf(
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
@@ -35,9 +34,12 @@ kotlin {
             // BackgroundTasks — BGTaskScheduler sync (SyncManager.ios.kt + MainViewController.kt)
             // AVFoundation   — Camera barcode scanner (BarcodeScanner.ios.kt)
             linkerOpts(
-                "-framework", "CoreBluetooth",
-                "-framework", "BackgroundTasks",
-                "-framework", "AVFoundation"
+                "-framework",
+                "CoreBluetooth",
+                "-framework",
+                "BackgroundTasks",
+                "-framework",
+                "AVFoundation",
             )
         }
     }
@@ -138,14 +140,17 @@ android {
     namespace = "id.rancak.app"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    val localProps = Properties().apply {
-        val f = rootProject.file("local.properties")
-        if (f.exists()) load(f.inputStream())
-    }
-    val rancakApiKey: String = localProps.getProperty("RANCAK_API_KEY")
-        ?: error("RANCAK_API_KEY is missing from local.properties")
-    val googleWebClientId: String = localProps.getProperty("GOOGLE_WEB_CLIENT_ID")
-        ?: error("GOOGLE_WEB_CLIENT_ID is missing from local.properties")
+    val localProps =
+        Properties().apply {
+            val f = rootProject.file("local.properties")
+            if (f.exists()) load(f.inputStream())
+        }
+    val rancakApiKey: String =
+        localProps.getProperty("RANCAK_API_KEY")
+            ?: error("RANCAK_API_KEY is missing from local.properties")
+    val googleWebClientId: String =
+        localProps.getProperty("GOOGLE_WEB_CLIENT_ID")
+            ?: error("GOOGLE_WEB_CLIENT_ID is missing from local.properties")
 
     defaultConfig {
         applicationId = "id.rancak.app"
@@ -172,7 +177,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
         getByName("debug") {
@@ -235,7 +240,7 @@ composeStabilityAnalyzer {
 
         // Pakai file config yang sama dengan Compose Compiler — satu sumber kebenaran
         stabilityConfigurationFiles.add(
-            rootProject.layout.projectDirectory.file("stability_config.conf")
+            rootProject.layout.projectDirectory.file("stability_config.conf"),
         )
 
         // false = warn only (tidak gagal build); ubah ke true setelah baseline stabil
@@ -248,4 +253,3 @@ composeStabilityAnalyzer {
         ignoredClasses.set(listOf("Preview"))
     }
 }
-

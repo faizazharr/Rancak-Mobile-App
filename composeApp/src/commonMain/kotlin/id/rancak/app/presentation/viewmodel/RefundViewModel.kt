@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Refund
@@ -24,7 +23,7 @@ data class RefundLine(
     val variantName: String?,
     val maxQty: Int,
     val unitPrice: Long,
-    val qtyToRefund: Int = 0
+    val qtyToRefund: Int = 0,
 ) {
     val lineRefund: Long get() = unitPrice * qtyToRefund
 }
@@ -41,7 +40,7 @@ data class RefundUiState(
     // Derived
     val totalRefund: Long = 0,
     val totalQty: Int = 0,
-    val canSubmit: Boolean = false
+    val canSubmit: Boolean = false,
 )
 
 /**
@@ -54,29 +53,35 @@ data class RefundUiState(
  *  4. [reset] setelah dismissed
  */
 class RefundViewModel(
-    private val saleRepository: SaleRepository
+    private val saleRepository: SaleRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(RefundUiState())
     val uiState: StateFlow<RefundUiState> = _uiState.asStateFlow()
 
     /** Buka refund flow untuk [sale]. Akan mengisi [RefundUiState.lines]. */
     fun openFor(sale: Sale) {
-        _uiState.value = RefundUiState(
-            saleUuid  = sale.uuid,
-            invoiceNo = sale.invoiceNo,
-            lines     = sale.items.map { it.toRefundLine() }
-        ).recompute()
+        _uiState.value =
+            RefundUiState(
+                saleUuid = sale.uuid,
+                invoiceNo = sale.invoiceNo,
+                lines = sale.items.map { it.toRefundLine() },
+            ).recompute()
     }
 
-    fun setQty(saleItemUuid: String, qty: Int) {
+    fun setQty(
+        saleItemUuid: String,
+        qty: Int,
+    ) {
         _uiState.update { state ->
             state.copy(
-                lines = state.lines.map { line ->
-                    if (line.saleItemUuid == saleItemUuid)
-                        line.copy(qtyToRefund = qty.coerceIn(0, line.maxQty))
-                    else line
-                }
+                lines =
+                    state.lines.map { line ->
+                        if (line.saleItemUuid == saleItemUuid) {
+                            line.copy(qtyToRefund = qty.coerceIn(0, line.maxQty))
+                        } else {
+                            line
+                        }
+                    },
             ).recompute()
         }
     }
@@ -85,7 +90,7 @@ class RefundViewModel(
     fun refundFull() {
         _uiState.update { state ->
             state.copy(
-                lines = state.lines.map { it.copy(qtyToRefund = it.maxQty) }
+                lines = state.lines.map { it.copy(qtyToRefund = it.maxQty) },
             ).recompute()
         }
     }
@@ -104,24 +109,30 @@ class RefundViewModel(
     fun submit() {
         val state = _uiState.value
         val saleUuid = state.saleUuid ?: return
-        val items = state.lines
-            .filter { it.qtyToRefund > 0 }
-            .map { RefundItemInput(saleItemUuid = it.saleItemUuid, qty = it.qtyToRefund) }
+        val items =
+            state.lines
+                .filter { it.qtyToRefund > 0 }
+                .map { RefundItemInput(saleItemUuid = it.saleItemUuid, qty = it.qtyToRefund) }
         if (items.isEmpty()) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, error = null) }
-            when (val result = saleRepository.refundSale(
-                saleUuid = saleUuid,
-                items    = items,
-                reason   = state.reason.trim().ifEmpty { null }
-            )) {
-                is Resource.Success -> _uiState.update {
-                    it.copy(isProcessing = false, completed = result.data)
-                }
-                is Resource.Error   -> _uiState.update {
-                    it.copy(isProcessing = false, error = result.message)
-                }
+            when (
+                val result =
+                    saleRepository.refundSale(
+                        saleUuid = saleUuid,
+                        items = items,
+                        reason = state.reason.trim().ifEmpty { null },
+                    )
+            ) {
+                is Resource.Success ->
+                    _uiState.update {
+                        it.copy(isProcessing = false, completed = result.data)
+                    }
+                is Resource.Error ->
+                    _uiState.update {
+                        it.copy(isProcessing = false, error = result.message)
+                    }
                 is Resource.Loading -> {}
             }
         }
@@ -134,20 +145,21 @@ class RefundViewModel(
     }
 }
 
-private fun SaleItem.toRefundLine(): RefundLine = RefundLine(
-    saleItemUuid = uuid,
-    productName  = productName,
-    variantName  = variantName,
-    maxQty       = qty.toDoubleOrNull()?.toInt() ?: 1,
-    unitPrice    = price
-)
+private fun SaleItem.toRefundLine(): RefundLine =
+    RefundLine(
+        saleItemUuid = uuid,
+        productName = productName,
+        variantName = variantName,
+        maxQty = qty.toDoubleOrNull()?.toInt() ?: 1,
+        unitPrice = price,
+    )
 
 private fun RefundUiState.recompute(): RefundUiState {
     val totalRefund = lines.sumOf { it.lineRefund }
-    val totalQty    = lines.sumOf { it.qtyToRefund }
+    val totalQty = lines.sumOf { it.qtyToRefund }
     return copy(
         totalRefund = totalRefund,
-        totalQty    = totalQty,
-        canSubmit   = totalQty > 0 && !isProcessing
+        totalQty = totalQty,
+        canSubmit = totalQty > 0 && !isProcessing,
     )
 }

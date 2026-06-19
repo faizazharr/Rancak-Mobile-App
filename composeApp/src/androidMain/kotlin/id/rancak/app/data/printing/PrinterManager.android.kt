@@ -9,8 +9,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.runtime.Stable
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.io.OutputStream
 import java.net.InetSocketAddress
@@ -30,7 +30,6 @@ import java.net.Socket
  */
 @Stable
 actual class PrinterManager actual constructor() {
-
     private var appContext: Context? = null
 
     fun init(context: Context) {
@@ -47,7 +46,7 @@ actual class PrinterManager actual constructor() {
         val ctx = appContext ?: return false
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             ContextCompat.checkSelfPermission(
-                ctx, android.Manifest.permission.BLUETOOTH_CONNECT
+                ctx, android.Manifest.permission.BLUETOOTH_CONNECT,
             ) == PackageManager.PERMISSION_GRANTED
         } else {
             true
@@ -58,7 +57,7 @@ actual class PrinterManager actual constructor() {
         val ctx = appContext ?: return false
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             ContextCompat.checkSelfPermission(
-                ctx, android.Manifest.permission.BLUETOOTH_SCAN
+                ctx, android.Manifest.permission.BLUETOOTH_SCAN,
             ) == PackageManager.PERMISSION_GRANTED
         } else {
             true
@@ -74,26 +73,27 @@ actual class PrinterManager actual constructor() {
     actual suspend fun printViaNetwork(
         ipAddress: String,
         port: Int,
-        data: ByteArray
-    ): PrintResult = withContext(Dispatchers.IO) {
-        try {
-            val socket = Socket()
-            socket.connect(InetSocketAddress(ipAddress, port), CONNECT_TIMEOUT_MS)
-            socket.soTimeout = WRITE_TIMEOUT_MS
+        data: ByteArray,
+    ): PrintResult =
+        withContext(Dispatchers.IO) {
+            try {
+                val socket = Socket()
+                socket.connect(InetSocketAddress(ipAddress, port), CONNECT_TIMEOUT_MS)
+                socket.soTimeout = WRITE_TIMEOUT_MS
 
-            val out: OutputStream = socket.getOutputStream()
-            out.write(data)
-            out.flush()
-            // Beri jeda agar printer selesai menerima semua data sebelum close
-            delay(BT_DRAIN_DELAY_MS)
-            out.close()
-            socket.close()
+                val out: OutputStream = socket.getOutputStream()
+                out.write(data)
+                out.flush()
+                // Beri jeda agar printer selesai menerima semua data sebelum close
+                delay(BT_DRAIN_DELAY_MS)
+                out.close()
+                socket.close()
 
-            PrintResult.Success
-        } catch (e: Exception) {
-            PrintResult.Error("TCP print failed: ${e.message}")
+                PrintResult.Success
+            } catch (e: Exception) {
+                PrintResult.Error("TCP print failed: ${e.message}")
+            }
         }
-    }
 
     // ── Bluetooth Classic (SPP) ──────────────────────────────────────────────
 
@@ -104,8 +104,9 @@ actual class PrinterManager actual constructor() {
                 throw SecurityException("permission denied: BLUETOOTH_CONNECT belum diberikan")
             }
 
-            val adapter = getAdapter()
-                ?: throw IllegalStateException("Bluetooth not available on this device")
+            val adapter =
+                getAdapter()
+                    ?: throw IllegalStateException("Bluetooth not available on this device")
 
             if (!adapter.isEnabled) {
                 throw IllegalStateException("Bluetooth is disabled — not enabled")
@@ -115,9 +116,9 @@ actual class PrinterManager actual constructor() {
                 .orEmpty()
                 .map { device ->
                     PrinterDevice(
-                        name    = device.name ?: device.address,
+                        name = device.name ?: device.address,
                         address = device.address,
-                        type    = PrinterConnectionType.BLUETOOTH
+                        type = PrinterConnectionType.BLUETOOTH,
                     )
                 }
         }
@@ -125,47 +126,58 @@ actual class PrinterManager actual constructor() {
     @SuppressLint("MissingPermission")
     actual suspend fun printViaBluetooth(
         address: String,
-        data: ByteArray
-    ): PrintResult = withContext(Dispatchers.IO) {
-        if (!hasBluetoothConnectPermission()) {
-            return@withContext PrintResult.Error("Izin Bluetooth (BLUETOOTH_CONNECT) belum diberikan")
+        data: ByteArray,
+    ): PrintResult =
+        withContext(Dispatchers.IO) {
+            if (!hasBluetoothConnectPermission()) {
+                return@withContext PrintResult.Error("Izin Bluetooth (BLUETOOTH_CONNECT) belum diberikan")
+            }
+            val adapter =
+                getAdapter()
+                    ?: return@withContext PrintResult.Error("Bluetooth tidak tersedia di perangkat ini")
+
+            if (!adapter.isEnabled) {
+                return@withContext PrintResult.Error("Bluetooth tidak aktif — aktifkan Bluetooth terlebih dahulu")
+            }
+
+            val device: BluetoothDevice? =
+                adapter.bondedDevices
+                    .firstOrNull { it.address.equals(address, ignoreCase = true) }
+
+            if (device == null) {
+                return@withContext PrintResult.Error(
+                    "Printer $address tidak ditemukan — pair dulu di Pengaturan Bluetooth",
+                )
+            }
+
+            // cancelDiscovery needs BLUETOOTH_SCAN — only call if permitted
+            if (hasBluetoothScanPermission()) {
+                try {
+                    adapter.cancelDiscovery()
+                } catch (_: Exception) {
+                }
+            }
+
+            // Try 3 connection strategies — many budget thermal printers (ECO 58, XP-58,
+            // etc.) fail with standard createRfcommSocketToServiceRecord but succeed with
+            // insecure or reflection-based RFCOMM channel 1.
+            return@withContext tryConnectAndPrint(device, data)
         }
-        val adapter = getAdapter()
-            ?: return@withContext PrintResult.Error("Bluetooth tidak tersedia di perangkat ini")
-
-        if (!adapter.isEnabled) {
-            return@withContext PrintResult.Error("Bluetooth tidak aktif — aktifkan Bluetooth terlebih dahulu")
-        }
-
-        val device: BluetoothDevice? = adapter.bondedDevices
-            .firstOrNull { it.address.equals(address, ignoreCase = true) }
-
-        if (device == null) {
-            return@withContext PrintResult.Error(
-                "Printer $address tidak ditemukan — pair dulu di Pengaturan Bluetooth"
-            )
-        }
-
-        // cancelDiscovery needs BLUETOOTH_SCAN — only call if permitted
-        if (hasBluetoothScanPermission()) {
-            try { adapter.cancelDiscovery() } catch (_: Exception) { }
-        }
-
-        // Try 3 connection strategies — many budget thermal printers (ECO 58, XP-58,
-        // etc.) fail with standard createRfcommSocketToServiceRecord but succeed with
-        // insecure or reflection-based RFCOMM channel 1.
-        return@withContext tryConnectAndPrint(device, data)
-    }
 
     @SuppressLint("MissingPermission")
-    private suspend fun tryConnectAndPrint(device: BluetoothDevice, data: ByteArray): PrintResult {
+    private suspend fun tryConnectAndPrint(
+        device: BluetoothDevice,
+        data: ByteArray,
+    ): PrintResult {
         // Strategy 1: Standard secure RFCOMM with SPP UUID
         try {
             val socket = device.createRfcommSocketToServiceRecord(SPP_UUID)
             socket.connect()
             sendAndClose(socket, data)
             return PrintResult.Success
-        } catch (_: Exception) { /* fall through */ }
+        } catch (_: Exception) {
+            // fall through
+        }
 
         // Strategy 2: Insecure RFCOMM (no pairing confirmation popup)
         try {
@@ -173,27 +185,33 @@ actual class PrinterManager actual constructor() {
             socket.connect()
             sendAndClose(socket, data)
             return PrintResult.Success
-        } catch (_: Exception) { /* fall through */ }
+        } catch (_: Exception) {
+            // fall through
+        }
 
         // Strategy 3: Reflection — direct RFCOMM channel 1
         // This is the most compatible method for cheap thermal printers
         return try {
-            val method = device.javaClass.getMethod(
-                "createRfcommSocket",
-                Int::class.javaPrimitiveType
-            )
+            val method =
+                device.javaClass.getMethod(
+                    "createRfcommSocket",
+                    Int::class.javaPrimitiveType,
+                )
             val socket = method.invoke(device, 1) as android.bluetooth.BluetoothSocket
             socket.connect()
             sendAndClose(socket, data)
             PrintResult.Success
         } catch (e: Exception) {
             PrintResult.Error(
-                "Gagal terhubung ke printer ${device.name ?: device.address}: ${e.message}"
+                "Gagal terhubung ke printer ${device.name ?: device.address}: ${e.message}",
             )
         }
     }
 
-    private suspend fun sendAndClose(socket: android.bluetooth.BluetoothSocket, data: ByteArray) {
+    private suspend fun sendAndClose(
+        socket: android.bluetooth.BluetoothSocket,
+        data: ByteArray,
+    ) {
         val out: OutputStream = socket.outputStream
         // Kirim dalam chunk 512 byte — printer budget (XP-58, ECO-58) punya
         // buffer internal kecil (~4-8KB), mengirim sekaligus bisa overflow
@@ -216,8 +234,8 @@ actual class PrinterManager actual constructor() {
     companion object {
         private val SPP_UUID = java.util.UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
         private const val CONNECT_TIMEOUT_MS = 5_000
-        private const val WRITE_TIMEOUT_MS   = 10_000
-        private const val BT_CHUNK_SIZE      = 512         // byte per chunk via Bluetooth
-        private const val BT_DRAIN_DELAY_MS  = 150L        // ms tunggu sebelum close socket
+        private const val WRITE_TIMEOUT_MS = 10_000
+        private const val BT_CHUNK_SIZE = 512 // byte per chunk via Bluetooth
+        private const val BT_DRAIN_DELAY_MS = 150L // ms tunggu sebelum close socket
     }
 }

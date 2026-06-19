@@ -15,7 +15,7 @@ data class StockOpname(
     val createdBy: String? = null,
     val finalizedBy: String? = null,
     val finalizedAt: String? = null,
-    val createdAt: String
+    val createdAt: String,
 )
 
 @Immutable
@@ -27,7 +27,7 @@ data class OpnameItem(
     val actualStock: Double,
     /** actual - system (negatif = shortage, positif = surplus). */
     val difference: Double,
-    val note: String? = null
+    val note: String? = null,
 )
 
 @Immutable
@@ -35,7 +35,7 @@ data class StockOpnameDetail(
     val opname: StockOpname,
     val items: List<OpnameItem>,
     val shortageCount: Int,
-    val surplusCount: Int
+    val surplusCount: Int,
 )
 
 /** Input untuk submit hasil hitung fisik per produk. */
@@ -43,7 +43,7 @@ data class StockOpnameDetail(
 data class OpnameItemEntry(
     val productUuid: String,
     val actualStock: Double,
-    val note: String? = null
+    val note: String? = null,
 )
 
 // ── Suppliers ───────────────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ data class Supplier(
     val notes: String? = null,
     val isActive: Boolean = true,
     val createdAt: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
 )
 
 @Immutable
@@ -71,7 +71,7 @@ data class SupplierInput(
     val email: String? = null,
     val address: String? = null,
     val npwp: String? = null,
-    val notes: String? = null
+    val notes: String? = null,
 )
 
 // ── Purchase orders ─────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ data class PurchaseOrderItem(
     val qtyReceived: Double,
     val unitCost: Double,
     val subtotal: Double,
-    val notes: String? = null
+    val notes: String? = null,
 )
 
 @Immutable
@@ -107,7 +107,7 @@ data class PurchaseOrder(
     val createdBy: String? = null,
     val createdAt: String,
     val updatedAt: String,
-    val items: List<PurchaseOrderItem> = emptyList()
+    val items: List<PurchaseOrderItem> = emptyList(),
 )
 
 @Immutable
@@ -115,11 +115,11 @@ data class POItemEntry(
     val productUuid: String,
     val qtyOrdered: Double,
     val unitCost: Double,
-    val notes: String? = null
+    val notes: String? = null,
 )
 
 @Immutable
 data class ReceiveItemEntry(
     val itemUuid: String,
-    val qtyReceived: Double
+    val qtyReceived: Double,
 )

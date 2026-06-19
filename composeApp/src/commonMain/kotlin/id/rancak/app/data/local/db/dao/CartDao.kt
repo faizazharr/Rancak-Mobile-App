@@ -18,10 +18,16 @@ interface CartDao {
     suspend fun upsert(item: CartItemEntity)
 
     @Query("UPDATE cart_items SET qty = :qty WHERE id = :id")
-    suspend fun updateQty(id: String, qty: Int)
+    suspend fun updateQty(
+        id: String,
+        qty: Int,
+    )
 
     @Query("UPDATE cart_items SET note = :note WHERE id = :id")
-    suspend fun updateNote(id: String, note: String?)
+    suspend fun updateNote(
+        id: String,
+        note: String?,
+    )
 
     @Query("DELETE FROM cart_items WHERE id = :id")
     suspend fun deleteById(id: String)

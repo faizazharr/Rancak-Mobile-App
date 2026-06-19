@@ -1,20 +1,20 @@
 package id.rancak.app
 
 import com.russhwolf.settings.MapSettings
+import id.rancak.app.data.local.OfflineSaleQueue
+import id.rancak.app.data.local.OpenBillStore
+import id.rancak.app.data.local.PricingConfigStore
 import id.rancak.app.data.local.TokenManager
 import id.rancak.app.data.repository.AuthRepositoryImpl
 import id.rancak.app.domain.model.Resource
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import id.rancak.app.data.local.OfflineSaleQueue
-import id.rancak.app.data.local.PricingConfigStore
-import id.rancak.app.data.local.OpenBillStore
-import kotlinx.serialization.json.Json
 
 /**
  * Tests for [AuthRepositoryImpl] against the real implementation class.
@@ -24,10 +24,10 @@ import kotlinx.serialization.json.Json
  * - [TokenManager] → backed by [MapSettings] (in-memory, no platform context)
  */
 class AuthRepositoryImplTest {
-
     // ── Reusable JSON fixtures ──────────────────────────────────────────────
 
-    private val loginSuccessJson = """
+    private val loginSuccessJson =
+        """
         {
           "status_code": 200,
           "message": "Login berhasil",
@@ -45,13 +45,15 @@ class AuthRepositoryImplTest {
             }
           }
         }
-    """.trimIndent()
+        """.trimIndent()
 
-    private val errorJson = """
+    private val errorJson =
+        """
         {"status_code":401,"message":"Email atau password salah","data":null}
-    """.trimIndent()
+        """.trimIndent()
 
-    private val tenantListJson = """
+    private val tenantListJson =
+        """
         {
           "status_code": 200,
           "message": "OK",
@@ -60,13 +62,13 @@ class AuthRepositoryImplTest {
             {"uuid":"t-2","name":"Kafe Daun","subscription_status":"trial"}
           ]
         }
-    """.trimIndent()
+        """.trimIndent()
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     private fun makeRepo(
         responseBody: String,
-        tokenManager: TokenManager = TokenManager(MapSettings())
+        tokenManager: TokenManager = TokenManager(MapSettings()),
     ): AuthRepositoryImpl {
         val api = mockApiService(responseBody)
         val json = Json { ignoreUnknownKeys = true }
@@ -76,234 +78,254 @@ class AuthRepositoryImplTest {
             cartRepository = FakeCartRepository(),
             offlineSaleQueue = OfflineSaleQueue(MapSettings(), json),
             pricingConfigStore = PricingConfigStore(FakeAdminRepository()),
-            openBillStore = OpenBillStore(MapSettings(), json)
+            openBillStore = OpenBillStore(MapSettings(), json),
         )
     }
 
     // ── login ─────────────────────────────────────────────────────────────────
 
     @Test
-    fun `login - success returns Resource_Success with tokens and user`() = kotlinx.coroutines.test.runTest {
-        val settings = MapSettings()
-        val tokenManager = TokenManager(settings)
-        val repo = makeRepo(loginSuccessJson, tokenManager)
+    fun `login - success returns Resource_Success with tokens and user`() =
+        kotlinx.coroutines.test.runTest {
+            val settings = MapSettings()
+            val tokenManager = TokenManager(settings)
+            val repo = makeRepo(loginSuccessJson, tokenManager)
 
-        val result = repo.login("budi@rancak.id", "secret123")
+            val result = repo.login("budi@rancak.id", "secret123")
 
-        assertTrue(result is Resource.Success)
-        val data = result.data
-        assertEquals("tok-access",   data.tokens.accessToken)
-        assertEquals("tok-refresh",  data.tokens.refreshToken)
-        assertEquals("user-001",     data.user.uuid)
-        assertEquals("Budi Santoso", data.user.name)
-    }
-
-    @Test
-    fun `login - success saves tokens in TokenManager`() = kotlinx.coroutines.test.runTest {
-        val settings = MapSettings()
-        val tokenManager = TokenManager(settings)
-        val repo = makeRepo(loginSuccessJson, tokenManager)
-
-        repo.login("budi@rancak.id", "secret123")
-
-        assertTrue(tokenManager.isLoggedIn)
-        assertEquals("tok-refresh", tokenManager.refreshToken)
-    }
+            assertTrue(result is Resource.Success)
+            val data = result.data
+            assertEquals("tok-access", data.tokens.accessToken)
+            assertEquals("tok-refresh", data.tokens.refreshToken)
+            assertEquals("user-001", data.user.uuid)
+            assertEquals("Budi Santoso", data.user.name)
+        }
 
     @Test
-    fun `login - 401 error returns Resource_Error with message`() = kotlinx.coroutines.test.runTest {
-        val result = makeRepo(errorJson).login("bad@email.com", "wrong")
+    fun `login - success saves tokens in TokenManager`() =
+        kotlinx.coroutines.test.runTest {
+            val settings = MapSettings()
+            val tokenManager = TokenManager(settings)
+            val repo = makeRepo(loginSuccessJson, tokenManager)
 
-        assertTrue(result is Resource.Error)
-        assertEquals("Sesi telah berakhir. Silakan login kembali.", result.message)
-    }
+            repo.login("budi@rancak.id", "secret123")
+
+            assertTrue(tokenManager.isLoggedIn)
+            assertEquals("tok-refresh", tokenManager.refreshToken)
+        }
 
     @Test
-    fun `login - network exception returns Resource_Error`() = kotlinx.coroutines.test.runTest {
-        val api = mockApiService { throw Exception("UnknownHostException: Unable to resolve host") }
-        val json = Json { ignoreUnknownKeys = true }
-        val repo = AuthRepositoryImpl(
-            api = api,
-            tokenManager = TokenManager(MapSettings()),
-            cartRepository = FakeCartRepository(),
-            offlineSaleQueue = OfflineSaleQueue(MapSettings(), json),
-            pricingConfigStore = PricingConfigStore(FakeAdminRepository()),
-            openBillStore = OpenBillStore(MapSettings(), json)
-        )
+    fun `login - 401 error returns Resource_Error with message`() =
+        kotlinx.coroutines.test.runTest {
+            val result = makeRepo(errorJson).login("bad@email.com", "wrong")
 
-        val result = repo.login("budi@rancak.id", "x")
+            assertTrue(result is Resource.Error)
+            assertEquals("Sesi telah berakhir. Silakan login kembali.", result.message)
+        }
 
-        assertTrue(result is Resource.Error)
-        assertTrue(result.message.contains("UnknownHostException") || result.message.contains("host") || result.message.isNotBlank())
-    }
+    @Test
+    fun `login - network exception returns Resource_Error`() =
+        kotlinx.coroutines.test.runTest {
+            val api = mockApiService { throw Exception("UnknownHostException: Unable to resolve host") }
+            val json = Json { ignoreUnknownKeys = true }
+            val repo =
+                AuthRepositoryImpl(
+                    api = api,
+                    tokenManager = TokenManager(MapSettings()),
+                    cartRepository = FakeCartRepository(),
+                    offlineSaleQueue = OfflineSaleQueue(MapSettings(), json),
+                    pricingConfigStore = PricingConfigStore(FakeAdminRepository()),
+                    openBillStore = OpenBillStore(MapSettings(), json),
+                )
+
+            val result = repo.login("budi@rancak.id", "x")
+
+            assertTrue(result is Resource.Error)
+            assertTrue(result.message.contains("UnknownHostException") || result.message.contains("host") || result.message.isNotBlank())
+        }
 
     // ── logout ────────────────────────────────────────────────────────────────
 
     @Test
-    fun `logout - clears TokenManager even when API succeeds`() = kotlinx.coroutines.test.runTest {
-        val settings = MapSettings()
-        val tokenManager = TokenManager(settings)
-        // Prime with a token
-        tokenManager.saveTokens("old-access", "old-refresh")
-        assertTrue(tokenManager.isLoggedIn)
+    fun `logout - clears TokenManager even when API succeeds`() =
+        kotlinx.coroutines.test.runTest {
+            val settings = MapSettings()
+            val tokenManager = TokenManager(settings)
+            // Prime with a token
+            tokenManager.saveTokens("old-access", "old-refresh")
+            assertTrue(tokenManager.isLoggedIn)
 
-        val repo = makeRepo("""{"status_code":200,"message":"OK","data":null}""", tokenManager)
-        val result = repo.logout()
+            val repo = makeRepo("""{"status_code":200,"message":"OK","data":null}""", tokenManager)
+            val result = repo.logout()
 
-        assertTrue(result is Resource.Success)
-        assertFalse(tokenManager.isLoggedIn)
-        assertNull(tokenManager.refreshToken)
-    }
-
-    @Test
-    fun `logout - clears TokenManager even when API throws`() = kotlinx.coroutines.test.runTest {
-        val settings = MapSettings()
-        val tokenManager = TokenManager(settings)
-        tokenManager.saveTokens("tok", "ref")
-
-        val api = mockApiService { throw Exception("Network error") }
-        val json = Json { ignoreUnknownKeys = true }
-        val repo = AuthRepositoryImpl(
-            api = api,
-            tokenManager = tokenManager,
-            cartRepository = FakeCartRepository(),
-            offlineSaleQueue = OfflineSaleQueue(MapSettings(), json),
-            pricingConfigStore = PricingConfigStore(FakeAdminRepository()),
-            openBillStore = OpenBillStore(MapSettings(), json)
-        )
-
-        val result = repo.logout()
-
-        // logout always succeeds from caller perspective
-        assertTrue(result is Resource.Success)
-        assertFalse(tokenManager.isLoggedIn)
-    }
-
-    @Test
-    fun `logout - with no refresh token returns success immediately without API call`() = kotlinx.coroutines.test.runTest {
-        var apiCallCount = 0
-        val api = mockApiService { _ ->
-            apiCallCount++
-            respond(
-                content = "",
-                status  = io.ktor.http.HttpStatusCode.OK,
-                headers = io.ktor.http.headersOf(io.ktor.http.HttpHeaders.ContentType, "application/json")
-            )
+            assertTrue(result is Resource.Success)
+            assertFalse(tokenManager.isLoggedIn)
+            assertNull(tokenManager.refreshToken)
         }
-        val json = Json { ignoreUnknownKeys = true }
-        val repo = AuthRepositoryImpl(
-            api = api,
-            tokenManager = TokenManager(MapSettings()),
-            cartRepository = FakeCartRepository(),
-            offlineSaleQueue = OfflineSaleQueue(MapSettings(), json),
-            pricingConfigStore = PricingConfigStore(FakeAdminRepository()),
-            openBillStore = OpenBillStore(MapSettings(), json)
-        )
 
-        val result = repo.logout()
+    @Test
+    fun `logout - clears TokenManager even when API throws`() =
+        kotlinx.coroutines.test.runTest {
+            val settings = MapSettings()
+            val tokenManager = TokenManager(settings)
+            tokenManager.saveTokens("tok", "ref")
 
-        assertTrue(result is Resource.Success)
-        assertEquals(0, apiCallCount)
-    }
+            val api = mockApiService { throw Exception("Network error") }
+            val json = Json { ignoreUnknownKeys = true }
+            val repo =
+                AuthRepositoryImpl(
+                    api = api,
+                    tokenManager = tokenManager,
+                    cartRepository = FakeCartRepository(),
+                    offlineSaleQueue = OfflineSaleQueue(MapSettings(), json),
+                    pricingConfigStore = PricingConfigStore(FakeAdminRepository()),
+                    openBillStore = OpenBillStore(MapSettings(), json),
+                )
+
+            val result = repo.logout()
+
+            // logout always succeeds from caller perspective
+            assertTrue(result is Resource.Success)
+            assertFalse(tokenManager.isLoggedIn)
+        }
+
+    @Test
+    fun `logout - with no refresh token returns success immediately without API call`() =
+        kotlinx.coroutines.test.runTest {
+            var apiCallCount = 0
+            val api =
+                mockApiService { _ ->
+                    apiCallCount++
+                    respond(
+                        content = "",
+                        status = io.ktor.http.HttpStatusCode.OK,
+                        headers = io.ktor.http.headersOf(io.ktor.http.HttpHeaders.ContentType, "application/json"),
+                    )
+                }
+            val json = Json { ignoreUnknownKeys = true }
+            val repo =
+                AuthRepositoryImpl(
+                    api = api,
+                    tokenManager = TokenManager(MapSettings()),
+                    cartRepository = FakeCartRepository(),
+                    offlineSaleQueue = OfflineSaleQueue(MapSettings(), json),
+                    pricingConfigStore = PricingConfigStore(FakeAdminRepository()),
+                    openBillStore = OpenBillStore(MapSettings(), json),
+                )
+
+            val result = repo.logout()
+
+            assertTrue(result is Resource.Success)
+            assertEquals(0, apiCallCount)
+        }
 
     // ── getMyTenants ──────────────────────────────────────────────────────────
 
     @Test
-    fun `getMyTenants - success returns tenant list`() = kotlinx.coroutines.test.runTest {
-        val result = makeRepo(tenantListJson).getMyTenants()
+    fun `getMyTenants - success returns tenant list`() =
+        kotlinx.coroutines.test.runTest {
+            val result = makeRepo(tenantListJson).getMyTenants()
 
-        assertTrue(result is Resource.Success)
-        assertEquals(2, result.data.size)
-        assertEquals("t-1", result.data[0].uuid)
-        assertEquals("Warung Rancak", result.data[0].name)
-        assertEquals("active", result.data[0].subscriptionStatus)
-        assertEquals("t-2", result.data[1].uuid)
-    }
-
-    @Test
-    fun `getMyTenants - API error returns Resource_Error`() = kotlinx.coroutines.test.runTest {
-        val result = makeRepo("""{"status_code":500,"message":"Server error","data":null}""").getMyTenants()
-
-        assertTrue(result is Resource.Error)
-        assertEquals("Server sedang bermasalah. Coba lagi nanti.", result.message)
-    }
+            assertTrue(result is Resource.Success)
+            assertEquals(2, result.data.size)
+            assertEquals("t-1", result.data[0].uuid)
+            assertEquals("Warung Rancak", result.data[0].name)
+            assertEquals("active", result.data[0].subscriptionStatus)
+            assertEquals("t-2", result.data[1].uuid)
+        }
 
     @Test
-    fun `getMyTenants - empty list returns Resource_Success with empty list`() = kotlinx.coroutines.test.runTest {
-        val result = makeRepo("""{"status_code":200,"message":"OK","data":[]}""").getMyTenants()
+    fun `getMyTenants - API error returns Resource_Error`() =
+        kotlinx.coroutines.test.runTest {
+            val result = makeRepo("""{"status_code":500,"message":"Server error","data":null}""").getMyTenants()
 
-        assertTrue(result is Resource.Success)
-        assertEquals(0, result.data.size)
-    }
+            assertTrue(result is Resource.Error)
+            assertEquals("Server sedang bermasalah. Coba lagi nanti.", result.message)
+        }
+
+    @Test
+    fun `getMyTenants - empty list returns Resource_Success with empty list`() =
+        kotlinx.coroutines.test.runTest {
+            val result = makeRepo("""{"status_code":200,"message":"OK","data":[]}""").getMyTenants()
+
+            assertTrue(result is Resource.Success)
+            assertEquals(0, result.data.size)
+        }
 
     // ── isLoggedIn / setTenant / getCurrentTenantUuid ─────────────────────────
 
     @Test
-    fun `isLoggedIn - returns false before login`() = kotlinx.coroutines.test.runTest {
-        val repo = makeRepo(loginSuccessJson)
-        assertFalse(repo.isLoggedIn())
-    }
+    fun `isLoggedIn - returns false before login`() =
+        kotlinx.coroutines.test.runTest {
+            val repo = makeRepo(loginSuccessJson)
+            assertFalse(repo.isLoggedIn())
+        }
 
     @Test
-    fun `isLoggedIn - returns true after successful login`() = kotlinx.coroutines.test.runTest {
-        val settings = MapSettings()
-        val tokenManager = TokenManager(settings)
-        val repo = makeRepo(loginSuccessJson, tokenManager)
+    fun `isLoggedIn - returns true after successful login`() =
+        kotlinx.coroutines.test.runTest {
+            val settings = MapSettings()
+            val tokenManager = TokenManager(settings)
+            val repo = makeRepo(loginSuccessJson, tokenManager)
 
-        assertFalse(repo.isLoggedIn())
-        repo.login("a@b.com", "p")
-        assertTrue(repo.isLoggedIn())
-    }
+            assertFalse(repo.isLoggedIn())
+            repo.login("a@b.com", "p")
+            assertTrue(repo.isLoggedIn())
+        }
 
     @Test
-    fun `setTenant persists tenant uuid and name`() = kotlinx.coroutines.test.runTest {
-        val settings = MapSettings()
-        val tokenManager = TokenManager(settings)
-        val repo = makeRepo(loginSuccessJson, tokenManager)
+    fun `setTenant persists tenant uuid and name`() =
+        kotlinx.coroutines.test.runTest {
+            val settings = MapSettings()
+            val tokenManager = TokenManager(settings)
+            val repo = makeRepo(loginSuccessJson, tokenManager)
 
-        repo.setTenant("tenant-xyz", "Kedai Nasi")
+            repo.setTenant("tenant-xyz", "Kedai Nasi")
 
-        assertEquals("tenant-xyz", repo.getCurrentTenantUuid())
-        assertEquals("Kedai Nasi", repo.getCurrentTenantName())
-    }
+            assertEquals("tenant-xyz", repo.getCurrentTenantUuid())
+            assertEquals("Kedai Nasi", repo.getCurrentTenantName())
+        }
 
     // ── refreshToken ──────────────────────────────────────────────────────────
 
     @Test
-    fun `refreshToken - no refresh token returns Resource_Error`() = kotlinx.coroutines.test.runTest {
-        val repo = makeRepo(loginSuccessJson) // no tokens saved
-        val result = repo.refreshToken()
+    fun `refreshToken - no refresh token returns Resource_Error`() =
+        kotlinx.coroutines.test.runTest {
+            val repo = makeRepo(loginSuccessJson) // no tokens saved
+            val result = repo.refreshToken()
 
-        assertTrue(result is Resource.Error)
-        assertEquals("Terjadi kesalahan. Coba lagi.", result.message)
-    }
+            assertTrue(result is Resource.Error)
+            assertEquals("Terjadi kesalahan. Coba lagi.", result.message)
+        }
 
     @Test
-    fun `refreshToken - success updates saved tokens`() = kotlinx.coroutines.test.runTest {
-        val settings = MapSettings()
-        val tokenManager = TokenManager(settings)
-        tokenManager.saveTokens("old-acc", "old-ref")
+    fun `refreshToken - success updates saved tokens`() =
+        kotlinx.coroutines.test.runTest {
+            val settings = MapSettings()
+            val tokenManager = TokenManager(settings)
+            tokenManager.saveTokens("old-acc", "old-ref")
 
-        val refreshResponseJson = """
-            {
-              "status_code": 200,
-              "data": {
-                "access_token": "new-access",
-                "refresh_token": "new-refresh",
-                "token_type": "bearer",
-                "expires_in": 3600,
-                "refresh_expires_at": "2026-05-22T10:00:00Z",
-                "user": {
-                  "uuid": "u1", "name": "A", "email": "a@b.com", "tenants": []
+            val refreshResponseJson =
+                """
+                {
+                  "status_code": 200,
+                  "data": {
+                    "access_token": "new-access",
+                    "refresh_token": "new-refresh",
+                    "token_type": "bearer",
+                    "expires_in": 3600,
+                    "refresh_expires_at": "2026-05-22T10:00:00Z",
+                    "user": {
+                      "uuid": "u1", "name": "A", "email": "a@b.com", "tenants": []
+                    }
+                  }
                 }
-              }
-            }
-        """.trimIndent()
-        val repo = makeRepo(refreshResponseJson, tokenManager)
+                """.trimIndent()
+            val repo = makeRepo(refreshResponseJson, tokenManager)
 
-        val result = repo.refreshToken()
+            val result = repo.refreshToken()
 
-        assertTrue(result is Resource.Success)
-        assertEquals("new-refresh", tokenManager.refreshToken)
-    }
+            assertTrue(result is Resource.Success)
+            assertEquals("new-refresh", tokenManager.refreshToken)
+        }
 }

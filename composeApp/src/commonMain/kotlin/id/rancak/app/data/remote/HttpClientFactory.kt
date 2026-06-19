@@ -22,102 +22,108 @@ import kotlinx.serialization.json.Json
  * internal Ktor.  Keduanya harus didaftarkan bersama sehingga [RancakApiService]
  * dapat memanggil [clearBearerToken] saat logout.
  */
-fun createHttpClient(tokenManager: TokenManager, json: Json): Pair<HttpClient, () -> Unit> {
+fun createHttpClient(
+    tokenManager: TokenManager,
+    json: Json,
+): Pair<HttpClient, () -> Unit> {
     // Ditangkap dari AuthConfig.providers (public) setelah bearer{} dipanggil.
     var capturedBearerProvider: BearerAuthProvider? = null
-    val client = HttpClient {
-        install(ContentNegotiation) {
-            json(json)
-        }
-
-        install(Logging) {
-            logger = platformHttpLogger()
-            // DEBUG: log semua (memudahkan dev), RELEASE: hanya info minimal
-            // untuk menghindari kebocoran token/PII ke Logcat/console.
-            level  = if (isDebugBuild()) LogLevel.ALL else LogLevel.NONE
-            sanitizeHeader { header ->
-                header == HttpHeaders.Authorization ||
-                    header == "X-API-Key" ||
-                    header == HttpHeaders.Cookie ||
-                    header == HttpHeaders.SetCookie
+    val client =
+        HttpClient {
+            install(ContentNegotiation) {
+                json(json)
             }
-        }
 
-        install(DefaultRequest) {
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-            header(HttpHeaders.Accept, ContentType.Application.Json)
-            // App-level API key — required on every request by backend
-            header("X-API-Key", ApiConstants.API_KEY)
-        }
-
-        install(HttpTimeout) {
-            requestTimeoutMillis = 30_000
-            connectTimeoutMillis = 15_000
-            socketTimeoutMillis  = 30_000
-        }
-
-        // ── Auto-refresh Bearer tokens ──
-        // loadTokens is called per-request (always returns the latest token).
-        // refreshTokens is called automatically when a 401 response is received.
-        install(Auth) {
-            bearer {
-                loadTokens {
-                    val access  = tokenManager.accessToken.value ?: return@loadTokens null
-                    val refresh = tokenManager.refreshToken     ?: ""
-                    BearerTokens(access, refresh)
+            install(Logging) {
+                logger = platformHttpLogger()
+                // DEBUG: log semua (memudahkan dev), RELEASE: hanya info minimal
+                // untuk menghindari kebocoran token/PII ke Logcat/console.
+                level = if (isDebugBuild()) LogLevel.ALL else LogLevel.NONE
+                sanitizeHeader { header ->
+                    header == HttpHeaders.Authorization ||
+                        header == "X-API-Key" ||
+                        header == HttpHeaders.Cookie ||
+                        header == HttpHeaders.SetCookie
                 }
+            }
 
-                refreshTokens {
-                    val refreshToken = tokenManager.refreshToken
-                        ?: return@refreshTokens null
+            install(DefaultRequest) {
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                header(HttpHeaders.Accept, ContentType.Application.Json)
+                // App-level API key — required on every request by backend
+                header("X-API-Key", ApiConstants.API_KEY)
+            }
 
-                    return@refreshTokens try {
-                        val response = client.post(
-                            ApiConstants.BASE_URL + ApiConstants.REFRESH
-                        ) {
-                            contentType(ContentType.Application.Json)
-                            setBody(RefreshTokenRequest(refreshToken))
-                            markAsRefreshTokenRequest()
-                        }
-                        if (response.status.isSuccess()) {
-                            val body: ApiResponse<LoginResponse> = response.body()
-                            if (body.isSuccess && body.data != null) {
-                                tokenManager.saveTokens(
-                                    body.data.accessToken,
-                                    body.data.refreshToken
-                                )
-                                BearerTokens(body.data.accessToken, body.data.refreshToken)
+            install(HttpTimeout) {
+                requestTimeoutMillis = 30_000
+                connectTimeoutMillis = 15_000
+                socketTimeoutMillis = 30_000
+            }
+
+            // ── Auto-refresh Bearer tokens ──
+            // loadTokens is called per-request (always returns the latest token).
+            // refreshTokens is called automatically when a 401 response is received.
+            install(Auth) {
+                bearer {
+                    loadTokens {
+                        val access = tokenManager.accessToken.value ?: return@loadTokens null
+                        val refresh = tokenManager.refreshToken ?: ""
+                        BearerTokens(access, refresh)
+                    }
+
+                    refreshTokens {
+                        val refreshToken =
+                            tokenManager.refreshToken
+                                ?: return@refreshTokens null
+
+                        return@refreshTokens try {
+                            val response =
+                                client.post(
+                                    ApiConstants.BASE_URL + ApiConstants.REFRESH,
+                                ) {
+                                    contentType(ContentType.Application.Json)
+                                    setBody(RefreshTokenRequest(refreshToken))
+                                    markAsRefreshTokenRequest()
+                                }
+                            if (response.status.isSuccess()) {
+                                val body: ApiResponse<LoginResponse> = response.body()
+                                if (body.isSuccess && body.data != null) {
+                                    tokenManager.saveTokens(
+                                        body.data.accessToken,
+                                        body.data.refreshToken,
+                                    )
+                                    BearerTokens(body.data.accessToken, body.data.refreshToken)
+                                } else {
+                                    // Refresh rejected — force re-login
+                                    tokenManager.clear()
+                                    null
+                                }
                             } else {
-                                // Refresh rejected — force re-login
                                 tokenManager.clear()
                                 null
                             }
-                        } else {
-                            tokenManager.clear()
+                        } catch (e: Exception) {
+                            // Network error — keep tokens, retry later
                             null
                         }
-                    } catch (e: Exception) {
-                        // Network error — keep tokens, retry later
-                        null
+                    }
+
+                    // Do NOT add Bearer header to public auth endpoints
+                    sendWithoutRequest { request ->
+                        val path = request.url.encodedPath
+                        !path.contains("/auth/login") &&
+                            !path.contains("/auth/refresh") &&
+                            !path.contains("/auth/google") &&
+                            !path.contains("/auth/forgot-password") &&
+                            !path.contains("/auth/reset-password")
                     }
                 }
-
-                // Do NOT add Bearer header to public auth endpoints
-                sendWithoutRequest { request ->
-                    val path = request.url.encodedPath
-                    !path.contains("/auth/login") &&
-                    !path.contains("/auth/refresh") &&
-                    !path.contains("/auth/google") &&
-                    !path.contains("/auth/forgot-password") &&
-                    !path.contains("/auth/reset-password")
-                }
+                // AuthConfig.providers adalah public — capture setelah bearer{} menambahkan provider.
+                capturedBearerProvider = providers.filterIsInstance<BearerAuthProvider>().firstOrNull()
             }
-            // AuthConfig.providers adalah public — capture setelah bearer{} menambahkan provider.
-            capturedBearerProvider = providers.filterIsInstance<BearerAuthProvider>().firstOrNull()
-        }
 
-        expectSuccess = false
-    }
+            expectSuccess = false
+        }
     val clearBearerToken: () -> Unit = { capturedBearerProvider?.clearToken() }
     return Pair(client, clearBearerToken)
 }

@@ -31,15 +31,15 @@ import id.rancak.app.presentation.designsystem.SettingsAccentStore
 @Composable
 internal fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = MaterialTheme.shapes.medium,
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
-            modifier            = Modifier.padding(12.dp),
+            modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
-            content             = content
+            content = content,
         )
     }
 }
@@ -51,48 +51,54 @@ internal fun PrimaryFilterChip(
     onClick: () -> Unit,
     label: @Composable () -> Unit,
     modifier: Modifier = Modifier,
-    leadingIcon: @Composable (() -> Unit)? = null
+    leadingIcon: @Composable (() -> Unit)? = null,
 ) {
     FilterChip(
-        selected    = selected,
-        onClick     = onClick,
-        label       = label,
-        modifier    = modifier,
+        selected = selected,
+        onClick = onClick,
+        label = label,
+        modifier = modifier,
         leadingIcon = leadingIcon,
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor   = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-            selectedLabelColor       = MaterialTheme.colorScheme.primary,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.primary
-        ),
-        border = FilterChipDefaults.filterChipBorder(
-            enabled             = true,
-            selected            = selected,
-            selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-            selectedBorderWidth = 1.2.dp,
-            borderColor         = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-            borderWidth         = 0.8.dp
-        )
+        colors =
+            FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                selectedLabelColor = MaterialTheme.colorScheme.primary,
+                selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
+            ),
+        border =
+            FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = selected,
+                selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                selectedBorderWidth = 1.2.dp,
+                borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                borderWidth = 0.8.dp,
+            ),
     )
 }
 
 /** Icon-tinted section title used on the phone layout. */
 @Composable
-internal fun ContentSectionTitle(icon: ImageVector, title: String, color: Color) {
+internal fun ContentSectionTitle(
+    icon: ImageVector,
+    title: String,
+    color: Color,
+) {
     Row(
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Box(
             modifier = Modifier.size(28.dp).clip(MaterialTheme.shapes.medium).background(color),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
         }
         Text(
             title,
-            style      = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color      = color
+            color = color,
         )
     }
 }
@@ -107,59 +113,73 @@ internal fun SettingsNavItem(
     selected: Boolean,
     onClick: () -> Unit,
     badge: String? = null,
-    badgeOk: Boolean = true
+    badgeOk: Boolean = true,
 ) {
-    val bg = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
-             else Color.Transparent
+    val bg =
+        if (selected) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+        } else {
+            Color.Transparent
+        }
 
     Surface(
-        shape    = MaterialTheme.shapes.medium,
-        color    = bg,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick)
+        shape = MaterialTheme.shapes.medium,
+        color = bg,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.medium)
+                .clickable(onClick = onClick),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(MaterialTheme.shapes.large)
-                    .background(iconBg),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(36.dp)
+                        .clip(MaterialTheme.shapes.large)
+                        .background(iconBg),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     title,
-                    style      = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                 )
                 Text(
                     subtitle,
-                    style    = MaterialTheme.typography.labelSmall,
-                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
                 )
             }
             if (badge != null) {
                 Surface(
                     shape = MaterialTheme.shapes.small,
-                    color = if (badgeOk) MaterialTheme.colorScheme.primaryContainer
-                            else MaterialTheme.colorScheme.errorContainer
+                    color =
+                        if (badgeOk) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.errorContainer
+                        },
                 ) {
                     Text(
                         badge,
-                        modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style      = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = if (badgeOk) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.error
+                        color =
+                            if (badgeOk) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
                     )
                 }
             }
@@ -173,51 +193,63 @@ internal fun PrinterDeviceRow(
     device: PrinterDevice,
     isSaved: Boolean,
     isConnecting: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.small)
-            .clickable(enabled = !isSaved && !isConnecting, onClick = onClick),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.small)
+                .clickable(enabled = !isSaved && !isConnecting, onClick = onClick),
         shape = MaterialTheme.shapes.small,
-        color = if (isSaved) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        color =
+            if (isSaved) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            },
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(
-                Icons.Default.Bluetooth, contentDescription = null,
+                Icons.Default.Bluetooth,
+                contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = if (isSaved) MaterialTheme.colorScheme.primary
-                       else MaterialTheme.colorScheme.onSurfaceVariant
+                tint =
+                    if (isSaved) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     device.name.ifBlank { "Unknown Device" },
-                    style      = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Medium
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
                 )
                 Text(
                     device.address,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             if (isSaved) {
                 Icon(
-                    Icons.Default.CheckCircle, contentDescription = "Terpilih",
-                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp)
+                    Icons.Default.CheckCircle,
+                    contentDescription = "Terpilih",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
                 )
             } else {
                 Text(
                     "Pilih",
-                    style      = MaterialTheme.typography.labelSmall,
-                    color      = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
         }
@@ -232,25 +264,25 @@ private fun SettingsNavItemPreview() {
     RancakTheme {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             SettingsNavItem(
-                icon     = Icons.Default.Print,
-                iconBg   = MaterialTheme.colorScheme.primary,
-                title    = "Printer Kasir",
+                icon = Icons.Default.Print,
+                iconBg = MaterialTheme.colorScheme.primary,
+                title = "Printer Kasir",
                 subtitle = "Rancak-BT01",
-                badge    = "Tersimpan",
-                badgeOk  = true,
+                badge = "Tersimpan",
+                badgeOk = true,
                 selected = true,
-                onClick  = {}
+                onClick = {},
             )
             SettingsNavItem(
-                icon     = Icons.Default.Print,
-                iconBg   = SettingsAccentNeutral,
-                title    = "Umum",
+                icon = Icons.Default.Print,
+                iconBg = SettingsAccentNeutral,
+                title = "Umum",
                 subtitle = "Auto print mati",
                 selected = false,
-                onClick  = {}
+                onClick = {},
             )
         }
     }
@@ -262,19 +294,19 @@ private fun PrinterDeviceRowPreview() {
     RancakTheme {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             PrinterDeviceRow(
-                device       = PrinterDevice("EPSON TM-T82", "AA:BB:CC:DD:EE:01", PrinterConnectionType.BLUETOOTH),
-                isSaved      = true,
+                device = PrinterDevice("EPSON TM-T82", "AA:BB:CC:DD:EE:01", PrinterConnectionType.BLUETOOTH),
+                isSaved = true,
                 isConnecting = false,
-                onClick      = {}
+                onClick = {},
             )
             PrinterDeviceRow(
-                device       = PrinterDevice("Bluetooth Printer", "AA:BB:CC:DD:EE:02", PrinterConnectionType.BLUETOOTH),
-                isSaved      = false,
+                device = PrinterDevice("Bluetooth Printer", "AA:BB:CC:DD:EE:02", PrinterConnectionType.BLUETOOTH),
+                isSaved = false,
                 isConnecting = false,
-                onClick      = {}
+                onClick = {},
             )
         }
     }
@@ -286,7 +318,7 @@ private fun ContentSectionTitlePreview() {
     RancakTheme {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             ContentSectionTitle(Icons.Default.Print, "Printer Kasir", SettingsAccentStore)
         }

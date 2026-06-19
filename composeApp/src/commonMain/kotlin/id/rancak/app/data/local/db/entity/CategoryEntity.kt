@@ -7,22 +7,24 @@ import id.rancak.app.domain.model.Category
 
 @Entity(
     tableName = "categories",
-    indices = [Index(value = ["name"])]
+    indices = [Index(value = ["name"])],
 )
 data class CategoryEntity(
     @PrimaryKey val uuid: String,
     val name: String,
-    val description: String?
+    val description: String?,
 )
 
-fun CategoryEntity.toDomain() = Category(
-    uuid = uuid,
-    name = name,
-    description = description
-)
+fun CategoryEntity.toDomain() =
+    Category(
+        uuid = uuid,
+        name = name,
+        description = description,
+    )
 
-fun Category.toEntity() = CategoryEntity(
-    uuid = uuid,
-    name = name,
-    description = description
-)
+fun Category.toEntity() =
+    CategoryEntity(
+        uuid = uuid,
+        name = name,
+        description = description,
+    )

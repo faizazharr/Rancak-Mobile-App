@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,67 +49,74 @@ internal fun ProductGridContent(
     bottomPad: Dp,
     onRefresh: () -> Unit,
     onAdd: (Product) -> Unit,
-    minCellDp: Int = 110
+    minCellDp: Int = 110,
 ) {
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
 
     when {
-        uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(strokeWidth = 2.dp)
-        }
+        uiState.isLoading ->
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(strokeWidth = 2.dp)
+            }
 
-        uiState.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier            = Modifier.padding(16.dp)
+        uiState.error != null ->
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    Icon(Icons.Default.WifiOff, null, Modifier.size(44.dp), tint = onSurfaceVariant.copy(0.4f))
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        uiState.error,
+                        color = onSurfaceVariant.copy(0.65f),
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedButton(onClick = onRefresh) { Text("Coba Lagi") }
+                }
+            }
+
+        uiState.filteredProducts.isEmpty() ->
+            Box(
+                Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Default.WifiOff, null, Modifier.size(44.dp), tint = onSurfaceVariant.copy(0.4f))
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    uiState.error,
-                    color     = onSurfaceVariant.copy(0.65f),
-                    style     = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(Modifier.height(12.dp))
-                OutlinedButton(onClick = onRefresh) { Text("Coba Lagi") }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.SearchOff, null, Modifier.size(44.dp), tint = onSurfaceVariant.copy(0.3f))
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Produk tidak ditemukan",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = onSurfaceVariant.copy(0.5f),
+                    )
+                }
             }
-        }
 
-        uiState.filteredProducts.isEmpty() -> Box(
-            Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.SearchOff, null, Modifier.size(44.dp), tint = onSurfaceVariant.copy(0.3f))
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "Produk tidak ditemukan",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = onSurfaceVariant.copy(0.5f)
-                )
+        else ->
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = minCellDp.dp),
+                contentPadding =
+                    PaddingValues(
+                        start = 8.dp,
+                        end = 8.dp,
+                        top = 4.dp,
+                        bottom = bottomPad,
+                    ),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(uiState.filteredProducts, key = { it.uuid }) { product ->
+                    val qty = cartQtyMap[product.uuid] ?: 0
+                    PosProductCard(
+                        product = product,
+                        qty = qty,
+                        is86 = product.uuid in uiState.products86Uuids,
+                        onAdd = { onAdd(product) },
+                    )
+                }
             }
-        }
-
-        else -> LazyVerticalGrid(
-            columns               = GridCells.Adaptive(minSize = minCellDp.dp),
-            contentPadding        = PaddingValues(
-                start  = 8.dp, end = 8.dp,
-                top    = 4.dp, bottom = bottomPad
-            ),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement   = Arrangement.spacedBy(8.dp)
-        ) {
-            items(uiState.filteredProducts, key = { it.uuid }) { product ->
-                val qty = cartQtyMap[product.uuid] ?: 0
-                PosProductCard(
-                    product = product,
-                    qty     = qty,
-                    is86    = product.uuid in uiState.products86Uuids,
-                    onAdd   = { onAdd(product) }
-                )
-            }
-        }
     }
 }
 
@@ -122,77 +128,81 @@ internal fun PosProductCard(
     product: Product,
     qty: Int,
     is86: Boolean = false,
-    onAdd: () -> Unit
+    onAdd: () -> Unit,
 ) {
-    val unavailable      = !product.isActive || is86
-    val inCart           = qty > 0
-    val accent           = accentFor(product.category?.name ?: product.name)
-    val inCartColor      = MaterialTheme.colorScheme.primary   // FIX-005: selalu hijau saat di keranjang
-    val onSurface        = MaterialTheme.colorScheme.onSurface
+    val unavailable = !product.isActive || is86
+    val inCart = qty > 0
+    val accent = accentFor(product.category?.name ?: product.name)
+    val inCartColor = MaterialTheme.colorScheme.primary // FIX-005: selalu hijau saat di keranjang
+    val onSurface = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val surfaceVariant   = MaterialTheme.colorScheme.surfaceVariant
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
 
-    val cardBg = when {
-        unavailable -> surfaceVariant.copy(0.35f)
-        inCart      -> inCartColor.copy(0.05f)        // hijau pucat
-        else        -> MaterialTheme.colorScheme.surface
-    }
-    val borderColor = when {
-        unavailable -> MaterialTheme.colorScheme.outlineVariant.copy(0.3f)
-        inCart      -> inCartColor.copy(0.65f)        // border hijau jelas
-        else        -> MaterialTheme.colorScheme.outlineVariant.copy(0.55f)
-    }
+    val cardBg =
+        when {
+            unavailable -> surfaceVariant.copy(0.35f)
+            inCart -> inCartColor.copy(0.05f) // hijau pucat
+            else -> MaterialTheme.colorScheme.surface
+        }
+    val borderColor =
+        when {
+            unavailable -> MaterialTheme.colorScheme.outlineVariant.copy(0.3f)
+            inCart -> inCartColor.copy(0.65f) // border hijau jelas
+            else -> MaterialTheme.colorScheme.outlineVariant.copy(0.55f)
+        }
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.extraLarge)
-            .background(cardBg)
-            .border(
-                width  = if (inCart) 2.dp else 1.dp,
-                color  = borderColor,
-                shape  = MaterialTheme.shapes.extraLarge
-            )
-            .clickable(enabled = !unavailable, onClick = onAdd)
-            .padding(horizontal = 10.dp, vertical = 10.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(cardBg)
+                .border(
+                    width = if (inCart) 2.dp else 1.dp,
+                    color = borderColor,
+                    shape = MaterialTheme.shapes.extraLarge,
+                )
+                .clickable(enabled = !unavailable, onClick = onAdd)
+                .padding(horizontal = 10.dp, vertical = 10.dp),
     ) {
         Column(Modifier.fillMaxWidth()) {
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.Top
+                verticalAlignment = Alignment.Top,
             ) {
                 Text(
                     product.name,
-                    style      = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color      = if (!unavailable) onSurface else onSurfaceVariant.copy(0.4f),
-                    maxLines   = 3,
-                    overflow   = TextOverflow.Ellipsis,
-                    modifier   = Modifier
-                        .weight(1f)
-                        .heightIn(min = 44.dp)
+                    color = if (!unavailable) onSurface else onSurfaceVariant.copy(0.4f),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .heightIn(min = 44.dp),
                 )
 
                 Spacer(Modifier.width(4.dp))
 
                 AnimatedVisibility(
                     visible = inCart,
-                    enter   = scaleIn(tween(150)) + fadeIn(tween(150)),
-                    exit    = scaleOut(tween(110)) + fadeOut(tween(110))
+                    enter = scaleIn(tween(150)) + fadeIn(tween(150)),
+                    exit = scaleOut(tween(110)) + fadeOut(tween(110)),
                 ) {
                     Box(
                         Modifier
                             .size(22.dp)
                             .clip(CircleShape)
-                            .background(inCartColor),   // FIX-005: selalu hijau
-                        contentAlignment = Alignment.Center
+                            .background(inCartColor), // FIX-005: selalu hijau
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             "$qty",
-                            style      = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.ExtraBold,
-                            color      = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                 }
@@ -203,15 +213,19 @@ internal fun PosProductCard(
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     formatRupiah(product.price),
-                    style      = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color      = if (!unavailable) (if (inCart) inCartColor else accent).copy(0.85f)
-                                 else onSurfaceVariant.copy(0.3f),
-                    maxLines   = 1
+                    color =
+                        if (!unavailable) {
+                            (if (inCart) inCartColor else accent).copy(0.85f)
+                        } else {
+                            onSurfaceVariant.copy(0.3f)
+                        },
+                    maxLines = 1,
                 )
 
                 if (is86) {
@@ -219,13 +233,13 @@ internal fun PosProductCard(
                         Modifier
                             .clip(MaterialTheme.shapes.small)
                             .background(MaterialTheme.colorScheme.errorContainer)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
                     ) {
                         Text(
                             "86",
-                            style    = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color    = MaterialTheme.colorScheme.error
+                            color = MaterialTheme.colorScheme.error,
                         )
                     }
                 } else if (!product.isActive) {
@@ -233,12 +247,12 @@ internal fun PosProductCard(
                         Modifier
                             .clip(MaterialTheme.shapes.small)
                             .background(surfaceVariant)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
                     ) {
                         Text(
                             "Habis",
-                            style    = MaterialTheme.typography.labelSmall,
-                            color    = onSurfaceVariant.copy(0.5f)
+                            style = MaterialTheme.typography.labelSmall,
+                            color = onSurfaceVariant.copy(0.5f),
                         )
                     }
                 }
@@ -254,8 +268,8 @@ private fun PosProductCardPreview_Available() {
         Box(Modifier.padding(8.dp).size(width = 160.dp, height = 120.dp)) {
             PosProductCard(
                 product = previewProduct(isActive = true),
-                qty     = 0,
-                onAdd   = {}
+                qty = 0,
+                onAdd = {},
             )
         }
     }
@@ -268,8 +282,8 @@ private fun PosProductCardPreview_InCart() {
         Box(Modifier.padding(8.dp).size(width = 160.dp, height = 120.dp)) {
             PosProductCard(
                 product = previewProduct(isActive = true),
-                qty     = 3,
-                onAdd   = {}
+                qty = 3,
+                onAdd = {},
             )
         }
     }
@@ -282,24 +296,25 @@ private fun PosProductCardPreview_OutOfStock() {
         Box(Modifier.padding(8.dp).size(width = 160.dp, height = 120.dp)) {
             PosProductCard(
                 product = previewProduct(isActive = false),
-                qty     = 0,
-                onAdd   = {}
+                qty = 0,
+                onAdd = {},
             )
         }
     }
 }
 
-private fun previewProduct(isActive: Boolean) = Product(
-    uuid        = "p-1",
-    sku         = "SKU-001",
-    barcode     = null,
-    name        = "Kopi Susu Gula Aren",
-    description = null,
-    category    = Category(uuid = "c1", name = "Minuman", description = null),
-    price       = 18_000L,
-    stock       = 12.0,
-    unit        = "cup",
-    imageUrl    = null,
-    isActive    = isActive,
-    updatedAt   = null
-)
+private fun previewProduct(isActive: Boolean) =
+    Product(
+        uuid = "p-1",
+        sku = "SKU-001",
+        barcode = null,
+        name = "Kopi Susu Gula Aren",
+        description = null,
+        category = Category(uuid = "c1", name = "Minuman", description = null),
+        price = 18_000L,
+        stock = 12.0,
+        unit = "cup",
+        imageUrl = null,
+        isActive = isActive,
+        updatedAt = null,
+    )

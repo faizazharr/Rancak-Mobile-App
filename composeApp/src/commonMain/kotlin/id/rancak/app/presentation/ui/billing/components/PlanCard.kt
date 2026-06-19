@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,7 +23,6 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.designsystem.Secondary
 import id.rancak.app.presentation.ui.billing.formatPlanPrice
 import id.rancak.app.presentation.ui.billing.linearGradientBrush
-import androidx.compose.material.icons.filled.Refresh
 
 @Composable
 fun PlanCard(
@@ -30,7 +30,7 @@ fun PlanCard(
     isCurrentPlan: Boolean,
     onSubscribe: () -> Unit,
     modifier: Modifier = Modifier,
-    isExpiredPlan: Boolean = false
+    isExpiredPlan: Boolean = false,
 ) {
     val shape = MaterialTheme.shapes.extraLarge
 
@@ -40,24 +40,27 @@ fun PlanCard(
             shape = shape,
             border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFF59E0B)),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             Column {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Color(0xFFFEF3C7),
-                            shape = MaterialTheme.shapes.extraLarge.copy(
-                                bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Color(0xFFFEF3C7),
+                                shape =
+                                    MaterialTheme.shapes.extraLarge.copy(
+                                        bottomStart = CornerSize(0.dp),
+                                        bottomEnd = CornerSize(0.dp),
+                                    ),
                             )
-                        )
-                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
                             plan.name,
@@ -66,25 +69,25 @@ fun PlanCard(
                             color = Color(0xFF92400E),
                             modifier = Modifier.weight(1f),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Surface(
                             shape = CircleShape,
-                            color = Color(0xFFF59E0B).copy(alpha = 0.2f)
+                            color = Color(0xFFF59E0B).copy(alpha = 0.2f),
                         ) {
                             Text(
                                 "KEDALUWARSA",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF92400E),
-                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
                             )
                         }
                     }
                 }
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     if (plan.description != null) {
                         Text(
@@ -92,38 +95,38 @@ fun PlanCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(
                                 formatPlanPrice(plan.totalPrice),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 "${plan.durationDays} hari" + if (plan.maxUsers != null) " · ${plan.maxUsers} user" else "",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Button(
                             onClick = onSubscribe,
                             shape = MaterialTheme.shapes.extraLarge,
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B))
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B)),
                         ) {
                             Icon(
                                 Icons.Default.Refresh,
                                 contentDescription = null,
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier.size(14.dp),
                             )
                             Spacer(Modifier.width(4.dp))
                             Text("Perbarui", style = MaterialTheme.typography.labelMedium)
@@ -138,22 +141,23 @@ fun PlanCard(
             shape = shape,
             border = androidx.compose.foundation.BorderStroke(2.dp, Primary),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             Column {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.linearGradientBrush(listOf(Primary, Color(0xFF1DB88A))),
-                            shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp))
-                        )
-                        .padding(horizontal = 14.dp, vertical = 12.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Brush.linearGradientBrush(listOf(Primary, Color(0xFF1DB88A))),
+                                shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)),
+                            )
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
                             plan.name,
@@ -162,51 +166,75 @@ fun PlanCard(
                             color = Color.White,
                             modifier = Modifier.weight(1f),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             if (plan.isTrial) {
                                 Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.22f)) {
-                                    Text("TRIAL", style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold, color = Color.White,
-                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp))
+                                    Text(
+                                        "TRIAL",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                                    )
                                 }
                             }
                             Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.22f)) {
-                                Text("AKTIF", style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold, color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp))
+                                Text(
+                                    "AKTIF",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                                )
                             }
                         }
                     }
                 }
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     if (plan.description != null) {
-                        Text(plan.description, style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2,
-                            overflow = TextOverflow.Ellipsis)
+                        Text(
+                            plan.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(formatPlanPrice(plan.totalPrice), style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold, color = Primary)
-                            Text("${plan.durationDays} hari" + if (plan.maxUsers != null) " · ${plan.maxUsers} user" else "",
+                            Text(
+                                formatPlanPrice(plan.totalPrice),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Primary,
+                            )
+                            Text(
+                                "${plan.durationDays} hari" + if (plan.maxUsers != null) " · ${plan.maxUsers} user" else "",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
                             Icon(Icons.Default.CheckCircle, null, tint = Primary, modifier = Modifier.size(18.dp))
-                            Text("Aktif", style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold, color = Primary)
+                            Text(
+                                "Aktif",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Primary,
+                            )
                         }
                     }
                 }
@@ -218,40 +246,65 @@ fun PlanCard(
             shape = shape,
             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxWidth()) {
-                    Text(plan.name, style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        plan.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     if (plan.isTrial) SmallBadge("TRIAL", Secondary)
                 }
                 if (plan.description != null) {
-                    Text(plan.description, style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2,
-                        overflow = TextOverflow.Ellipsis)
+                    Text(
+                        plan.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(formatPlanPrice(plan.totalPrice), style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("${plan.durationDays} hari" + if (plan.maxUsers != null) " · ${plan.maxUsers} user" else "",
+                        Text(
+                            formatPlanPrice(plan.totalPrice),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            "${plan.durationDays} hari" + if (plan.maxUsers != null) " · ${plan.maxUsers} user" else "",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
-                    Button(onClick = onSubscribe, shape = MaterialTheme.shapes.extraLarge,
+                    Button(
+                        onClick = onSubscribe,
+                        shape = MaterialTheme.shapes.extraLarge,
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Primary)) {
-                        Text(if (plan.isTrial) "Coba" else "Langganan",
-                            style = MaterialTheme.typography.labelMedium)
+                        colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    ) {
+                        Text(
+                            if (plan.isTrial) "Coba" else "Langganan",
+                            style = MaterialTheme.typography.labelMedium,
+                        )
                     }
                 }
             }

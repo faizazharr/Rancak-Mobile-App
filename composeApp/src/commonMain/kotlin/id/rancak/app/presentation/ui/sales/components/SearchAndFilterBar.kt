@@ -28,9 +28,9 @@ import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.sales.formatDateShort
 import id.rancak.app.presentation.viewmodel.DateFilter
-import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 /**
  * Top bar of [id.rancak.app.presentation.ui.sales.SalesHistoryScreen]: a
@@ -49,15 +49,16 @@ internal fun SearchAndFilterBar(
     onStatusFilter: (SaleStatus?) -> Unit,
     onCustomDateRange: (Long, Long) -> Unit,
     onClear: () -> Unit,
-    hasActiveFilter: Boolean
+    hasActiveFilter: Boolean,
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         OutlinedTextField(
             value = query,
@@ -67,7 +68,7 @@ internal fun SearchAndFilterBar(
                 Text(
                     "Cari invoice atau nama produk…",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 )
             },
             leadingIcon = {
@@ -82,23 +83,23 @@ internal fun SearchAndFilterBar(
             },
             singleLine = true,
             shape = MaterialTheme.shapes.medium,
-            textStyle = MaterialTheme.typography.bodySmall
+            textStyle = MaterialTheme.typography.bodySmall,
         )
 
         DateFilterRow(
-            dateFilter     = dateFilter,
+            dateFilter = dateFilter,
             customDateFrom = customDateFrom,
-            customDateTo   = customDateTo,
-            onDateFilter   = onDateFilter,
-            onPickCustom   = { showDatePicker = true },
-            onClear        = onClear
+            customDateTo = customDateTo,
+            onDateFilter = onDateFilter,
+            onPickCustom = { showDatePicker = true },
+            onClear = onClear,
         )
 
         StatusFilterRow(
-            selected        = statusFilter,
+            selected = statusFilter,
             hasActiveFilter = hasActiveFilter,
-            onStatusFilter  = onStatusFilter,
-            onClear         = onClear
+            onStatusFilter = onStatusFilter,
+            onClear = onClear,
         )
     }
 
@@ -108,7 +109,7 @@ internal fun SearchAndFilterBar(
             onConfirm = { from, to ->
                 onCustomDateRange(from, to)
                 showDatePicker = false
-            }
+            },
         )
     }
 }
@@ -120,35 +121,38 @@ private fun DateFilterRow(
     customDateTo: String?,
     onDateFilter: (DateFilter) -> Unit,
     onPickCustom: () -> Unit,
-    onClear: () -> Unit
+    onClear: () -> Unit,
 ) {
     Row(
         modifier = Modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         DateFilter.entries
             .filter { it != DateFilter.CUSTOM }
             .forEach { filter ->
                 DatePill(
-                    label    = filter.label,
+                    label = filter.label,
                     selected = dateFilter == filter,
-                    onClick  = { onDateFilter(filter) }
+                    onClick = { onDateFilter(filter) },
                 )
             }
 
-        val customLabel = if (customDateFrom != null && customDateTo != null)
-            "${formatDateShort(customDateFrom)} – ${formatDateShort(customDateTo)}"
-        else null
+        val customLabel =
+            if (customDateFrom != null && customDateTo != null) {
+                "${formatDateShort(customDateFrom)} – ${formatDateShort(customDateTo)}"
+            } else {
+                null
+            }
 
         CustomDatePill(
-            label    = customLabel,
+            label = customLabel,
             selected = dateFilter == DateFilter.CUSTOM,
-            onClick  = onPickCustom,
-            onClear  = {
+            onClick = onPickCustom,
+            onClear = {
                 onDateFilter(DateFilter.ALL)
                 onClear()
-            }
+            },
         )
     }
 }
@@ -158,26 +162,27 @@ private fun StatusFilterRow(
     selected: SaleStatus?,
     hasActiveFilter: Boolean,
     onStatusFilter: (SaleStatus?) -> Unit,
-    onClear: () -> Unit
+    onClear: () -> Unit,
 ) {
-    val statusOptions: List<Pair<SaleStatus?, String>> = listOf(
-        null                to "Semua",
-        SaleStatus.HELD     to "Belum Bayar",
-        SaleStatus.PAID     to "Lunas",
-        SaleStatus.REFUNDED to "Refund",
-        SaleStatus.VOID     to "Void"
-    )
+    val statusOptions: List<Pair<SaleStatus?, String>> =
+        listOf(
+            null to "Semua",
+            SaleStatus.HELD to "Belum Bayar",
+            SaleStatus.PAID to "Lunas",
+            SaleStatus.REFUNDED to "Refund",
+            SaleStatus.VOID to "Void",
+        )
     Row(
         modifier = Modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         statusOptions.forEach { (status, label) ->
             StatusPill(
-                label    = label,
-                status   = status,
+                label = label,
+                status = status,
                 selected = selected == status,
-                onClick  = { onStatusFilter(status) }
+                onClick = { onStatusFilter(status) },
             )
         }
 
@@ -186,26 +191,28 @@ private fun StatusFilterRow(
             Surface(
                 shape = MaterialTheme.shapes.extraLarge,
                 color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f),
-                modifier = Modifier
-                    .height(28.dp)
-                    .clip(MaterialTheme.shapes.extraLarge)
-                    .clickable(onClick = onClear)
+                modifier =
+                    Modifier
+                        .height(28.dp)
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .clickable(onClick = onClear),
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(
-                        Icons.Default.FilterAltOff, contentDescription = null,
+                        Icons.Default.FilterAltOff,
+                        contentDescription = null,
                         modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.error
+                        tint = MaterialTheme.colorScheme.error,
                     )
                     Text(
                         "Reset",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                 }
             }
@@ -215,33 +222,50 @@ private fun StatusFilterRow(
 
 /** Pill for preset date filters (Hari Ini / Kemarin / 7 Hari / …). */
 @Composable
-private fun DatePill(label: String, selected: Boolean, onClick: () -> Unit) {
-    val bgColor = if (selected) MaterialTheme.colorScheme.primary
-                  else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-    val txtColor = if (selected) MaterialTheme.colorScheme.onPrimary
-                   else MaterialTheme.colorScheme.onSurfaceVariant
+private fun DatePill(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val bgColor =
+        if (selected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        }
+    val txtColor =
+        if (selected) {
+            MaterialTheme.colorScheme.onPrimary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
 
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
         color = bgColor,
-        modifier = Modifier
-            .height(30.dp)
-            .clip(MaterialTheme.shapes.extraLarge)
-            .clickable(onClick = onClick)
-            .then(
-                if (!selected) Modifier.border(
-                    width = 0.8.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-                    shape = MaterialTheme.shapes.extraLarge
-                ) else Modifier
-            )
+        modifier =
+            Modifier
+                .height(30.dp)
+                .clip(MaterialTheme.shapes.extraLarge)
+                .clickable(onClick = onClick)
+                .then(
+                    if (!selected) {
+                        Modifier.border(
+                            width = 0.8.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                            shape = MaterialTheme.shapes.extraLarge,
+                        )
+                    } else {
+                        Modifier
+                    },
+                ),
     ) {
         Box(modifier = Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                color = txtColor
+                color = txtColor,
             )
         }
     }
@@ -253,46 +277,60 @@ private fun CustomDatePill(
     label: String?,
     selected: Boolean,
     onClick: () -> Unit,
-    onClear: () -> Unit
+    onClear: () -> Unit,
 ) {
-    val bgColor = if (selected) MaterialTheme.colorScheme.tertiary
-                  else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-    val txtColor = if (selected) MaterialTheme.colorScheme.onTertiary
-                   else MaterialTheme.colorScheme.onSurfaceVariant
+    val bgColor =
+        if (selected) {
+            MaterialTheme.colorScheme.tertiary
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        }
+    val txtColor =
+        if (selected) {
+            MaterialTheme.colorScheme.onTertiary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
 
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
         color = bgColor,
-        modifier = Modifier
-            .height(30.dp)
-            .clip(MaterialTheme.shapes.extraLarge)
-            .clickable(onClick = onClick)
-            .then(
-                if (!selected) Modifier.border(
-                    width = 0.8.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-                    shape = MaterialTheme.shapes.extraLarge
-                ) else Modifier
-            )
+        modifier =
+            Modifier
+                .height(30.dp)
+                .clip(MaterialTheme.shapes.extraLarge)
+                .clickable(onClick = onClick)
+                .then(
+                    if (!selected) {
+                        Modifier.border(
+                            width = 0.8.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                            shape = MaterialTheme.shapes.extraLarge,
+                        )
+                    } else {
+                        Modifier
+                    },
+                ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(Icons.Default.CalendarMonth, null, modifier = Modifier.size(12.dp), tint = txtColor)
             Text(
                 text = label ?: "Pilih Tanggal",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                color = txtColor
+                color = txtColor,
             )
             if (selected && label != null) {
                 Spacer(Modifier.width(2.dp))
                 Icon(
-                    Icons.Default.Close, contentDescription = "Hapus rentang",
+                    Icons.Default.Close,
+                    contentDescription = "Hapus rentang",
                     modifier = Modifier.size(12.dp).clickable(onClick = onClear),
-                    tint = txtColor.copy(alpha = 0.8f)
+                    tint = txtColor.copy(alpha = 0.8f),
                 )
             }
         }
@@ -305,55 +343,71 @@ private fun StatusPill(
     label: String,
     status: SaleStatus?,
     selected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val semantic = RancakColors.semantic
-    val dotColor = when (status) {
-        SaleStatus.PAID      -> semantic.success
-        SaleStatus.HELD      -> semantic.warning
-        SaleStatus.VOID,
-        SaleStatus.CANCELLED -> MaterialTheme.colorScheme.error
-        SaleStatus.REFUNDED  -> semantic.info
-        null                 -> MaterialTheme.colorScheme.outline
-    }
-    val bgColor     = if (selected) dotColor.copy(alpha = 0.15f)
-                      else MaterialTheme.colorScheme.surface
-    val borderColor = if (selected) dotColor
-                      else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-    val txtColor    = if (selected) dotColor
-                      else MaterialTheme.colorScheme.onSurfaceVariant
+    val dotColor =
+        when (status) {
+            SaleStatus.PAID -> semantic.success
+            SaleStatus.HELD -> semantic.warning
+            SaleStatus.VOID,
+            SaleStatus.CANCELLED,
+            -> MaterialTheme.colorScheme.error
+            SaleStatus.REFUNDED -> semantic.info
+            null -> MaterialTheme.colorScheme.outline
+        }
+    val bgColor =
+        if (selected) {
+            dotColor.copy(alpha = 0.15f)
+        } else {
+            MaterialTheme.colorScheme.surface
+        }
+    val borderColor =
+        if (selected) {
+            dotColor
+        } else {
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        }
+    val txtColor =
+        if (selected) {
+            dotColor
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
 
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
         color = bgColor,
-        modifier = Modifier
-            .height(28.dp)
-            .clip(MaterialTheme.shapes.extraLarge)
-            .clickable(onClick = onClick)
-            .border(
-                width = if (selected) 1.2.dp else 0.6.dp,
-                color = borderColor,
-                shape = MaterialTheme.shapes.extraLarge
-            )
+        modifier =
+            Modifier
+                .height(28.dp)
+                .clip(MaterialTheme.shapes.extraLarge)
+                .clickable(onClick = onClick)
+                .border(
+                    width = if (selected) 1.2.dp else 0.6.dp,
+                    color = borderColor,
+                    shape = MaterialTheme.shapes.extraLarge,
+                ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             if (status != null) {
                 Box(
-                    modifier = Modifier
-                        .size(6.dp)
-                        .clip(CircleShape)
-                        .background(dotColor)
+                    modifier =
+                        Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(dotColor),
                 )
             }
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                color = txtColor
+                color = txtColor,
             )
         }
     }
@@ -364,11 +418,12 @@ private fun StatusPill(
 @Composable
 private fun DateRangePickerDialog(
     onDismiss: () -> Unit,
-    onConfirm: (Long, Long) -> Unit
+    onConfirm: (Long, Long) -> Unit,
 ) {
     val state = rememberDateRangePickerState()
-    val confirmEnabled = state.selectedStartDateMillis != null &&
-        state.selectedEndDateMillis != null
+    val confirmEnabled =
+        state.selectedStartDateMillis != null &&
+            state.selectedEndDateMillis != null
 
     DatePickerDialog(
         onDismissRequest = onDismiss,
@@ -377,54 +432,62 @@ private fun DateRangePickerDialog(
                 onClick = {
                     onConfirm(state.selectedStartDateMillis!!, state.selectedEndDateMillis!!)
                 },
-                enabled = confirmEnabled
+                enabled = confirmEnabled,
             ) { Text("Terapkan") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Batal") }
-        }
+        },
     ) {
         DateRangePicker(
             state = state,
             title = {
                 Text(
                     "Pilih Rentang Tanggal",
-                    modifier = Modifier.padding(start = 24.dp, top = 16.dp)
+                    modifier = Modifier.padding(start = 24.dp, top = 16.dp),
                 )
             },
             headline = {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = state.selectedStartDateMillis?.let {
-                            formatDateShort(
-                                Instant.fromEpochMilliseconds(it)
-                                    .toLocalDateTime(TimeZone.UTC).date.toString()
-                            )
-                        } ?: "Mulai",
+                        text =
+                            state.selectedStartDateMillis?.let {
+                                formatDateShort(
+                                    Instant.fromEpochMilliseconds(it)
+                                        .toLocalDateTime(TimeZone.UTC).date.toString(),
+                                )
+                            } ?: "Mulai",
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (state.selectedStartDateMillis != null)
-                            MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
+                        color =
+                            if (state.selectedStartDateMillis != null) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                     )
                     Text("–", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        text = state.selectedEndDateMillis?.let {
-                            formatDateShort(
-                                Instant.fromEpochMilliseconds(it)
-                                    .toLocalDateTime(TimeZone.UTC).date.toString()
-                            )
-                        } ?: "Selesai",
+                        text =
+                            state.selectedEndDateMillis?.let {
+                                formatDateShort(
+                                    Instant.fromEpochMilliseconds(it)
+                                        .toLocalDateTime(TimeZone.UTC).date.toString(),
+                                )
+                            } ?: "Selesai",
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (state.selectedEndDateMillis != null)
-                            MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
+                        color =
+                            if (state.selectedEndDateMillis != null) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                     )
                 }
             },
-            modifier = Modifier.weight(1f, false)
+            modifier = Modifier.weight(1f, false),
         )
     }
 }
@@ -435,17 +498,17 @@ private fun DateRangePickerDialog(
 private fun SearchAndFilterBarPreview_Empty() {
     RancakTheme {
         SearchAndFilterBar(
-            query             = "",
-            dateFilter        = DateFilter.ALL,
-            statusFilter      = null,
-            customDateFrom    = null,
-            customDateTo      = null,
-            onQueryChange     = {},
-            onDateFilter      = {},
-            onStatusFilter    = {},
+            query = "",
+            dateFilter = DateFilter.ALL,
+            statusFilter = null,
+            customDateFrom = null,
+            customDateTo = null,
+            onQueryChange = {},
+            onDateFilter = {},
+            onStatusFilter = {},
             onCustomDateRange = { _, _ -> },
-            onClear           = {},
-            hasActiveFilter   = false
+            onClear = {},
+            hasActiveFilter = false,
         )
     }
 }
@@ -456,17 +519,17 @@ private fun SearchAndFilterBarPreview_Empty() {
 private fun SearchAndFilterBarPreview_Active() {
     RancakTheme {
         SearchAndFilterBar(
-            query             = "INV-0001",
-            dateFilter        = DateFilter.TODAY,
-            statusFilter      = SaleStatus.PAID,
-            customDateFrom    = null,
-            customDateTo      = null,
-            onQueryChange     = {},
-            onDateFilter      = {},
-            onStatusFilter    = {},
+            query = "INV-0001",
+            dateFilter = DateFilter.TODAY,
+            statusFilter = SaleStatus.PAID,
+            customDateFrom = null,
+            customDateTo = null,
+            onQueryChange = {},
+            onDateFilter = {},
+            onStatusFilter = {},
             onCustomDateRange = { _, _ -> },
-            onClear           = {},
-            hasActiveFilter   = true
+            onClear = {},
+            hasActiveFilter = true,
         )
     }
 }

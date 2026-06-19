@@ -38,7 +38,7 @@ data class PendingSale(
     /** Unique identifier of the device (e.g. Android ID or UUID stored in settings). */
     val deviceId: String,
     /** Epoch millis — used to order pending sales chronologically during batch sync. */
-    val enqueuedAt: Long = 0L
+    val enqueuedAt: Long = 0L,
 )
 
 @Serializable
@@ -46,37 +46,39 @@ data class PendingSaleItem(
     val productUuid: String,
     val qty: Int,
     val variantUuid: String? = null,
-    val note: String? = null
+    val note: String? = null,
 )
 
 /**
  * Converts a [PendingSale] to the DTO format required by the batch sales API.
  * Shared between Android (SyncWorker) and iOS (IosSyncRunner).
  */
-fun PendingSale.toBatchItem() = BatchSaleItem(
-    idempotencyKey  = idempotencyKey,
-    deviceCreatedAt = deviceCreatedAt,
-    deviceId        = deviceId,
-    items = items.map { item ->
-        SaleItemRequest(
-            productUuid = item.productUuid,
-            qty         = item.qty,
-            variantUuid = item.variantUuid,
-            note        = item.note
-        )
-    },
-    paymentMethod = paymentMethod,
-    paidAmount    = paidAmount,
-    orderType     = orderType,
-    customerName  = customerName,
-    pax           = pax.takeIf { it > 1 },
-    note          = note,
-    hold          = hold.takeIf { it },
-    discount      = discount.takeIf { it > 0 },
-    tax           = tax.takeIf { it > 0 },
-    adminFee      = adminFee.takeIf { it > 0 },
-    deliveryFee   = deliveryFee.takeIf { it > 0 },
-    tip           = tip.takeIf { it > 0 },
-    voucherCode   = voucherCode,
-    tableUuid     = tableUuid
-)
+fun PendingSale.toBatchItem() =
+    BatchSaleItem(
+        idempotencyKey = idempotencyKey,
+        deviceCreatedAt = deviceCreatedAt,
+        deviceId = deviceId,
+        items =
+            items.map { item ->
+                SaleItemRequest(
+                    productUuid = item.productUuid,
+                    qty = item.qty,
+                    variantUuid = item.variantUuid,
+                    note = item.note,
+                )
+            },
+        paymentMethod = paymentMethod,
+        paidAmount = paidAmount,
+        orderType = orderType,
+        customerName = customerName,
+        pax = pax.takeIf { it > 1 },
+        note = note,
+        hold = hold.takeIf { it },
+        discount = discount.takeIf { it > 0 },
+        tax = tax.takeIf { it > 0 },
+        adminFee = adminFee.takeIf { it > 0 },
+        deliveryFee = deliveryFee.takeIf { it > 0 },
+        tip = tip.takeIf { it > 0 },
+        voucherCode = voucherCode,
+        tableUuid = tableUuid,
+    )

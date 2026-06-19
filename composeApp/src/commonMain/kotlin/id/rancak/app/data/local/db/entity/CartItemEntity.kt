@@ -6,7 +6,7 @@ import id.rancak.app.domain.model.CartItem
 
 @Entity(tableName = "cart_items")
 data class CartItemEntity(
-    @PrimaryKey val id: String,          // "$productUuid:${variantUuid ?: "_"}"
+    @PrimaryKey val id: String, // "$productUuid:${variantUuid ?: "_"}"
     val productUuid: String,
     val productName: String,
     val qty: Int,
@@ -14,28 +14,30 @@ data class CartItemEntity(
     val variantUuid: String?,
     val variantName: String?,
     val note: String?,
-    val imageUrl: String?
+    val imageUrl: String?,
 )
 
-fun CartItemEntity.toDomain() = CartItem(
-    productUuid = productUuid,
-    productName = productName,
-    qty = qty,
-    price = price,
-    variantUuid = variantUuid,
-    variantName = variantName,
-    note = note,
-    imageUrl = imageUrl
-)
+fun CartItemEntity.toDomain() =
+    CartItem(
+        productUuid = productUuid,
+        productName = productName,
+        qty = qty,
+        price = price,
+        variantUuid = variantUuid,
+        variantName = variantName,
+        note = note,
+        imageUrl = imageUrl,
+    )
 
-fun CartItem.toEntity() = CartItemEntity(
-    id = "$productUuid:${variantUuid ?: "_"}",
-    productUuid = productUuid,
-    productName = productName,
-    qty = qty,
-    price = price,
-    variantUuid = variantUuid,
-    variantName = variantName,
-    note = note,
-    imageUrl = imageUrl
-)
+fun CartItem.toEntity() =
+    CartItemEntity(
+        id = "$productUuid:${variantUuid ?: "_"}",
+        productUuid = productUuid,
+        productName = productName,
+        qty = qty,
+        price = price,
+        variantUuid = variantUuid,
+        variantName = variantName,
+        note = note,
+        imageUrl = imageUrl,
+    )

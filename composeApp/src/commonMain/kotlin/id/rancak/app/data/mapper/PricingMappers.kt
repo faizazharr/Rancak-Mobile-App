@@ -1,6 +1,5 @@
 package id.rancak.app.data.mapper
 
-import kotlinx.collections.immutable.toImmutableList
 import id.rancak.app.data.remote.dto.operations.AppliedRuleDto
 import id.rancak.app.data.remote.dto.operations.DiscountPreviewDto
 import id.rancak.app.data.remote.dto.operations.VoucherDto
@@ -15,92 +14,101 @@ import id.rancak.app.domain.model.Surcharge
 import id.rancak.app.domain.model.TaxConfig
 import id.rancak.app.domain.model.Voucher
 import id.rancak.app.domain.model.VoucherValidation
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * DTO → domain mappers for Surcharges, Taxes, Discount rules, Vouchers.
  */
 
-fun SurchargeDto.toDomain() = Surcharge(
-    uuid = uuid,
-    orderType = orderType,
-    name = name,
-    amount = amount.toLongOrNull() ?: 0L,
-    isPercentage = isPercentage,
-    maxAmount = maxAmount?.toLongOrNull(),
-    isActive = isActive,
-    sortOrder = sortOrder
-)
+fun SurchargeDto.toDomain() =
+    Surcharge(
+        uuid = uuid,
+        orderType = orderType,
+        name = name,
+        amount = amount.toLongOrNull() ?: 0L,
+        isPercentage = isPercentage,
+        maxAmount = maxAmount?.toLongOrNull(),
+        isActive = isActive,
+        sortOrder = sortOrder,
+    )
 
-fun TaxConfigDto.toDomain() = TaxConfig(
-    uuid = uuid,
-    name = name,
-    rate = rate.toDoubleOrNull() ?: 0.0,
-    applyTo = applyTo ?: "after_discount",
-    sortOrder = sortOrder,
-    isActive = isActive
-)
+fun TaxConfigDto.toDomain() =
+    TaxConfig(
+        uuid = uuid,
+        name = name,
+        rate = rate.toDoubleOrNull() ?: 0.0,
+        applyTo = applyTo ?: "after_discount",
+        sortOrder = sortOrder,
+        isActive = isActive,
+    )
 
-fun DiscountRuleDto.toDomain() = DiscountRule(
-    uuid = uuid,
-    name = name,
-    description = description,
-    ruleType = ruleType ?: "always",
-    discountType = discountType ?: "pct",
-    discountValue = discountValue?.toDoubleOrNull() ?: 0.0,
-    startTime = startTime,
-    endTime = endTime,
-    applicableDays = applicableDays?.toImmutableList(),
-    minPurchaseAmount = minPurchaseAmount?.toLongOrNull(),
-    priority = priority,
-    stackable = stackable,
-    maxDiscount = maxDiscount?.toLongOrNull(),
-    isActive = isActive
-)
+fun DiscountRuleDto.toDomain() =
+    DiscountRule(
+        uuid = uuid,
+        name = name,
+        description = description,
+        ruleType = ruleType ?: "always",
+        discountType = discountType ?: "pct",
+        discountValue = discountValue?.toDoubleOrNull() ?: 0.0,
+        startTime = startTime,
+        endTime = endTime,
+        applicableDays = applicableDays?.toImmutableList(),
+        minPurchaseAmount = minPurchaseAmount?.toLongOrNull(),
+        priority = priority,
+        stackable = stackable,
+        maxDiscount = maxDiscount?.toLongOrNull(),
+        isActive = isActive,
+    )
 
-fun VoucherDto.toDomain() = Voucher(
-    uuid = uuid,
-    code = code,
-    name = name,
-    description = description,
-    discountType = discountType,
-    discountValue = discountValue.toDoubleOrNull()?.toLong() ?: 0L,
-    maxDiscount = maxDiscount?.toDoubleOrNull()?.toLong(),
-    minPurchase = minPurchase.toDoubleOrNull()?.toLong() ?: 0L,
-    usageLimit = usageLimit,
-    usageCount = usageCount,
-    validFrom = validFrom,
-    validUntil = validUntil,
-    isActive = isActive
-)
+fun VoucherDto.toDomain() =
+    Voucher(
+        uuid = uuid,
+        code = code,
+        name = name,
+        description = description,
+        discountType = discountType,
+        discountValue = discountValue.toDoubleOrNull()?.toLong() ?: 0L,
+        maxDiscount = maxDiscount?.toDoubleOrNull()?.toLong(),
+        minPurchase = minPurchase.toDoubleOrNull()?.toLong() ?: 0L,
+        usageLimit = usageLimit,
+        usageCount = usageCount,
+        validFrom = validFrom,
+        validUntil = validUntil,
+        isActive = isActive,
+    )
 
-fun VoucherValidationDto.toDomain() = VoucherValidation(
-    voucher = Voucher(
-        uuid = voucher.uuid,
-        code = voucher.code,
-        name = voucher.name,
-        description = voucher.description,
-        discountType = voucher.discountType,
-        discountValue = voucher.discountValue.toDoubleOrNull()?.toLong() ?: 0L,
-        maxDiscount = voucher.maxDiscount?.toDoubleOrNull()?.toLong(),
-        minPurchase = voucher.minPurchase.toDoubleOrNull()?.toLong() ?: 0L,
-        usageLimit = voucher.usageLimit,
-        usageCount = voucher.usageCount,
-        validFrom = voucher.validFrom,
-        validUntil = voucher.validUntil,
-        isActive = voucher.isActive
-    ),
-    discountApplied = discountApplied.toDoubleOrNull()?.toLong() ?: 0L
-)
+fun VoucherValidationDto.toDomain() =
+    VoucherValidation(
+        voucher =
+            Voucher(
+                uuid = voucher.uuid,
+                code = voucher.code,
+                name = voucher.name,
+                description = voucher.description,
+                discountType = voucher.discountType,
+                discountValue = voucher.discountValue.toDoubleOrNull()?.toLong() ?: 0L,
+                maxDiscount = voucher.maxDiscount?.toDoubleOrNull()?.toLong(),
+                minPurchase = voucher.minPurchase.toDoubleOrNull()?.toLong() ?: 0L,
+                usageLimit = voucher.usageLimit,
+                usageCount = voucher.usageCount,
+                validFrom = voucher.validFrom,
+                validUntil = voucher.validUntil,
+                isActive = voucher.isActive,
+            ),
+        discountApplied = discountApplied.toDoubleOrNull()?.toLong() ?: 0L,
+    )
 
-fun DiscountPreviewDto.toDomain() = DiscountPreview(
-    appliedRules = appliedRules.map { it.toDomain() }.toImmutableList(),
-    totalDiscount = totalDiscount,
-    finalTotal = finalTotal
-)
+fun DiscountPreviewDto.toDomain() =
+    DiscountPreview(
+        appliedRules = appliedRules.map { it.toDomain() }.toImmutableList(),
+        totalDiscount = totalDiscount,
+        finalTotal = finalTotal,
+    )
 
-fun AppliedRuleDto.toDomain() = AppliedRule(
-    uuid = uuid,
-    name = name,
-    ruleType = ruleType ?: "",
-    discount = discount
-)
+fun AppliedRuleDto.toDomain() =
+    AppliedRule(
+        uuid = uuid,
+        name = name,
+        ruleType = ruleType ?: "",
+        discount = discount,
+    )

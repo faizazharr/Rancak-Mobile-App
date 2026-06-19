@@ -18,28 +18,38 @@ import kotlinx.serialization.json.JsonElement
 
 // ── Groups CRUD ───────────────────────────────────────────────────────────────
 
-suspend fun RancakApiService.getGroups(): ApiResponse<List<GroupDto>> =
-    client.get(ApiConstants.BASE_URL + "/groups").body()
+suspend fun RancakApiService.getGroups(): ApiResponse<List<GroupDto>> = client.get(ApiConstants.BASE_URL + "/groups").body()
 
 suspend fun RancakApiService.getGroup(groupUuid: String): ApiResponse<GroupDto> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid").body()
 
-suspend fun RancakApiService.createGroup(name: String, description: String? = null): ApiResponse<GroupDto> =
+suspend fun RancakApiService.createGroup(
+    name: String,
+    description: String? = null,
+): ApiResponse<GroupDto> =
     client.post(ApiConstants.BASE_URL + "/groups") {
         contentType(ContentType.Application.Json)
-        setBody(buildMap {
-            put("name", name)
-            description?.let { put("description", it) }
-        })
+        setBody(
+            buildMap {
+                put("name", name)
+                description?.let { put("description", it) }
+            },
+        )
     }.body()
 
-suspend fun RancakApiService.updateGroup(groupUuid: String, name: String? = null, description: String? = null): ApiResponse<GroupDto> =
+suspend fun RancakApiService.updateGroup(
+    groupUuid: String,
+    name: String? = null,
+    description: String? = null,
+): ApiResponse<GroupDto> =
     client.put(ApiConstants.BASE_URL + "/groups/$groupUuid") {
         contentType(ContentType.Application.Json)
-        setBody(buildMap {
-            name?.let { put("name", it) }
-            description?.let { put("description", it) }
-        })
+        setBody(
+            buildMap {
+                name?.let { put("name", it) }
+                description?.let { put("description", it) }
+            },
+        )
     }.body()
 
 suspend fun RancakApiService.deleteGroup(groupUuid: String): ApiResponse<Unit> =
@@ -50,30 +60,47 @@ suspend fun RancakApiService.deleteGroup(groupUuid: String): ApiResponse<Unit> =
 suspend fun RancakApiService.getGroupTenants(groupUuid: String): ApiResponse<List<MyTenantDto>> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/tenants").body()
 
-suspend fun RancakApiService.assignTenantToGroup(groupUuid: String, tenantUuid: String): ApiResponse<Unit> =
+suspend fun RancakApiService.assignTenantToGroup(
+    groupUuid: String,
+    tenantUuid: String,
+): ApiResponse<Unit> =
     client.post(ApiConstants.BASE_URL + "/groups/$groupUuid/tenants") {
         contentType(ContentType.Application.Json)
         setBody(mapOf("tenant_uuid" to tenantUuid))
     }.body()
 
-suspend fun RancakApiService.removeTenantFromGroup(groupUuid: String, tenantUuid: String): ApiResponse<Unit> =
-    client.delete(ApiConstants.BASE_URL + "/groups/$groupUuid/tenants/$tenantUuid").body()
+suspend fun RancakApiService.removeTenantFromGroup(
+    groupUuid: String,
+    tenantUuid: String,
+): ApiResponse<Unit> = client.delete(ApiConstants.BASE_URL + "/groups/$groupUuid/tenants/$tenantUuid").body()
 
 // ── Group reports ─────────────────────────────────────────────────────────────
 
-suspend fun RancakApiService.getGroupOverview(groupUuid: String, start: String? = null, end: String? = null): ApiResponse<GroupOverviewDto> =
+suspend fun RancakApiService.getGroupOverview(
+    groupUuid: String,
+    start: String? = null,
+    end: String? = null,
+): ApiResponse<GroupOverviewDto> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/overview") {
         start?.let { parameter("start", it) }
         end?.let { parameter("end", it) }
     }.body()
 
-suspend fun RancakApiService.getGroupBranches(groupUuid: String, start: String? = null, end: String? = null): ApiResponse<List<BranchReportDto>> =
+suspend fun RancakApiService.getGroupBranches(
+    groupUuid: String,
+    start: String? = null,
+    end: String? = null,
+): ApiResponse<List<BranchReportDto>> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/branches") {
         start?.let { parameter("start", it) }
         end?.let { parameter("end", it) }
     }.body()
 
-suspend fun RancakApiService.getGroupRevenueSeries(groupUuid: String, start: String? = null, end: String? = null): ApiResponse<JsonElement> =
+suspend fun RancakApiService.getGroupRevenueSeries(
+    groupUuid: String,
+    start: String? = null,
+    end: String? = null,
+): ApiResponse<JsonElement> =
     client.get(ApiConstants.BASE_URL + "/groups/$groupUuid/reports/revenue") {
         start?.let { parameter("start", it) }
         end?.let { parameter("end", it) }

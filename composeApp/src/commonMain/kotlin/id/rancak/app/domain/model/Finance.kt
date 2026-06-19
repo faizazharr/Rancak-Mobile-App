@@ -13,7 +13,7 @@ data class CashIn(
     val cashierName: String?,
     val shiftUuid: String?,
     val cashInDate: String?,
-    val createdAt: String?
+    val createdAt: String?,
 )
 
 @Immutable
@@ -28,7 +28,7 @@ data class Expense(
     val cashierName: String?,
     val expenseDate: String?,
     val createdAt: String?,
-    val updatedAt: String?
+    val updatedAt: String?,
 )
 
 @Immutable
@@ -37,14 +37,14 @@ data class Bundle(
     val name: String,
     val price: Long,
     val isActive: Boolean,
-    val items: List<BundleItem>
+    val items: List<BundleItem>,
 )
 
 @Immutable
 data class BundleItem(
     val productUuid: String,
     val productName: String?,
-    val qty: Int
+    val qty: Int,
 )
 
 @Immutable
@@ -53,14 +53,14 @@ data class Modifier(
     val name: String,
     val sortOrder: Int,
     val productUuid: String?,
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
 )
 
 @Immutable
 data class PaymentMethodReport(
     val method: String,
     val total: Long,
-    val count: Int
+    val count: Int,
 )
 
 @Immutable
@@ -78,21 +78,21 @@ data class ShiftSummary(
     val totalTransactions: Int,
     val totalExpenses: Long,
     val totalCashIn: Long,
-    val paymentSummary: List<PaymentMethodReport>
+    val paymentSummary: List<PaymentMethodReport>,
 )
 
 @Immutable
 data class MySalesReport(
     val totalSales: Long,
     val totalTransactions: Int,
-    val cashTotal: Long
+    val cashTotal: Long,
 )
 
 @Immutable
 data class DailyCategoryReport(
     val categoryName: String,
     val totalSales: Long,
-    val totalQty: Double
+    val totalQty: Double,
 )
 
 @Immutable
@@ -117,7 +117,7 @@ data class Receipt(
     val total: Long,
     val paidAmount: Long,
     val changeAmount: Long,
-    val paymentMethod: String?
+    val paymentMethod: String?,
 )
 
 @Immutable
@@ -127,7 +127,7 @@ data class ReceiptItemDomain(
     val qty: Int,
     val price: Long,
     val subtotal: Long,
-    val note: String?
+    val note: String?,
 )
 
 /** Kategori pengeluaran (admin/owner). */
@@ -136,5 +136,5 @@ data class ExpenseCategory(
     val uuid: String,
     val name: String,
     val isActive: Boolean,
-    val sortOrder: Int
+    val sortOrder: Int,
 )

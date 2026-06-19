@@ -31,7 +31,7 @@ fun DatePickerField(
     onDateSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     isError: Boolean = false,
-    supportingText: @Composable (() -> Unit)? = null
+    supportingText: @Composable (() -> Unit)? = null,
 ) {
     var showPicker by remember { mutableStateOf(false) }
 
@@ -47,30 +47,34 @@ fun DatePickerField(
             isError = isError,
             supportingText = supportingText,
             singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
         // Transparent overlay — captures clicks reliably inside dialogs and scroll containers
         Box(
-            modifier = Modifier
-                .matchParentSize()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = { showPicker = true }
-                )
+            modifier =
+                Modifier
+                    .matchParentSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { showPicker = true },
+                    ),
         )
     }
 
     if (showPicker) {
-        val initialMillis = remember(value) {
-            if (value.length == 10) {
-                try {
-                    LocalDate.parse(value).atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
-                } catch (_: Exception) {
+        val initialMillis =
+            remember(value) {
+                if (value.length == 10) {
+                    try {
+                        LocalDate.parse(value).atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
+                    } catch (_: Exception) {
+                        null
+                    }
+                } else {
                     null
                 }
-            } else null
-        }
+            }
         val state = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
 
         DatePickerDialog(
@@ -79,18 +83,19 @@ fun DatePickerField(
                 TextButton(
                     onClick = {
                         state.selectedDateMillis?.let { millis ->
-                            val dateStr = Instant.fromEpochMilliseconds(millis)
-                                .toLocalDateTime(TimeZone.UTC).date.toString()
+                            val dateStr =
+                                Instant.fromEpochMilliseconds(millis)
+                                    .toLocalDateTime(TimeZone.UTC).date.toString()
                             onDateSelected(dateStr)
                         }
                         showPicker = false
                     },
-                    enabled = state.selectedDateMillis != null
+                    enabled = state.selectedDateMillis != null,
                 ) { Text("Pilih") }
             },
             dismissButton = {
                 TextButton(onClick = { showPicker = false }) { Text("Batal") }
-            }
+            },
         ) {
             DatePicker(state = state)
         }
@@ -102,12 +107,22 @@ private fun formatDateMedium(dateStr: String): String {
     val p = dateStr.split("-")
     if (p.size != 3) return dateStr
     val day = p[2].trimStart('0').ifEmpty { "0" }
-    val month = when (p[1].toIntOrNull()) {
-        1 -> "Jan"; 2 -> "Feb"; 3 -> "Mar"; 4 -> "Apr"
-        5 -> "Mei"; 6 -> "Jun"; 7 -> "Jul"; 8 -> "Agu"
-        9 -> "Sep"; 10 -> "Okt"; 11 -> "Nov"; 12 -> "Des"
-        else -> p[1]
-    }
+    val month =
+        when (p[1].toIntOrNull()) {
+            1 -> "Jan"
+            2 -> "Feb"
+            3 -> "Mar"
+            4 -> "Apr"
+            5 -> "Mei"
+            6 -> "Jun"
+            7 -> "Jul"
+            8 -> "Agu"
+            9 -> "Sep"
+            10 -> "Okt"
+            11 -> "Nov"
+            12 -> "Des"
+            else -> p[1]
+        }
     return "$day $month ${p[0]}"
 }
 
@@ -118,7 +133,7 @@ private fun DatePickerFieldPreview() {
         DatePickerField(
             label = "Tanggal",
             value = "2024-04-15",
-            onDateSelected = {}
+            onDateSelected = {},
         )
     }
 }

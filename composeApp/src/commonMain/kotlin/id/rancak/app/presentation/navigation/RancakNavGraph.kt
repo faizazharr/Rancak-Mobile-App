@@ -7,8 +7,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import id.rancak.app.data.local.LocalOpenBill
 import id.rancak.app.domain.repository.AuthRepository
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 import id.rancak.app.presentation.ui.auth.ForgotPasswordScreen
 import id.rancak.app.presentation.ui.auth.LoginScreen
 import id.rancak.app.presentation.ui.auth.ResetPasswordScreen
@@ -16,6 +14,10 @@ import id.rancak.app.presentation.ui.auth.TenantPickerScreen
 import id.rancak.app.presentation.ui.billing.BillingScreen
 import id.rancak.app.presentation.ui.cart.CartScreen
 import id.rancak.app.presentation.ui.finance.CashExpenseScreen
+import id.rancak.app.presentation.ui.groups.GroupDashboardScreen
+import id.rancak.app.presentation.ui.inventory.PurchaseOrderScreen
+import id.rancak.app.presentation.ui.inventory.StockOpnameScreen
+import id.rancak.app.presentation.ui.inventory.SupplierScreen
 import id.rancak.app.presentation.ui.kds.KdsScreen
 import id.rancak.app.presentation.ui.modifiers.ModifierManagementScreen
 import id.rancak.app.presentation.ui.openbill.OpenBillListScreen
@@ -24,23 +26,21 @@ import id.rancak.app.presentation.ui.payment.PayHeldOrderScreen
 import id.rancak.app.presentation.ui.payment.PaymentScreen
 import id.rancak.app.presentation.ui.pos.PosScreen
 import id.rancak.app.presentation.ui.pricing.BundleManagementScreen
-import id.rancak.app.presentation.ui.sessions.SessionManagementScreen
-import id.rancak.app.presentation.ui.groups.GroupDashboardScreen
 import id.rancak.app.presentation.ui.pricing.PricingManagementScreen
-import id.rancak.app.presentation.ui.inventory.PurchaseOrderScreen
+import id.rancak.app.presentation.ui.pricing.VoucherManagementScreen
+import id.rancak.app.presentation.ui.products.ProductManagementScreen
 import id.rancak.app.presentation.ui.reports.ReportScreen
 import id.rancak.app.presentation.ui.reservations.ReservationScreen
 import id.rancak.app.presentation.ui.sales.AddItemsToHeldOrderScreen
 import id.rancak.app.presentation.ui.sales.SalesHistoryScreen
+import id.rancak.app.presentation.ui.sessions.SessionManagementScreen
 import id.rancak.app.presentation.ui.settings.SettingsScreen
 import id.rancak.app.presentation.ui.shift.ShiftScreen
-import id.rancak.app.presentation.ui.splitbill.SplitBillScreen
-import id.rancak.app.presentation.ui.inventory.StockOpnameScreen
-import id.rancak.app.presentation.ui.inventory.SupplierScreen
-import id.rancak.app.presentation.ui.tables.TableMapScreen
-import id.rancak.app.presentation.ui.pricing.VoucherManagementScreen
-import id.rancak.app.presentation.ui.products.ProductManagementScreen
 import id.rancak.app.presentation.ui.splash.SplashScreen
+import id.rancak.app.presentation.ui.splitbill.SplitBillScreen
+import id.rancak.app.presentation.ui.tables.TableMapScreen
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: pop back if possible, otherwise open drawer
@@ -48,17 +48,17 @@ import id.rancak.app.presentation.ui.splash.SplashScreen
 
 private fun smartBack(
     nav: NavHostController,
-    onMenu: () -> Unit
-): () -> Unit = {
-    if (!nav.popBackStack()) onMenu()
-}
+    onMenu: () -> Unit,
+): () -> Unit =
+    {
+        if (!nav.popBackStack()) onMenu()
+    }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Auth graph — Splash, Login, TenantPicker
 // ─────────────────────────────────────────────────────────────────────────────
 
 internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
-
     composable<Screen.Splash> {
         SplashScreen(
             onNavigate = { destination ->
@@ -67,13 +67,13 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
                 navController.navigate(destination) {
                     popUpTo(Screen.Splash) { inclusive = true }
                 }
-            }
+            },
         )
     }
 
     composable<Screen.Login> {
         LoginScreen(
-            onLoginSuccess   = {
+            onLoginSuccess = {
                 // Direct A→C: Login → TenantPicker, Login dihapus dari back stack.
                 // User tidak bisa kembali ke Login dengan tombol Back.
                 navController.navigate(Screen.TenantPicker()) {
@@ -82,7 +82,7 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
             },
             onForgotPassword = {
                 navController.navigate(Screen.ForgotPassword)
-            }
+            },
         )
     }
 
@@ -91,18 +91,18 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
             onBack = { navController.popBackStack() },
             onNavigateToResetPassword = {
                 navController.navigate(Screen.ResetPassword)
-            }
+            },
         )
     }
 
     composable<Screen.ResetPassword> {
         ResetPasswordScreen(
-            onBack    = { navController.popBackStack() },
+            onBack = { navController.popBackStack() },
             onSuccess = {
                 navController.navigate(Screen.Login) {
                     popUpTo(0) { inclusive = true }
                 }
-            }
+            },
         )
     }
 
@@ -114,7 +114,7 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
         val scope = rememberCoroutineScope()
         val authRepository: AuthRepository = koinInject()
         TenantPickerScreen(
-            switchMode       = route.switchMode,
+            switchMode = route.switchMode,
             onTenantSelected = {
                 // Direct routing: seluruh back stack dibersihkan → langsung ke Pos.
                 // Back stack setelah navigasi: [Pos] — tidak ada intermediate screen.
@@ -137,7 +137,7 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
                 // "Detail push": back arrow kembali ke TenantPicker untuk retry.
                 // Stack: [TenantPicker, Billing] — intentional agar user bisa ulang pilih.
                 navController.navigate(Screen.Billing(fromSetup = true))
-            }
+            },
         )
     }
 }
@@ -148,27 +148,27 @@ internal fun NavGraphBuilder.authGraph(navController: NavHostController) {
 
 internal fun NavGraphBuilder.kasirGraph(
     navController: NavHostController,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
 ) {
     composable<Screen.Pos> {
         PosScreen(
-            onCartClick     = { navController.navigate(Screen.Cart) },
+            onCartClick = { navController.navigate(Screen.Cart) },
             onCheckoutClick = {
                 navController.navigate(Screen.Payment) { launchSingleTop = true }
             },
-            onMenuClick     = onMenuClick,
-            onHoldSuccess   = { navController.navigate(Screen.OpenBillList()) },
+            onMenuClick = onMenuClick,
+            onHoldSuccess = { navController.navigate(Screen.OpenBillList()) },
             onOpenBillClick = { navController.navigate(Screen.OpenBillList()) },
-            onShiftClick    = { navController.navigate(Screen.Shift) { launchSingleTop = true } }
+            onShiftClick = { navController.navigate(Screen.Shift) { launchSingleTop = true } },
         )
     }
 
     composable<Screen.Cart> {
         CartScreen(
-            onBack     = { navController.popBackStack() },
+            onBack = { navController.popBackStack() },
             // launchSingleTop mencegah duplicate Payment entry jika user tap
             // checkout di Cart dan Pos secara berurutan tanpa sempat melihat Payment.
-            onCheckout = { navController.navigate(Screen.Payment) { launchSingleTop = true } }
+            onCheckout = { navController.navigate(Screen.Payment) { launchSingleTop = true } },
         )
     }
 
@@ -181,14 +181,14 @@ internal fun NavGraphBuilder.kasirGraph(
                 navController.navigate(Screen.Pos) {
                     popUpTo(Screen.Pos) { inclusive = true }
                 }
-            }
+            },
         )
     }
 
     composable<Screen.OpenBillList> {
         val cartViewModel = LocalCartViewModel.current
         OpenBillListScreen(
-            onBack   = { navController.popBackStack() },
+            onBack = { navController.popBackStack() },
             onResume = { bill: LocalOpenBill ->
                 cartViewModel.loadOpenBill(bill)
                 // Pop OpenBillList, pulihkan Pos di bawahnya tanpa menduplikasi entry-nya.
@@ -202,7 +202,7 @@ internal fun NavGraphBuilder.kasirGraph(
             },
             onAddItems = { saleUuid ->
                 navController.navigate(Screen.AddItemsToHeldOrder(saleUuid))
-            }
+            },
         )
     }
 }
@@ -213,36 +213,36 @@ internal fun NavGraphBuilder.kasirGraph(
 
 internal fun NavGraphBuilder.operationsGraph(
     navController: NavHostController,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
 ) {
     composable<Screen.Shift> {
         ShiftScreen(
-            onBack       = smartBack(navController, onMenuClick),
-            onViewReport = { navController.navigate(Screen.Reports) { launchSingleTop = true } }
+            onBack = smartBack(navController, onMenuClick),
+            onViewReport = { navController.navigate(Screen.Reports) { launchSingleTop = true } },
         )
     }
     composable<Screen.Tables> {
         TableMapScreen(
-            onBack      = smartBack(navController, onMenuClick),
-            onReservasi = { navController.navigate(Screen.Reservations) { launchSingleTop = true } }
+            onBack = smartBack(navController, onMenuClick),
+            onReservasi = { navController.navigate(Screen.Reservations) { launchSingleTop = true } },
         )
     }
     composable<Screen.Reservations> {
         ReservationScreen(
             onBack = smartBack(navController, onMenuClick),
-            onMeja = { navController.navigate(Screen.Tables) { launchSingleTop = true } }
+            onMeja = { navController.navigate(Screen.Tables) { launchSingleTop = true } },
         )
     }
     composable<Screen.Kds> {
         KdsScreen(
-            onBack       = smartBack(navController, onMenuClick),
-            onOrderBoard = { navController.navigate(Screen.OrderBoard) { launchSingleTop = true } }
+            onBack = smartBack(navController, onMenuClick),
+            onOrderBoard = { navController.navigate(Screen.OrderBoard) { launchSingleTop = true } },
         )
     }
     composable<Screen.OrderBoard> {
         OrderBoardScreen(
             onBack = smartBack(navController, onMenuClick),
-            onKds  = { navController.navigate(Screen.Kds) { launchSingleTop = true } }
+            onKds = { navController.navigate(Screen.Kds) { launchSingleTop = true } },
         )
     }
 }
@@ -253,23 +253,23 @@ internal fun NavGraphBuilder.operationsGraph(
 
 internal fun NavGraphBuilder.salesGraph(
     navController: NavHostController,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
 ) {
     composable<Screen.SalesHistory> {
         SalesHistoryScreen(
-            onBack         = smartBack(navController, onMenuClick),
-            onViewReports  = { navController.navigate(Screen.Reports) { launchSingleTop = true } },
+            onBack = smartBack(navController, onMenuClick),
+            onViewReports = { navController.navigate(Screen.Reports) { launchSingleTop = true } },
             onPayHeldOrder = { saleUuid -> navController.navigate(Screen.PayHeldOrder(saleUuid)) },
-            onSplitBill    = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) },
-            onAddItems     = { saleUuid -> navController.navigate(Screen.AddItemsToHeldOrder(saleUuid)) }
+            onSplitBill = { saleUuid -> navController.navigate(Screen.SplitBill(saleUuid)) },
+            onAddItems = { saleUuid -> navController.navigate(Screen.AddItemsToHeldOrder(saleUuid)) },
         )
     }
 
     composable<Screen.PayHeldOrder> { entry ->
         val route = entry.toRoute<Screen.PayHeldOrder>()
         PayHeldOrderScreen(
-            saleUuid          = route.saleUuid,
-            onBack            = { navController.popBackStack() },
+            saleUuid = route.saleUuid,
+            onBack = { navController.popBackStack() },
             // Layar ini bisa dibuka dari dua konteks:
             //   a) SalesHistory → PayHeldOrder  (stack: [..., SalesHistory, PayHeldOrder])
             //   b) OpenBillList → PayHeldOrder  (stack: [..., Pos, OpenBillList, PayHeldOrder])
@@ -279,26 +279,26 @@ internal fun NavGraphBuilder.salesGraph(
                 if (!navController.popBackStack(Screen.SalesHistory, inclusive = false)) {
                     navController.popBackStack(Screen.Pos, inclusive = false)
                 }
-            }
+            },
         )
     }
 
     composable<Screen.SplitBill> { entry ->
         val route = entry.toRoute<Screen.SplitBill>()
         SplitBillScreen(
-            saleUuid        = route.saleUuid,
-            onBack          = { navController.popBackStack() },
+            saleUuid = route.saleUuid,
+            onBack = { navController.popBackStack() },
             onSplitComplete = { _, _ ->
                 navController.popBackStack(Screen.SalesHistory, inclusive = false)
-            }
+            },
         )
     }
 
     composable<Screen.AddItemsToHeldOrder> { entry ->
         val route = entry.toRoute<Screen.AddItemsToHeldOrder>()
         AddItemsToHeldOrderScreen(
-            saleUuid  = route.saleUuid,
-            onBack    = { navController.popBackStack() },
+            saleUuid = route.saleUuid,
+            onBack = { navController.popBackStack() },
             // Prioritas pop: OpenBillList (dari kasir) → SalesHistory → Pos (fallback).
             // Setelah item berhasil ditambahkan, kembali ke OpenBillList agar jumlah
             // item terbaru langsung terlihat di daftar.
@@ -308,7 +308,7 @@ internal fun NavGraphBuilder.salesGraph(
                         navController.popBackStack(Screen.Pos, inclusive = false)
                     }
                 }
-            }
+            },
         )
     }
 }
@@ -319,19 +319,19 @@ internal fun NavGraphBuilder.salesGraph(
 
 internal fun NavGraphBuilder.financeGraph(
     navController: NavHostController,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
 ) {
     composable<Screen.CashExpense> {
         CashExpenseScreen(
-            onBack        = smartBack(navController, onMenuClick),
-            onViewReports = { navController.navigate(Screen.Reports) { launchSingleTop = true } }
+            onBack = smartBack(navController, onMenuClick),
+            onViewReports = { navController.navigate(Screen.Reports) { launchSingleTop = true } },
         )
     }
     composable<Screen.Reports> {
         ReportScreen(
-            onBack             = smartBack(navController, onMenuClick),
+            onBack = smartBack(navController, onMenuClick),
             onViewTransactions = { navController.navigate(Screen.SalesHistory) { launchSingleTop = true } },
-            onStockOpname      = { navController.navigate(Screen.StockOpname) { launchSingleTop = true } }
+            onStockOpname = { navController.navigate(Screen.StockOpname) { launchSingleTop = true } },
         )
     }
 }
@@ -343,46 +343,46 @@ internal fun NavGraphBuilder.financeGraph(
 
 internal fun NavGraphBuilder.managementGraph(
     navController: NavHostController,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
 ) {
     composable<Screen.ProductManagement> {
         ProductManagementScreen(
-            onBack               = smartBack(navController, onMenuClick),
-            onStockOpname        = { navController.navigate(Screen.StockOpname) { launchSingleTop = true } },
-            onModifierManagement = { navController.navigate(Screen.ModifierManagement) { launchSingleTop = true } }
+            onBack = smartBack(navController, onMenuClick),
+            onStockOpname = { navController.navigate(Screen.StockOpname) { launchSingleTop = true } },
+            onModifierManagement = { navController.navigate(Screen.ModifierManagement) { launchSingleTop = true } },
         )
     }
-    composable<Screen.StockOpname>        { StockOpnameScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.StockOpname> { StockOpnameScreen(onBack = smartBack(navController, onMenuClick)) }
     composable<Screen.VoucherManagement> {
         VoucherManagementScreen(
-            onBack    = smartBack(navController, onMenuClick),
-            onPricing = { navController.navigate(Screen.PricingManagement) { launchSingleTop = true } }
+            onBack = smartBack(navController, onMenuClick),
+            onPricing = { navController.navigate(Screen.PricingManagement) { launchSingleTop = true } },
         )
     }
-    composable<Screen.PricingManagement>  {
+    composable<Screen.PricingManagement> {
         PricingManagementScreen(
-            onBack             = smartBack(navController, onMenuClick),
+            onBack = smartBack(navController, onMenuClick),
             onBundleManagement = { navController.navigate(Screen.BundleManagement) },
-            onVoucher          = { navController.navigate(Screen.VoucherManagement) { launchSingleTop = true } }
+            onVoucher = { navController.navigate(Screen.VoucherManagement) { launchSingleTop = true } },
         )
     }
-    composable<Screen.BundleManagement>   { BundleManagementScreen(onBack = { navController.popBackStack() }) }
+    composable<Screen.BundleManagement> { BundleManagementScreen(onBack = { navController.popBackStack() }) }
     composable<Screen.ModifierManagement> { ModifierManagementScreen(onBack = smartBack(navController, onMenuClick)) }
     composable<Screen.SupplierManagement> {
         SupplierScreen(
-            onBack           = smartBack(navController, onMenuClick),
-            onPurchaseOrders = { navController.navigate(Screen.PurchaseOrders) { launchSingleTop = true } }
+            onBack = smartBack(navController, onMenuClick),
+            onPurchaseOrders = { navController.navigate(Screen.PurchaseOrders) { launchSingleTop = true } },
         )
     }
     composable<Screen.PurchaseOrders> {
         PurchaseOrderScreen(
-            onBack     = smartBack(navController, onMenuClick),
-            onSupplier = { navController.navigate(Screen.SupplierManagement) { launchSingleTop = true } }
+            onBack = smartBack(navController, onMenuClick),
+            onSupplier = { navController.navigate(Screen.SupplierManagement) { launchSingleTop = true } },
         )
     }
-    composable<Screen.Settings>           { SettingsScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.SessionManagement>  { SessionManagementScreen(onBack = smartBack(navController, onMenuClick)) }
-    composable<Screen.GroupDashboard>     { GroupDashboardScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.Settings> { SettingsScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.SessionManagement> { SessionManagementScreen(onBack = smartBack(navController, onMenuClick)) }
+    composable<Screen.GroupDashboard> { GroupDashboardScreen(onBack = smartBack(navController, onMenuClick)) }
 
     // TODO(role-gating): wrap dengan RoleGatedScreen(UserRole.OWNER) setelah
     // backend menyediakan field `role` di respons tenant/login.
@@ -394,12 +394,12 @@ internal fun NavGraphBuilder.managementGraph(
             // Back arrow → popBackStack() → kembali ke BillingIssueContent di TenantPicker.
             // Pembayaran sukses → bersihkan seluruh stack → POS.
             BillingScreen(
-                onNavigateUp      = { navController.popBackStack() },
+                onNavigateUp = { navController.popBackStack() },
                 onPaymentComplete = {
                     navController.navigate(Screen.Pos) {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
             )
         } else {
             // Dibuka dari drawer (fromSetup=false):
@@ -408,10 +408,10 @@ internal fun NavGraphBuilder.managementGraph(
             // Back arrow → popBackStack() → kembali ke Pos.
             // Pembayaran sukses → kembali ke Pos (sudah di stack), tidak perlu navigate baru.
             BillingScreen(
-                onBack            = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
                 onPaymentComplete = {
                     navController.popBackStack(Screen.Pos, inclusive = false)
-                }
+                },
             )
         }
     }

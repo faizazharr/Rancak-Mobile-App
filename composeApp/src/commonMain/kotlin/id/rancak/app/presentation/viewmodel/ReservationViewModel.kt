@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Reservation
@@ -18,12 +17,12 @@ import kotlinx.coroutines.launch
 
 /** Filter status untuk list reservasi. `null` = semua. */
 enum class ReservationStatusFilter(val apiValue: String?, val label: String) {
-    ALL(null,        "Semua"),
-    PENDING("pending",   "Menunggu"),
+    ALL(null, "Semua"),
+    PENDING("pending", "Menunggu"),
     CONFIRMED("confirmed", "Dikonfirmasi"),
-    SEATED("seated",    "Sedang Hadir"),
+    SEATED("seated", "Sedang Hadir"),
     COMPLETED("completed", "Selesai"),
-    CANCELLED("cancelled", "Dibatalkan")
+    CANCELLED("cancelled", "Dibatalkan"),
 }
 
 @Immutable
@@ -39,7 +38,7 @@ data class ReservationUiState(
     val editingReservation: Reservation? = null,
     val pendingCancel: Reservation? = null,
     val pendingSeat: Reservation? = null,
-    val snackbarMessage: String? = null
+    val snackbarMessage: String? = null,
 )
 
 /**
@@ -54,9 +53,8 @@ data class ReservationUiState(
  */
 class ReservationViewModel(
     private val reservationRepository: ReservationRepository,
-    private val operationsRepository: OperationsRepository
+    private val operationsRepository: OperationsRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(ReservationUiState())
     val uiState: StateFlow<ReservationUiState> = _uiState.asStateFlow()
 
@@ -69,16 +67,21 @@ class ReservationViewModel(
         viewModelScope.launch {
             val s = _uiState.value
             _uiState.update { it.copy(isLoading = true, error = null) }
-            when (val result = reservationRepository.getReservations(
-                status = s.statusFilter.apiValue,
-                date   = s.dateFilter
-            )) {
-                is Resource.Success -> _uiState.update {
-                    it.copy(reservations = result.data, isLoading = false)
-                }
-                is Resource.Error -> _uiState.update {
-                    it.copy(error = result.message, isLoading = false)
-                }
+            when (
+                val result =
+                    reservationRepository.getReservations(
+                        status = s.statusFilter.apiValue,
+                        date = s.dateFilter,
+                    )
+            ) {
+                is Resource.Success ->
+                    _uiState.update {
+                        it.copy(reservations = result.data, isLoading = false)
+                    }
+                is Resource.Error ->
+                    _uiState.update {
+                        it.copy(error = result.message, isLoading = false)
+                    }
                 is Resource.Loading -> { /* not used */ }
             }
         }
@@ -87,9 +90,10 @@ class ReservationViewModel(
     private fun loadTables() {
         viewModelScope.launch {
             when (val result = operationsRepository.getTables()) {
-                is Resource.Success -> _uiState.update {
-                    it.copy(tables = result.data.sortedBy { t -> t.sortOrder })
-                }
+                is Resource.Success ->
+                    _uiState.update {
+                        it.copy(tables = result.data.sortedBy { t -> t.sortOrder })
+                    }
                 is Resource.Error -> { /* swallow — list meja optional di form */ }
                 is Resource.Loading -> { /* not used */ }
             }
@@ -128,20 +132,21 @@ class ReservationViewModel(
         val editing = _uiState.value.editingReservation
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true) }
-            val result = if (editing == null) {
-                reservationRepository.createReservation(input)
-            } else {
-                reservationRepository.updateReservation(
-                    reservationId   = editing.uuid,
-                    customerName    = input.customerName,
-                    customerPhone   = input.customerPhone,
-                    partySize       = input.partySize,
-                    reservedAt      = input.reservedAt,
-                    durationMinutes = input.durationMinutes,
-                    tableUuid       = input.tableUuid,
-                    note            = input.note
-                )
-            }
+            val result =
+                if (editing == null) {
+                    reservationRepository.createReservation(input)
+                } else {
+                    reservationRepository.updateReservation(
+                        reservationId = editing.uuid,
+                        customerName = input.customerName,
+                        customerPhone = input.customerPhone,
+                        partySize = input.partySize,
+                        reservedAt = input.reservedAt,
+                        durationMinutes = input.durationMinutes,
+                        tableUuid = input.tableUuid,
+                        note = input.note,
+                    )
+                }
             handleResult(result, successMsg = if (editing == null) "Reservasi dibuat" else "Reservasi diperbarui") {
                 _uiState.update { it.copy(showFormDialog = false, editingReservation = null) }
             }
@@ -150,13 +155,15 @@ class ReservationViewModel(
 
     // ── State transitions ──────────────────────────────────────────────────
 
-    fun confirm(reservation: Reservation) = transition(
-        successMsg = "Reservasi dikonfirmasi"
-    ) { reservationRepository.confirmReservation(reservation.uuid) }
+    fun confirm(reservation: Reservation) =
+        transition(
+            successMsg = "Reservasi dikonfirmasi",
+        ) { reservationRepository.confirmReservation(reservation.uuid) }
 
-    fun complete(reservation: Reservation) = transition(
-        successMsg = "Reservasi selesai"
-    ) { reservationRepository.completeReservation(reservation.uuid) }
+    fun complete(reservation: Reservation) =
+        transition(
+            successMsg = "Reservasi selesai",
+        ) { reservationRepository.completeReservation(reservation.uuid) }
 
     // Seat — butuh table_uuid
     fun requestSeat(reservation: Reservation) {
@@ -204,7 +211,7 @@ class ReservationViewModel(
 
     private fun transition(
         successMsg: String,
-        block: suspend () -> Resource<Reservation>
+        block: suspend () -> Resource<Reservation>,
     ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true) }
@@ -215,7 +222,7 @@ class ReservationViewModel(
     private fun handleResult(
         result: Resource<*>,
         successMsg: String,
-        onSuccess: () -> Unit = {}
+        onSuccess: () -> Unit = {},
     ) {
         when (result) {
             is Resource.Success -> {

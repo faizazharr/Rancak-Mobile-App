@@ -19,42 +19,43 @@ import id.rancak.app.presentation.util.formatRupiah
 @Composable
 internal fun ShiftInfoCard(summary: ShiftSummary) {
     Card(
-        modifier  = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(1.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
-            modifier            = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             summary.cashierName?.let {
                 FinanceRow(
-                    label = "Kasir", value = it,
-                    color = MaterialTheme.colorScheme.onSurface
+                    label = "Kasir",
+                    value = it,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             FinanceRow(
                 label = "Status",
                 value = summary.status.replaceFirstChar { it.uppercase() },
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             FinanceRow(
                 label = "Kas Pembukaan",
                 value = formatRupiah(summary.openingCash.toLongOrNull() ?: 0L),
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             summary.closingCash?.let {
                 FinanceRow(
                     label = "Kas Penutupan",
                     value = formatRupiah(it.toLongOrNull() ?: 0L),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             summary.expectedCash?.let {
                 FinanceRow(
                     label = "Kas Diharapkan",
                     value = formatRupiah(it.toLongOrNull() ?: 0L),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             summary.cashDifference?.let {
@@ -62,7 +63,7 @@ internal fun ShiftInfoCard(summary: ShiftSummary) {
                     label = "Selisih Kas",
                     value = formatRupiah(it.toLongOrNull() ?: 0L),
                     color = MaterialTheme.colorScheme.primary,
-                    bold  = true
+                    bold = true,
                 )
             }
         }
@@ -75,22 +76,23 @@ private fun ShiftInfoCardPreview() {
     RancakTheme {
         Column(Modifier.padding(12.dp)) {
             ShiftInfoCard(
-                summary = ShiftSummary(
-                    uuid              = "preview",
-                    openedAt          = "2026-04-18 08:00:00",
-                    closedAt          = null,
-                    status            = "open",
-                    openingCash       = "500000",
-                    closingCash       = "8800000",
-                    expectedCash      = "8925000",
-                    cashDifference    = "-125000",
-                    cashierName       = "Andi",
-                    totalSales        = 8_750_000L,
-                    totalTransactions = 64,
-                    totalExpenses     = 325_000L,
-                    totalCashIn       = 500_000L,
-                    paymentSummary    = emptyList()
-                )
+                summary =
+                    ShiftSummary(
+                        uuid = "preview",
+                        openedAt = "2026-04-18 08:00:00",
+                        closedAt = null,
+                        status = "open",
+                        openingCash = "500000",
+                        closingCash = "8800000",
+                        expectedCash = "8925000",
+                        cashDifference = "-125000",
+                        cashierName = "Andi",
+                        totalSales = 8_750_000L,
+                        totalTransactions = 64,
+                        totalExpenses = 325_000L,
+                        totalCashIn = 500_000L,
+                        paymentSummary = emptyList(),
+                    ),
             )
         }
     }

@@ -30,20 +30,23 @@ actual fun createSecureSettings(namespace: String): Settings {
     // androidx.security:security-crypto 1.1.x ditandai @Deprecated oleh AndroidX
     // karena akan diganti di masa depan, namun belum ada pengganti stabil dan
     // library ini masih aman digunakan di produksi. Suppress supaya log bersih.
-    val ctx = SecureContextHolder.appContext
-        ?: error("SecureContextHolder.appContext belum di-set — panggil di Application.onCreate()")
+    val ctx =
+        SecureContextHolder.appContext
+            ?: error("SecureContextHolder.appContext belum di-set — panggil di Application.onCreate()")
 
-    val masterKey = MasterKey.Builder(ctx)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
+    val masterKey =
+        MasterKey.Builder(ctx)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
 
-    val encryptedPrefs = EncryptedSharedPreferences.create(
-        ctx,
-        SECURE_PREFS_PREFIX + namespace,
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    val encryptedPrefs =
+        EncryptedSharedPreferences.create(
+            ctx,
+            SECURE_PREFS_PREFIX + namespace,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
 
     return SharedPreferencesSettings(encryptedPrefs)
 }

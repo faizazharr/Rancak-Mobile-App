@@ -18,7 +18,7 @@ fun CancelInvoiceDialog(
     invoice: Invoice,
     isSubmitting: Boolean,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
@@ -26,13 +26,19 @@ fun CancelInvoiceDialog(
         title = { Text("Batalkan Invoice") },
         text = { Text("Apakah Anda yakin ingin membatalkan invoice ${invoice.invoiceNo}? Tindakan ini tidak dapat dibatalkan.") },
         confirmButton = {
-            Button(onClick = onConfirm, enabled = !isSubmitting,
-                colors = ButtonDefaults.buttonColors(containerColor = Error)) {
-                if (isSubmitting) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
-                else Text("Ya, Batalkan")
+            Button(
+                onClick = onConfirm,
+                enabled = !isSubmitting,
+                colors = ButtonDefaults.buttonColors(containerColor = Error),
+            ) {
+                if (isSubmitting) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Color.White)
+                } else {
+                    Text("Ya, Batalkan")
+                }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Tidak") } }
+        dismissButton = { TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Tidak") } },
     )
 }
 
@@ -43,11 +49,14 @@ fun CancelInvoiceDialog(
 private fun CancelInvoiceDialogPreview() {
     RancakTheme {
         CancelInvoiceDialog(
-            invoice = Invoice("1", "INV-001", "pro", "Pro Plan", 30, 100000.0, 0.11, 11000.0, 111000.0,
-                "pending", "2024-01-01", "2024-01-08", null, null, null, null, null, null, null, false),
+            invoice =
+                Invoice(
+                    "1", "INV-001", "pro", "Pro Plan", 30, 100000.0, 0.11, 11000.0, 111000.0,
+                    "pending", "2024-01-01", "2024-01-08", null, null, null, null, null, null, null, false,
+                ),
             isSubmitting = false,
             onConfirm = {},
-            onDismiss = {}
+            onDismiss = {},
         )
     }
 }

@@ -49,8 +49,7 @@ suspend fun RancakApiService.logout(request: LogoutRequest): ApiResponse<Unit> =
         setBody(request)
     }.body()
 
-suspend fun RancakApiService.getMe(): ApiResponse<UserDto> =
-    client.get(ApiConstants.BASE_URL + ApiConstants.ME).body()
+suspend fun RancakApiService.getMe(): ApiResponse<UserDto> = client.get(ApiConstants.BASE_URL + ApiConstants.ME).body()
 
 suspend fun RancakApiService.changePassword(request: ChangePasswordRequest): ApiResponse<Unit> =
     client.post(ApiConstants.BASE_URL + ApiConstants.CHANGE_PASSWORD) {
@@ -70,18 +69,14 @@ suspend fun RancakApiService.resetPassword(request: ResetPasswordRequest): ApiRe
         setBody(request)
     }.body()
 
-suspend fun RancakApiService.getSessions(): ApiResponse<List<SessionDto>> =
-    client.get(ApiConstants.BASE_URL + ApiConstants.SESSIONS).body()
+suspend fun RancakApiService.getSessions(): ApiResponse<List<SessionDto>> = client.get(ApiConstants.BASE_URL + ApiConstants.SESSIONS).body()
 
 suspend fun RancakApiService.revokeSession(sessionId: String): ApiResponse<Unit> =
     client.delete(ApiConstants.BASE_URL + "${ApiConstants.SESSIONS}/$sessionId").body()
 
 // ── Tenants ──
 
-suspend fun RancakApiService.getMyTenants(): ApiResponse<List<MyTenantDto>> =
-    client.get(ApiConstants.BASE_URL + "/tenants").body()
+suspend fun RancakApiService.getMyTenants(): ApiResponse<List<MyTenantDto>> = client.get(ApiConstants.BASE_URL + "/tenants").body()
 
 suspend fun RancakApiService.getTenantSettings(tenantUuid: String): ApiResponse<TenantSettingsDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/settings").body()
-
-

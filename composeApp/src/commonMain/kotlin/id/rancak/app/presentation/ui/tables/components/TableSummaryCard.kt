@@ -8,7 +8,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import id.rancak.app.domain.model.TableStatus
 import id.rancak.app.presentation.designsystem.RancakColors
 
 /**
@@ -20,7 +19,7 @@ fun TableSummaryCard(
     available: Int,
     occupied: Int,
     inactive: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val semantic = RancakColors.semantic
     Card(modifier.fillMaxWidth()) {
@@ -33,17 +32,17 @@ fun TableSummaryCard(
             TableStatusRow(
                 label = "Tersedia",
                 count = available,
-                color = semantic.statusAvailable
+                color = semantic.statusAvailable,
             )
             TableStatusRow(
                 label = "Terisi",
                 count = occupied,
-                color = semantic.statusOccupied
+                color = semantic.statusOccupied,
             )
             TableStatusRow(
                 label = "Tidak Aktif",
                 count = inactive,
-                color = semantic.statusMaintenance
+                color = semantic.statusMaintenance,
             )
         }
     }
@@ -53,7 +52,7 @@ fun TableSummaryCard(
 private fun TableStatusRow(
     label: String,
     count: Int,
-    color: androidx.compose.ui.graphics.Color
+    color: androidx.compose.ui.graphics.Color,
 ) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -72,7 +71,7 @@ fun AreaSummaryCard(
     area: String,
     totalCount: Int,
     occupiedCount: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(modifier.fillMaxWidth()) {
         Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -81,7 +80,7 @@ fun AreaSummaryCard(
                 Text(
                     "$totalCount meja · $occupiedCount terisi",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline
+                    color = MaterialTheme.colorScheme.outline,
                 )
             }
         }

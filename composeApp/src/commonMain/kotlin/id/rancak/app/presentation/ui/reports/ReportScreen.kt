@@ -18,46 +18,46 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import id.rancak.app.presentation.designsystem.LocalSizes
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.domain.model.PaymentMethodReport
 import id.rancak.app.domain.model.ShiftSummary
 import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
+import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.reports.components.CashierShiftCard
 import id.rancak.app.presentation.ui.reports.components.DailyCategoryCard
-import id.rancak.app.presentation.ui.reports.components.RevenueCategoryChartCard
 import id.rancak.app.presentation.ui.reports.components.EmptySummaryPlaceholder
 import id.rancak.app.presentation.ui.reports.components.FinancialBreakdownCard
 import id.rancak.app.presentation.ui.reports.components.KpiCardsGrid
 import id.rancak.app.presentation.ui.reports.components.MySalesTodayCard
 import id.rancak.app.presentation.ui.reports.components.PaymentDonutCard
 import id.rancak.app.presentation.ui.reports.components.PeriodSelectorRow
+import id.rancak.app.presentation.ui.reports.components.RevenueCategoryChartCard
 import id.rancak.app.presentation.ui.reports.components.ShiftInfoCard
 import id.rancak.app.presentation.viewmodel.ReportUiState
 import id.rancak.app.presentation.viewmodel.ReportViewModel
@@ -72,7 +72,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ReportScreen(
     onBack: () -> Unit,
     onViewTransactions: () -> Unit = {},
-    onStockOpname: () -> Unit = {}
+    onStockOpname: () -> Unit = {},
 ) {
     val viewModel: ReportViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -89,9 +89,9 @@ fun ReportScreen(
     }
 
     ReportScreenContent(
-        uiState        = uiState,
+        uiState = uiState,
         selectedPeriod = selectedPeriod,
-        onBack         = onBack,
+        onBack = onBack,
         onPeriodSelect = { period ->
             selectedPeriod = period
             if (period != ReportPeriod.CUSTOM) {
@@ -100,13 +100,13 @@ fun ReportScreen(
                 }
             }
         },
-        onRetry              = viewModel::loadReport,
-        onViewTransactions   = onViewTransactions,
-        onStockOpname        = onStockOpname,
-        onLoadCashierShifts  = viewModel::loadCashierShifts,
-        onLoadStockAlerts    = viewModel::loadStockAlerts,
-        onMarkAlertRead      = viewModel::markAlertRead,
-        onMarkAllAlertsRead  = viewModel::markAllAlertsRead
+        onRetry = viewModel::loadReport,
+        onViewTransactions = onViewTransactions,
+        onStockOpname = onStockOpname,
+        onLoadCashierShifts = viewModel::loadCashierShifts,
+        onLoadStockAlerts = viewModel::loadStockAlerts,
+        onMarkAlertRead = viewModel::markAlertRead,
+        onMarkAllAlertsRead = viewModel::markAllAlertsRead,
     )
 }
 
@@ -129,7 +129,7 @@ internal fun ReportScreenContent(
     onLoadCashierShifts: (String?) -> Unit = {},
     onLoadStockAlerts: () -> Unit = {},
     onMarkAlertRead: (String) -> Unit = {},
-    onMarkAllAlertsRead: () -> Unit = {}
+    onMarkAllAlertsRead: () -> Unit = {},
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -137,37 +137,41 @@ internal fun ReportScreenContent(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RancakTopBar(
-                title    = "Laporan",
-                icon     = Icons.Default.BarChart,
-                subtitle = if (uiState.dateFrom.isNotBlank())
-                    "${uiState.dateFrom}  –  ${uiState.dateTo}"
-                else "Statistik penjualan",
-                onMenu   = onBack,
-                actions  = {
+                title = "Laporan",
+                icon = Icons.Default.BarChart,
+                subtitle =
+                    if (uiState.dateFrom.isNotBlank()) {
+                        "${uiState.dateFrom}  –  ${uiState.dateTo}"
+                    } else {
+                        "Statistik penjualan"
+                    },
+                onMenu = onBack,
+                actions = {
                     IconButton(onClick = onViewTransactions) {
                         Icon(Icons.Default.Receipt, contentDescription = "Riwayat Transaksi")
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
             if (selectedTab == 2) {
                 ExtendedFloatingActionButton(
                     onClick = onStockOpname,
-                    icon    = { Icon(Icons.Default.Inventory, contentDescription = null) },
-                    text    = { Text("Stok Opname") }
+                    icon = { Icon(Icons.Default.Inventory, contentDescription = null) },
+                    text = { Text("Stok Opname") },
                 )
             }
-        }
+        },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
+            modifier =
+                Modifier
+                    .padding(padding)
+                    .fillMaxSize(),
         ) {
             PeriodSelectorRow(
                 selected = selectedPeriod,
-                onSelect = onPeriodSelect
+                onSelect = onPeriodSelect,
             )
             HorizontalDivider()
 
@@ -175,12 +179,12 @@ internal fun ReportScreenContent(
                 reportTabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
-                        onClick  = {
+                        onClick = {
                             selectedTab = index
                             if (index == 1) onLoadCashierShifts(null)
                             if (index == 2) onLoadStockAlerts()
                         },
-                        text = { Text(title) }
+                        text = { Text(title) },
                     )
                 }
             }
@@ -189,17 +193,18 @@ internal fun ReportScreenContent(
             val error = uiState.error
             when {
                 selectedTab == 0 && uiState.isLoading -> LoadingScreen(Modifier.weight(1f))
-                selectedTab == 0 && error != null     -> ErrorScreen(error, onRetry = onRetry, modifier = Modifier.weight(1f))
-                selectedTab == 0                      -> ReportBody(uiState = uiState, modifier = Modifier.weight(1f))
+                selectedTab == 0 && error != null -> ErrorScreen(error, onRetry = onRetry, modifier = Modifier.weight(1f))
+                selectedTab == 0 -> ReportBody(uiState = uiState, modifier = Modifier.weight(1f))
                 selectedTab == 1 && uiState.isCashierShiftsLoading -> LoadingScreen(Modifier.weight(1f))
-                selectedTab == 1                      -> CashierShiftsBody(uiState = uiState, modifier = Modifier.weight(1f))
+                selectedTab == 1 -> CashierShiftsBody(uiState = uiState, modifier = Modifier.weight(1f))
                 selectedTab == 2 && uiState.isStockLoading -> LoadingScreen(Modifier.weight(1f))
-                else                                  -> StockAlertsBody(
-                    uiState             = uiState,
-                    onMarkRead          = onMarkAlertRead,
-                    onMarkAllRead       = onMarkAllAlertsRead,
-                    modifier            = Modifier.weight(1f)
-                )
+                else ->
+                    StockAlertsBody(
+                        uiState = uiState,
+                        onMarkRead = onMarkAlertRead,
+                        onMarkAllRead = onMarkAllAlertsRead,
+                        modifier = Modifier.weight(1f),
+                    )
             }
         }
     }
@@ -208,14 +213,15 @@ internal fun ReportScreenContent(
 @Composable
 private fun ReportBody(
     uiState: ReportUiState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val sizes = LocalSizes.current
     BoxWithConstraints(
-        modifier = modifier
-            .fillMaxSize()
-            .widthIn(max = sizes.readableMaxWidth),
-        contentAlignment = Alignment.TopCenter
+        modifier =
+            modifier
+                .fillMaxSize()
+                .widthIn(max = sizes.readableMaxWidth),
+        contentAlignment = Alignment.TopCenter,
     ) {
         if (maxWidth >= sizes.tabletBreakpoint) {
             TabletLayout(uiState)
@@ -230,11 +236,12 @@ private fun TabletLayout(uiState: ReportUiState) {
     Row(Modifier.fillMaxSize()) {
         // Kiri — KPI + rincian + donut
         LazyColumn(
-            modifier = Modifier
-                .weight(0.52f)
-                .fillMaxHeight(),
-            contentPadding      = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier =
+                Modifier
+                    .weight(0.52f)
+                    .fillMaxHeight(),
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             val summary = uiState.summary
             if (summary != null) {
@@ -252,20 +259,21 @@ private fun TabletLayout(uiState: ReportUiState) {
 
         // Kanan — info shift + penjualan saya + per kategori
         LazyColumn(
-            modifier = Modifier
-                .weight(0.48f)
-                .fillMaxHeight(),
-            contentPadding      = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier =
+                Modifier
+                    .weight(0.48f)
+                    .fillMaxHeight(),
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             val summary = uiState.summary
             if (summary != null) {
                 item {
                     Text(
                         "Info Shift",
-                        style      = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        modifier   = Modifier.padding(bottom = 2.dp)
+                        modifier = Modifier.padding(bottom = 2.dp),
                     )
                 }
                 item { ShiftInfoCard(summary) }
@@ -280,7 +288,7 @@ private fun TabletLayout(uiState: ReportUiState) {
                 item {
                     Box(
                         Modifier.fillParentMaxHeight(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) { EmptySummaryPlaceholder() }
                 }
             }
@@ -297,9 +305,9 @@ private fun PhoneLayout(uiState: ReportUiState) {
         }
     } else {
         LazyColumn(
-            modifier            = Modifier.fillMaxSize(),
-            contentPadding      = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item { KpiCardsGrid(summary) }
             item { FinancialBreakdownCard(summary) }
@@ -309,9 +317,9 @@ private fun PhoneLayout(uiState: ReportUiState) {
             item {
                 Text(
                     "Info Shift",
-                    style      = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier   = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
                 )
             }
             item { ShiftInfoCard(summary) }
@@ -331,20 +339,23 @@ private fun PhoneLayout(uiState: ReportUiState) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun CashierShiftsBody(uiState: ReportUiState, modifier: Modifier = Modifier) {
+private fun CashierShiftsBody(
+    uiState: ReportUiState,
+    modifier: Modifier = Modifier,
+) {
     if (uiState.cashierShifts.isEmpty()) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 "Tidak ada data shift kasir",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     } else {
         LazyColumn(
-            modifier            = modifier.fillMaxSize(),
-            contentPadding      = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items(uiState.cashierShifts) { shift ->
                 CashierShiftCard(shift)
@@ -362,59 +373,60 @@ private fun StockAlertsBody(
     uiState: ReportUiState,
     onMarkRead: (String) -> Unit,
     onMarkAllRead: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val hasContent = uiState.stockAlerts.isNotEmpty() ||
-                     uiState.lowStockItems.isNotEmpty() ||
-                     uiState.expiringBatches.isNotEmpty() ||
-                     uiState.stockReport.isNotEmpty()
+    val hasContent =
+        uiState.stockAlerts.isNotEmpty() ||
+            uiState.lowStockItems.isNotEmpty() ||
+            uiState.expiringBatches.isNotEmpty() ||
+            uiState.stockReport.isNotEmpty()
     if (!hasContent) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 "Tidak ada peringatan stok saat ini",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         return
     }
 
     LazyColumn(
-        modifier            = modifier.fillMaxSize(),
-        contentPadding      = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         // ── Stock Report (semua produk) ────────────────────────────────────────
         if (uiState.stockReport.isNotEmpty()) {
             item {
                 Text(
                     "Laporan Stok Produk (${uiState.stockReport.size})",
-                    style      = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier   = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
             items(uiState.stockReport) { report ->
                 androidx.compose.material3.Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape    = MaterialTheme.shapes.medium
+                    shape = MaterialTheme.shapes.medium,
                 ) {
                     Row(
-                        modifier              = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment     = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 report.name,
-                                style      = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
                             )
                             if (report.sku != null) {
                                 Text(
                                     "SKU: ${report.sku}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -423,16 +435,20 @@ private fun StockAlertsBody(
                             val isBelowThreshold = threshold != null && report.stock <= threshold
                             Text(
                                 "${report.stock.toInt()}",
-                                style     = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isBelowThreshold) MaterialTheme.colorScheme.error
-                                        else MaterialTheme.colorScheme.onSurface
+                                color =
+                                    if (isBelowThreshold) {
+                                        MaterialTheme.colorScheme.error
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    },
                             )
                             if (threshold != null) {
                                 Text(
                                     "Min: ${threshold.toInt()}",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -447,12 +463,12 @@ private fun StockAlertsBody(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         "Peringatan Stok (${uiState.stockAlerts.size})",
-                        style      = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
                     )
                     androidx.compose.material3.TextButton(onClick = onMarkAllRead) {
                         Text("Tandai semua dibaca", style = MaterialTheme.typography.labelSmall)
@@ -462,32 +478,32 @@ private fun StockAlertsBody(
             items(uiState.stockAlerts) { alert ->
                 androidx.compose.material3.Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape    = MaterialTheme.shapes.medium
+                    shape = MaterialTheme.shapes.medium,
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 alert.productName,
-                                style      = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
                             )
                             Text(
                                 "Stok: ${alert.currentStock.toInt()} | Tipe: ${alert.alertType}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         androidx.compose.material3.IconButton(
-                            onClick = { onMarkRead(alert.productUuid) }
+                            onClick = { onMarkRead(alert.productUuid) },
                         ) {
                             Icon(
                                 Icons.Default.MarkEmailRead,
                                 contentDescription = "Tandai dibaca",
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
@@ -500,31 +516,31 @@ private fun StockAlertsBody(
             item {
                 Text(
                     "Stok Rendah (${uiState.lowStockItems.size})",
-                    style      = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier   = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
             items(uiState.lowStockItems) { item ->
                 androidx.compose.material3.Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape    = MaterialTheme.shapes.medium
+                    shape = MaterialTheme.shapes.medium,
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 item.productName,
-                                style      = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
                             )
                             Text(
                                 "Stok: ${item.currentStock.toInt()} | Min: ${item.threshold.toInt()}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
+                                color = MaterialTheme.colorScheme.error,
                             )
                         }
                     }
@@ -537,32 +553,37 @@ private fun StockAlertsBody(
             item {
                 Text(
                     "Mendekati Kedaluwarsa (${uiState.expiringBatches.size})",
-                    style      = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier   = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
             items(uiState.expiringBatches) { batch ->
-                val daysText = when (batch.daysUntilExpiry) {
-                    0    -> "Hari ini"
-                    1    -> "Besok"
-                    else -> "${batch.daysUntilExpiry} hari lagi"
-                }
+                val daysText =
+                    when (batch.daysUntilExpiry) {
+                        0 -> "Hari ini"
+                        1 -> "Besok"
+                        else -> "${batch.daysUntilExpiry} hari lagi"
+                    }
                 androidx.compose.material3.Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape    = MaterialTheme.shapes.medium
+                    shape = MaterialTheme.shapes.medium,
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
                             batch.productName,
-                            style      = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
                         )
                         Text(
                             "Kedaluwarsa: ${batch.expiryDate} ($daysText) | Qty: ${batch.quantityRemaining.toInt()}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (batch.daysUntilExpiry <= 7) MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                            color =
+                                if (batch.daysUntilExpiry <= 7) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                         )
                     }
                 }
@@ -571,40 +592,41 @@ private fun StockAlertsBody(
     }
 }
 
-
-
-private val previewSummary = ShiftSummary(
-    uuid              = "shift-preview",
-    openedAt          = "2026-04-18 08:00:00",
-    closedAt          = null,
-    status            = "open",
-    openingCash       = "500000",
-    closingCash       = null,
-    expectedCash      = null,
-    cashDifference    = null,
-    cashierName       = "Admin Demo",
-    totalSales        = 8_750_000L,
-    totalTransactions = 64,
-    totalExpenses     = 325_000L,
-    totalCashIn       = 500_000L,
-    paymentSummary    = listOf(
-        PaymentMethodReport("cash",  4_500_000L, 32),
-        PaymentMethodReport("qris",  2_800_000L, 22),
-        PaymentMethodReport("card",  1_450_000L, 10)
+private val previewSummary =
+    ShiftSummary(
+        uuid = "shift-preview",
+        openedAt = "2026-04-18 08:00:00",
+        closedAt = null,
+        status = "open",
+        openingCash = "500000",
+        closingCash = null,
+        expectedCash = null,
+        cashDifference = null,
+        cashierName = "Admin Demo",
+        totalSales = 8_750_000L,
+        totalTransactions = 64,
+        totalExpenses = 325_000L,
+        totalCashIn = 500_000L,
+        paymentSummary =
+            listOf(
+                PaymentMethodReport("cash", 4_500_000L, 32),
+                PaymentMethodReport("qris", 2_800_000L, 22),
+                PaymentMethodReport("card", 1_450_000L, 10),
+            ),
     )
-)
 
-@Preview(name = "Report – Phone",  widthDp = 390, heightDp = 844)
+@Preview(name = "Report – Phone", widthDp = 390, heightDp = 844)
 @Composable
 private fun ReportScreenPhonePreview() {
     RancakTheme {
         ReportScreenContent(
-            uiState = ReportUiState(
-                summary  = previewSummary,
-                dateFrom = "2026-04-01",
-                dateTo   = "2026-04-30"
-            ),
-            selectedPeriod = ReportPeriod.THIS_MONTH
+            uiState =
+                ReportUiState(
+                    summary = previewSummary,
+                    dateFrom = "2026-04-01",
+                    dateTo = "2026-04-30",
+                ),
+            selectedPeriod = ReportPeriod.THIS_MONTH,
         )
     }
 }
@@ -614,12 +636,13 @@ private fun ReportScreenPhonePreview() {
 private fun ReportScreenTabletPreview() {
     RancakTheme {
         ReportScreenContent(
-            uiState = ReportUiState(
-                summary  = previewSummary,
-                dateFrom = "2026-04-01",
-                dateTo   = "2026-04-30"
-            ),
-            selectedPeriod = ReportPeriod.THIS_MONTH
+            uiState =
+                ReportUiState(
+                    summary = previewSummary,
+                    dateFrom = "2026-04-01",
+                    dateTo = "2026-04-30",
+                ),
+            selectedPeriod = ReportPeriod.THIS_MONTH,
         )
     }
 }

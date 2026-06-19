@@ -47,18 +47,18 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ForgotPasswordScreen(
     onBack: () -> Unit,
-    onNavigateToResetPassword: () -> Unit = {}
+    onNavigateToResetPassword: () -> Unit = {},
 ) {
     val viewModel: ForgotPasswordViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     ForgotPasswordContent(
-        uiState                  = uiState,
-        onEmailChange            = viewModel::onEmailChange,
-        onSend                   = viewModel::sendResetLink,
-        onClearError             = viewModel::clearError,
-        onBack                   = onBack,
-        onNavigateToResetPassword = onNavigateToResetPassword
+        uiState = uiState,
+        onEmailChange = viewModel::onEmailChange,
+        onSend = viewModel::sendResetLink,
+        onClearError = viewModel::clearError,
+        onBack = onBack,
+        onNavigateToResetPassword = onNavigateToResetPassword,
     )
 }
 
@@ -73,57 +73,60 @@ internal fun ForgotPasswordContent(
     onSend: () -> Unit = {},
     onClearError: () -> Unit = {},
     onBack: () -> Unit = {},
-    onNavigateToResetPassword: () -> Unit = {}
+    onNavigateToResetPassword: () -> Unit = {},
 ) {
-    val emailError = when {
-        uiState.email.isBlank() -> null
-        !uiState.email.contains("@") || !uiState.email.contains(".") -> "Format email tidak valid"
-        else -> null
-    }
+    val emailError =
+        when {
+            uiState.email.isBlank() -> null
+            !uiState.email.contains("@") || !uiState.email.contains(".") -> "Format email tidak valid"
+            else -> null
+        }
     val canSend = uiState.email.isNotBlank() && emailError == null && !uiState.isLoading
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             RancakTopBar(
-                title    = "Lupa Password",
-                icon     = Icons.AutoMirrored.Filled.ArrowBack,
-                onMenu   = onBack
+                title = "Lupa Password",
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                onMenu = onBack,
             )
-        }
+        },
     ) { padding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.TopCenter
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+            contentAlignment = Alignment.TopCenter,
         ) {
             ErrorBanner(
-                error     = uiState.error,
+                error = uiState.error,
                 onDismiss = onClearError,
-                modifier  = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Column(
-                modifier = Modifier
-                    .widthIn(max = 480.dp)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .imePadding()
-                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                modifier =
+                    Modifier
+                        .widthIn(max = 480.dp)
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .imePadding()
+                        .padding(horizontal = 24.dp, vertical = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 if (uiState.isSuccess) {
                     SuccessState(email = uiState.email, onBack = onBack, onNavigateToResetPassword = onNavigateToResetPassword)
                 } else {
                     FormState(
-                        uiState      = uiState,
-                        emailError   = emailError,
-                        canSend      = canSend,
+                        uiState = uiState,
+                        emailError = emailError,
+                        canSend = canSend,
                         onEmailChange = onEmailChange,
-                        onSend       = onSend,
-                        onNavigateToResetPassword = onNavigateToResetPassword
+                        onSend = onSend,
+                        onNavigateToResetPassword = onNavigateToResetPassword,
                     )
                 }
             }
@@ -138,89 +141,93 @@ private fun FormState(
     canSend: Boolean,
     onEmailChange: (String) -> Unit,
     onSend: () -> Unit,
-    onNavigateToResetPassword: () -> Unit = {}
+    onNavigateToResetPassword: () -> Unit = {},
 ) {
     Icon(
-        imageVector        = Icons.Default.Email,
+        imageVector = Icons.Default.Email,
         contentDescription = null,
-        modifier           = Modifier.size(56.dp),
-        tint               = MaterialTheme.colorScheme.primary
+        modifier = Modifier.size(56.dp),
+        tint = MaterialTheme.colorScheme.primary,
     )
     Text(
         "Reset Password",
-        style      = MaterialTheme.typography.headlineSmall,
+        style = MaterialTheme.typography.headlineSmall,
         fontWeight = FontWeight.Bold,
-        textAlign  = TextAlign.Center
+        textAlign = TextAlign.Center,
     )
     Text(
         "Masukkan email yang terdaftar. Kami akan mengirimkan tautan untuk mereset password Anda.",
-        style     = MaterialTheme.typography.bodyMedium,
-        color     = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
     )
 
     Spacer(Modifier.height(8.dp))
 
     RancakTextField(
-        value         = uiState.email,
+        value = uiState.email,
         onValueChange = onEmailChange,
-        label         = "Email",
-        isError       = emailError != null,
-        errorMessage  = emailError,
-        leadingIcon   = { Icon(Icons.Default.Email, contentDescription = null) }
+        label = "Email",
+        isError = emailError != null,
+        errorMessage = emailError,
+        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
     )
 
     RancakButton(
-        text      = "Kirim Tautan Reset",
-        onClick   = onSend,
+        text = "Kirim Tautan Reset",
+        onClick = onSend,
         isLoading = uiState.isLoading,
-        enabled   = canSend,
-        modifier  = Modifier.fillMaxWidth()
+        enabled = canSend,
+        modifier = Modifier.fillMaxWidth(),
     )
 
     TextButton(onClick = onNavigateToResetPassword) {
         Text(
             "Sudah punya kode reset? Reset sekarang",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
     }
 }
 
 @Composable
-private fun SuccessState(email: String, onBack: () -> Unit, onNavigateToResetPassword: () -> Unit = {}) {
+private fun SuccessState(
+    email: String,
+    onBack: () -> Unit,
+    onNavigateToResetPassword: () -> Unit = {},
+) {
     Icon(
-        imageVector        = Icons.Default.MarkEmailRead,
+        imageVector = Icons.Default.MarkEmailRead,
         contentDescription = null,
-        modifier           = Modifier.size(64.dp),
-        tint               = MaterialTheme.colorScheme.primary
+        modifier = Modifier.size(64.dp),
+        tint = MaterialTheme.colorScheme.primary,
     )
     Text(
         "Email Terkirim!",
-        style      = MaterialTheme.typography.headlineSmall,
+        style = MaterialTheme.typography.headlineSmall,
         fontWeight = FontWeight.Bold,
-        textAlign  = TextAlign.Center
+        textAlign = TextAlign.Center,
     )
     Text(
         "Tautan reset password telah dikirim ke $email. Periksa kotak masuk atau folder spam Anda.",
-        style     = MaterialTheme.typography.bodyMedium,
-        color     = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
     )
 
     Spacer(Modifier.height(8.dp))
 
     RancakButton(
-        text     = "Kembali ke Login",
-        onClick  = onBack,
-        modifier = Modifier.fillMaxWidth()
+        text = "Kembali ke Login",
+        onClick = onBack,
+        modifier = Modifier.fillMaxWidth(),
     )
 
     TextButton(onClick = onNavigateToResetPassword) {
         Text(
             "Reset password dengan kode",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
     }
 }
@@ -234,7 +241,7 @@ private fun SuccessState(email: String, onBack: () -> Unit, onNavigateToResetPas
 private fun ForgotPasswordFormPreview() {
     RancakTheme {
         ForgotPasswordContent(
-            uiState = ForgotPasswordUiState(email = "user@example.com")
+            uiState = ForgotPasswordUiState(email = "user@example.com"),
         )
     }
 }
@@ -244,10 +251,11 @@ private fun ForgotPasswordFormPreview() {
 private fun ForgotPasswordSuccessPreview() {
     RancakTheme {
         ForgotPasswordContent(
-            uiState = ForgotPasswordUiState(
-                email     = "user@example.com",
-                isSuccess = true
-            )
+            uiState =
+                ForgotPasswordUiState(
+                    email = "user@example.com",
+                    isSuccess = true,
+                ),
         )
     }
 }

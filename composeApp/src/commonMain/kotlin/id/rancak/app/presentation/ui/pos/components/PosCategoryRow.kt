@@ -3,12 +3,12 @@ package id.rancak.app.presentation.ui.pos.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,13 +31,13 @@ import kotlinx.collections.immutable.toImmutableList
 internal fun PosCategoryRow(
     categories: ImmutableList<Category>,
     selected: Category?,
-    onSelect: (Category?) -> Unit
+    onSelect: (Category?) -> Unit,
 ) {
     if (categories.isEmpty()) return
     LazyRow(
-        contentPadding        = PaddingValues(horizontal = 8.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier              = Modifier.padding(bottom = 8.dp)
+        modifier = Modifier.padding(bottom = 8.dp),
     ) {
         item { PosChip("Semua", selected == null) { onSelect(null) } }
         items(categories, key = { it.uuid }) { cat ->
@@ -47,30 +47,45 @@ internal fun PosCategoryRow(
 }
 
 @Composable
-internal fun PosChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+internal fun PosChip(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
     val primary = MaterialTheme.colorScheme.primary
     androidx.compose.foundation.layout.Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(
-                if (isSelected) primary
-                else MaterialTheme.colorScheme.surface
-            )
-            .border(
-                1.dp,
-                if (isSelected) Color.Transparent
-                else MaterialTheme.colorScheme.outlineVariant,
-                CircleShape
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp)
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .background(
+                    if (isSelected) {
+                        primary
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+                )
+                .border(
+                    1.dp,
+                    if (isSelected) {
+                        Color.Transparent
+                    } else {
+                        MaterialTheme.colorScheme.outlineVariant
+                    },
+                    CircleShape,
+                )
+                .clickable(onClick = onClick)
+                .padding(horizontal = 14.dp, vertical = 6.dp),
     ) {
         Text(
             label,
-            style      = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color      = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                         else MaterialTheme.colorScheme.onSurfaceVariant
+            color =
+                if (isSelected) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
         )
     }
 }
@@ -78,16 +93,17 @@ internal fun PosChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
 @Preview
 @Composable
 private fun PosCategoryRowPreview() {
-    val categories = listOf(
-        Category(uuid = "1", name = "Makanan", description = null),
-        Category(uuid = "2", name = "Minuman", description = null),
-        Category(uuid = "3", name = "Snack",   description = null)
-    )
+    val categories =
+        listOf(
+            Category(uuid = "1", name = "Makanan", description = null),
+            Category(uuid = "2", name = "Minuman", description = null),
+            Category(uuid = "3", name = "Snack", description = null),
+        )
     RancakTheme {
         PosCategoryRow(
             categories = categories.toImmutableList(),
-            selected   = categories[1],
-            onSelect   = {}
+            selected = categories[1],
+            onSelect = {},
         )
     }
 }

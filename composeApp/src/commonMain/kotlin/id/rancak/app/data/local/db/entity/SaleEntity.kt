@@ -13,8 +13,8 @@ import kotlinx.collections.immutable.toImmutableList
     tableName = "sales",
     indices = [
         Index(value = ["status"]),
-        Index(value = ["createdAt"])
-    ]
+        Index(value = ["createdAt"]),
+    ],
 )
 data class SaleEntity(
     @PrimaryKey val uuid: String,
@@ -32,43 +32,45 @@ data class SaleEntity(
     val paidAmount: Long,
     val changeAmount: Long,
     val createdAt: String?,
-    val cachedAt: Long = 0L
+    val cachedAt: Long = 0L,
 )
 
-fun SaleEntity.toDomain(items: List<SaleItemEntity>) = Sale(
-    uuid = uuid,
-    invoiceNo = invoiceNo,
-    orderType = OrderType.from(orderType),
-    queueNumber = queueNumber,
-    status = SaleStatus.from(status),
-    customerName = customerName,
-    subtotal = subtotal,
-    discount = discount,
-    surcharge = surcharge,
-    tax = tax,
-    total = total,
-    paymentMethod = PaymentMethod.from(paymentMethod),
-    paidAmount = paidAmount,
-    changeAmount = changeAmount,
-    items = items.map { it.toDomain() }.toImmutableList(),
-    createdAt = createdAt
-)
+fun SaleEntity.toDomain(items: List<SaleItemEntity>) =
+    Sale(
+        uuid = uuid,
+        invoiceNo = invoiceNo,
+        orderType = OrderType.from(orderType),
+        queueNumber = queueNumber,
+        status = SaleStatus.from(status),
+        customerName = customerName,
+        subtotal = subtotal,
+        discount = discount,
+        surcharge = surcharge,
+        tax = tax,
+        total = total,
+        paymentMethod = PaymentMethod.from(paymentMethod),
+        paidAmount = paidAmount,
+        changeAmount = changeAmount,
+        items = items.map { it.toDomain() }.toImmutableList(),
+        createdAt = createdAt,
+    )
 
-fun Sale.toEntity(cachedAt: Long = 0L) = SaleEntity(
-    uuid = uuid,
-    invoiceNo = invoiceNo,
-    orderType = orderType.value,
-    queueNumber = queueNumber,
-    status = status.value,
-    customerName = customerName,
-    subtotal = subtotal,
-    discount = discount,
-    surcharge = surcharge,
-    tax = tax,
-    total = total,
-    paymentMethod = paymentMethod?.value,
-    paidAmount = paidAmount,
-    changeAmount = changeAmount,
-    createdAt = createdAt,
-    cachedAt = cachedAt
-)
+fun Sale.toEntity(cachedAt: Long = 0L) =
+    SaleEntity(
+        uuid = uuid,
+        invoiceNo = invoiceNo,
+        orderType = orderType.value,
+        queueNumber = queueNumber,
+        status = status.value,
+        customerName = customerName,
+        subtotal = subtotal,
+        discount = discount,
+        surcharge = surcharge,
+        tax = tax,
+        total = total,
+        paymentMethod = paymentMethod?.value,
+        paidAmount = paidAmount,
+        changeAmount = changeAmount,
+        createdAt = createdAt,
+        cachedAt = cachedAt,
+    )

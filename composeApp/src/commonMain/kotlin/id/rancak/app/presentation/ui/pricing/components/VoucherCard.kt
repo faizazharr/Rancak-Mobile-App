@@ -25,30 +25,31 @@ fun VoucherCard(
     voucher: Voucher,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val sem      = RancakColors.semantic
-    val isPct    = voucher.discountType == "pct"
+    val sem = RancakColors.semantic
+    val isPct = voucher.discountType == "pct"
     val badgeColor = if (isPct) MaterialTheme.colorScheme.primary else sem.warning
-    val typeLabel  = if (isPct) "${voucher.discountValue}%" else formatRupiah(voucher.discountValue)
+    val typeLabel = if (isPct) "${voucher.discountValue}%" else formatRupiah(voucher.discountValue)
 
     Card(
-        modifier  = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape     = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
     ) {
         Row(
-            modifier          = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // ── Icon box ───────────────────────────────────────────────────
             Box(
-                modifier         = Modifier
-                    .size(40.dp)
-                    .clip(MaterialTheme.shapes.small)
-                    .background(badgeColor.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .background(badgeColor.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Default.LocalOffer, null, tint = badgeColor, modifier = Modifier.size(20.dp))
             }
@@ -56,63 +57,66 @@ fun VoucherCard(
             // ── Info column ────────────────────────────────────────────────
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Row(
-                    verticalAlignment  = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Text(
                         voucher.code,
-                        style      = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        maxLines   = 1,
-                        overflow   = TextOverflow.Ellipsis,
-                        modifier   = Modifier.weight(1f, fill = false)
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
                     )
                     // Discount type badge
                     Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(badgeColor.copy(alpha = 0.12f))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                        modifier =
+                            Modifier
+                                .clip(CircleShape)
+                                .background(badgeColor.copy(alpha = 0.12f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
                     ) {
                         Text(
                             typeLabel,
-                            style      = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color      = badgeColor
+                            color = badgeColor,
                         )
                     }
                     StatusChip(
-                        text  = if (voucher.isActive) "Aktif" else "Nonaktif",
-                        color = if (voucher.isActive) sem.success else MaterialTheme.colorScheme.error
+                        text = if (voucher.isActive) "Aktif" else "Nonaktif",
+                        color = if (voucher.isActive) sem.success else MaterialTheme.colorScheme.error,
                     )
                 }
                 Text(
                     voucher.name,
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 // Min purchase + max cap (if pct)
-                val detailLine = buildString {
-                    append("Min: ${formatRupiah(voucher.minPurchase)}")
-                    if (isPct && voucher.maxDiscount != null && voucher.maxDiscount > 0)
-                        append(" · Maks: ${formatRupiah(voucher.maxDiscount)}")
-                }
+                val detailLine =
+                    buildString {
+                        append("Min: ${formatRupiah(voucher.minPurchase)}")
+                        if (isPct && voucher.maxDiscount != null && voucher.maxDiscount > 0) {
+                            append(" · Maks: ${formatRupiah(voucher.maxDiscount)}")
+                        }
+                    }
                 Text(detailLine, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 // Valid period
                 if (voucher.validFrom != null || voucher.validUntil != null) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment     = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(Icons.Default.DateRange, null, Modifier.size(11.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             "${voucher.validFrom?.take(10) ?: "–"} s/d ${voucher.validUntil?.take(10) ?: "∞"}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -120,22 +124,23 @@ fun VoucherCard(
                 // Usage progress bar
                 if (voucher.usageLimit != null && voucher.usageLimit > 0) {
                     val progress = (voucher.usageCount.toFloat() / voucher.usageLimit).coerceIn(0f, 1f)
-                    val barColor = when {
-                        progress >= 1f    -> MaterialTheme.colorScheme.error
-                        progress >= 0.8f  -> sem.warning
-                        else              -> sem.success
-                    }
+                    val barColor =
+                        when {
+                            progress >= 1f -> MaterialTheme.colorScheme.error
+                            progress >= 0.8f -> sem.warning
+                            else -> sem.success
+                        }
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
                             "Dipakai: ${voucher.usageCount} / ${voucher.usageLimit}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         LinearProgressIndicator(
-                            progress         = { progress },
-                            modifier         = Modifier.fillMaxWidth().height(3.dp).clip(CircleShape),
-                            color            = barColor,
-                            trackColor       = barColor.copy(alpha = 0.15f)
+                            progress = { progress },
+                            modifier = Modifier.fillMaxWidth().height(3.dp).clip(CircleShape),
+                            color = barColor,
+                            trackColor = barColor.copy(alpha = 0.15f),
                         )
                     }
                 }
@@ -156,12 +161,13 @@ fun VoucherCard(
 
 // ── Preview ───────────────────────────────────────────────────────────────────
 
-private val sampleVoucher = Voucher(
-    uuid = "1", code = "HEMAT20", name = "Hemat 20%", description = null,
-    discountType = "percentage", discountValue = 20L, maxDiscount = 50000L,
-    minPurchase = 100000L, usageLimit = 100, usageCount = 45,
-    validFrom = "2024-01-01", validUntil = "2024-12-31", isActive = true
-)
+private val sampleVoucher =
+    Voucher(
+        uuid = "1", code = "HEMAT20", name = "Hemat 20%", description = null,
+        discountType = "percentage", discountValue = 20L, maxDiscount = 50000L,
+        minPurchase = 100000L, usageLimit = 100, usageCount = 45,
+        validFrom = "2024-01-01", validUntil = "2024-12-31", isActive = true,
+    )
 
 @Preview
 @Composable

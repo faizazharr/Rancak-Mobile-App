@@ -1,6 +1,5 @@
 package id.rancak.app.data.mapper
 
-import kotlinx.collections.immutable.toImmutableList
 import id.rancak.app.data.remote.api.KdsItemDto
 import id.rancak.app.data.remote.api.KdsOrderDto
 import id.rancak.app.data.remote.dto.operations.OrderBoardItemDto
@@ -19,77 +18,84 @@ import id.rancak.app.domain.model.Shift
 import id.rancak.app.domain.model.ShiftStatus
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TableStatus
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * DTO → domain mappers for Tables, Shifts, KDS, and Order Board.
  */
 
-fun TableDto.toDomain() = Table(
-    uuid = uuid,
-    name = name,
-    area = area,
-    capacity = capacity,
-    status = TableStatus.from(status),
-    isActive = isActive,
-    sortOrder = sortOrder,
-    activeSaleUuid = activeSaleUuid
-)
+fun TableDto.toDomain() =
+    Table(
+        uuid = uuid,
+        name = name,
+        area = area,
+        capacity = capacity,
+        status = TableStatus.from(status),
+        isActive = isActive,
+        sortOrder = sortOrder,
+        activeSaleUuid = activeSaleUuid,
+    )
 
-fun ShiftDto.toDomain() = Shift(
-    uuid = uuid,
-    openedAt = openedAt,
-    closedAt = closedAt,
-    status = ShiftStatus.from(status),
-    openingCash = openingCash,
-    closingCash = closingCash,
-    expectedCash = expectedCash,
-    cashDifference = cashDifference,
-    cashierName = cashierName,
-    totalSales = totalSales,
-    totalTransactions = totalTransactions,
-    totalExpenses = totalExpenses,
-    totalCashIn = totalCashIn
-)
+fun ShiftDto.toDomain() =
+    Shift(
+        uuid = uuid,
+        openedAt = openedAt,
+        closedAt = closedAt,
+        status = ShiftStatus.from(status),
+        openingCash = openingCash,
+        closingCash = closingCash,
+        expectedCash = expectedCash,
+        cashDifference = cashDifference,
+        cashierName = cashierName,
+        totalSales = totalSales,
+        totalTransactions = totalTransactions,
+        totalExpenses = totalExpenses,
+        totalCashIn = totalCashIn,
+    )
 
-fun KdsOrderDto.toDomain() = KdsOrder(
-    uuid = uuid,
-    invoiceNo = invoiceNo,
-    orderType = OrderType.from(orderType),
-    tableName = tableName,
-    queueNumber = queueNumber,
-    customerName = customerName,
-    note = note,
-    status = KdsStatus.from(status),
-    items = items.map { it.toDomain() }.toImmutableList(),
-    createdAt = createdAt
-)
+fun KdsOrderDto.toDomain() =
+    KdsOrder(
+        uuid = uuid,
+        invoiceNo = invoiceNo,
+        orderType = OrderType.from(orderType),
+        tableName = tableName,
+        queueNumber = queueNumber,
+        customerName = customerName,
+        note = note,
+        status = KdsStatus.from(status),
+        items = items.map { it.toDomain() }.toImmutableList(),
+        createdAt = createdAt,
+    )
 
-fun KdsItemDto.toDomain() = KdsItem(
-    uuid = uuid,
-    productName = productName,
-    qty = qty,
-    variantName = variantName,
-    note = note,
-    status = KdsItemStatus.from(status)
-)
+fun KdsItemDto.toDomain() =
+    KdsItem(
+        uuid = uuid,
+        productName = productName,
+        qty = qty,
+        variantName = variantName,
+        note = note,
+        status = KdsItemStatus.from(status),
+    )
 
-fun OrderBoardOrderDto.toDomain() = OrderBoardOrder(
-    uuid = uuid,
-    invoiceNo = invoiceNo,
-    queueNumber = queueNumber,
-    orderType = OrderType.from(orderType),
-    customerName = customerName,
-    status = SaleStatus.from(status),
-    createdAt = createdAt,
-    servedAt = servedAt,
-    items = items.map { it.toDomain() }.toImmutableList()
-)
+fun OrderBoardOrderDto.toDomain() =
+    OrderBoardOrder(
+        uuid = uuid,
+        invoiceNo = invoiceNo,
+        queueNumber = queueNumber,
+        orderType = OrderType.from(orderType),
+        customerName = customerName,
+        status = SaleStatus.from(status),
+        createdAt = createdAt,
+        servedAt = servedAt,
+        items = items.map { it.toDomain() }.toImmutableList(),
+    )
 
-fun OrderBoardItemDto.toDomain() = OrderBoardItem(
-    productName = productName,
-    qty = qty.toDoubleOrNull()?.toInt() ?: qty.toIntOrNull() ?: 1,
-    note = note
-)
+fun OrderBoardItemDto.toDomain() =
+    OrderBoardItem(
+        productName = productName,
+        qty = qty.toDoubleOrNull()?.toInt() ?: qty.toIntOrNull() ?: 1,
+        note = note,
+    )
 
 // ── Cash count & cashier shift summary mappers ──────────────────────────────
 
@@ -102,7 +108,7 @@ fun id.rancak.app.data.remote.dto.operations.CashCountDto.toDomain(): id.rancak.
         difference = difference,
         denominations = denominations,
         note = note,
-        countedAt = countedAt
+        countedAt = countedAt,
     )
 
 fun id.rancak.app.data.remote.dto.operations.CashierShiftSummaryDto.toDomain(): id.rancak.app.domain.model.CashierShiftSummary =
@@ -119,5 +125,5 @@ fun id.rancak.app.data.remote.dto.operations.CashierShiftSummaryDto.toDomain(): 
         grossTotal = grossTotal,
         cashTotal = cashTotal,
         nonCashTotal = nonCashTotal,
-        cashDifference = cashDifference
+        cashDifference = cashDifference,
     )

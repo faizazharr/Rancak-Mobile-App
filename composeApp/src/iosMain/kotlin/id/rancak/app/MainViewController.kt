@@ -1,3 +1,4 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 package id.rancak.app
 
 import androidx.compose.ui.window.ComposeUIViewController
@@ -5,7 +6,6 @@ import id.rancak.app.data.sync.SyncManager
 import id.rancak.app.data.sync.runIosSync
 import id.rancak.app.di.appModules
 import kotlinx.coroutines.*
-import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import platform.BackgroundTasks.BGProcessingTask
 import platform.BackgroundTasks.BGProcessingTaskRequest
@@ -56,14 +56,15 @@ fun MainViewController(): UIViewController {
  *   </array>
  */
 internal fun registerBgTaskHandler() {
-    BGTaskScheduler.shared.registerForTaskWithIdentifier(
-        identifier  = SyncManager.TASK_ID,
-        usingQueue  = null  // nil = main queue
+    BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(
+        identifier = SyncManager.TASK_ID,
+        usingQueue = null, // nil = main queue
     ) { task ->
-        val bgTask = task as? BGProcessingTask ?: run {
-            task?.setTaskCompletedWithSuccess(false)
-            return@registerForTaskWithIdentifier
-        }
+        val bgTask =
+            task as? BGProcessingTask ?: run {
+                task?.setTaskCompletedWithSuccess(false)
+                return@registerForTaskWithIdentifier
+            }
 
         val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -78,7 +79,7 @@ internal fun registerBgTaskHandler() {
             val nextRequest = BGProcessingTaskRequest(identifier = SyncManager.TASK_ID)
             nextRequest.requiresNetworkConnectivity = true
             nextRequest.requiresExternalPower = false
-            BGTaskScheduler.shared.submitTaskRequest(nextRequest, error = null)
+            BGTaskScheduler.sharedScheduler.submitTaskRequest(nextRequest, error = null)
 
             val success = runIosSync()
             bgTask.setTaskCompletedWithSuccess(success)

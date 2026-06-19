@@ -14,7 +14,7 @@ data class PlanDto(
     @SerialName("duration_days") val durationDays: Int = 0,
     @SerialName("max_users") val maxUsers: Int? = null,
     @SerialName("is_trial") val isTrial: Boolean = false,
-    @SerialName("total_price") val totalPrice: Double = 0.0
+    @SerialName("total_price") val totalPrice: Double = 0.0,
 )
 
 @Serializable
@@ -24,7 +24,7 @@ data class SubscriptionStateDto(
     @SerialName("started_at") val startedAt: String? = null,
     @SerialName("expires_at") val expiresAt: String? = null,
     @SerialName("max_users") val maxUsers: Int? = null,
-    @SerialName("had_trial") val hadTrial: Boolean = false
+    @SerialName("had_trial") val hadTrial: Boolean = false,
 )
 
 @Serializable
@@ -48,5 +48,5 @@ data class InvoiceDto(
     @SerialName("xendit_qr_id") val xenditQrId: String? = null,
     @SerialName("qr_string") val qrString: String? = null,
     @SerialName("xendit_ref_id") val xenditRefId: String? = null,
-    @SerialName("using_webhook") val usingWebhook: Boolean = false
+    @SerialName("using_webhook") val usingWebhook: Boolean = false,
 )

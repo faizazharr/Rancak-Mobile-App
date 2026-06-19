@@ -14,21 +14,24 @@ fun PricingDeleteDialog(
     entity: String,
     isSubmitting: Boolean,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
         title = { Text("Hapus ${entity.replaceFirstChar { it.uppercase() }}") },
-        text  = { Text("Hapus $entity \"$name\"? Tindakan ini tidak dapat dibatalkan.") },
+        text = { Text("Hapus $entity \"$name\"? Tindakan ini tidak dapat dibatalkan.") },
         confirmButton = {
             TextButton(onClick = onConfirm, enabled = !isSubmitting) {
-                if (isSubmitting) CircularProgressIndicator(Modifier.size(16.dp))
-                else Text("Hapus", color = MaterialTheme.colorScheme.error)
+                if (isSubmitting) {
+                    CircularProgressIndicator(Modifier.size(16.dp))
+                } else {
+                    Text("Hapus", color = MaterialTheme.colorScheme.error)
+                }
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss, enabled = !isSubmitting) { Text("Batal") }
-        }
+        },
     )
 }
 
@@ -39,11 +42,11 @@ fun PricingDeleteDialog(
 private fun PricingDeleteDialogPreview() {
     RancakTheme {
         PricingDeleteDialog(
-            name         = "PPN 11%",
-            entity       = "pajak",
+            name = "PPN 11%",
+            entity = "pajak",
             isSubmitting = false,
-            onConfirm    = {},
-            onDismiss    = {}
+            onConfirm = {},
+            onDismiss = {},
         )
     }
 }

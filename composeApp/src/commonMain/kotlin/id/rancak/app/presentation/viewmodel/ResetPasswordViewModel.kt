@@ -18,32 +18,42 @@ data class ResetPasswordUiState(
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
 )
 
 class ResetPasswordViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(ResetPasswordUiState())
     val uiState: StateFlow<ResetPasswordUiState> = _uiState.asStateFlow()
 
     fun onTokenChange(value: String) = _uiState.update { it.copy(token = value, error = null) }
+
     fun onNewPasswordChange(value: String) = _uiState.update { it.copy(newPassword = value, error = null) }
+
     fun onConfirmPasswordChange(value: String) = _uiState.update { it.copy(confirmPassword = value, error = null) }
 
     fun resetPassword() {
         val state = _uiState.value
         when {
-            state.token.isBlank()       -> { _uiState.update { it.copy(error = "Masukkan kode reset yang dikirim ke email Anda.") }; return }
-            state.newPassword.length < 8 -> { _uiState.update { it.copy(error = "Password minimal 8 karakter.") }; return }
-            state.newPassword != state.confirmPassword -> { _uiState.update { it.copy(error = "Konfirmasi password tidak cocok.") }; return }
+            state.token.isBlank() -> {
+                _uiState.update { it.copy(error = "Masukkan kode reset yang dikirim ke email Anda.") }
+                return
+            }
+            state.newPassword.length < 8 -> {
+                _uiState.update { it.copy(error = "Password minimal 8 karakter.") }
+                return
+            }
+            state.newPassword != state.confirmPassword -> {
+                _uiState.update { it.copy(error = "Konfirmasi password tidak cocok.") }
+                return
+            }
         }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = authRepository.resetPassword(state.token.trim(), state.newPassword)) {
                 is Resource.Success -> _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-                is Resource.Error   -> _uiState.update { it.copy(isLoading = false, error = result.message) }
+                is Resource.Error -> _uiState.update { it.copy(isLoading = false, error = result.message) }
                 is Resource.Loading -> {}
             }
         }

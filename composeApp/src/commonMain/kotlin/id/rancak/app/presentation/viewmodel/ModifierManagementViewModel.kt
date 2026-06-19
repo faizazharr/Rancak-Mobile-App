@@ -1,7 +1,6 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Modifier
@@ -44,14 +43,13 @@ data class ModifierManagementUiState(
     val selectedProduct: Product? = null,
     /** Modifier per-produk yang sedang ditampilkan. */
     val productModifiers: ImmutableList<Modifier> = persistentListOf(),
-    val isLoadingProductModifiers: Boolean = false
+    val isLoadingProductModifiers: Boolean = false,
 )
 
 class ModifierManagementViewModel(
     private val adminRepository: AdminRepository,
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(ModifierManagementUiState())
     val uiState: StateFlow<ModifierManagementUiState> = _uiState.asStateFlow()
 
@@ -73,7 +71,7 @@ class ModifierManagementViewModel(
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = adminRepository.getModifiers()) {
                 is Resource.Success -> _uiState.update { it.copy(modifiers = result.data.toImmutableList(), isLoading = false) }
-                is Resource.Error   -> _uiState.update { it.copy(error = result.message, isLoading = false) }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Resource.Loading -> {}
             }
         }
@@ -86,7 +84,7 @@ class ModifierManagementViewModel(
             _uiState.update { it.copy(isLoadingProducts = true) }
             when (val result = productRepository.getProducts()) {
                 is Resource.Success -> _uiState.update { it.copy(products = result.data.toImmutableList(), isLoadingProducts = false) }
-                is Resource.Error   -> _uiState.update { it.copy(isLoadingProducts = false) }
+                is Resource.Error -> _uiState.update { it.copy(isLoadingProducts = false) }
                 is Resource.Loading -> {}
             }
         }
@@ -101,8 +99,14 @@ class ModifierManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingProductModifiers = true) }
             when (val result = productRepository.getModifiers(productUuid)) {
-                is Resource.Success -> _uiState.update { it.copy(productModifiers = result.data.toImmutableList(), isLoadingProductModifiers = false) }
-                is Resource.Error   -> _uiState.update { it.copy(error = result.message, isLoadingProductModifiers = false) }
+                is Resource.Success ->
+                    _uiState.update {
+                        it.copy(
+                            productModifiers = result.data.toImmutableList(),
+                            isLoadingProductModifiers = false,
+                        )
+                    }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message, isLoadingProductModifiers = false) }
                 is Resource.Loading -> {}
             }
         }
@@ -111,23 +115,27 @@ class ModifierManagementViewModel(
     // ── Form ─────────────────────────────────────────────────────────────────
 
     fun openCreateForm() {
-        _uiState.update { it.copy(
-            selectedModifier = null,
-            formName         = "",
-            formSortOrder    = 0,
-            formIsActive     = true,
-            showFormDialog   = true
-        ) }
+        _uiState.update {
+            it.copy(
+                selectedModifier = null,
+                formName = "",
+                formSortOrder = 0,
+                formIsActive = true,
+                showFormDialog = true,
+            )
+        }
     }
 
     fun openEditForm(modifier: Modifier) {
-        _uiState.update { it.copy(
-            selectedModifier = modifier,
-            formName         = modifier.name,
-            formSortOrder    = modifier.sortOrder,
-            formIsActive     = modifier.isActive,
-            showFormDialog   = true
-        ) }
+        _uiState.update {
+            it.copy(
+                selectedModifier = modifier,
+                formName = modifier.name,
+                formSortOrder = modifier.sortOrder,
+                formIsActive = modifier.isActive,
+                showFormDialog = true,
+            )
+        }
     }
 
     fun closeFormDialog() {
@@ -152,28 +160,32 @@ class ModifierManagementViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
-            val existing    = state.selectedModifier
+            val existing = state.selectedModifier
             val productUuid = if (state.activeTab == ModifierTab.PER_PRODUCT) state.selectedProduct?.uuid else null
 
-            val result = when {
-                existing != null -> adminRepository.updateModifier(
-                    modifierId = existing.uuid,
-                    name       = state.formName.trim(),
-                    sortOrder  = state.formSortOrder,
-                    isActive   = state.formIsActive
-                )
-                productUuid != null -> adminRepository.createProductModifier(
-                    productUuid = productUuid,
-                    name        = state.formName.trim(),
-                    sortOrder   = state.formSortOrder,
-                    isActive    = state.formIsActive
-                )
-                else -> adminRepository.createModifier(
-                    name      = state.formName.trim(),
-                    sortOrder = state.formSortOrder,
-                    isActive  = state.formIsActive
-                )
-            }
+            val result =
+                when {
+                    existing != null ->
+                        adminRepository.updateModifier(
+                            modifierId = existing.uuid,
+                            name = state.formName.trim(),
+                            sortOrder = state.formSortOrder,
+                            isActive = state.formIsActive,
+                        )
+                    productUuid != null ->
+                        adminRepository.createProductModifier(
+                            productUuid = productUuid,
+                            name = state.formName.trim(),
+                            sortOrder = state.formSortOrder,
+                            isActive = state.formIsActive,
+                        )
+                    else ->
+                        adminRepository.createModifier(
+                            name = state.formName.trim(),
+                            sortOrder = state.formSortOrder,
+                            isActive = state.formIsActive,
+                        )
+                }
 
             when (result) {
                 is Resource.Success -> {
@@ -183,11 +195,13 @@ class ModifierManagementViewModel(
                         loadModifiers()
                         if (productUuid != null) loadProductModifiers(productUuid)
                     }
-                    _uiState.update { it.copy(
-                        isSaving       = false,
-                        showFormDialog = false,
-                        successMessage = if (existing == null) "Modifier berhasil dibuat" else "Modifier berhasil diperbarui"
-                    ) }
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            showFormDialog = false,
+                            successMessage = if (existing == null) "Modifier berhasil dibuat" else "Modifier berhasil diperbarui",
+                        )
+                    }
                 }
                 is Resource.Error -> _uiState.update { it.copy(isSaving = false, error = result.message) }
                 is Resource.Loading -> {}
@@ -206,7 +220,7 @@ class ModifierManagementViewModel(
     }
 
     fun confirmDelete() {
-        val state  = _uiState.value
+        val state = _uiState.value
         val target = state.selectedModifier ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
@@ -215,11 +229,13 @@ class ModifierManagementViewModel(
                     loadModifiers()
                     val productUuid = state.selectedProduct?.uuid
                     if (productUuid != null) loadProductModifiers(productUuid)
-                    _uiState.update { it.copy(
-                        isSaving         = false,
-                        showDeleteDialog = false,
-                        successMessage   = "Modifier berhasil dihapus"
-                    ) }
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            showDeleteDialog = false,
+                            successMessage = "Modifier berhasil dihapus",
+                        )
+                    }
                 }
                 is Resource.Error -> _uiState.update { it.copy(isSaving = false, error = null) }
                 is Resource.Loading -> {}
@@ -229,7 +245,11 @@ class ModifierManagementViewModel(
 
     // ── Utility ──────────────────────────────────────────────────────────────
 
-    fun clearSuccessMessage() { _uiState.update { it.copy(successMessage = null) } }
-    fun clearError()          { _uiState.update { it.copy(error = null) } }
-}
+    fun clearSuccessMessage() {
+        _uiState.update { it.copy(successMessage = null) }
+    }
 
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
+    }
+}

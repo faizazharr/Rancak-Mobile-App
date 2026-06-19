@@ -46,54 +46,83 @@ private val GradientEnd = PrimaryGradientEnd
  */
 @Composable
 internal fun OrderSummaryActions(
-    cartState:         CartUiState,
-    surface:           Color,
-    primary:           Color,
-    onSurface:         Color,
-    onSurfaceVariant:  Color,
-    hasItems:          Boolean,
-    hasOpenShift:      Boolean,
-    isHolding:         Boolean = false,
-    holdError:         String? = null,
+    cartState: CartUiState,
+    surface: Color,
+    primary: Color,
+    onSurface: Color,
+    onSurfaceVariant: Color,
+    hasItems: Boolean,
+    hasOpenShift: Boolean,
+    isHolding: Boolean = false,
+    holdError: String? = null,
     onHoldErrorDismiss: () -> Unit = {},
-    onDiscount:        (Long, Boolean) -> Unit,
-    onTax:             (Long, Boolean) -> Unit,
-    onAdminFee:        (Long, Boolean) -> Unit,
-    onDeliveryFee:     (Long) -> Unit,
-    onTip:             (Long) -> Unit,
-    onVoucherCode:     (String) -> Unit,
-    onSaveClick:       () -> Unit,
-    onCheckoutClick:   () -> Unit
+    onDiscount: (Long, Boolean) -> Unit,
+    onTax: (Long, Boolean) -> Unit,
+    onAdminFee: (Long, Boolean) -> Unit,
+    onDeliveryFee: (Long) -> Unit,
+    onTip: (Long) -> Unit,
+    onVoucherCode: (String) -> Unit,
+    onSaveClick: () -> Unit,
+    onCheckoutClick: () -> Unit,
+    isSubscriptionExpired: Boolean = false,
 ) {
     Surface(shadowElevation = 8.dp, color = surface) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
+            // ── Subscription expired banner ───────────────────────────────────
+            if (isSubscriptionExpired) {
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.small)
+                            .background(Color(0xFFFEF3C7))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        Icons.Default.ErrorOutline,
+                        contentDescription = null,
+                        tint = Color(0xFFF59E0B),
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        "Langganan kedaluwarsa — buka menu Billing untuk memperbarui.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF92400E),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Spacer(Modifier.height(6.dp))
+            }
             // ── Subtotal row ─────────────────────────────────────────────────
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Box(
                         Modifier
                             .size(6.dp)
                             .clip(CircleShape)
-                            .background(primary.copy(alpha = 0.45f))
+                            .background(primary.copy(alpha = 0.45f)),
                     )
                     Text("Subtotal", style = MaterialTheme.typography.bodySmall, color = onSurfaceVariant)
                 }
                 Text(
                     formatRupiah(cartState.subtotal),
-                    style      = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.SemiBold,
-                    color      = onSurface
+                    color = onSurface,
                 )
             }
 
@@ -101,66 +130,66 @@ internal fun OrderSummaryActions(
 
             // ── Fee grid 2×2 ─────────────────────────────────────────────────
             val gridBorder = MaterialTheme.colorScheme.outlineVariant.copy(0.45f)
-            val gridShape  = MaterialTheme.shapes.extraLarge
+            val gridShape = MaterialTheme.shapes.extraLarge
             Box(
                 Modifier
                     .fillMaxWidth()
                     .clip(gridShape)
-                    .border(1.dp, gridBorder, gridShape)
+                    .border(1.dp, gridBorder, gridShape),
             ) {
                 Column {
                     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                         FeeCellItem(
-                            label             = "Diskon",
-                            icon              = Icons.Default.Discount,
-                            value             = cartState.discountInput,
-                            onValue           = onDiscount,
-                            isNegative        = true,
+                            label = "Diskon",
+                            icon = Icons.Default.Discount,
+                            value = cartState.discountInput,
+                            onValue = onDiscount,
+                            isNegative = true,
                             showPercentToggle = true,
-                            valueIsPercent    = cartState.discountIsPercent,
-                            computedAmount    = cartState.discount,
-                            modifier          = Modifier.weight(1f)
+                            valueIsPercent = cartState.discountIsPercent,
+                            computedAmount = cartState.discount,
+                            modifier = Modifier.weight(1f),
                         )
                         Box(Modifier.fillMaxHeight().width(1.dp).background(gridBorder))
                         FeeCellItem(
-                            label             = "Pajak",
-                            icon              = Icons.Default.AccountBalance,
-                            value             = cartState.taxInput,
-                            onValue           = onTax,
+                            label = "Pajak",
+                            icon = Icons.Default.AccountBalance,
+                            value = cartState.taxInput,
+                            onValue = onTax,
                             showPercentToggle = true,
-                            valueIsPercent    = cartState.taxIsPercent,
-                            computedAmount    = cartState.tax,
-                            modifier          = Modifier.weight(1f)
+                            valueIsPercent = cartState.taxIsPercent,
+                            computedAmount = cartState.tax,
+                            modifier = Modifier.weight(1f),
                         )
                     }
                     Box(Modifier.fillMaxWidth().height(1.dp).background(gridBorder))
                     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                         FeeCellItem(
-                            label             = "Biaya Admin",
-                            icon              = Icons.Default.Receipt,
-                            value             = cartState.adminFeeInput,
-                            onValue           = onAdminFee,
+                            label = "Biaya Admin",
+                            icon = Icons.Default.Receipt,
+                            value = cartState.adminFeeInput,
+                            onValue = onAdminFee,
                             showPercentToggle = true,
-                            valueIsPercent    = cartState.adminFeeIsPercent,
-                            computedAmount    = cartState.adminFee,
-                            modifier          = Modifier.weight(1f)
+                            valueIsPercent = cartState.adminFeeIsPercent,
+                            computedAmount = cartState.adminFee,
+                            modifier = Modifier.weight(1f),
                         )
                         Box(Modifier.fillMaxHeight().width(1.dp).background(gridBorder))
                         if (cartState.orderType == OrderType.DELIVERY) {
                             FeeCellItem(
-                                label    = "Ongkir",
-                                icon     = Icons.Default.DeliveryDining,
-                                value    = cartState.deliveryFee,
-                                onValue  = { v, _ -> onDeliveryFee(v) },
-                                modifier = Modifier.weight(1f)
+                                label = "Ongkir",
+                                icon = Icons.Default.DeliveryDining,
+                                value = cartState.deliveryFee,
+                                onValue = { v, _ -> onDeliveryFee(v) },
+                                modifier = Modifier.weight(1f),
                             )
                         } else {
                             FeeCellItem(
-                                label    = "Tip",
-                                icon     = Icons.Default.Favorite,
-                                value    = cartState.tip,
-                                onValue  = { v, _ -> onTip(v) },
-                                modifier = Modifier.weight(1f)
+                                label = "Tip",
+                                icon = Icons.Default.Favorite,
+                                value = cartState.tip,
+                                onValue = { v, _ -> onTip(v) },
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
@@ -170,36 +199,42 @@ internal fun OrderSummaryActions(
             // Auto-fee rows dari konfigurasi Pricing
             cartState.activeTaxConfigs.forEach { cfg ->
                 AutoFeeRow(
-                    label  = "${cfg.name} (${cfg.rate}%)",
-                    amount = run {
-                        val basis = if (cfg.applyTo == "subtotal") cartState.subtotal
-                                    else (cartState.subtotal - cartState.discount + cartState.totalSurcharge).coerceAtLeast(0L)
-                        ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
-                    },
+                    label = "${cfg.name} (${cfg.rate}%)",
+                    amount =
+                        run {
+                            val basis =
+                                if (cfg.applyTo == "subtotal") {
+                                    cartState.subtotal
+                                } else {
+                                    (cartState.subtotal - cartState.discount + cartState.totalSurcharge).coerceAtLeast(0L)
+                                }
+                            ((basis * (cfg.rate * 100).toLong()) / 10_000L).coerceAtLeast(0L)
+                        },
                     onSurfaceVariant = onSurfaceVariant,
-                    onSurface        = onSurface
+                    onSurface = onSurface,
                 )
             }
             cartState.activeSurcharges.forEach { sc ->
-                val raw = if (sc.isPercentage) {
-                    val basis = (cartState.subtotal - cartState.discount).coerceAtLeast(0L)
-                    (basis * sc.amount / 100L).coerceAtLeast(0L)
-                } else sc.amount
+                val raw =
+                    if (sc.isPercentage) {
+                        val basis = (cartState.subtotal - cartState.discount).coerceAtLeast(0L)
+                        (basis * sc.amount / 100L).coerceAtLeast(0L)
+                    } else {
+                        sc.amount
+                    }
                 val amt = sc.maxAmount?.let { cap -> raw.coerceAtMost(cap) } ?: raw
                 AutoFeeRow(
-                    label  = sc.name + if (sc.isPercentage) " (${sc.amount}%)" else "",
+                    label = sc.name + if (sc.isPercentage) " (${sc.amount}%)" else "",
                     amount = amt,
                     onSurfaceVariant = onSurfaceVariant,
-                    onSurface        = onSurface
+                    onSurface = onSurface,
                 )
             }
 
-
-
             VoucherInputRow(
-                value   = cartState.voucherCode,
+                value = cartState.voucherCode,
                 primary = primary,
-                onApply = onVoucherCode
+                onApply = onVoucherCode,
             )
 
             Spacer(Modifier.height(4.dp))
@@ -209,28 +244,29 @@ internal fun OrderSummaryActions(
             // Hold error chip
             AnimatedVisibility(
                 visible = holdError != null,
-                enter   = expandVertically(tween(220)) + fadeIn(tween(180)),
-                exit    = shrinkVertically(tween(200)) + fadeOut(tween(150))
+                enter = expandVertically(tween(220)) + fadeIn(tween(180)),
+                exit = shrinkVertically(tween(200)) + fadeOut(tween(150)),
             ) {
                 Column {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(MaterialTheme.shapes.large)
-                            .background(MaterialTheme.colorScheme.errorContainer)
-                            .clickable(onClick = onHoldErrorDismiss)
-                            .padding(horizontal = 10.dp, vertical = 7.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(MaterialTheme.shapes.large)
+                                .background(MaterialTheme.colorScheme.errorContainer)
+                                .clickable(onClick = onHoldErrorDismiss)
+                                .padding(horizontal = 10.dp, vertical = 7.dp),
                     ) {
                         Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Text(
                                 holdError ?: "",
-                                style    = MaterialTheme.typography.labelSmall,
-                                color    = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.weight(1f)
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.weight(1f),
                             )
                             Text("✕", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onErrorContainer)
                         }
@@ -242,115 +278,145 @@ internal fun OrderSummaryActions(
             // ── Bottom bar: Total (kiri) + CTA (kanan) ────────────────────────
             Row(
                 Modifier.fillMaxWidth(),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 // Total Bayar
                 Column {
                     Text(
                         "TOTAL BAYAR",
-                        style      = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color      = onSurfaceVariant
+                        color = onSurfaceVariant,
                     )
                     val totalColor by animateColorAsState(
                         if (hasItems && hasOpenShift) primary else onSurface,
-                        tween(300), label = "TotalColor"
+                        tween(300),
+                        label = "TotalColor",
                     )
                     Text(
                         formatRupiah(cartState.total),
-                        style      = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
-                        color      = totalColor
+                        color = totalColor,
                     )
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     // ── Open Bill button ──────────────────────────────────────
-                    val isUpdate       = cartState.activeOpenBillId != null
-                    val billActive     = hasItems && !isHolding
+                    val isUpdate = cartState.activeOpenBillId != null
+                    val billActive = hasItems && !isHolding && !isSubscriptionExpired
                     val billBorderColor by animateColorAsState(
                         if (billActive) primary.copy(0.28f) else Color.Transparent,
-                        tween(220), label = "BillBorder"
+                        tween(220),
+                        label = "BillBorder",
                     )
                     val billContentColor by animateColorAsState(
                         if (billActive) onSurface else onSurfaceVariant.copy(0.35f),
-                        tween(220), label = "BillContent"
+                        tween(220),
+                        label = "BillContent",
                     )
 
                     Box(
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.medium)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .border(1.dp, billBorderColor, MaterialTheme.shapes.medium)
-                            .clickable(enabled = billActive, onClick = onSaveClick)
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .clip(MaterialTheme.shapes.medium)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .border(1.dp, billBorderColor, MaterialTheme.shapes.medium)
+                                .clickable(enabled = billActive, onClick = onSaveClick)
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
                         if (isHolding) {
                             CircularProgressIndicator(
-                                modifier    = Modifier.size(16.dp),
-                                color       = primary,
-                                strokeWidth = 2.dp
+                                modifier = Modifier.size(16.dp),
+                                color = primary,
+                                strokeWidth = 2.dp,
                             )
                         } else {
                             Row(
-                                verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp),
                             ) {
                                 Icon(Icons.Default.BookmarkBorder, null, Modifier.size(16.dp), tint = billContentColor)
                                 Text(
                                     if (isUpdate) "Perbarui" else "Open Bill",
-                                    style      = MaterialTheme.typography.labelMedium,
+                                    style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color      = billContentColor
+                                    color = billContentColor,
                                 )
                             }
                         }
                     }
 
                     // ── Bayar button (gradient when active) ───────────────────
-                    val canPay      = hasItems && hasOpenShift
-                    val gradStart   by animateColorAsState(
-                        when { !hasItems -> MaterialTheme.colorScheme.outlineVariant.copy(0.4f); !hasOpenShift -> MaterialTheme.colorScheme.errorContainer; else -> Primary },
-                        tween(250), label = "PayGradStart"
+                    val canPay = hasItems && hasOpenShift && !isSubscriptionExpired
+                    val gradStart by animateColorAsState(
+                        when {
+                            !hasItems -> MaterialTheme.colorScheme.outlineVariant.copy(0.4f)
+                            !hasOpenShift -> MaterialTheme.colorScheme.errorContainer
+                            else -> Primary
+                        },
+                        tween(250),
+                        label = "PayGradStart",
                     )
-                    val gradEnd2    by animateColorAsState(
-                        when { !hasItems -> MaterialTheme.colorScheme.outlineVariant.copy(0.4f); !hasOpenShift -> MaterialTheme.colorScheme.errorContainer; else -> GradientEnd },
-                        tween(250), label = "PayGradEnd"
+                    val gradEnd2 by animateColorAsState(
+                        when {
+                            !hasItems -> MaterialTheme.colorScheme.outlineVariant.copy(0.4f)
+                            !hasOpenShift -> MaterialTheme.colorScheme.errorContainer
+                            else -> GradientEnd
+                        },
+                        tween(250),
+                        label = "PayGradEnd",
                     )
                     val payIconTint by animateColorAsState(
-                        when { !hasItems -> onSurfaceVariant; !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer; else -> MaterialTheme.colorScheme.onPrimary },
-                        tween(200), label = "PayIconTint"
+                        when {
+                            !hasItems -> onSurfaceVariant
+                            !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer
+                            else -> MaterialTheme.colorScheme.onPrimary
+                        },
+                        tween(200),
+                        label = "PayIconTint",
                     )
                     val payTextColor by animateColorAsState(
-                        when { !hasItems -> onSurfaceVariant; !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer; else -> MaterialTheme.colorScheme.onPrimary },
-                        tween(200), label = "PayTextColor"
+                        when {
+                            !hasItems -> onSurfaceVariant
+                            !hasOpenShift -> MaterialTheme.colorScheme.onErrorContainer
+                            else -> MaterialTheme.colorScheme.onPrimary
+                        },
+                        tween(200),
+                        label = "PayTextColor",
                     )
 
                     Box(
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.medium)
-                            .background(Brush.horizontalGradient(listOf(gradStart, gradEnd2)))
-                            .clickable(enabled = canPay, onClick = onCheckoutClick)
-                            .padding(horizontal = 22.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .clip(MaterialTheme.shapes.medium)
+                                .background(Brush.horizontalGradient(listOf(gradStart, gradEnd2)))
+                                .clickable(enabled = canPay, onClick = onCheckoutClick)
+                                .padding(horizontal = 22.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Row(
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Icon(Icons.Default.Payment, null, Modifier.size(16.dp), tint = payIconTint)
                             AnimatedContent(
-                                targetState  = when { !hasItems -> "Pilih Produk"; !hasOpenShift -> "Buka Shift"; else -> "Bayar" },
+                                targetState =
+                                    when {
+                                        !hasItems -> "Pilih Produk"
+                                        !hasOpenShift -> "Buka Shift"
+                                        else -> "Bayar"
+                                    },
                                 transitionSpec = { fadeIn(tween(160)) togetherWith fadeOut(tween(120)) },
-                                label        = "PayLabel"
+                                label = "PayLabel",
                             ) { label ->
                                 Text(
                                     label,
-                                    style      = MaterialTheme.typography.labelLarge,
+                                    style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color      = payTextColor
+                                    color = payTextColor,
                                 )
                             }
                         }
@@ -365,185 +431,121 @@ internal fun OrderSummaryActions(
 
 @Composable
 private fun FeeCellItem(
-    label:             String,
-    icon:              ImageVector,
-    value:             Long,
-    onValue:           (Long, Boolean) -> Unit,
-    isNegative:        Boolean = false,
+    label: String,
+    icon: ImageVector,
+    value: Long,
+    onValue: (Long, Boolean) -> Unit,
+    isNegative: Boolean = false,
     showPercentToggle: Boolean = false,
-    valueIsPercent:    Boolean = false,
-    computedAmount:    Long    = 0L,
-    modifier:          Modifier = Modifier
+    valueIsPercent: Boolean = false,
+    computedAmount: Long = 0L,
+    modifier: Modifier = Modifier,
 ) {
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val primary          = MaterialTheme.colorScheme.primary
-    val error            = MaterialTheme.colorScheme.error
+    val primary = MaterialTheme.colorScheme.primary
+    val error = MaterialTheme.colorScheme.error
     var showDialog by remember { mutableStateOf(false) }
 
-    val filled     = value > 0L
+    val filled = value > 0L
     val valueColor = if (isNegative) error else primary
-    val cellBg     by animateColorAsState(
-        if (filled) (if (isNegative) error else primary).copy(alpha = 0.06f)
-        else Color.Transparent,
-        tween(220), label = "FeeCellBg"
+    val cellBg by animateColorAsState(
+        if (filled) {
+            (if (isNegative) error else primary).copy(alpha = 0.06f)
+        } else {
+            Color.Transparent
+        },
+        tween(220),
+        label = "FeeCellBg",
     )
-    val iconTint   by animateColorAsState(
+    val iconTint by animateColorAsState(
         if (filled) (if (isNegative) error else primary).copy(0.75f) else onSurfaceVariant.copy(0.5f),
-        tween(220), label = "FeeCellIcon"
+        tween(220),
+        label = "FeeCellIcon",
     )
     val labelColor by animateColorAsState(
         if (filled) (if (isNegative) error else primary).copy(0.8f) else onSurfaceVariant,
-        tween(220), label = "FeeCellLabel"
+        tween(220),
+        label = "FeeCellLabel",
     )
 
     if (showDialog) {
         FeeInputDialog(
-            title             = label,
-            icon              = icon,
-            initialValue      = value,
-            isNegative        = isNegative,
+            title = label,
+            icon = icon,
+            initialValue = value,
+            isNegative = isNegative,
             showPercentToggle = showPercentToggle,
-            initialIsPercent  = valueIsPercent,
-            onDismiss         = { showDialog = false },
-            onConfirm         = { amount, isPercent ->
+            initialIsPercent = valueIsPercent,
+            onDismiss = { showDialog = false },
+            onConfirm = { amount, isPercent ->
                 onValue(amount, isPercent)
                 showDialog = false
-            }
+            },
         )
     }
 
     Column(
-        modifier = modifier
-            .background(cellBg)
-            .clickable { showDialog = true }
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+        modifier =
+            modifier
+                .background(cellBg)
+                .clickable { showDialog = true }
+                .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(icon, null, Modifier.size(14.dp), tint = iconTint)
             Text(
                 label.uppercase(),
-                style      = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color      = labelColor
+                color = labelColor,
             )
         }
         Spacer(Modifier.height(4.dp))
         AnimatedContent(
-            targetState  = filled,
+            targetState = filled,
             transitionSpec = { fadeIn(tween(160)) togetherWith fadeOut(tween(120)) },
-            label        = "FeeCellValue_$label"
+            label = "FeeCellValue_$label",
         ) { hasFilled ->
             if (hasFilled) {
                 if (valueIsPercent) {
                     Text(
-                        "${value}%  ·  Rp ${feeFormatNumber(computedAmount)}",
-                        style      = MaterialTheme.typography.labelMedium,
+                        "$value%  ·  Rp ${feeFormatNumber(computedAmount)}",
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color      = valueColor
+                        color = valueColor,
                     )
                 } else {
                     Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        if (isNegative) Text(
-                            "−",
-                            style      = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color      = error
-                        )
+                        if (isNegative) {
+                            Text(
+                                "−",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = error,
+                            )
+                        }
                         Text(
                             formatRupiah(value),
-                            style      = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color      = valueColor
+                            color = valueColor,
                         )
                     }
                 }
             } else {
                 Text(
                     if (isNegative) "— Tambahkan" else "+ Tambahkan",
-                    style      = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Medium,
-                    color      = if (isNegative) error.copy(0.55f) else primary.copy(0.55f)
+                    color = if (isNegative) error.copy(0.55f) else primary.copy(0.55f),
                 )
             }
-        }
-    }
-}
-
-// ── FeeInputRow ───────────────────────────────────────────────────────────────
-
-@Composable
-private fun FeeInputRow(
-    label:             String,
-    icon:              ImageVector,
-    value:             Long,
-    onValue:           (Long, Boolean) -> Unit,
-    isNegative:        Boolean = false,
-    showPercentToggle: Boolean = false,
-    valueIsPercent:    Boolean = false,
-    computedAmount:    Long    = 0L
-) {
-    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val primary          = MaterialTheme.colorScheme.primary
-    val error            = MaterialTheme.colorScheme.error
-    var showDialog by remember { mutableStateOf(false) }
-
-    if (showDialog) {
-        FeeInputDialog(
-            title             = label,
-            icon              = icon,
-            initialValue      = value,
-            isNegative        = isNegative,
-            showPercentToggle = showPercentToggle,
-            initialIsPercent  = valueIsPercent,
-            onDismiss         = { showDialog = false },
-            onConfirm         = { amount, isPercent ->
-                onValue(amount, isPercent)
-                showDialog = false
-            }
-        )
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .clickable { showDialog = true }
-            .padding(vertical = 5.dp, horizontal = 2.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier              = Modifier.weight(1f)
-        ) {
-            Icon(icon, null, Modifier.size(12.dp), tint = onSurfaceVariant.copy(0.6f))
-            Text(label, style = MaterialTheme.typography.labelSmall, color = onSurfaceVariant)
-        }
-        Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            if (value > 0L) {
-                if (isNegative) Text("−", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = error)
-                val valueColor = if (isNegative) error else primary
-                if (valueIsPercent) {
-                    Text("${value}%", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = valueColor)
-                    Text("·", style = MaterialTheme.typography.labelSmall, color = onSurfaceVariant.copy(0.4f))
-                    Text("Rp ${feeFormatNumber(computedAmount)}", style = MaterialTheme.typography.labelSmall, color = onSurfaceVariant.copy(0.75f))
-                } else {
-                    Text("Rp ${feeFormatNumber(value)}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = valueColor)
-                }
-            } else {
-                Text("Ketuk untuk isi", style = MaterialTheme.typography.labelSmall, color = onSurfaceVariant.copy(0.35f))
-            }
-            Icon(Icons.Default.ChevronRight, null, Modifier.size(12.dp), tint = onSurfaceVariant.copy(0.30f))
         }
     }
 }
@@ -552,22 +554,22 @@ private fun FeeInputRow(
 
 @Composable
 private fun AutoFeeRow(
-    label:           String,
-    amount:          Long,
+    label: String,
+    amount: Long,
     onSurfaceVariant: Color,
-    onSurface:       Color
+    onSurface: Color,
 ) {
     Row(
         Modifier.fillMaxWidth().padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = onSurfaceVariant)
         Text(
             formatRupiah(amount),
-            style      = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
-            color      = onSurface
+            color = onSurface,
         )
     }
 }
@@ -576,125 +578,139 @@ private fun AutoFeeRow(
 
 @Composable
 private fun VoucherInputRow(
-    value:   String,
+    value: String,
     primary: Color,
-    onApply: (String) -> Unit
+    onApply: (String) -> Unit,
 ) {
-    var text    by remember(value) { mutableStateOf(value) }
+    var text by remember(value) { mutableStateOf(value) }
     val keyboard = LocalSoftwareKeyboardController.current
-    val applied  = value.isNotBlank() && value == text
+    val applied = value.isNotBlank() && value == text
 
     val fieldBorderColor by animateColorAsState(
         if (applied) primary.copy(0.7f) else MaterialTheme.colorScheme.outlineVariant.copy(0.7f),
-        tween(220), label = "VoucherBorder"
+        tween(220),
+        label = "VoucherBorder",
     )
     val fieldBg by animateColorAsState(
         if (applied) primary.copy(0.06f) else MaterialTheme.colorScheme.surfaceVariant.copy(0.6f),
-        tween(220), label = "VoucherBg"
+        tween(220),
+        label = "VoucherBg",
     )
     val iconTint by animateColorAsState(
         if (applied) primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f),
-        tween(220), label = "VoucherIcon"
+        tween(220),
+        label = "VoucherIcon",
     )
 
     Spacer(Modifier.height(4.dp))
     Row(
-        modifier              = Modifier.fillMaxWidth(),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Icon(Icons.Default.LocalOffer, null, Modifier.size(15.dp), tint = iconTint)
         // Input field
         Box(
-            modifier = Modifier
-                .weight(1f)
-                .clip(MaterialTheme.shapes.medium)
-                .background(fieldBg)
-                .border(1.dp, fieldBorderColor, MaterialTheme.shapes.medium)
-                .padding(horizontal = 10.dp, vertical = 9.dp)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(fieldBg)
+                    .border(1.dp, fieldBorderColor, MaterialTheme.shapes.medium)
+                    .padding(horizontal = 10.dp, vertical = 9.dp),
         ) {
             if (text.isEmpty()) {
                 Text(
                     "Kode voucher",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.45f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.45f),
                 )
             }
             BasicTextField(
-                value         = text,
+                value = text,
                 onValueChange = {
                     text = it.uppercase().trim()
                     if (it.isBlank()) onApply("")
                 },
-                singleLine    = true,
-                textStyle     = MaterialTheme.typography.bodySmall.copy(
-                    color      = if (applied) primary else MaterialTheme.colorScheme.onSurface,
-                    fontWeight = if (applied) FontWeight.Bold else FontWeight.Normal
-                ),
-                cursorBrush   = SolidColor(primary),
+                singleLine = true,
+                textStyle =
+                    MaterialTheme.typography.bodySmall.copy(
+                        color = if (applied) primary else MaterialTheme.colorScheme.onSurface,
+                        fontWeight = if (applied) FontWeight.Bold else FontWeight.Normal,
+                    ),
+                cursorBrush = SolidColor(primary),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = {
-                    if (text.isNotBlank()) onApply(text)
-                    keyboard?.hide()
-                })
+                keyboardActions =
+                    KeyboardActions(onDone = {
+                        if (text.isNotBlank()) onApply(text)
+                        keyboard?.hide()
+                    }),
             )
         }
         // Apply / Clear button
         val btnBg by animateColorAsState(
             when {
-                applied          -> MaterialTheme.colorScheme.errorContainer
+                applied -> MaterialTheme.colorScheme.errorContainer
                 text.isNotBlank() -> primary
-                else              -> MaterialTheme.colorScheme.outlineVariant.copy(0.4f)
+                else -> MaterialTheme.colorScheme.outlineVariant.copy(0.4f)
             },
-            tween(220), label = "VoucherBtnBg"
+            tween(220),
+            label = "VoucherBtnBg",
         )
         val btnText by animateColorAsState(
             when {
-                applied          -> MaterialTheme.colorScheme.onErrorContainer
+                applied -> MaterialTheme.colorScheme.onErrorContainer
                 text.isNotBlank() -> MaterialTheme.colorScheme.onPrimary
-                else              -> MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f)
+                else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f)
             },
-            tween(220), label = "VoucherBtnText"
+            tween(220),
+            label = "VoucherBtnText",
         )
         Box(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.medium)
-                .background(btnBg)
-                .clickable(enabled = text.isNotBlank()) {
-                    if (applied) { text = ""; onApply("") }
-                    else { onApply(text); keyboard?.hide() }
-                }
-                .padding(horizontal = 12.dp, vertical = 8.dp)
+            modifier =
+                Modifier
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(btnBg)
+                    .clickable(enabled = text.isNotBlank()) {
+                        if (applied) {
+                            text = ""
+                            onApply("")
+                        } else {
+                            onApply(text)
+                            keyboard?.hide()
+                        }
+                    }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
         ) {
             AnimatedContent(
-                targetState  = if (applied) "Hapus" else "Pakai",
+                targetState = if (applied) "Hapus" else "Pakai",
                 transitionSpec = { fadeIn(tween(150)) togetherWith fadeOut(tween(120)) },
-                label        = "VoucherBtnLabel"
+                label = "VoucherBtnLabel",
             ) { label ->
                 Text(
                     label,
-                    style      = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color      = btnText
+                    color = btnText,
                 )
             }
         }
     }
     AnimatedVisibility(
         visible = applied,
-        enter   = expandVertically(tween(200)) + fadeIn(tween(160)),
-        exit    = shrinkVertically(tween(180)) + fadeOut(tween(140))
+        enter = expandVertically(tween(200)) + fadeIn(tween(160)),
+        exit = shrinkVertically(tween(180)) + fadeOut(tween(140)),
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(3.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            modifier              = Modifier.padding(start = 21.dp, top = 3.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 21.dp, top = 3.dp),
         ) {
             Icon(Icons.Default.CheckCircle, null, Modifier.size(10.dp), tint = primary.copy(0.75f))
             Text(
                 "Voucher \"$value\" diterapkan",
                 style = MaterialTheme.typography.labelSmall,
-                color = primary.copy(0.85f)
+                color = primary.copy(0.85f),
             )
         }
     }
@@ -708,25 +724,26 @@ private fun VoucherInputRow(
 private fun OrderSummaryActionsPreview_WithItems() {
     RancakTheme {
         OrderSummaryActions(
-            cartState          = CartUiState(
-                items         = persistentListOf(),
-                discountInput = 5_000L,
-                taxInput      = 6_000L
-            ),
-            surface            = MaterialTheme.colorScheme.surface,
-            primary            = MaterialTheme.colorScheme.primary,
-            onSurface          = MaterialTheme.colorScheme.onSurface,
-            onSurfaceVariant   = MaterialTheme.colorScheme.onSurfaceVariant,
-            hasItems           = false,
-            hasOpenShift       = true,
-            onDiscount         = { _, _ -> },
-            onTax              = { _, _ -> },
-            onAdminFee         = { _, _ -> },
-            onDeliveryFee      = {},
-            onTip              = {},
-            onVoucherCode      = {},
-            onSaveClick        = {},
-            onCheckoutClick    = {}
+            cartState =
+                CartUiState(
+                    items = persistentListOf(),
+                    discountInput = 5_000L,
+                    taxInput = 6_000L,
+                ),
+            surface = MaterialTheme.colorScheme.surface,
+            primary = MaterialTheme.colorScheme.primary,
+            onSurface = MaterialTheme.colorScheme.onSurface,
+            onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant,
+            hasItems = false,
+            hasOpenShift = true,
+            onDiscount = { _, _ -> },
+            onTax = { _, _ -> },
+            onAdminFee = { _, _ -> },
+            onDeliveryFee = {},
+            onTip = {},
+            onVoucherCode = {},
+            onSaveClick = {},
+            onCheckoutClick = {},
         )
     }
 }

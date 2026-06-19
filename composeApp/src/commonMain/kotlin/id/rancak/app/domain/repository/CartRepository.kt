@@ -18,18 +18,33 @@ interface CartRepository {
      * Tambah [product] ke keranjang. Jika sudah ada (same productUuid + variantUuid),
      * qty-nya dinaikkan 1.
      */
-    suspend fun addOrIncrement(product: Product, variantUuid: String? = null, variantName: String? = null)
+    suspend fun addOrIncrement(
+        product: Product,
+        variantUuid: String? = null,
+        variantName: String? = null,
+    )
 
     /**
      * Set qty item secara eksplisit. Jika [qty] ≤ 0, item dihapus dari keranjang.
      */
-    suspend fun updateQuantity(productUuid: String, variantUuid: String?, qty: Int)
+    suspend fun updateQuantity(
+        productUuid: String,
+        variantUuid: String?,
+        qty: Int,
+    )
 
     /** Perbarui catatan (note) untuk satu item. String kosong disimpan sebagai null. */
-    suspend fun updateNote(productUuid: String, variantUuid: String?, note: String)
+    suspend fun updateNote(
+        productUuid: String,
+        variantUuid: String?,
+        note: String,
+    )
 
     /** Hapus satu item dari keranjang. */
-    suspend fun removeItem(productUuid: String, variantUuid: String?)
+    suspend fun removeItem(
+        productUuid: String,
+        variantUuid: String?,
+    )
 
     /** Kosongkan seluruh keranjang. */
     suspend fun clearAll()

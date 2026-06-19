@@ -15,30 +15,32 @@ data class SaleItemEntity(
     val subtotal: Long,
     val variantName: String?,
     val note: String?,
-    val discount: Long = 0
+    val discount: Long = 0,
 )
 
-fun SaleItemEntity.toDomain() = SaleItem(
-    uuid = uuid,
-    productUuid = productUuid,
-    productName = productName,
-    qty = qty,
-    price = price,
-    discount = discount,
-    subtotal = subtotal,
-    variantName = variantName,
-    note = note
-)
+fun SaleItemEntity.toDomain() =
+    SaleItem(
+        uuid = uuid,
+        productUuid = productUuid,
+        productName = productName,
+        qty = qty,
+        price = price,
+        discount = discount,
+        subtotal = subtotal,
+        variantName = variantName,
+        note = note,
+    )
 
-fun SaleItem.toEntity(saleUuid: String) = SaleItemEntity(
-    uuid = uuid,
-    saleUuid = saleUuid,
-    productUuid = productUuid,
-    productName = productName,
-    qty = qty,
-    price = price,
-    subtotal = subtotal,
-    variantName = variantName,
-    note = note,
-    discount = discount
-)
+fun SaleItem.toEntity(saleUuid: String) =
+    SaleItemEntity(
+        uuid = uuid,
+        saleUuid = saleUuid,
+        productUuid = productUuid,
+        productName = productName,
+        qty = qty,
+        price = price,
+        subtotal = subtotal,
+        variantName = variantName,
+        note = note,
+        discount = discount,
+    )

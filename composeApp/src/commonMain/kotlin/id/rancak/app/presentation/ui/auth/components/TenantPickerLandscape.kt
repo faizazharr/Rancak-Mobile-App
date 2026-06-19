@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.ui.auth.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -9,7 +10,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Store
@@ -39,89 +39,92 @@ internal fun TenantPickerLandscape(
     tenants: ImmutableList<Tenant>,
     selectedTenant: Tenant?,
     onSelectTenant: (Tenant) -> Unit,
-    onAddOutlet: (() -> Unit)? = null
+    onAddOutlet: (() -> Unit)? = null,
 ) {
-    val primary     = MaterialTheme.colorScheme.primary
-    val primaryDark = Color(
-        red   = (primary.red   * 0.55f).coerceIn(0f, 1f),
-        green = (primary.green * 0.55f).coerceIn(0f, 1f),
-        blue  = (primary.blue  * 0.55f).coerceIn(0f, 1f)
-    )
+    val primary = MaterialTheme.colorScheme.primary
+    val primaryDark =
+        Color(
+            red = (primary.red * 0.55f).coerceIn(0f, 1f),
+            green = (primary.green * 0.55f).coerceIn(0f, 1f),
+            blue = (primary.blue * 0.55f).coerceIn(0f, 1f),
+        )
 
     Row(modifier = Modifier.fillMaxSize()) {
-
         // ── Kiri: panel hero gradient ──────────────────────────────────────
         Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(0.38f)
-                .background(Brush.verticalGradient(listOf(primary, primaryDark))),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .weight(0.38f)
+                    .background(Brush.verticalGradient(listOf(primary, primaryDark))),
+            contentAlignment = Alignment.Center,
         ) {
             Box(
                 Modifier.size(220.dp).offset(x = (-60).dp, y = (-60).dp)
-                    .clip(CircleShape).background(Color.White.copy(alpha = 0.07f))
+                    .clip(CircleShape).background(Color.White.copy(alpha = 0.07f)),
             )
             Box(
                 Modifier.size(160.dp).align(Alignment.BottomEnd)
                     .offset(x = 40.dp, y = 40.dp)
-                    .clip(CircleShape).background(Color.White.copy(alpha = 0.05f))
+                    .clip(CircleShape).background(Color.White.copy(alpha = 0.05f)),
             )
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier            = Modifier.padding(24.dp)
+                modifier = Modifier.padding(24.dp),
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .clip(MaterialTheme.shapes.extraLarge)
-                        .background(Color.White.copy(alpha = 0.18f))
-                        .border(1.dp, Color.White.copy(alpha = 0.35f), MaterialTheme.shapes.extraLarge),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(72.dp)
+                            .clip(MaterialTheme.shapes.extraLarge)
+                            .background(Color.White.copy(alpha = 0.18f))
+                            .border(1.dp, Color.White.copy(alpha = 0.35f), MaterialTheme.shapes.extraLarge),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(Icons.Default.Store, null, Modifier.size(38.dp), tint = Color.White)
                 }
                 Spacer(Modifier.height(20.dp))
                 Text(
                     "Pilih Outlet",
-                    style      = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold,
-                    color      = Color.White,
-                    textAlign  = TextAlign.Center
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     "Tentukan outlet untuk\nmemulai sesi kasir",
-                    style     = MaterialTheme.typography.bodySmall,
-                    color     = Color.White.copy(alpha = 0.72f),
-                    textAlign = TextAlign.Center
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.72f),
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(28.dp))
 
                 // Badge jumlah outlet
                 Box(
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.extraLarge)
-                        .background(Color.White.copy(alpha = 0.18f))
-                        .border(1.dp, Color.White.copy(alpha = 0.30f), MaterialTheme.shapes.extraLarge)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier =
+                        Modifier
+                            .clip(MaterialTheme.shapes.extraLarge)
+                            .background(Color.White.copy(alpha = 0.18f))
+                            .border(1.dp, Color.White.copy(alpha = 0.30f), MaterialTheme.shapes.extraLarge)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                 ) {
                     Text(
                         "${tenants.size} outlet tersedia",
-                        style      = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color      = Color.White
+                        color = Color.White,
                     )
                 }
 
                 if (onAddOutlet != null) {
                     Spacer(Modifier.height(16.dp))
                     OutlinedButton(
-                        onClick  = onAddOutlet,
-                        border   = BorderStroke(1.dp, Color.White.copy(alpha = 0.40f)),
-                        shape    = MaterialTheme.shapes.medium,
-                        colors   = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                        onClick = onAddOutlet,
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.40f)),
+                        shape = MaterialTheme.shapes.medium,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
@@ -133,22 +136,24 @@ internal fun TenantPickerLandscape(
 
         // ── Kanan: daftar outlet ───────────────────────────────────────────
         Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(0.62f)
-                .background(MaterialTheme.colorScheme.background)
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .weight(0.62f)
+                    .background(MaterialTheme.colorScheme.background),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .systemBarsPadding()
-                    .padding(horizontal = 24.dp)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .systemBarsPadding()
+                        .padding(horizontal = 24.dp),
             ) {
                 Spacer(Modifier.height(20.dp))
                 Text(
                     "Pilih salah satu outlet di bawah:",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(12.dp))
 
@@ -156,19 +161,19 @@ internal fun TenantPickerLandscape(
                     if (maxWidth >= 480.dp) {
                         // Grid 2 kolom untuk tablet
                         LazyVerticalGrid(
-                            columns               = GridCells.Fixed(2),
-                            verticalArrangement   = Arrangement.spacedBy(10.dp),
+                            columns = GridCells.Fixed(2),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding        = PaddingValues(bottom = 8.dp),
-                            modifier              = Modifier.fillMaxSize()
+                            contentPadding = PaddingValues(bottom = 8.dp),
+                            modifier = Modifier.fillMaxSize(),
                         ) {
                             itemsIndexed(tenants, key = { _, t -> t.uuid }) { index, tenant ->
                                 GlassOutletCardLight(
-                                    name               = tenant.name,
-                                    isSelected         = selectedTenant == tenant,
-                                    colorIndex         = index,
+                                    name = tenant.name,
+                                    isSelected = selectedTenant == tenant,
+                                    colorIndex = index,
                                     subscriptionStatus = tenant.subscriptionStatus,
-                                    onClick            = { onSelectTenant(tenant) }
+                                    onClick = { onSelectTenant(tenant) },
                                 )
                             }
                         }
@@ -176,16 +181,16 @@ internal fun TenantPickerLandscape(
                         // List biasa untuk landscape phone
                         LazyColumn(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding      = PaddingValues(bottom = 8.dp),
-                            modifier            = Modifier.fillMaxSize()
+                            contentPadding = PaddingValues(bottom = 8.dp),
+                            modifier = Modifier.fillMaxSize(),
                         ) {
                             itemsIndexed(tenants, key = { _, t -> t.uuid }) { index, tenant ->
                                 GlassOutletCardLight(
-                                    name               = tenant.name,
-                                    isSelected         = selectedTenant == tenant,
-                                    colorIndex         = index,
+                                    name = tenant.name,
+                                    isSelected = selectedTenant == tenant,
+                                    colorIndex = index,
                                     subscriptionStatus = tenant.subscriptionStatus,
-                                    onClick            = { onSelectTenant(tenant) }
+                                    onClick = { onSelectTenant(tenant) },
                                 )
                             }
                         }
@@ -202,11 +207,12 @@ internal fun TenantPickerLandscape(
 @Composable
 private fun TenantPickerLandscapePreview() {
     RancakTheme {
-        val tenants = listOf(
-            Tenant("1", "Warung Rancak"),
-            Tenant("2", "Cafe Sederhana"),
-            Tenant("3", "Kedai Kopi")
-        ).toImmutableList()
+        val tenants =
+            listOf(
+                Tenant("1", "Warung Rancak"),
+                Tenant("2", "Cafe Sederhana"),
+                Tenant("3", "Kedai Kopi"),
+            ).toImmutableList()
         TenantPickerLandscape(tenants, tenants.first(), {})
     }
 }
@@ -215,10 +221,13 @@ private fun TenantPickerLandscapePreview() {
 @Composable
 private fun TenantPickerLandscape_TabletPreview() {
     RancakTheme {
-        val tenants = listOf(
-            Tenant("1", "Warung Rancak"), Tenant("2", "Cafe Sederhana"),
-            Tenant("3", "Kedai Kopi"),   Tenant("4", "Toko Serba Ada")
-        ).toImmutableList()
+        val tenants =
+            listOf(
+                Tenant("1", "Warung Rancak"),
+                Tenant("2", "Cafe Sederhana"),
+                Tenant("3", "Kedai Kopi"),
+                Tenant("4", "Toko Serba Ada"),
+            ).toImmutableList()
         TenantPickerLandscape(tenants, tenants.first(), {})
     }
 }

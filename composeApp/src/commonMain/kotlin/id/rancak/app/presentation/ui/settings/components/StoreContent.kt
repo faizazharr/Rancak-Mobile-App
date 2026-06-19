@@ -82,27 +82,29 @@ internal fun StoreContent(
         Text(
             "Info ini tampil di header setiap struk yang dicetak.",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(10.dp))
         OutlinedTextField(
-            value = storeName, onValueChange = onStoreName,
+            value = storeName,
+            onValueChange = onStoreName,
             label = { Text("Nama Toko") },
             placeholder = { Text("Rancak Coffee") },
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.Store, contentDescription = null, modifier = Modifier.size(18.dp)) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodySmall
+            textStyle = MaterialTheme.typography.bodySmall,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
-            value = storeAddress, onValueChange = onStoreAddress,
+            value = storeAddress,
+            onValueChange = onStoreAddress,
             label = { Text("Alamat") },
             placeholder = { Text("Jl. Sudirman No. 1") },
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(18.dp)) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodySmall
+            textStyle = MaterialTheme.typography.bodySmall,
         )
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -114,37 +116,40 @@ internal fun StoreContent(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(18.dp)) },
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
             OutlinedTextField(
-                value = footerText, onValueChange = onFooterText,
+                value = footerText,
+                onValueChange = onFooterText,
                 label = { Text("Footer Struk") },
                 placeholder = { Text("Terima kasih!") },
                 singleLine = true,
                 leadingIcon = { Icon(Icons.Default.TextFields, contentDescription = null, modifier = Modifier.size(18.dp)) },
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
         }
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
-            value = receiptHeader, onValueChange = onReceiptHeader,
+            value = receiptHeader,
+            onValueChange = onReceiptHeader,
             label = { Text("Header Tambahan") },
             placeholder = { Text("Tagline atau ucapan selamat datang") },
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.Receipt, contentDescription = null, modifier = Modifier.size(18.dp)) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodySmall
+            textStyle = MaterialTheme.typography.bodySmall,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
-            value = receiptFooter2, onValueChange = onReceiptFooter2,
+            value = receiptFooter2,
+            onValueChange = onReceiptFooter2,
             label = { Text("Footer Baris 2") },
             placeholder = { Text("Kebijakan retur atau info promo") },
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.TextFields, contentDescription = null, modifier = Modifier.size(18.dp)) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodySmall
+            textStyle = MaterialTheme.typography.bodySmall,
         )
 
         Spacer(Modifier.height(14.dp))
@@ -155,28 +160,28 @@ internal fun StoreContent(
         Text(
             "Logo Struk",
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.height(4.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(
                     Icons.Default.Image,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(18.dp),
                 )
                 Text(
                     "Tampilkan logo di atas struk",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Switch(checked = showLogo, onCheckedChange = onShowLogo)
@@ -184,7 +189,7 @@ internal fun StoreContent(
         Text(
             "Logo toko ditampilkan di area paling atas struk, sebelum nama toko.",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(14.dp))
@@ -195,14 +200,14 @@ internal fun StoreContent(
         Text(
             "Tampilan Struk",
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.height(8.dp))
 
         Text(
             "Ukuran Nama Toko",
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -214,7 +219,7 @@ internal fun StoreContent(
                         Icon(Icons.Default.FormatSize, contentDescription = null, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
                         Text(label, style = MaterialTheme.typography.labelSmall)
-                    }
+                    },
                 )
             }
         }
@@ -223,7 +228,7 @@ internal fun StoreContent(
         Text(
             "Garis Pemisah",
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -231,7 +236,7 @@ internal fun StoreContent(
                 FilterChip(
                     selected = separatorStyle == value,
                     onClick = { onSeparatorStyle(value) },
-                    label = { Text(label, style = MaterialTheme.typography.labelSmall) }
+                    label = { Text(label, style = MaterialTheme.typography.labelSmall) },
                 )
             }
         }
@@ -240,7 +245,7 @@ internal fun StoreContent(
         Text(
             "Posisi Footer",
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -248,7 +253,7 @@ internal fun StoreContent(
                 FilterChip(
                     selected = footerPosition == value,
                     onClick = { onFooterPosition(value) },
-                    label = { Text(label, style = MaterialTheme.typography.labelSmall) }
+                    label = { Text(label, style = MaterialTheme.typography.labelSmall) },
                 )
             }
         }
@@ -261,13 +266,13 @@ internal fun StoreContent(
         Text(
             "Kontak Tambahan",
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.height(4.dp))
         Text(
             "Email, website, dan NPWP akan dicetak jika diisi.",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -278,27 +283,29 @@ internal fun StoreContent(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp)) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodySmall
+            textStyle = MaterialTheme.typography.bodySmall,
         )
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
-                value = receiptWebsite, onValueChange = onReceiptWebsite,
+                value = receiptWebsite,
+                onValueChange = onReceiptWebsite,
                 label = { Text("Website") },
                 placeholder = { Text("www.toko.com") },
                 singleLine = true,
                 leadingIcon = { Icon(Icons.Default.Language, contentDescription = null, modifier = Modifier.size(18.dp)) },
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
             OutlinedTextField(
-                value = receiptNpwp, onValueChange = onReceiptNpwp,
+                value = receiptNpwp,
+                onValueChange = onReceiptNpwp,
                 label = { Text("NPWP") },
                 placeholder = { Text("00.000.000.0-000.000") },
                 singleLine = true,
                 leadingIcon = { Icon(Icons.Default.Tag, contentDescription = null, modifier = Modifier.size(18.dp)) },
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
         }
 
@@ -310,52 +317,56 @@ internal fun StoreContent(
         Text(
             "Sosial Media & WiFi",
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.height(4.dp))
         Text(
             "Akan dicetak di bagian bawah struk jika diisi.",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
-                value = receiptInstagram, onValueChange = onReceiptInstagram,
+                value = receiptInstagram,
+                onValueChange = onReceiptInstagram,
                 label = { Text("Instagram") },
                 placeholder = { Text("namacafe (tanpa @)") },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
             OutlinedTextField(
-                value = receiptFacebook, onValueChange = onReceiptFacebook,
+                value = receiptFacebook,
+                onValueChange = onReceiptFacebook,
                 label = { Text("Facebook") },
                 placeholder = { Text("nama atau URL") },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
         }
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
-            value = receiptWifiSsid, onValueChange = onReceiptWifiSsid,
+            value = receiptWifiSsid,
+            onValueChange = onReceiptWifiSsid,
             label = { Text("WiFi SSID") },
             placeholder = { Text("NamaJaringanWifi") },
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodySmall
+            textStyle = MaterialTheme.typography.bodySmall,
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
-            value = receiptWifiPassword, onValueChange = onReceiptWifiPassword,
+            value = receiptWifiPassword,
+            onValueChange = onReceiptWifiPassword,
             label = { Text("Password WiFi") },
             placeholder = { Text("Kosongkan jika tidak ada password") },
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodySmall
+            textStyle = MaterialTheme.typography.bodySmall,
         )
     }
 }
@@ -366,40 +377,40 @@ private fun StoreContentPreview() {
     RancakTheme {
         Column(modifier = Modifier.padding(12.dp)) {
             StoreContent(
-                storeName            = "Rancak Coffee",
-                storeAddress         = "Jl. Sudirman No. 1",
-                storePhone           = "0812-3456-7890",
-                footerText           = "Terima kasih!",
-                receiptHeader        = "",
-                receiptFooter2       = "",
-                showLogo             = false,
-                receiptNameSize      = "large",
-                separatorStyle       = "dashed",
-                footerPosition       = "center",
-                receiptEmail         = "",
-                receiptWebsite       = "",
-                receiptNpwp          = "",
-                receiptInstagram     = "",
-                receiptFacebook      = "",
-                receiptWifiSsid      = "",
-                receiptWifiPassword  = "",
-                onStoreName          = {},
-                onStoreAddress       = {},
-                onStorePhone         = {},
-                onFooterText         = {},
-                onReceiptHeader      = {},
-                onReceiptFooter2     = {},
-                onShowLogo           = {},
-                onReceiptNameSize    = {},
-                onSeparatorStyle     = {},
-                onFooterPosition     = {},
-                onReceiptEmail       = {},
-                onReceiptWebsite     = {},
-                onReceiptNpwp        = {},
-                onReceiptInstagram   = {},
-                onReceiptFacebook    = {},
-                onReceiptWifiSsid    = {},
-                onReceiptWifiPassword = {}
+                storeName = "Rancak Coffee",
+                storeAddress = "Jl. Sudirman No. 1",
+                storePhone = "0812-3456-7890",
+                footerText = "Terima kasih!",
+                receiptHeader = "",
+                receiptFooter2 = "",
+                showLogo = false,
+                receiptNameSize = "large",
+                separatorStyle = "dashed",
+                footerPosition = "center",
+                receiptEmail = "",
+                receiptWebsite = "",
+                receiptNpwp = "",
+                receiptInstagram = "",
+                receiptFacebook = "",
+                receiptWifiSsid = "",
+                receiptWifiPassword = "",
+                onStoreName = {},
+                onStoreAddress = {},
+                onStorePhone = {},
+                onFooterText = {},
+                onReceiptHeader = {},
+                onReceiptFooter2 = {},
+                onShowLogo = {},
+                onReceiptNameSize = {},
+                onSeparatorStyle = {},
+                onFooterPosition = {},
+                onReceiptEmail = {},
+                onReceiptWebsite = {},
+                onReceiptNpwp = {},
+                onReceiptInstagram = {},
+                onReceiptFacebook = {},
+                onReceiptWifiSsid = {},
+                onReceiptWifiPassword = {},
             )
         }
     }

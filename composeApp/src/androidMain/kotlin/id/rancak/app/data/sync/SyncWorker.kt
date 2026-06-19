@@ -5,9 +5,9 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import id.rancak.app.data.local.OfflineSaleQueue
 import id.rancak.app.data.local.TokenManager
+import id.rancak.app.data.local.toBatchItem
 import id.rancak.app.data.remote.api.RancakApiService
 import id.rancak.app.data.remote.api.batchSales
-import id.rancak.app.data.local.toBatchItem
 import id.rancak.app.data.remote.dto.sale.BatchSalesRequest
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -28,17 +28,17 @@ import org.koin.core.component.inject
  */
 class SyncWorker(
     context: Context,
-    params: WorkerParameters
+    params: WorkerParameters,
 ) : CoroutineWorker(context, params), KoinComponent {
-
     private val queue: OfflineSaleQueue by inject()
     private val api: RancakApiService by inject()
     private val tokenManager: TokenManager by inject()
 
     override suspend fun doWork(): Result {
         // Safety check: ensure we have a tenant before attempting sync
-        val tenantUuid = tokenManager.tenantUuid
-            ?: return Result.failure()  // Can't sync without tenant context
+        val tenantUuid =
+            tokenManager.tenantUuid
+                ?: return Result.failure() // Can't sync without tenant context
 
         val pending = queue.getAll()
         if (pending.isEmpty()) return Result.success()
@@ -65,6 +65,4 @@ class SyncWorker(
             Result.retry()
         }
     }
-
 }
-

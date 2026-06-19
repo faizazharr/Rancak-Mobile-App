@@ -11,6 +11,7 @@ import id.rancak.app.presentation.viewmodel.CartViewModel
  * Instance tunggal dibuat di [NavigationContent] (Activity scope) sehingga
  * ketiga layar tersebut berbagi state keranjang yang sama.
  */
-val LocalCartViewModel = compositionLocalOf<CartViewModel> {
-    error("LocalCartViewModel belum disediakan. Pastikan NavigationContent membungkus NavHost.")
-}
+val LocalCartViewModel =
+    compositionLocalOf<CartViewModel> {
+        error("LocalCartViewModel belum disediakan. Pastikan NavigationContent membungkus NavHost.")
+    }

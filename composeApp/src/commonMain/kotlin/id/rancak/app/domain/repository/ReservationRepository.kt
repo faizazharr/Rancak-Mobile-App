@@ -9,9 +9,15 @@ import id.rancak.app.domain.model.Resource
  * (atau cancelled / no_show).
  */
 interface ReservationRepository {
-    suspend fun getReservations(status: String? = null, date: String? = null): Resource<List<Reservation>>
+    suspend fun getReservations(
+        status: String? = null,
+        date: String? = null,
+    ): Resource<List<Reservation>>
+
     suspend fun getReservation(reservationId: String): Resource<Reservation>
+
     suspend fun createReservation(input: ReservationInput): Resource<Reservation>
+
     suspend fun updateReservation(
         reservationId: String,
         customerName: String? = null,
@@ -20,14 +26,24 @@ interface ReservationRepository {
         reservedAt: String? = null,
         durationMinutes: Int? = null,
         tableUuid: String? = null,
-        note: String? = null
+        note: String? = null,
     ): Resource<Reservation>
+
     suspend fun deleteReservation(reservationId: String): Resource<Unit>
 
     /** Konfirmasi reservasi (status pending → confirmed). */
     suspend fun confirmReservation(reservationId: String): Resource<Reservation>
+
     /** Tandai tamu sudah hadir & duduk di meja. Otomatis set table jadi reserved/occupied. */
-    suspend fun seatReservation(reservationId: String, tableUuid: String): Resource<Reservation>
+    suspend fun seatReservation(
+        reservationId: String,
+        tableUuid: String,
+    ): Resource<Reservation>
+
     suspend fun completeReservation(reservationId: String): Resource<Reservation>
-    suspend fun cancelReservation(reservationId: String, reason: String? = null): Resource<Reservation>
+
+    suspend fun cancelReservation(
+        reservationId: String,
+        reason: String? = null,
+    ): Resource<Reservation>
 }

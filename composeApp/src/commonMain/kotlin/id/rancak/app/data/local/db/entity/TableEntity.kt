@@ -8,7 +8,7 @@ import id.rancak.app.domain.model.TableStatus
 
 @Entity(
     tableName = "tables",
-    indices = [Index(value = ["sortOrder"])]
+    indices = [Index(value = ["sortOrder"])],
 )
 data class TableEntity(
     @PrimaryKey val uuid: String,
@@ -19,28 +19,30 @@ data class TableEntity(
     val isActive: Boolean,
     val sortOrder: Int,
     val activeSaleUuid: String?,
-    val cachedAt: Long = 0L
+    val cachedAt: Long = 0L,
 )
 
-fun TableEntity.toDomain() = Table(
-    uuid = uuid,
-    name = name,
-    area = area,
-    capacity = capacity,
-    status = TableStatus.from(status),
-    isActive = isActive,
-    sortOrder = sortOrder,
-    activeSaleUuid = activeSaleUuid
-)
+fun TableEntity.toDomain() =
+    Table(
+        uuid = uuid,
+        name = name,
+        area = area,
+        capacity = capacity,
+        status = TableStatus.from(status),
+        isActive = isActive,
+        sortOrder = sortOrder,
+        activeSaleUuid = activeSaleUuid,
+    )
 
-fun Table.toEntity(cachedAt: Long = 0L) = TableEntity(
-    uuid = uuid,
-    name = name,
-    area = area,
-    capacity = capacity,
-    status = status.value,
-    isActive = isActive,
-    sortOrder = sortOrder,
-    activeSaleUuid = activeSaleUuid,
-    cachedAt = cachedAt
-)
+fun Table.toEntity(cachedAt: Long = 0L) =
+    TableEntity(
+        uuid = uuid,
+        name = name,
+        area = area,
+        capacity = capacity,
+        status = status.value,
+        isActive = isActive,
+        sortOrder = sortOrder,
+        activeSaleUuid = activeSaleUuid,
+        cachedAt = cachedAt,
+    )

@@ -7,7 +7,6 @@ import id.rancak.app.data.local.db.entity.ShiftEntity
 
 @Dao
 interface ShiftDao {
-
     @Query("SELECT * FROM shifts WHERE status = 'open' LIMIT 1")
     suspend fun getOpenShift(): ShiftEntity?
 

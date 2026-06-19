@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Bundle
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.AdminRepository
-import id.rancak.app.domain.repository.BundleItemEntry
 import id.rancak.app.domain.repository.BundleUpdate
 import id.rancak.app.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,25 +29,26 @@ data class BundleManagementUiState(
     val formSku: String = "",
     val formIsActive: Boolean = true,
     val isSaving: Boolean = false,
-    val saveError: String? = null
+    val saveError: String? = null,
 )
 
 class BundleManagementViewModel(
     private val productRepository: ProductRepository,
-    private val adminRepository: AdminRepository
+    private val adminRepository: AdminRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(BundleManagementUiState())
     val uiState: StateFlow<BundleManagementUiState> = _uiState.asStateFlow()
 
-    init { loadBundles() }
+    init {
+        loadBundles()
+    }
 
     fun loadBundles() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = productRepository.getBundles()) {
                 is Resource.Success -> _uiState.update { it.copy(bundles = result.data, isLoading = false) }
-                is Resource.Error   -> _uiState.update { it.copy(error = result.message, isLoading = false) }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Resource.Loading -> {}
             }
         }
@@ -60,12 +60,12 @@ class BundleManagementViewModel(
         _uiState.update {
             it.copy(
                 showCreateDialog = true,
-                editingBundle    = null,
-                formName         = "",
-                formPrice        = "",
-                formSku          = "",
-                formIsActive     = true,
-                saveError        = null
+                editingBundle = null,
+                formName = "",
+                formPrice = "",
+                formSku = "",
+                formIsActive = true,
+                saveError = null,
             )
         }
     }
@@ -74,12 +74,12 @@ class BundleManagementViewModel(
         _uiState.update {
             it.copy(
                 showCreateDialog = true,
-                editingBundle    = bundle,
-                formName         = bundle.name,
-                formPrice        = bundle.price.toString(),
-                formSku          = "",
-                formIsActive     = bundle.isActive,
-                saveError        = null
+                editingBundle = bundle,
+                formName = bundle.name,
+                formPrice = bundle.price.toString(),
+                formSku = "",
+                formIsActive = bundle.isActive,
+                saveError = null,
             )
         }
     }
@@ -89,13 +89,17 @@ class BundleManagementViewModel(
     }
 
     fun showDeleteConfirm(bundle: Bundle) = _uiState.update { it.copy(deletingBundle = bundle) }
+
     fun dismissDeleteConfirm() = _uiState.update { it.copy(deletingBundle = null) }
 
     // ── Form field changes ────────────────────────────────────────────────────
 
-    fun onNameChange(v: String)    = _uiState.update { it.copy(formName = v, saveError = null) }
-    fun onPriceChange(v: String)   = _uiState.update { it.copy(formPrice = v.filter { c -> c.isDigit() }, saveError = null) }
-    fun onSkuChange(v: String)     = _uiState.update { it.copy(formSku = v, saveError = null) }
+    fun onNameChange(v: String) = _uiState.update { it.copy(formName = v, saveError = null) }
+
+    fun onPriceChange(v: String) = _uiState.update { it.copy(formPrice = v.filter { c -> c.isDigit() }, saveError = null) }
+
+    fun onSkuChange(v: String) = _uiState.update { it.copy(formSku = v, saveError = null) }
+
     fun onIsActiveChange(v: Boolean) = _uiState.update { it.copy(formIsActive = v) }
 
     // ── CRUD ──────────────────────────────────────────────────────────────────
@@ -113,31 +117,33 @@ class BundleManagementViewModel(
         val editing = state.editingBundle
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, saveError = null) }
-            val result = if (editing == null) {
-                adminRepository.createBundle(
-                    name      = state.formName.trim(),
-                    price     = state.formPrice,
-                    items     = emptyList(),
-                    sku       = state.formSku.takeIf { it.isNotBlank() },
-                    isActive  = state.formIsActive
-                )
-            } else {
-                adminRepository.updateBundle(
-                    bundleId = editing.uuid,
-                    update   = BundleUpdate(
-                        name     = state.formName.trim(),
-                        price    = state.formPrice,
-                        sku      = state.formSku.takeIf { it.isNotBlank() },
-                        isActive = state.formIsActive
+            val result =
+                if (editing == null) {
+                    adminRepository.createBundle(
+                        name = state.formName.trim(),
+                        price = state.formPrice,
+                        items = emptyList(),
+                        sku = state.formSku.takeIf { it.isNotBlank() },
+                        isActive = state.formIsActive,
                     )
-                )
-            }
+                } else {
+                    adminRepository.updateBundle(
+                        bundleId = editing.uuid,
+                        update =
+                            BundleUpdate(
+                                name = state.formName.trim(),
+                                price = state.formPrice,
+                                sku = state.formSku.takeIf { it.isNotBlank() },
+                                isActive = state.formIsActive,
+                            ),
+                    )
+                }
             when (result) {
                 is Resource.Success -> {
                     _uiState.update { it.copy(isSaving = false, showCreateDialog = false, editingBundle = null) }
                     loadBundles()
                 }
-                is Resource.Error   -> _uiState.update { it.copy(isSaving = false, saveError = result.message) }
+                is Resource.Error -> _uiState.update { it.copy(isSaving = false, saveError = result.message) }
                 is Resource.Loading -> {}
             }
         }
@@ -151,7 +157,7 @@ class BundleManagementViewModel(
                 is Resource.Success -> {
                     _uiState.update { it.copy(bundles = it.bundles.filter { b -> b.uuid != bundle.uuid }) }
                 }
-                is Resource.Error   -> _uiState.update { it.copy(error = result.message) }
+                is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
             }
         }

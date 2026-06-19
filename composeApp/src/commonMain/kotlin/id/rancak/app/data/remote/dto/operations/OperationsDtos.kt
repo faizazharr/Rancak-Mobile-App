@@ -17,7 +17,7 @@ data class CashInDto(
     @SerialName("cashier_name") val cashierName: String? = null,
     @SerialName("shift_uuid") val shiftUuid: String? = null,
     @SerialName("cash_in_date") val cashInDate: String? = null,
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("created_at") val createdAt: String? = null,
 )
 
 // ── Expense ──
@@ -34,7 +34,7 @@ data class ExpenseDto(
     @SerialName("cashier_name") val cashierName: String? = null,
     @SerialName("expense_date") val expenseDate: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
-    @SerialName("updated_at") val updatedAt: String? = null
+    @SerialName("updated_at") val updatedAt: String? = null,
 )
 
 // ── Bundle ──
@@ -45,14 +45,14 @@ data class BundleDto(
     val name: String,
     @Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
     @SerialName("is_active") val isActive: Boolean = true,
-    val items: List<BundleItemDto> = emptyList()
+    val items: List<BundleItemDto> = emptyList(),
 )
 
 @Serializable
 data class BundleItemDto(
     @SerialName("product_uuid") val productUuid: String,
     @SerialName("product_name") val productName: String? = null,
-    val qty: Int = 1
+    val qty: Int = 1,
 )
 
 // ── Modifier ──
@@ -63,7 +63,7 @@ data class ModifierDto(
     val name: String,
     @SerialName("sort_order") val sortOrder: Int = 0,
     @SerialName("product_uuid") val productUuid: String? = null,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("is_active") val isActive: Boolean = true,
 )
 
 // ── Voucher ──
@@ -82,13 +82,13 @@ data class VoucherDto(
     @SerialName("usage_count") val usageCount: Int = 0,
     @SerialName("valid_from") val validFrom: String? = null,
     @SerialName("valid_until") val validUntil: String? = null,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("is_active") val isActive: Boolean = true,
 )
 
 @Serializable
 data class VoucherValidationDto(
     val voucher: VoucherDto,
-    @SerialName("discount_applied") val discountApplied: String = "0"
+    @SerialName("discount_applied") val discountApplied: String = "0",
 )
 
 // ── Discount Preview ──
@@ -99,7 +99,7 @@ data class DiscountPreviewDto(
     @Serializable(with = FlexibleLongSerializer::class)
     @SerialName("total_discount") val totalDiscount: Long = 0,
     @Serializable(with = FlexibleLongSerializer::class)
-    @SerialName("final_total") val finalTotal: Long = 0
+    @SerialName("final_total") val finalTotal: Long = 0,
 )
 
 @Serializable
@@ -107,7 +107,7 @@ data class AppliedRuleDto(
     val uuid: String,
     val name: String,
     @SerialName("rule_type") val ruleType: String? = null,
-    @Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0
+    @Serializable(with = FlexibleLongSerializer::class) val discount: Long = 0,
 )
 
 // ── Order Board ──
@@ -122,14 +122,14 @@ data class OrderBoardOrderDto(
     val status: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("served_at") val servedAt: String? = null,
-    val items: List<OrderBoardItemDto> = emptyList()
+    val items: List<OrderBoardItemDto> = emptyList(),
 )
 
 @Serializable
 data class OrderBoardItemDto(
     @SerialName("product_name") val productName: String,
     val qty: String = "1",
-    val note: String? = null
+    val note: String? = null,
 )
 
 // ── Reports ──
@@ -138,7 +138,7 @@ data class OrderBoardItemDto(
 data class MySalesReportDto(
     @SerialName("total_sales") val totalSales: String = "0",
     @SerialName("total_transactions") val totalTransactions: Int = 0,
-    @SerialName("cash_total") val cashTotal: String = "0"
+    @SerialName("cash_total") val cashTotal: String = "0",
 )
 
 @Serializable
@@ -147,7 +147,7 @@ data class StockReportDto(
     val sku: String? = null,
     val name: String,
     val stock: Double = 0.0,
-    @SerialName("stock_alert_threshold") val stockAlertThreshold: Double? = null
+    @SerialName("stock_alert_threshold") val stockAlertThreshold: Double? = null,
 )
 
 @Serializable
@@ -156,7 +156,7 @@ data class LowStockDto(
     @SerialName("product_name") val productName: String,
     val sku: String? = null,
     @SerialName("current_stock") val currentStock: Double = 0.0,
-    val threshold: Double = 0.0
+    val threshold: Double = 0.0,
 )
 
 @Serializable
@@ -168,7 +168,7 @@ data class StockAlertDto(
     @SerialName("alert_type") val alertType: String,
     val stock: Double = 0.0,
     val threshold: Double = 0.0,
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("created_at") val createdAt: String? = null,
 )
 
 @Serializable
@@ -178,7 +178,7 @@ data class ExpiringBatchDto(
     @SerialName("product_name") val productName: String,
     @SerialName("batch_number") val batchNumber: String? = null,
     @SerialName("expiry_date") val expiryDate: String? = null,
-    @SerialName("quantity_remaining") val quantityRemaining: Double = 0.0
+    @SerialName("quantity_remaining") val quantityRemaining: Double = 0.0,
 )
 
 @Serializable
@@ -186,14 +186,14 @@ data class DailyCategoryReportDto(
     @SerialName("category_name") val categoryName: String,
     @SerialName("total_qty") val totalQty: Double = 0.0,
     @Serializable(with = FlexibleLongSerializer::class)
-    @SerialName("total_revenue") val totalRevenue: Long = 0
+    @SerialName("total_revenue") val totalRevenue: Long = 0,
 )
 
 @Serializable
 data class PaymentMethodReportDto(
     @SerialName("payment_method") val method: String,
     @SerialName("transaction_count") val count: Int = 0,
-    @Serializable(with = FlexibleLongSerializer::class) val total: Long = 0
+    @Serializable(with = FlexibleLongSerializer::class) val total: Long = 0,
 )
 
 // ── Shift Summary ──
@@ -227,7 +227,7 @@ data class ShiftSummaryDto(
     @SerialName("total_cash_in") val totalCashIn: Long = 0,
     @SerialName("payment_breakdown") val paymentBreakdown: List<PaymentMethodReportDto> = emptyList(),
     // Backward compat alias — older endpoints may still return `payment_summary`.
-    @SerialName("payment_summary") val paymentSummary: List<PaymentMethodReportDto> = emptyList()
+    @SerialName("payment_summary") val paymentSummary: List<PaymentMethodReportDto> = emptyList(),
 ) {
     /** Unified accessor: prefer `payment_breakdown` (new schema) else fallback. */
     val payments: List<PaymentMethodReportDto>
@@ -263,7 +263,7 @@ data class ReceiptDto(
     @SerialName("change_amount") val changeAmount: Long = 0,
     @SerialName("payment_method") val paymentMethod: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
-    val settings: id.rancak.app.data.remote.dto.auth.ReceiptSettingsDto? = null
+    val settings: id.rancak.app.data.remote.dto.auth.ReceiptSettingsDto? = null,
 )
 
 @Serializable
@@ -273,31 +273,31 @@ data class ReceiptItemDto(
     @Serializable(with = FlexibleLongSerializer::class) val price: Long = 0,
     @Serializable(with = FlexibleLongSerializer::class) val subtotal: Long = 0,
     @SerialName("variant_name") val variantName: String? = null,
-    val note: String? = null
+    val note: String? = null,
 )
 
 // ── Reports: stock-alerts read-all + shift-by-cashier ───────────────────────
 
 @Serializable
 data class DismissedCountDto(
-    @SerialName("dismissed_count") val dismissedCount: Int
+    @SerialName("dismissed_count") val dismissedCount: Int,
 )
 
 @Serializable
 data class CashierShiftSummaryDto(
     @SerialName("cashier_uuid") val cashierUuid: String? = null,
     @SerialName("cashier_name") val cashierName: String,
-    @SerialName("shift_uuid")   val shiftUuid: String? = null,
-    @SerialName("opened_at")    val openedAt: String,
-    @SerialName("closed_at")    val closedAt: String? = null,
+    @SerialName("shift_uuid") val shiftUuid: String? = null,
+    @SerialName("opened_at") val openedAt: String,
+    @SerialName("closed_at") val closedAt: String? = null,
     @SerialName("shift_status") val shiftStatus: String,
     @SerialName("total_transactions") val totalTransactions: Int = 0,
-    @SerialName("void_count")   val voidCount: Int = 0,
+    @SerialName("void_count") val voidCount: Int = 0,
     @SerialName("refund_count") val refundCount: Int = 0,
-    @SerialName("gross_total")  val grossTotal: Double = 0.0,
-    @SerialName("cash_total")   val cashTotal: Double = 0.0,
+    @SerialName("gross_total") val grossTotal: Double = 0.0,
+    @SerialName("cash_total") val cashTotal: Double = 0.0,
     @SerialName("non_cash_total") val nonCashTotal: Double = 0.0,
-    @SerialName("cash_difference") val cashDifference: Double? = null
+    @SerialName("cash_difference") val cashDifference: Double? = null,
 )
 
 // ── Cash count (rekonsiliasi kas shift) ─────────────────────────────────────
@@ -305,20 +305,20 @@ data class CashierShiftSummaryDto(
 @Serializable
 data class CashCountDto(
     val uuid: String,
-    @SerialName("shift_uuid")    val shiftUuid: String,
+    @SerialName("shift_uuid") val shiftUuid: String,
     @SerialName("expected_cash") val expectedCash: Double,
-    @SerialName("actual_cash")   val actualCash: Double,
+    @SerialName("actual_cash") val actualCash: Double,
     val difference: Double,
     val denominations: Map<String, Int>? = null,
     val note: String? = null,
-    @SerialName("counted_at")    val countedAt: String
+    @SerialName("counted_at") val countedAt: String,
 )
 
 @Serializable
 data class SubmitCashCountRequest(
     @SerialName("actual_cash") val actualCash: Double,
     val denominations: Map<String, Int>? = null,
-    val note: String? = null
+    val note: String? = null,
 )
 
 // ── Expense categories CRUD ─────────────────────────────────────────────────
@@ -327,24 +327,24 @@ data class SubmitCashCountRequest(
 data class ExpenseCategoryDto(
     val uuid: String,
     val name: String,
-    @SerialName("is_active")  val isActive: Boolean = true,
+    @SerialName("is_active") val isActive: Boolean = true,
     @SerialName("sort_order") val sortOrder: Int = 0,
     @SerialName("created_at") val createdAt: String? = null,
-    @SerialName("updated_at") val updatedAt: String? = null
+    @SerialName("updated_at") val updatedAt: String? = null,
 )
 
 @Serializable
 data class CreateExpenseCategoryRequest(
     val name: String,
-    @SerialName("is_active")  val isActive: Boolean = true,
-    @SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("is_active") val isActive: Boolean = true,
+    @SerialName("sort_order") val sortOrder: Int = 0,
 )
 
 @Serializable
 data class UpdateExpenseCategoryRequest(
     val name: String? = null,
-    @SerialName("is_active")  val isActive: Boolean? = null,
-    @SerialName("sort_order") val sortOrder: Int? = null
+    @SerialName("is_active") val isActive: Boolean? = null,
+    @SerialName("sort_order") val sortOrder: Int? = null,
 )
 
 @Serializable
@@ -353,7 +353,7 @@ data class CreateCashInRequest(
     val source: String,
     val description: String,
     val note: String? = null,
-    @SerialName("cash_in_date") val cashInDate: String? = null
+    @SerialName("cash_in_date") val cashInDate: String? = null,
 )
 
 @Serializable
@@ -362,7 +362,7 @@ data class CreateExpenseRequest(
     val description: String,
     val note: String? = null,
     @SerialName("category_uuid") val categoryUuid: String? = null,
-    @SerialName("expense_date") val expenseDate: String? = null
+    @SerialName("expense_date") val expenseDate: String? = null,
 )
 
 @Serializable
@@ -371,5 +371,5 @@ data class UpdateExpenseRequest(
     val description: String? = null,
     val note: String? = null,
     @SerialName("category_uuid") val categoryUuid: String? = null,
-    @SerialName("expense_date") val expenseDate: String? = null
+    @SerialName("expense_date") val expenseDate: String? = null,
 )

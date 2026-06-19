@@ -1,11 +1,10 @@
 package id.rancak.app.presentation.viewmodel
 
 import androidx.compose.runtime.Immutable
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.OrderBoardOrder
+import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.SaleStatus
 import id.rancak.app.domain.repository.SaleRepository
 import kotlinx.collections.immutable.ImmutableList
@@ -27,17 +26,17 @@ data class OrderBoardUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     // Precomputed agar tidak diulang di setiap rekomposisi.
-    val displayOrders: ImmutableList<OrderBoardOrder> = persistentListOf()
+    val displayOrders: ImmutableList<OrderBoardOrder> = persistentListOf(),
 ) {
-    suspend fun recompute() = withContext(Dispatchers.Default) {
-        copy(displayOrders = if (showCompleted) completedOrders else activeOrders)
-    }
+    suspend fun recompute() =
+        withContext(Dispatchers.Default) {
+            copy(displayOrders = if (showCompleted) completedOrders else activeOrders)
+        }
 }
 
 class OrderBoardViewModel(
-    private val saleRepository: SaleRepository
+    private val saleRepository: SaleRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(OrderBoardUiState())
     val uiState: StateFlow<OrderBoardUiState> = _uiState.asStateFlow()
 
@@ -56,11 +55,12 @@ class OrderBoardViewModel(
                     withContext(Dispatchers.Default) {
                         val active = orders.filter { it.status == SaleStatus.HELD }.toImmutableList()
                         val completed = orders.filter { it.status == SaleStatus.PAID }.toImmutableList()
-                        _uiState.value = _uiState.value.copy(
-                            activeOrders = active,
-                            completedOrders = completed,
-                            isLoading = false
-                        ).recompute()
+                        _uiState.value =
+                            _uiState.value.copy(
+                                activeOrders = active,
+                                completedOrders = completed,
+                                isLoading = false,
+                            ).recompute()
                     }
                 }
                 is Resource.Error -> {

@@ -17,13 +17,13 @@ data class ProductDto(
     @SerialName("image_url") val imageUrl: String? = null,
     @SerialName("is_active") val isActive: Boolean = true,
     @SerialName("has_expiry") val hasExpiry: Boolean = false,
-    @SerialName("updated_at") val updatedAt: String? = null
+    @SerialName("updated_at") val updatedAt: String? = null,
 )
 
 @Serializable
 data class CategoryRefDto(
     val uuid: String,
-    val name: String
+    val name: String,
 )
 
 @Serializable
@@ -31,7 +31,7 @@ data class CategoryDto(
     val uuid: String,
     val name: String,
     val description: String? = null,
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("created_at") val createdAt: String? = null,
 )
 
 @Serializable
@@ -40,7 +40,7 @@ data class VariantGroupDto(
     val name: String,
     @SerialName("is_required") val isRequired: Boolean = false,
     @SerialName("sort_order") val sortOrder: Int = 0,
-    val variants: List<VariantDto> = emptyList()
+    val variants: List<VariantDto> = emptyList(),
 )
 
 @Serializable
@@ -50,7 +50,7 @@ data class VariantDto(
     @SerialName("price_adjustment") val priceAdjustment: String = "0",
     @SerialName("is_default") val isDefault: Boolean = false,
     @SerialName("is_active") val isActive: Boolean = true,
-    @SerialName("sort_order") val sortOrder: Int = 0
+    @SerialName("sort_order") val sortOrder: Int = 0,
 )
 
 /** Batch for products with has_expiry = true. */
@@ -66,7 +66,7 @@ data class ProductBatchDto(
     val note: String? = null,
     @SerialName("received_at") val receivedAt: String? = null,
     @SerialName("is_exhausted") val isExhausted: Boolean = false,
-    @SerialName("is_expired") val isExpired: Boolean = false
+    @SerialName("is_expired") val isExpired: Boolean = false,
 )
 
 /** Favorite product shortcut for cashier. */
@@ -80,7 +80,7 @@ data class FavoriteProductDto(
     @SerialName("image_url") val imageUrl: String? = null,
     val stock: String = "0",
     @SerialName("sold_count") val soldCount: Int = 0,
-    @SerialName("is_low_stock") val isLowStock: Boolean = false
+    @SerialName("is_low_stock") val isLowStock: Boolean = false,
 )
 
 /** Product marked as unavailable (86) for today. */
@@ -92,7 +92,7 @@ data class Product86Dto(
     val sku: String? = null,
     val reason: String? = null,
     val date: String? = null,
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("created_at") val createdAt: String? = null,
 )
 
 @Serializable
@@ -102,5 +102,5 @@ data class StockAdjustmentResponseDto(
     @SerialName("stock_before") val stockBefore: Double = 0.0,
     @SerialName("stock_after") val stockAfter: Double = 0.0,
     @SerialName("adjustment_type") val adjustmentType: String,
-    val quantity: Double = 0.0
+    val quantity: Double = 0.0,
 )

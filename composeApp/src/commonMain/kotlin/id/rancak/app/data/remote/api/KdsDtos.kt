@@ -19,7 +19,7 @@ data class KdsOrderDto(
     val note: String? = null,
     val status: String,
     val items: List<KdsItemDto> = emptyList(),
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("created_at") val createdAt: String? = null,
 )
 
 @Serializable
@@ -29,5 +29,5 @@ data class KdsItemDto(
     val qty: String,
     @SerialName("variant_name") val variantName: String? = null,
     val note: String? = null,
-    val status: String = "pending"
+    val status: String = "pending",
 )

@@ -23,7 +23,10 @@ import io.ktor.http.contentType
 
 // ── Shifts ──
 
-suspend fun RancakApiService.openShift(tenantUuid: String, openingCash: String): ApiResponse<ShiftDto> =
+suspend fun RancakApiService.openShift(
+    tenantUuid: String,
+    openingCash: String,
+): ApiResponse<ShiftDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/open") {
         contentType(ContentType.Application.Json)
         setBody(mapOf("opening_cash" to openingCash))
@@ -32,14 +35,16 @@ suspend fun RancakApiService.openShift(tenantUuid: String, openingCash: String):
 suspend fun RancakApiService.closeShift(
     tenantUuid: String,
     closingCash: String,
-    note: String? = null
+    note: String? = null,
 ): ApiResponse<ShiftDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/close") {
         contentType(ContentType.Application.Json)
-        setBody(buildMap {
-            put("closing_cash", closingCash)
-            note?.let { put("note", it) }
-        })
+        setBody(
+            buildMap {
+                put("closing_cash", closingCash)
+                note?.let { put("note", it) }
+            },
+        )
     }.body()
 
 suspend fun RancakApiService.getCurrentShift(tenantUuid: String): ApiResponse<ShiftDto> =
@@ -50,7 +55,7 @@ suspend fun RancakApiService.getShiftSummary(tenantUuid: String): ApiResponse<Sh
 
 suspend fun RancakApiService.getShiftSummaryById(
     tenantUuid: String,
-    shiftUuid: String
+    shiftUuid: String,
 ): ApiResponse<ShiftSummaryDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/$shiftUuid/summary").body()
 
@@ -59,12 +64,15 @@ suspend fun RancakApiService.getShiftSummaryById(
 suspend fun RancakApiService.getTables(tenantUuid: String): ApiResponse<List<TableDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.TABLES).body()
 
-suspend fun RancakApiService.getTable(tenantUuid: String, tableId: String): ApiResponse<TableDto> =
+suspend fun RancakApiService.getTable(
+    tenantUuid: String,
+    tableId: String,
+): ApiResponse<TableDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.TABLES}/$tableId").body()
 
 suspend fun RancakApiService.createTable(
     tenantUuid: String,
-    request: CreateTableRequest
+    request: CreateTableRequest,
 ): ApiResponse<TableDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.TABLES) {
         contentType(ContentType.Application.Json)
@@ -74,21 +82,23 @@ suspend fun RancakApiService.createTable(
 suspend fun RancakApiService.updateTable(
     tenantUuid: String,
     tableId: String,
-    request: UpdateTableRequest
+    request: UpdateTableRequest,
 ): ApiResponse<TableDto> =
     client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.TABLES}/$tableId") {
         contentType(ContentType.Application.Json)
         setBody(request)
     }.body()
 
-suspend fun RancakApiService.deleteTable(tenantUuid: String, tableId: String): ApiResponse<Unit> =
-    client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.TABLES}/$tableId").body()
+suspend fun RancakApiService.deleteTable(
+    tenantUuid: String,
+    tableId: String,
+): ApiResponse<Unit> = client.delete(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.TABLES}/$tableId").body()
 
 // ── KDS ──
 
 suspend fun RancakApiService.getKdsOrders(
     tenantUuid: String,
-    status: String = "active"
+    status: String = "active",
 ): ApiResponse<List<KdsOrderDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.KDS) {
         parameter("status", status)
@@ -97,7 +107,7 @@ suspend fun RancakApiService.getKdsOrders(
 suspend fun RancakApiService.updateKdsStatus(
     tenantUuid: String,
     kdsUuid: String,
-    status: String
+    status: String,
 ): ApiResponse<Unit> =
     client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.KDS}/$kdsUuid") {
         contentType(ContentType.Application.Json)
@@ -109,7 +119,7 @@ suspend fun RancakApiService.updateKdsStatus(
 suspend fun RancakApiService.getOrderBoard(
     tenantUuid: String,
     date: String? = null,
-    includeDone: Boolean = false
+    includeDone: Boolean = false,
 ): ApiResponse<List<OrderBoardOrderDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.ORDER_BOARD) {
         date?.let { parameter("date", it) }
@@ -121,7 +131,7 @@ suspend fun RancakApiService.getOrderBoard(
 /** Riwayat cash count untuk shift tertentu. */
 suspend fun RancakApiService.getCashCounts(
     tenantUuid: String,
-    shiftUuid: String
+    shiftUuid: String,
 ): ApiResponse<List<id.rancak.app.data.remote.dto.operations.CashCountDto>> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/$shiftUuid/cash-count")
         .body()
@@ -130,7 +140,7 @@ suspend fun RancakApiService.getCashCounts(
 suspend fun RancakApiService.submitCashCount(
     tenantUuid: String,
     shiftUuid: String,
-    request: id.rancak.app.data.remote.dto.operations.SubmitCashCountRequest
+    request: id.rancak.app.data.remote.dto.operations.SubmitCashCountRequest,
 ): ApiResponse<id.rancak.app.data.remote.dto.operations.CashCountDto> =
     client.post(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.SHIFTS}/$shiftUuid/cash-count") {
         contentType(ContentType.Application.Json)
@@ -141,7 +151,7 @@ suspend fun RancakApiService.submitCashCount(
 
 suspend fun RancakApiService.getKdsDetail(
     tenantUuid: String,
-    kdsUuid: String
+    kdsUuid: String,
 ): ApiResponse<KdsOrderDto> =
     client.get(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.KDS}/$kdsUuid").body()
 
@@ -150,7 +160,7 @@ suspend fun RancakApiService.updateKdsItemStatus(
     tenantUuid: String,
     kdsUuid: String,
     itemUuid: String,
-    status: String
+    status: String,
 ): ApiResponse<Unit> =
     client.patch(ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.KDS}/$kdsUuid/items/$itemUuid") {
         contentType(ContentType.Application.Json)

@@ -7,28 +7,31 @@ import id.rancak.app.domain.model.BranchReport
 import id.rancak.app.domain.model.Group
 import id.rancak.app.domain.model.GroupOverview
 
-fun GroupDto.toDomain() = Group(
-    uuid = uuid,
-    name = name,
-    description = description,
-    tenantCount = tenantCount,
-    createdAt = createdAt
-)
+fun GroupDto.toDomain() =
+    Group(
+        uuid = uuid,
+        name = name,
+        description = description,
+        tenantCount = tenantCount,
+        createdAt = createdAt,
+    )
 
-fun GroupOverviewDto.toDomain() = GroupOverview(
-    totalRevenue = totalRevenue,
-    totalTransactions = totalTransactions,
-    totalOutlets = totalOutlets,
-    avgOrderValue = avgOrderValue,
-    growthPct = growthPct,
-    periodStart = period?.start,
-    periodEnd = period?.end
-)
+fun GroupOverviewDto.toDomain() =
+    GroupOverview(
+        totalRevenue = totalRevenue,
+        totalTransactions = totalTransactions,
+        totalOutlets = totalOutlets,
+        avgOrderValue = avgOrderValue,
+        growthPct = growthPct,
+        periodStart = period?.start,
+        periodEnd = period?.end,
+    )
 
-fun BranchReportDto.toDomain() = BranchReport(
-    tenantUuid = tenantUuid,
-    name = name,
-    revenue = revenue,
-    transactions = transactions,
-    aov = aov
-)
+fun BranchReportDto.toDomain() =
+    BranchReport(
+        tenantUuid = tenantUuid,
+        name = name,
+        revenue = revenue,
+        transactions = transactions,
+        aov = aov,
+    )

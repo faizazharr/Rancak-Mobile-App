@@ -41,61 +41,62 @@ internal fun PaymentDonutCard(methods: ImmutableList<PaymentMethodReport>) {
     val total = methods.sumOf { it.total }.takeIf { it > 0L } ?: return
 
     Card(
-        modifier  = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(1.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(
                 "Metode Pembayaran",
-                style      = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.outline,
-                modifier   = Modifier.padding(bottom = 8.dp)
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(bottom = 8.dp),
             )
             Row(
-                modifier              = Modifier.fillMaxWidth(),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 DonutChart(
-                    slices = methods.mapIndexed { i, m ->
-                        m.total.toFloat() / total.toFloat() to chartColors[i % chartColors.size]
-                    }.toImmutableList(),
-                    modifier = Modifier.size(100.dp)
+                    slices =
+                        methods.mapIndexed { i, m ->
+                            m.total.toFloat() / total.toFloat() to chartColors[i % chartColors.size]
+                        }.toImmutableList(),
+                    modifier = Modifier.size(100.dp),
                 )
 
                 Column(
-                    modifier            = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
                     methods.forEachIndexed { i, method ->
                         val pct = (method.total.toFloat() / total.toFloat() * 100).toInt()
                         val dot = chartColors[i % chartColors.size]
 
                         Row(
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Box(
                                 Modifier
                                     .size(9.dp)
-                                    .background(dot, CircleShape)
+                                    .background(dot, CircleShape),
                             )
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    text       = method.method.replaceFirstChar { it.uppercase() },
-                                    style      = MaterialTheme.typography.labelSmall,
+                                    text = method.method.replaceFirstChar { it.uppercase() },
+                                    style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Medium,
-                                    maxLines   = 1,
-                                    overflow   = TextOverflow.Ellipsis
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    text     = "${formatRupiah(method.total)} · ${method.count}x · $pct%",
-                                    style    = MaterialTheme.typography.labelSmall,
-                                    color    = MaterialTheme.colorScheme.outline,
+                                    text = "${formatRupiah(method.total)} · ${method.count}x · $pct%",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.outline,
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             }
                         }
@@ -109,26 +110,26 @@ internal fun PaymentDonutCard(methods: ImmutableList<PaymentMethodReport>) {
 @Composable
 private fun DonutChart(
     slices: ImmutableList<Pair<Float, Color>>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Canvas(modifier = modifier) {
         val strokeWidth = size.minDimension * 0.18f
-        val stroke      = Stroke(width = strokeWidth)
-        val diameter    = size.minDimension - strokeWidth
-        val topLeft     = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
-        val arcSize     = Size(diameter, diameter)
+        val stroke = Stroke(width = strokeWidth)
+        val diameter = size.minDimension - strokeWidth
+        val topLeft = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
+        val arcSize = Size(diameter, diameter)
 
         var startAngle = -90f
         slices.forEach { (fraction, color) ->
             val sweep = fraction * 360f
             drawArc(
-                color      = color,
+                color = color,
                 startAngle = startAngle,
                 sweepAngle = (sweep - 1.5f).coerceAtLeast(0f),
-                useCenter  = false,
-                topLeft    = topLeft,
-                size       = arcSize,
-                style      = stroke
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = stroke,
             )
             startAngle += sweep
         }
@@ -141,11 +142,12 @@ private fun PaymentDonutCardPreview() {
     RancakTheme {
         Column(Modifier.padding(12.dp)) {
             PaymentDonutCard(
-                methods = listOf(
-                    PaymentMethodReport("cash", 4_500_000, 32),
-                    PaymentMethodReport("qris", 2_800_000, 22),
-                    PaymentMethodReport("card", 1_450_000, 10)
-                ).toImmutableList()
+                methods =
+                    listOf(
+                        PaymentMethodReport("cash", 4_500_000, 32),
+                        PaymentMethodReport("qris", 2_800_000, 22),
+                        PaymentMethodReport("card", 1_450_000, 10),
+                    ).toImmutableList(),
             )
         }
     }

@@ -21,32 +21,36 @@ fun PricingCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onToggleActive: (Boolean) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(modifier = modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(1.dp)) {
         Row(
             modifier = Modifier.padding(12.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     title,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = if (isActive) MaterialTheme.colorScheme.onSurface
-                            else MaterialTheme.colorScheme.onSurfaceVariant
+                    color =
+                        if (isActive) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                 )
                 Text(
                     subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             // Switch aktif/nonaktif — langsung sinkron ke kasir secara realtime.
             Switch(
                 checked = isActive,
                 onCheckedChange = onToggleActive,
-                modifier = Modifier.padding(end = 4.dp)
+                modifier = Modifier.padding(end = 4.dp),
             )
             IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(18.dp))
@@ -56,7 +60,7 @@ fun PricingCard(
                     Icons.Default.DeleteOutline,
                     contentDescription = "Hapus",
                     modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -71,18 +75,18 @@ private fun PricingCardPreview() {
     RancakTheme {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             PricingCard(
-                title    = "PPN 11%",
+                title = "PPN 11%",
                 subtitle = "11% · after_discount",
                 isActive = true,
-                onEdit   = {},
-                onDelete = {}
+                onEdit = {},
+                onDelete = {},
             )
             PricingCard(
-                title    = "Service Charge",
+                title = "Service Charge",
                 subtitle = "5% · Semua",
                 isActive = false,
-                onEdit   = {},
-                onDelete = {}
+                onEdit = {},
+                onDelete = {},
             )
         }
     }

@@ -34,8 +34,12 @@ import id.rancak.app.presentation.util.formatRupiah
 /** Grid 2×2 KPI utama (penjualan, transaksi, pengeluaran, rata-rata). */
 @Composable
 internal fun KpiCardsGrid(summary: ShiftSummary) {
-    val avgPerTx = if (summary.totalTransactions > 0)
-        summary.totalSales / summary.totalTransactions else 0L
+    val avgPerTx =
+        if (summary.totalTransactions > 0) {
+            summary.totalSales / summary.totalTransactions
+        } else {
+            0L
+        }
 
     val sem = RancakColors.semantic
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -43,34 +47,34 @@ internal fun KpiCardsGrid(summary: ShiftSummary) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             KpiCard(
-                modifier  = Modifier.weight(1f),
-                label     = "Total Penjualan",
-                value     = formatRupiah(summary.totalSales),
-                icon      = Icons.Default.BarChart,
-                iconColor = primaryColor
+                modifier = Modifier.weight(1f),
+                label = "Total Penjualan",
+                value = formatRupiah(summary.totalSales),
+                icon = Icons.Default.BarChart,
+                iconColor = primaryColor,
             )
             KpiCard(
-                modifier  = Modifier.weight(1f),
-                label     = "Transaksi",
-                value     = "${summary.totalTransactions}x",
-                icon      = Icons.Default.ShoppingCart,
-                iconColor = sem.info
+                modifier = Modifier.weight(1f),
+                label = "Transaksi",
+                value = "${summary.totalTransactions}x",
+                icon = Icons.Default.ShoppingCart,
+                iconColor = sem.info,
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             KpiCard(
-                modifier  = Modifier.weight(1f),
-                label     = "Total Pengeluaran",
-                value     = formatRupiah(summary.totalExpenses),
-                icon      = Icons.Default.Star,
-                iconColor = sem.statusAvailable
+                modifier = Modifier.weight(1f),
+                label = "Total Pengeluaran",
+                value = formatRupiah(summary.totalExpenses),
+                icon = Icons.Default.Star,
+                iconColor = sem.statusAvailable,
             )
             KpiCard(
-                modifier  = Modifier.weight(1f),
-                label     = "Rata-rata/Transaksi",
-                value     = formatRupiah(avgPerTx),
-                icon      = Icons.AutoMirrored.Filled.TrendingUp,
-                iconColor = primaryColor
+                modifier = Modifier.weight(1f),
+                label = "Rata-rata/Transaksi",
+                value = formatRupiah(avgPerTx),
+                icon = Icons.AutoMirrored.Filled.TrendingUp,
+                iconColor = primaryColor,
             )
         }
     }
@@ -83,36 +87,37 @@ internal fun KpiCard(
     value: String,
     icon: ImageVector,
     iconColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier  = modifier,
+        modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(iconColor.copy(alpha = 0.12f), MaterialTheme.shapes.large),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(32.dp)
+                        .background(iconColor.copy(alpha = 0.12f), MaterialTheme.shapes.large),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(17.dp))
             }
             Text(
                 label,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline
+                color = MaterialTheme.colorScheme.outline,
             )
             Text(
                 value,
-                style      = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                maxLines   = 1,
-                overflow   = TextOverflow.Ellipsis
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -124,22 +129,23 @@ private fun KpiCardsGridPreview() {
     RancakTheme {
         Column(Modifier.padding(12.dp)) {
             KpiCardsGrid(
-                summary = ShiftSummary(
-                    uuid              = "preview",
-                    openedAt          = "2026-04-18 08:00:00",
-                    closedAt          = null,
-                    status            = "open",
-                    openingCash       = "500000",
-                    closingCash       = null,
-                    expectedCash      = null,
-                    cashDifference    = null,
-                    cashierName       = "Admin",
-                    totalSales        = 8_750_000L,
-                    totalTransactions = 64,
-                    totalExpenses     = 325_000L,
-                    totalCashIn       = 500_000L,
-                    paymentSummary    = emptyList()
-                )
+                summary =
+                    ShiftSummary(
+                        uuid = "preview",
+                        openedAt = "2026-04-18 08:00:00",
+                        closedAt = null,
+                        status = "open",
+                        openingCash = "500000",
+                        closingCash = null,
+                        expectedCash = null,
+                        cashDifference = null,
+                        cashierName = "Admin",
+                        totalSales = 8_750_000L,
+                        totalTransactions = 64,
+                        totalExpenses = 325_000L,
+                        totalCashIn = 500_000L,
+                        paymentSummary = emptyList(),
+                    ),
             )
         }
     }

@@ -1,15 +1,11 @@
 package id.rancak.app.presentation.designsystem
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.dp
 
 /**
  * **Single source of truth** untuk semua desain token aplikasi Rancak.
@@ -42,7 +38,6 @@ import androidx.compose.ui.unit.dp
  * - [semantic] — warna semantic bisnis (status meja, payment, success/warning/info)
  */
 object RancakDesign {
-
     val colors: ColorScheme
         @Composable @ReadOnlyComposable
         get() = MaterialTheme.colorScheme

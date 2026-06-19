@@ -20,13 +20,12 @@ import io.ktor.http.contentType
  * Reservation lifecycle — pending → confirmed → seated → completed (atau cancelled).
  */
 
-private fun reservationsUrl(tenantUuid: String) =
-    ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/reservations"
+private fun reservationsUrl(tenantUuid: String) = ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "/reservations"
 
 suspend fun RancakApiService.getReservations(
     tenantUuid: String,
     status: String? = null,
-    date: String? = null
+    date: String? = null,
 ): ApiResponse<List<ReservationDto>> =
     client.get(reservationsUrl(tenantUuid)) {
         status?.let { parameter("status", it) }
@@ -35,13 +34,12 @@ suspend fun RancakApiService.getReservations(
 
 suspend fun RancakApiService.getReservation(
     tenantUuid: String,
-    reservationId: String
-): ApiResponse<ReservationDto> =
-    client.get(reservationsUrl(tenantUuid) + "/$reservationId").safeBody()
+    reservationId: String,
+): ApiResponse<ReservationDto> = client.get(reservationsUrl(tenantUuid) + "/$reservationId").safeBody()
 
 suspend fun RancakApiService.createReservation(
     tenantUuid: String,
-    request: CreateReservationRequest
+    request: CreateReservationRequest,
 ): ApiResponse<ReservationDto> =
     client.post(reservationsUrl(tenantUuid)) {
         contentType(ContentType.Application.Json)
@@ -51,7 +49,7 @@ suspend fun RancakApiService.createReservation(
 suspend fun RancakApiService.updateReservation(
     tenantUuid: String,
     reservationId: String,
-    request: UpdateReservationRequest
+    request: UpdateReservationRequest,
 ): ApiResponse<ReservationDto> =
     client.patch(reservationsUrl(tenantUuid) + "/$reservationId") {
         contentType(ContentType.Application.Json)
@@ -60,20 +58,18 @@ suspend fun RancakApiService.updateReservation(
 
 suspend fun RancakApiService.deleteReservation(
     tenantUuid: String,
-    reservationId: String
-): ApiResponse<Unit> =
-    client.delete(reservationsUrl(tenantUuid) + "/$reservationId").safeBody()
+    reservationId: String,
+): ApiResponse<Unit> = client.delete(reservationsUrl(tenantUuid) + "/$reservationId").safeBody()
 
 suspend fun RancakApiService.confirmReservation(
     tenantUuid: String,
-    reservationId: String
-): ApiResponse<ReservationDto> =
-    client.post(reservationsUrl(tenantUuid) + "/$reservationId/confirm").safeBody()
+    reservationId: String,
+): ApiResponse<ReservationDto> = client.post(reservationsUrl(tenantUuid) + "/$reservationId/confirm").safeBody()
 
 suspend fun RancakApiService.seatReservation(
     tenantUuid: String,
     reservationId: String,
-    tableUuid: String
+    tableUuid: String,
 ): ApiResponse<ReservationDto> =
     client.post(reservationsUrl(tenantUuid) + "/$reservationId/seat") {
         contentType(ContentType.Application.Json)
@@ -82,14 +78,13 @@ suspend fun RancakApiService.seatReservation(
 
 suspend fun RancakApiService.completeReservation(
     tenantUuid: String,
-    reservationId: String
-): ApiResponse<ReservationDto> =
-    client.post(reservationsUrl(tenantUuid) + "/$reservationId/complete").safeBody()
+    reservationId: String,
+): ApiResponse<ReservationDto> = client.post(reservationsUrl(tenantUuid) + "/$reservationId/complete").safeBody()
 
 suspend fun RancakApiService.cancelReservation(
     tenantUuid: String,
     reservationId: String,
-    reason: String? = null
+    reason: String? = null,
 ): ApiResponse<ReservationDto> =
     client.post(reservationsUrl(tenantUuid) + "/$reservationId/cancel") {
         contentType(ContentType.Application.Json)

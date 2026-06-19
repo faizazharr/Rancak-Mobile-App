@@ -26,9 +26,9 @@ internal fun OpenBillNameDialog(
     initialName: String = "",
     isUpdate: Boolean = false,
     onConfirm: (name: String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
-    var name           by remember(initialName) { mutableStateOf(initialName) }
+    var name by remember(initialName) { mutableStateOf(initialName) }
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -36,33 +36,35 @@ internal fun OpenBillNameDialog(
     }
 
     RancakFormDialog(
-        icon             = Icons.Default.BookmarkAdd,
-        title            = if (isUpdate) "Perbarui Open Bill" else "Simpan sebagai Open Bill",
-        subtitle         = "Beri nama pada tagihan ini",
+        icon = Icons.Default.BookmarkAdd,
+        title = if (isUpdate) "Perbarui Open Bill" else "Simpan sebagai Open Bill",
+        subtitle = "Beri nama pada tagihan ini",
         onDismissRequest = onDismiss,
-        confirmLabel     = if (isUpdate) "Perbarui" else "Simpan",
-        onConfirm        = { onConfirm(name.trim()) },
-        confirmEnabled   = name.isNotBlank()
+        confirmLabel = if (isUpdate) "Perbarui" else "Simpan",
+        onConfirm = { onConfirm(name.trim()) },
+        confirmEnabled = name.isNotBlank(),
     ) {
         Text(
             "Beri nama pada tagihan ini agar mudah ditemukan kembali.",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         OutlinedTextField(
-            value            = name,
-            onValueChange    = { name = it },
-            label            = { Text("Nama tagihan") },
-            placeholder      = { Text("cth. Meja 5 – Andi", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f)) },
-            singleLine       = true,
-            shape            = MaterialTheme.shapes.medium,
-            modifier         = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
-            keyboardOptions  = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions  = KeyboardActions(
-                onDone = { if (name.isNotBlank()) onConfirm(name.trim()) }
-            )
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nama tagihan") },
+            placeholder = { Text("cth. Meja 5 – Andi", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f)) },
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions =
+                KeyboardActions(
+                    onDone = { if (name.isNotBlank()) onConfirm(name.trim()) },
+                ),
         )
     }
 }

@@ -13,20 +13,22 @@ import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
 
-actual val platformModule: Module = module {
-    single { SyncManager() }
-    single { PrinterManager() }  // TCP/IP + BLE via CoreBluetooth
-    single<AppDatabase> {
-        val docDir = NSFileManager.defaultManager
-            .URLsForDirectory(NSDocumentDirectory, NSUserDomainMask)
-            .first() as platform.Foundation.NSURL
-        val dbPath = "${docDir.path}/rancak.db"
-        Room.databaseBuilder<AppDatabase>(
-            name = dbPath,
-            factory = AppDatabaseConstructor::initialize
-        ).setDriver(BundledSQLiteDriver())
-         .setQueryCoroutineContext(Dispatchers.IO)
-         .fallbackToDestructiveMigration(true)
-         .build()
+actual val platformModule: Module =
+    module {
+        single { SyncManager() }
+        single { PrinterManager() } // TCP/IP + BLE via CoreBluetooth
+        single<AppDatabase> {
+            val docDir =
+                NSFileManager.defaultManager
+                    .URLsForDirectory(NSDocumentDirectory, NSUserDomainMask)
+                    .first() as platform.Foundation.NSURL
+            val dbPath = "${docDir.path}/rancak.db"
+            Room.databaseBuilder<AppDatabase>(
+                name = dbPath,
+                factory = AppDatabaseConstructor::initialize,
+            ).setDriver(BundledSQLiteDriver())
+                .setQueryCoroutineContext(Dispatchers.Default)
+                .fallbackToDestructiveMigration(true)
+                .build()
+        }
     }
-}

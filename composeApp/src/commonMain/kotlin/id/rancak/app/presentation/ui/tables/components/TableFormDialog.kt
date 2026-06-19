@@ -32,109 +32,118 @@ fun TableFormDialog(
     isSubmitting: Boolean,
     existingAreas: ImmutableList<String> = persistentListOf(),
     onDismiss: () -> Unit,
-    onConfirm: (name: String, area: String?, capacity: Int, isActive: Boolean, sortOrder: Int) -> Unit
+    onConfirm: (name: String, area: String?, capacity: Int, isActive: Boolean, sortOrder: Int) -> Unit,
 ) {
-    var name         by remember(editingTable) { mutableStateOf(editingTable?.name ?: "") }
-    var area         by remember(editingTable) { mutableStateOf(editingTable?.area ?: "") }
+    var name by remember(editingTable) { mutableStateOf(editingTable?.name ?: "") }
+    var area by remember(editingTable) { mutableStateOf(editingTable?.area ?: "") }
     var areaMenuOpen by remember { mutableStateOf(false) }
-    var capacityStr  by remember(editingTable) { mutableStateOf((editingTable?.capacity ?: 2).toString()) }
+    var capacityStr by remember(editingTable) { mutableStateOf((editingTable?.capacity ?: 2).toString()) }
     var sortOrderStr by remember(editingTable) { mutableStateOf((editingTable?.sortOrder ?: 0).toString()) }
-    var isActive     by remember(editingTable) { mutableStateOf(editingTable?.isActive ?: true) }
+    var isActive by remember(editingTable) { mutableStateOf(editingTable?.isActive ?: true) }
 
-    val areaSuggestions = remember(existingAreas, area) {
-        existingAreas.filter { it.contains(area, ignoreCase = true) || area.isBlank() }
-    }
+    val areaSuggestions =
+        remember(existingAreas, area) {
+            existingAreas.filter { it.contains(area, ignoreCase = true) || area.isBlank() }
+        }
 
-    val capacity   = capacityStr.toIntOrNull() ?: 0
-    val sortOrder  = sortOrderStr.toIntOrNull() ?: 0
+    val capacity = capacityStr.toIntOrNull() ?: 0
+    val sortOrder = sortOrderStr.toIntOrNull() ?: 0
     val canConfirm = !isSubmitting && name.isNotBlank() && capacity >= 1
 
     RancakFormDialog(
-        icon             = Icons.Default.TableBar,
-        title            = if (editingTable == null) "Tambah Meja" else "Edit Meja",
-        subtitle         = if (editingTable == null) "Tambahkan meja baru ke denah" else "Perbarui informasi meja",
+        icon = Icons.Default.TableBar,
+        title = if (editingTable == null) "Tambah Meja" else "Edit Meja",
+        subtitle = if (editingTable == null) "Tambahkan meja baru ke denah" else "Perbarui informasi meja",
         onDismissRequest = onDismiss,
-        confirmLabel     = "Simpan",
-        onConfirm        = {
+        confirmLabel = "Simpan",
+        onConfirm = {
             onConfirm(
                 name.trim(),
                 area.ifBlank { null }?.trim(),
                 capacity,
                 isActive,
-                sortOrder
+                sortOrder,
             )
         },
-        confirmEnabled   = canConfirm,
-        isSubmitting     = isSubmitting
+        confirmEnabled = canConfirm,
+        isSubmitting = isSubmitting,
     ) {
         OutlinedTextField(
-            value         = name,
+            value = name,
             onValueChange = { name = it },
-            label         = { Text("Nama Meja *") },
-            placeholder   = { Text("mis. Meja 1, A1, VIP-3") },
-            singleLine    = true,
-            isError       = name.isBlank(),
-            modifier      = Modifier.fillMaxWidth(),
-            shape         = MaterialTheme.shapes.medium
+            label = { Text("Nama Meja *") },
+            placeholder = { Text("mis. Meja 1, A1, VIP-3") },
+            singleLine = true,
+            isError = name.isBlank(),
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
         )
         ExposedDropdownMenuBox(
-            expanded         = areaMenuOpen && areaSuggestions.isNotEmpty(),
-            onExpandedChange = { areaMenuOpen = it }
+            expanded = areaMenuOpen && areaSuggestions.isNotEmpty(),
+            onExpandedChange = { areaMenuOpen = it },
         ) {
             OutlinedTextField(
-                value         = area,
-                onValueChange = { area = it; areaMenuOpen = true },
-                label         = { Text("Area") },
-                placeholder   = { Text("mis. Indoor, Outdoor, Lt. 2") },
-                singleLine    = true,
-                trailingIcon  = {
-                    if (areaSuggestions.isNotEmpty())
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = areaMenuOpen)
+                value = area,
+                onValueChange = {
+                    area = it
+                    areaMenuOpen = true
                 },
-                modifier      = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable)
-                    .onFocusChanged { if (it.isFocused) areaMenuOpen = true },
-                shape         = MaterialTheme.shapes.medium
+                label = { Text("Area") },
+                placeholder = { Text("mis. Indoor, Outdoor, Lt. 2") },
+                singleLine = true,
+                trailingIcon = {
+                    if (areaSuggestions.isNotEmpty()) {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = areaMenuOpen)
+                    }
+                },
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable)
+                        .onFocusChanged { if (it.isFocused) areaMenuOpen = true },
+                shape = MaterialTheme.shapes.medium,
             )
             ExposedDropdownMenu(
-                expanded         = areaMenuOpen && areaSuggestions.isNotEmpty(),
-                onDismissRequest = { areaMenuOpen = false }
+                expanded = areaMenuOpen && areaSuggestions.isNotEmpty(),
+                onDismissRequest = { areaMenuOpen = false },
             ) {
                 areaSuggestions.forEach { suggestion ->
                     DropdownMenuItem(
-                        text    = { Text(suggestion) },
-                        onClick = { area = suggestion; areaMenuOpen = false }
+                        text = { Text(suggestion) },
+                        onClick = {
+                            area = suggestion
+                            areaMenuOpen = false
+                        },
                     )
                 }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedTextField(
-                value           = capacityStr,
-                onValueChange   = { capacityStr = it.filter { c -> c.isDigit() } },
-                label           = { Text("Kapasitas *") },
-                suffix          = { Text("kursi") },
-                singleLine      = true,
+                value = capacityStr,
+                onValueChange = { capacityStr = it.filter { c -> c.isDigit() } },
+                label = { Text("Kapasitas *") },
+                suffix = { Text("kursi") },
+                singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError         = capacity < 1,
-                modifier        = Modifier.weight(1f),
-                shape           = MaterialTheme.shapes.medium
+                isError = capacity < 1,
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.medium,
             )
             OutlinedTextField(
-                value           = sortOrderStr,
-                onValueChange   = { sortOrderStr = it.filter { c -> c.isDigit() } },
-                label           = { Text("Urutan") },
-                singleLine      = true,
+                value = sortOrderStr,
+                onValueChange = { sortOrderStr = it.filter { c -> c.isDigit() } },
+                label = { Text("Urutan") },
+                singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier        = Modifier.weight(1f),
-                shape           = MaterialTheme.shapes.medium
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.medium,
             )
         }
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier              = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Aktif", style = MaterialTheme.typography.bodyMedium)
             Switch(checked = isActive, onCheckedChange = { isActive = it })
@@ -151,8 +160,8 @@ private fun TableFormDialogAddPreview() {
         TableFormDialog(
             editingTable = null,
             isSubmitting = false,
-            onDismiss    = {},
-            onConfirm    = { _, _, _, _, _ -> }
+            onDismiss = {},
+            onConfirm = { _, _, _, _, _ -> },
         )
     }
 }
@@ -162,13 +171,20 @@ private fun TableFormDialogAddPreview() {
 private fun TableFormDialogEditPreview() {
     RancakTheme {
         TableFormDialog(
-            editingTable = Table(
-                uuid = "t1", name = "VIP-1", area = "Lantai 2", capacity = 6,
-                status = TableStatus.AVAILABLE, isActive = true, sortOrder = 3, activeSaleUuid = null
-            ),
+            editingTable =
+                Table(
+                    uuid = "t1",
+                    name = "VIP-1",
+                    area = "Lantai 2",
+                    capacity = 6,
+                    status = TableStatus.AVAILABLE,
+                    isActive = true,
+                    sortOrder = 3,
+                    activeSaleUuid = null,
+                ),
             isSubmitting = false,
-            onDismiss    = {},
-            onConfirm    = { _, _, _, _, _ -> }
+            onDismiss = {},
+            onConfirm = { _, _, _, _, _ -> },
         )
     }
 }

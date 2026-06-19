@@ -8,7 +8,7 @@ data class Group(
     val name: String,
     val description: String?,
     val tenantCount: Int,
-    val createdAt: String?
+    val createdAt: String?,
 )
 
 @Immutable
@@ -19,7 +19,7 @@ data class GroupOverview(
     val avgOrderValue: Double,
     val growthPct: Double?,
     val periodStart: String?,
-    val periodEnd: String?
+    val periodEnd: String?,
 )
 
 @Immutable
@@ -28,5 +28,5 @@ data class BranchReport(
     val name: String,
     val revenue: Double,
     val transactions: Int,
-    val aov: Double
+    val aov: Double,
 )

@@ -37,103 +37,124 @@ internal fun GlassOutletCardLight(
     isSelected: Boolean,
     colorIndex: Int,
     onClick: () -> Unit,
-    subscriptionStatus: String? = null
+    subscriptionStatus: String? = null,
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val cardBg by animateColorAsState(
-        targetValue   = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surface,
-        animationSpec = tween(200), label = "bg"
+        targetValue =
+            if (isSelected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
+        animationSpec = tween(200),
+        label = "bg",
     )
     val elevation by animateDpAsState(
-        targetValue   = if (isSelected) 4.dp else 1.dp,
-        animationSpec = tween(200), label = "elev"
+        targetValue = if (isSelected) 4.dp else 1.dp,
+        animationSpec = tween(200),
+        label = "elev",
     )
-    val accentColors = listOf(
-        primary,
-        MaterialTheme.colorScheme.secondary,
-        MaterialTheme.colorScheme.tertiary,
-        MaterialTheme.colorScheme.error
-    )
-    val accent  = accentColors[colorIndex % accentColors.size]
+    val accentColors =
+        listOf(
+            primary,
+            MaterialTheme.colorScheme.secondary,
+            MaterialTheme.colorScheme.tertiary,
+            MaterialTheme.colorScheme.error,
+        )
+    val accent = accentColors[colorIndex % accentColors.size]
     val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
 
     Card(
-        modifier  = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape     = MaterialTheme.shapes.large,
-        colors    = CardDefaults.cardColors(containerColor = cardBg),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation),
-        border    = if (isSelected)
-            CardDefaults.outlinedCardBorder().copy(
-                width = 2.dp,
-                brush = Brush.linearGradient(listOf(primary, primary.copy(0.5f)))
-            )
-        else CardDefaults.outlinedCardBorder()
+        border =
+            if (isSelected) {
+                CardDefaults.outlinedCardBorder().copy(
+                    width = 2.dp,
+                    brush = Brush.linearGradient(listOf(primary, primary.copy(0.5f))),
+                )
+            } else {
+                CardDefaults.outlinedCardBorder()
+            },
     ) {
         Row(
-            modifier              = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(CircleShape)
-                    .background(if (isSelected) accent else accent.copy(0.15f)),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(46.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) accent else accent.copy(0.15f)),
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     initial,
-                    style      = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color      = if (isSelected) Color.White else accent
+                    color = if (isSelected) Color.White else accent,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     name,
-                    style      = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color      = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                                 else MaterialTheme.colorScheme.onSurface
+                    color =
+                        if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                 )
                 val (statusLabel, statusColor) = billingStatusInfo(subscriptionStatus)
                 if (statusLabel != null) {
                     Spacer(Modifier.height(4.dp))
                     Box(
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.small)
-                            .background(statusColor.copy(alpha = 0.12f))
-                            .border(0.5.dp, statusColor.copy(alpha = 0.45f), MaterialTheme.shapes.small)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                        modifier =
+                            Modifier
+                                .clip(MaterialTheme.shapes.small)
+                                .background(statusColor.copy(alpha = 0.12f))
+                                .border(0.5.dp, statusColor.copy(alpha = 0.45f), MaterialTheme.shapes.small)
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
                     ) {
                         Text(
                             statusLabel,
-                            style      = MaterialTheme.typography.labelSmall,
-                            color      = statusColor,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.labelSmall,
+                            color = statusColor,
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
                 } else {
                     Text(
                         "Outlet Kasir",
-                        style    = MaterialTheme.typography.bodySmall,
-                        color    = if (isSelected) primary.copy(0.8f)
-                                   else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp)
+                        style = MaterialTheme.typography.bodySmall,
+                        color =
+                            if (isSelected) {
+                                primary.copy(0.8f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                        modifier = Modifier.padding(top = 2.dp),
                     )
                 }
             }
             if (isSelected) {
                 Icon(
-                    Icons.Default.CheckCircle, null,
-                    tint     = primary,
-                    modifier = Modifier.size(26.dp)
+                    Icons.Default.CheckCircle,
+                    null,
+                    tint = primary,
+                    modifier = Modifier.size(26.dp),
                 )
             } else {
                 Box(
                     Modifier.size(26.dp)
-                        .border(1.5.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                        .border(1.5.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
                 )
             }
         }
@@ -145,10 +166,10 @@ internal fun GlassOutletCardLight(
 private fun GlassOutletCardLightPreview() {
     RancakTheme {
         Column(
-            modifier              = Modifier.padding(16.dp),
-            verticalArrangement   = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            GlassOutletCardLight("Warung Rancak",  isSelected = true,  colorIndex = 0, onClick = {})
+            GlassOutletCardLight("Warung Rancak", isSelected = true, colorIndex = 0, onClick = {})
             GlassOutletCardLight("Cafe Sederhana", isSelected = false, colorIndex = 1, onClick = {})
         }
     }

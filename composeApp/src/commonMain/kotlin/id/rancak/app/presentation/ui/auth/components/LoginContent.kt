@@ -27,7 +27,7 @@ internal fun LoginContent(
     onGoogleError: (String) -> Unit,
     onShowEmailForm: () -> Unit,
     onBackToOptions: () -> Unit,
-    onForgotPassword: () -> Unit = {}
+    onForgotPassword: () -> Unit = {},
 ) {
     AnimatedContent(
         targetState = showEmailForm,
@@ -40,25 +40,25 @@ internal fun LoginContent(
                     slideOutHorizontally(tween(200)) { it } + fadeOut(tween(200))
             }
         },
-        label = "login_step"
+        label = "login_step",
     ) { isEmailForm ->
         if (isEmailForm) {
             EmailFormStep(
-                uiState           = uiState,
-                passwordVisible   = passwordVisible,
-                onPasswordToggle  = onPasswordToggle,
-                onEmailChange     = onEmailChange,
-                onPasswordChange  = onPasswordChange,
-                onLogin           = onLogin,
-                onBack            = onBackToOptions,
-                onForgotPassword  = onForgotPassword
+                uiState = uiState,
+                passwordVisible = passwordVisible,
+                onPasswordToggle = onPasswordToggle,
+                onEmailChange = onEmailChange,
+                onPasswordChange = onPasswordChange,
+                onLogin = onLogin,
+                onBack = onBackToOptions,
+                onForgotPassword = onForgotPassword,
             )
         } else {
             LoginOptionsStep(
-                uiState       = uiState,
-                onEmailClick  = onShowEmailForm,
+                uiState = uiState,
+                onEmailClick = onShowEmailForm,
                 onGoogleToken = onGoogleToken,
-                onGoogleError = onGoogleError
+                onGoogleError = onGoogleError,
             )
         }
     }

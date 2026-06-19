@@ -39,11 +39,11 @@ import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.OpenBillViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlin.time.Clock
-import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 /**
  * Layar daftar open bill.
@@ -61,20 +61,21 @@ fun OpenBillListScreen(
     /** Untuk bill synced — navigasi ke PayHeldOrderScreen. */
     onPayHeldOrder: (saleUuid: String) -> Unit = {},
     /** Untuk bill synced — navigasi ke AddItemsToHeldOrderScreen. */
-    onAddItems: (saleUuid: String) -> Unit = {}
+    onAddItems: (saleUuid: String) -> Unit = {},
 ) {
     val viewModel: OpenBillViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val amber  = RancakColors.semantic.warning
+    val amber = RancakColors.semantic.warning
     val amber2 = WarningGradientEnd
 
     // Refresh setiap kali layar di-resume (termasuk kembali dari AddItemsToHeldOrder)
     // sehingga item count selalu mencerminkan data terbaru di store.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) viewModel.refresh()
-        }
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) viewModel.refresh()
+            }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
@@ -84,26 +85,26 @@ fun OpenBillListScreen(
             TopAppBar(
                 title = {
                     Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Icon(Icons.Default.Bookmark, null, tint = amber, modifier = Modifier.size(22.dp))
                         Text(
                             "Open Bill",
                             fontWeight = FontWeight.ExtraBold,
-                            style      = MaterialTheme.typography.titleLarge
+                            style = MaterialTheme.typography.titleLarge,
                         )
                         if (state.bills.isNotEmpty()) {
                             Surface(
                                 shape = CircleShape,
-                                color = amber.copy(alpha = 0.15f)
+                                color = amber.copy(alpha = 0.15f),
                             ) {
                                 Text(
                                     "${state.bills.size}",
-                                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                    color      = amber,
-                                    style      = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                    color = amber,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
                         }
@@ -113,47 +114,49 @@ fun OpenBillListScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali")
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         if (state.bills.isEmpty()) {
             EmptyOpenBillState(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
             )
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(
-                    start  = 16.dp,
-                    end    = 16.dp,
-                    top    = innerPadding.calculateTopPadding() + 4.dp,
-                    bottom = innerPadding.calculateBottomPadding() + 20.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(0.dp)
+                contentPadding =
+                    PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = innerPadding.calculateTopPadding() + 4.dp,
+                        bottom = innerPadding.calculateBottomPadding() + 20.dp,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
                 // ── Summary banner ────────────────────────────────────────
                 item {
                     SummaryBanner(
                         bills = state.bills.toImmutableList(),
                         amber = amber,
-                        amber2 = amber2
+                        amber2 = amber2,
                     )
                     Spacer(Modifier.height(16.dp))
                 }
 
                 items(state.bills, key = { it.id }) { bill ->
                     OpenBillCard(
-                        bill     = bill,
-                        amber    = amber,
+                        bill = bill,
+                        amber = amber,
                         onResume = {
                             viewModel.remove(bill.id)
                             onResume(bill)
                         },
-                        onDelete  = { viewModel.remove(bill.id) },
-                        onPay     = bill.remoteSaleUuid?.let { uuid -> { onPayHeldOrder(uuid) } },
-                        onAddItems = bill.remoteSaleUuid?.let { uuid -> { onAddItems(uuid) } }
+                        onDelete = { viewModel.remove(bill.id) },
+                        onPay = bill.remoteSaleUuid?.let { uuid -> { onPayHeldOrder(uuid) } },
+                        onAddItems = bill.remoteSaleUuid?.let { uuid -> { onAddItems(uuid) } },
                     )
                     Spacer(Modifier.height(10.dp))
                 }
@@ -168,56 +171,58 @@ fun OpenBillListScreen(
 private fun SummaryBanner(
     bills: ImmutableList<LocalOpenBill>,
     amber: Color,
-    amber2: Color
+    amber2: Color,
 ) {
     val totalValue = bills.sumOf { it.subtotal }
     val totalItems = bills.sumOf { it.itemCount }
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.extraLarge)
-            .background(
-                Brush.horizontalGradient(listOf(amber, amber2))
-            )
-            .padding(horizontal = 18.dp, vertical = 14.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(
+                    Brush.horizontalGradient(listOf(amber, amber2)),
+                )
+                .padding(horizontal = 18.dp, vertical = 14.dp),
     ) {
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     "${bills.size} tagihan aktif",
-                    style      = MaterialTheme.typography.labelMedium,
-                    color      = Color.White.copy(alpha = 0.85f),
-                    fontWeight = FontWeight.Medium
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White.copy(alpha = 0.85f),
+                    fontWeight = FontWeight.Medium,
                 )
                 Text(
                     formatRupiah(totalValue),
-                    style      = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
-                    color      = Color.White
+                    color = Color.White,
                 )
                 Text(
                     "$totalItems item total",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = Color.White.copy(alpha = 0.7f),
                 )
             }
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(MaterialTheme.shapes.extraLarge)
-                    .background(Color.White.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(48.dp)
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .background(Color.White.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     Icons.Default.Receipt,
                     contentDescription = null,
-                    tint     = Color.White,
-                    modifier = Modifier.size(26.dp)
+                    tint = Color.White,
+                    modifier = Modifier.size(26.dp),
                 )
             }
         }
@@ -233,120 +238,127 @@ private fun OpenBillCard(
     /** Non-null saat bill sudah tersinkron ke KDS; menampilkan tombol "Bayar". */
     onPay: (() -> Unit)? = null,
     /** Non-null saat bill sudah tersinkron ke KDS; menampilkan tombol "Tambah Item". */
-    onAddItems: (() -> Unit)? = null
+    onAddItems: (() -> Unit)? = null,
 ) {
-    val isSynced         = bill.remoteSaleUuid != null
+    val isSynced = bill.remoteSaleUuid != null
     var showDeleteDialog by remember { mutableStateOf(false) }
-    val surface          = MaterialTheme.colorScheme.surface
-    val onSurface        = MaterialTheme.colorScheme.onSurface
+    val surface = MaterialTheme.colorScheme.surface
+    val onSurface = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val kdsGreen         = KdsColorReady
+    val kdsGreen = KdsColorReady
 
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            icon    = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) },
-            title   = {
+            icon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) },
+            title = {
                 Text(
                     if (isSynced) "Batalkan Pesanan?" else "Hapus Open Bill?",
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             },
-            text    = {
+            text = {
                 if (isSynced) {
-                    Text("\"${bill.name}\" sudah dikirim ke dapur (KDS). Membatalkan akan menutup antrian dapur dan menghentikan persiapan pesanan.")
+                    Text(
+                        "\"${bill.name}\" sudah dikirim ke dapur (KDS). Membatalkan akan menutup antrian dapur dan menghentikan persiapan pesanan.",
+                    )
                 } else {
                     Text("\"${bill.name}\" akan dihapus permanen dari daftar.")
                 }
             },
             confirmButton = {
                 Button(
-                    onClick = { showDeleteDialog = false; onDelete() },
-                    colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                shape   = MaterialTheme.shapes.large,
+                    onClick = {
+                        showDeleteDialog = false
+                        onDelete()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    shape = MaterialTheme.shapes.large,
                 ) { Text(if (isSynced) "Batalkan Pesanan" else "Hapus") }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) { Text("Kembali") }
             },
-            shape = MaterialTheme.shapes.extraLarge
+            shape = MaterialTheme.shapes.extraLarge,
         )
     }
 
     Surface(
-        shape           = MaterialTheme.shapes.extraLarge,
-        color           = surface,
+        shape = MaterialTheme.shapes.extraLarge,
+        color = surface,
         shadowElevation = 3.dp,
-        modifier        = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
             // ── Amber left accent bar ─────────────────────────────────
             Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .fillMaxHeight()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(amber, amber.copy(alpha = 0.4f))
+                modifier =
+                    Modifier
+                        .width(4.dp)
+                        .fillMaxHeight()
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(amber, amber.copy(alpha = 0.4f)),
+                            ),
+                            shape =
+                                MaterialTheme.shapes.extraLarge.copy(
+                                    topEnd = CornerSize(0.dp),
+                                    bottomEnd = CornerSize(0.dp),
+                                ),
                         ),
-                        shape = MaterialTheme.shapes.extraLarge.copy(
-                                    topEnd     = CornerSize(0.dp),
-                                    bottomEnd  = CornerSize(0.dp)
-                                )
-                    )
             )
 
             Column(modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 12.dp)) {
-
                 // ── Header: name + time ───────────────────────────────
                 Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Row(
-                        verticalAlignment    = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier             = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     ) {
                         Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(MaterialTheme.shapes.extraLarge)
-                                .background(if (isSynced) kdsGreen.copy(alpha = 0.12f) else amber.copy(alpha = 0.12f)),
-                            contentAlignment = Alignment.Center
+                            modifier =
+                                Modifier
+                                    .size(36.dp)
+                                    .clip(MaterialTheme.shapes.extraLarge)
+                                    .background(if (isSynced) kdsGreen.copy(alpha = 0.12f) else amber.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 if (isSynced) Icons.Default.Kitchen else Icons.Default.BookmarkBorder,
                                 null,
-                                tint     = if (isSynced) kdsGreen else amber,
-                                modifier = Modifier.size(18.dp)
+                                tint = if (isSynced) kdsGreen else amber,
+                                modifier = Modifier.size(18.dp),
                             )
                         }
                         Column {
                             Row(
-                                verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
                                 Text(
-                                    text       = bill.name,
-                                    style      = MaterialTheme.typography.titleSmall,
+                                    text = bill.name,
+                                    style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color      = onSurface,
-                                    maxLines   = 1,
-                                    overflow   = TextOverflow.Ellipsis
+                                    color = onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                                 if (isSynced) {
                                     Surface(
                                         shape = MaterialTheme.shapes.small,
-                                        color = kdsGreen.copy(alpha = 0.12f)
+                                        color = kdsGreen.copy(alpha = 0.12f),
                                     ) {
                                         Text(
                                             "KDS",
-                                            modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                                            style      = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                                            style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
-                                            color      = kdsGreen
+                                            color = kdsGreen,
                                         )
                                     }
                                 }
@@ -354,9 +366,9 @@ private fun OpenBillCard(
                             if (bill.customerName.isNotBlank()) {
                                 Text(
                                     "a/n ${bill.customerName}",
-                                    style  = MaterialTheme.typography.labelSmall,
-                                    color  = onSurfaceVariant.copy(alpha = 0.6f),
-                                    maxLines = 1
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = onSurfaceVariant.copy(alpha = 0.6f),
+                                    maxLines = 1,
                                 )
                             }
                         }
@@ -364,20 +376,20 @@ private fun OpenBillCard(
                     // Time chip (jam dibuat)
                     Column(
                         horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
                     ) {
                         val timeStr = formatCreatedAt(bill.createdAt)
                         if (timeStr.isNotEmpty()) {
                             Surface(
                                 shape = CircleShape,
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
                             ) {
                                 Text(
                                     timeStr,
-                                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                    style      = MaterialTheme.typography.labelSmall,
-                                    color      = onSurfaceVariant.copy(alpha = 0.7f),
-                                    fontWeight = FontWeight.Medium
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = onSurfaceVariant.copy(alpha = 0.7f),
+                                    fontWeight = FontWeight.Medium,
                                 )
                             }
                         }
@@ -386,14 +398,14 @@ private fun OpenBillCard(
                         if (!lastAddedStr.isNullOrEmpty()) {
                             Surface(
                                 shape = CircleShape,
-                                color = kdsGreen.copy(alpha = 0.10f)
+                                color = kdsGreen.copy(alpha = 0.10f),
                             ) {
                                 Text(
                                     "+item $lastAddedStr",
-                                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                    style      = MaterialTheme.typography.labelSmall,
-                                    color      = kdsGreen.copy(alpha = 0.8f),
-                                    fontWeight = FontWeight.Medium
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = kdsGreen.copy(alpha = 0.8f),
+                                    fontWeight = FontWeight.Medium,
                                 )
                             }
                         }
@@ -404,56 +416,57 @@ private fun OpenBillCard(
 
                 // ── Item rows ─────────────────────────────────────────
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.large)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                        .padding(horizontal = 10.dp, vertical = 8.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.large)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         bill.items.take(3).forEach { item ->
                             Row(
-                                modifier              = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment     = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    modifier              = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
                                 ) {
                                     Surface(
                                         shape = MaterialTheme.shapes.small,
-                                        color = amber.copy(alpha = 0.15f)
+                                        color = amber.copy(alpha = 0.15f),
                                     ) {
                                         Text(
                                             "${item.qty}×",
-                                            modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                                            style      = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                                            style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
-                                            color      = amber
+                                            color = amber,
                                         )
                                     }
                                     Text(
                                         "${item.productName}${item.variantName?.let { " ($it)" } ?: ""}",
-                                        style    = MaterialTheme.typography.bodySmall,
-                                        color    = onSurface.copy(alpha = 0.8f),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = onSurface.copy(alpha = 0.8f),
                                         maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                                 Text(
                                     formatRupiah(item.price * item.qty),
-                                    style      = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.SemiBold,
-                                    color      = onSurface.copy(alpha = 0.7f)
+                                    color = onSurface.copy(alpha = 0.7f),
                                 )
                             }
                         }
                         if (bill.items.size > 3) {
                             Text(
                                 "+ ${bill.items.size - 3} item lainnya",
-                                style  = MaterialTheme.typography.labelSmall,
-                                color  = onSurfaceVariant.copy(alpha = 0.5f)
+                                style = MaterialTheme.typography.labelSmall,
+                                color = onSurfaceVariant.copy(alpha = 0.5f),
                             )
                         }
                     }
@@ -463,36 +476,38 @@ private fun OpenBillCard(
 
                 // ── Footer: subtotal + actions ────────────────────────
                 Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                         Text(
                             "${bill.itemCount} item · ${bill.items.size} produk",
                             style = MaterialTheme.typography.labelSmall,
-                            color = onSurfaceVariant.copy(alpha = 0.55f)
+                            color = onSurfaceVariant.copy(alpha = 0.55f),
                         )
                         Text(
                             formatRupiah(bill.subtotal),
-                            style      = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color      = amber
+                            color = amber,
                         )
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         // Hapus / Batalkan
                         OutlinedButton(
-                            onClick       = { showDeleteDialog = true },
-                            shape         = MaterialTheme.shapes.large,
-                            colors        = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            ),
-                            border        = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                                width = 1.dp
-                            ),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            onClick = { showDeleteDialog = true },
+                            shape = MaterialTheme.shapes.large,
+                            colors =
+                                ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.error,
+                                ),
+                            border =
+                                ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                                    width = 1.dp,
+                                ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         ) {
                             Icon(Icons.Default.Delete, null, modifier = Modifier.size(14.dp))
                         }
@@ -500,52 +515,54 @@ private fun OpenBillCard(
                         if (isSynced) {
                             // ── Bill sudah di KDS: Tambah Item + Bayar ───────
                             OutlinedButton(
-                                onClick        = { onAddItems?.invoke() },
-                                shape          = MaterialTheme.shapes.large,
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                                onClick = { onAddItems?.invoke() },
+                                shape = MaterialTheme.shapes.large,
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                             ) {
                                 Icon(Icons.Default.AddShoppingCart, null, modifier = Modifier.size(14.dp))
                                 Spacer(Modifier.width(4.dp))
                                 Text(
                                     "Tambah Item",
-                                    style      = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
                             Button(
-                                onClick        = { onPay?.invoke() },
-                                shape          = MaterialTheme.shapes.large,
-                                colors         = ButtonDefaults.buttonColors(
-                                    containerColor = kdsGreen,
-                                    contentColor   = Color.White
-                                ),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                                onClick = { onPay?.invoke() },
+                                shape = MaterialTheme.shapes.large,
+                                colors =
+                                    ButtonDefaults.buttonColors(
+                                        containerColor = kdsGreen,
+                                        contentColor = Color.White,
+                                    ),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             ) {
                                 Icon(Icons.Default.Payments, null, modifier = Modifier.size(15.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text(
                                     "Bayar",
-                                    style      = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
                         } else {
                             // ── Bill lokal: Lanjutkan ke kasir ───────────────
                             Button(
-                                onClick        = onResume,
-                                shape          = MaterialTheme.shapes.large,
-                                colors         = ButtonDefaults.buttonColors(
-                                    containerColor = amber,
-                                    contentColor   = Color.White
-                                ),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                                onClick = onResume,
+                                shape = MaterialTheme.shapes.large,
+                                colors =
+                                    ButtonDefaults.buttonColors(
+                                        containerColor = amber,
+                                        contentColor = Color.White,
+                                    ),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             ) {
                                 Icon(Icons.Default.ShoppingCartCheckout, null, modifier = Modifier.size(15.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text(
                                     "Lanjutkan",
-                                    style      = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
                         }
@@ -563,34 +580,35 @@ private fun EmptyOpenBillState(modifier: Modifier = Modifier) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier            = Modifier.padding(32.dp)
+            modifier = Modifier.padding(32.dp),
         ) {
             Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(MaterialTheme.shapes.extraLarge)
-                    .background(amber.copy(alpha = 0.10f)),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(80.dp)
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .background(amber.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     Icons.Default.Inventory2,
                     contentDescription = null,
-                    modifier           = Modifier.size(40.dp),
-                    tint               = amber.copy(alpha = 0.5f)
+                    modifier = Modifier.size(40.dp),
+                    tint = amber.copy(alpha = 0.5f),
                 )
             }
             Spacer(Modifier.height(4.dp))
             Text(
                 "Belum ada open bill",
-                style      = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             )
             Text(
                 "Tekan tombol \"Open Bill\" di layar kasir\nuntuk menyimpan tagihan yang belum selesai.",
-                style     = MaterialTheme.typography.bodySmall,
-                color     = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }
     }
@@ -602,11 +620,16 @@ private fun formatCreatedAt(epochMillis: Long): String {
     if (epochMillis == 0L) return ""
     return try {
         val instant = Instant.fromEpochMilliseconds(epochMillis)
-        val local   = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-        val today   = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val local = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         val h = local.hour.toString().padStart(2, '0')
         val m = local.minute.toString().padStart(2, '0')
-        if (local.date == today) "$h:$m"
-        else "${local.day}/${local.month} $h:$m"
-    } catch (_: Exception) { "" }
+        if (local.date == today) {
+            "$h:$m"
+        } else {
+            "${local.day}/${local.month} $h:$m"
+        }
+    } catch (_: Exception) {
+        ""
+    }
 }

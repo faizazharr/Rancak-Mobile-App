@@ -21,33 +21,33 @@ import id.rancak.app.presentation.util.formatRupiah
 @Composable
 internal fun FinancialBreakdownCard(summary: ShiftSummary) {
     Card(
-        modifier  = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(1.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(
                 "Rincian Keuangan",
-                style      = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.outline,
-                modifier   = Modifier.padding(bottom = 8.dp)
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(bottom = 8.dp),
             )
             FinanceRow(
                 label = "Total Penjualan",
                 value = formatRupiah(summary.totalSales),
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             FinanceRow(
                 label = "Total Kas Masuk",
                 value = formatRupiah(summary.totalCashIn),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (summary.totalExpenses > 0) {
                 FinanceRow(
                     label = "Total Pengeluaran",
                     value = "-${formatRupiah(summary.totalExpenses)}",
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
             HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
@@ -55,7 +55,7 @@ internal fun FinancialBreakdownCard(summary: ShiftSummary) {
                 label = "Kas Bersih",
                 value = formatRupiah(summary.totalSales + summary.totalCashIn - summary.totalExpenses),
                 color = MaterialTheme.colorScheme.primary,
-                bold  = true
+                bold = true,
             )
         }
     }
@@ -67,22 +67,23 @@ private fun FinancialBreakdownCardPreview() {
     RancakTheme {
         Column(Modifier.padding(12.dp)) {
             FinancialBreakdownCard(
-                summary = ShiftSummary(
-                    uuid              = "preview",
-                    openedAt          = null,
-                    closedAt          = null,
-                    status            = "open",
-                    openingCash       = "500000",
-                    closingCash       = null,
-                    expectedCash      = null,
-                    cashDifference    = null,
-                    cashierName       = "Admin",
-                    totalSales        = 8_750_000L,
-                    totalTransactions = 64,
-                    totalExpenses     = 325_000L,
-                    totalCashIn       = 500_000L,
-                    paymentSummary    = emptyList()
-                )
+                summary =
+                    ShiftSummary(
+                        uuid = "preview",
+                        openedAt = null,
+                        closedAt = null,
+                        status = "open",
+                        openingCash = "500000",
+                        closingCash = null,
+                        expectedCash = null,
+                        cashDifference = null,
+                        cashierName = "Admin",
+                        totalSales = 8_750_000L,
+                        totalTransactions = 64,
+                        totalExpenses = 325_000L,
+                        totalCashIn = 500_000L,
+                        paymentSummary = emptyList(),
+                    ),
             )
         }
     }

@@ -23,7 +23,6 @@ data class Sizes(
     val iconLg: Dp = 24.dp,
     /** Icon hero / empty state. */
     val iconXl: Dp = 32.dp,
-
     // ── Tap targets ───────────────────────────────────────────────────────
     /** Minimum touch target sesuai Material guideline. */
     val minTouchTarget: Dp = 48.dp,
@@ -35,7 +34,6 @@ data class Sizes(
     val topBarHeight: Dp = 64.dp,
     /** Lebar drawer modal. */
     val drawerWidth: Dp = 280.dp,
-
     // ── Layout constraints ────────────────────────────────────────────────
     /** Lebar maksimum form pada tablet (mencegah field melar). */
     val formMaxWidth: Dp = 560.dp,
@@ -43,10 +41,9 @@ data class Sizes(
     val readableMaxWidth: Dp = 720.dp,
     /** Breakpoint phone vs tablet. */
     val tabletBreakpoint: Dp = 720.dp,
-
     // ── Border / divider ──────────────────────────────────────────────────
     val borderThin: Dp = 1.dp,
-    val borderEmphasis: Dp = 1.5.dp
+    val borderEmphasis: Dp = 1.5.dp,
 )
 
 val LocalSizes = staticCompositionLocalOf { Sizes() }

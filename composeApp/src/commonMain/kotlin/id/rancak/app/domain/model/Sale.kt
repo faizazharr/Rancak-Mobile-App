@@ -31,7 +31,7 @@ data class Sale(
     val payments: ImmutableList<SalePayment> = persistentListOf(),
     val delivery: Delivery? = null,
     val createdAt: String?,
-    val servedAt: String? = null
+    val servedAt: String? = null,
 )
 
 @Immutable
@@ -45,7 +45,7 @@ data class SaleItem(
     val subtotal: Long,
     val variantName: String?,
     val note: String?,
-    val addons: ImmutableList<SaleItemAddon> = persistentListOf()
+    val addons: ImmutableList<SaleItemAddon> = persistentListOf(),
 )
 
 @Immutable
@@ -53,7 +53,7 @@ data class SaleItemAddon(
     val name: String,
     val price: Long,
     val qty: Double,
-    val subtotal: Long
+    val subtotal: Long,
 )
 
 @Immutable
@@ -61,7 +61,7 @@ data class SalePayment(
     val uuid: String?,
     val method: String,
     val amount: Long,
-    val note: String?
+    val note: String?,
 )
 
 @Immutable
@@ -72,17 +72,17 @@ data class Delivery(
     val address: String?,
     val lat: Double?,
     val lng: Double?,
-    val note: String?
+    val note: String?,
 )
 
 enum class OrderType(val value: String) {
     DINE_IN("dine_in"),
     TAKEAWAY("takeaway"),
-    DELIVERY("delivery");
+    DELIVERY("delivery"),
+    ;
 
     companion object {
-        fun from(value: String?): OrderType =
-            entries.firstOrNull { it.value == value } ?: DINE_IN
+        fun from(value: String?): OrderType = entries.firstOrNull { it.value == value } ?: DINE_IN
     }
 }
 
@@ -91,11 +91,11 @@ enum class SaleStatus(val value: String) {
     PAID("paid"),
     VOID("void"),
     CANCELLED("cancelled"),
-    REFUNDED("refunded");
+    REFUNDED("refunded"),
+    ;
 
     companion object {
-        fun from(value: String?): SaleStatus =
-            entries.firstOrNull { it.value == value } ?: HELD
+        fun from(value: String?): SaleStatus = entries.firstOrNull { it.value == value } ?: HELD
     }
 }
 
@@ -108,18 +108,18 @@ data class QrPayment(
     val amount: Long,
     val status: QrPaymentStatus,
     val expiresAt: String?,
-    val usingWebhook: Boolean
+    val usingWebhook: Boolean,
 )
 
 enum class QrPaymentStatus(val value: String) {
     PENDING("pending"),
     SUCCEEDED("succeeded"),
     FAILED("failed"),
-    EXPIRED("expired");
+    EXPIRED("expired"),
+    ;
 
     companion object {
-        fun from(value: String?): QrPaymentStatus =
-            entries.firstOrNull { it.value == value } ?: PENDING
+        fun from(value: String?): QrPaymentStatus = entries.firstOrNull { it.value == value } ?: PENDING
     }
 }
 
@@ -129,11 +129,11 @@ enum class PaymentMethod(val value: String) {
     QRIS("qris"),
     TRANSFER("transfer"),
     OTHER("other"),
-    MIXED("mixed");
+    MIXED("mixed"),
+    ;
 
     companion object {
-        fun from(value: String?): PaymentMethod? =
-            entries.firstOrNull { it.value == value }
+        fun from(value: String?): PaymentMethod? = entries.firstOrNull { it.value == value }
     }
 }
 
@@ -144,7 +144,7 @@ data class Refund(
     val refundAmount: Long,
     val reason: String?,
     val items: ImmutableList<RefundItem>,
-    val createdAt: String?
+    val createdAt: String?,
 )
 
 @Immutable
@@ -152,14 +152,14 @@ data class RefundItem(
     val saleItemUuid: String,
     val productName: String,
     val qty: Double,
-    val refundAmount: Long
+    val refundAmount: Long,
 )
 
 /** Input untuk request refund: refund [qty] unit dari [saleItemUuid]. */
 @Immutable
 data class RefundItemInput(
     val saleItemUuid: String,
-    val qty: Int
+    val qty: Int,
 )
 
 /** Item yang akan ditambahkan ke keranjang belanja. */
@@ -172,7 +172,7 @@ data class CartItem(
     val variantUuid: String? = null,
     val variantName: String? = null,
     val note: String? = null,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
 ) {
     val subtotal: Long get() = price * qty
 }
@@ -182,19 +182,19 @@ data class CartItem(
 data class SplitPaymentEntry(
     val method: PaymentMethod,
     val amount: Long,
-    val note: String? = null
+    val note: String? = null,
 )
 
 /** Hasil split bill — transaksi asal + transaksi baru. */
 @Immutable
 data class SplitBillResult(
     val original: Sale,
-    val newSale: Sale
+    val newSale: Sale,
 )
 
 /** Hasil reprint — tipe cetak + sale lengkap. */
 @Immutable
 data class ReprintResult(
     val printType: String,
-    val sale: Sale
+    val sale: Sale,
 )

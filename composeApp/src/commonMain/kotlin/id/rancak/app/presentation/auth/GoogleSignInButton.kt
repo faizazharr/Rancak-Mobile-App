@@ -6,13 +6,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -36,7 +34,7 @@ expect fun GoogleSignInButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     onIdToken: (String) -> Unit,
-    onError: (String) -> Unit
+    onError: (String) -> Unit,
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,7 +50,7 @@ internal fun GoogleSignInButtonContent(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     Surface(
         onClick = onClick,
@@ -60,25 +58,27 @@ internal fun GoogleSignInButtonContent(
         modifier = modifier.height(52.dp),
         shape = MaterialTheme.shapes.extraLarge,
         color = Color.White,
-        border = BorderStroke(
-            width = 1.5.dp,
-            color = if (enabled && !isLoading) Color(0xFFDADCE0) else Color(0xFFDADCE0).copy(alpha = 0.5f)
-        ),
+        border =
+            BorderStroke(
+                width = 1.5.dp,
+                color = if (enabled && !isLoading) Color(0xFFDADCE0) else Color(0xFFDADCE0).copy(alpha = 0.5f),
+            ),
         shadowElevation = if (enabled && !isLoading) 2.dp else 0.dp,
-        tonalElevation = 0.dp
+        tonalElevation = 0.dp,
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+            contentAlignment = Alignment.Center,
         ) {
             // Loading spinner
             AnimatedVisibility(visible = isLoading, enter = fadeIn(), exit = fadeOut()) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(22.dp),
                     color = Color(0xFF4285F4),
-                    strokeWidth = 2.5.dp
+                    strokeWidth = 2.5.dp,
                 )
             }
 
@@ -87,7 +87,7 @@ internal fun GoogleSignInButtonContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     GoogleGLogo(size = 22.dp)
                     Spacer(Modifier.width(12.dp))
@@ -95,7 +95,7 @@ internal fun GoogleSignInButtonContent(
                         text = "Masuk dengan Google",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
-                        color = if (enabled) Color(0xFF3C4043) else Color(0xFF3C4043).copy(alpha = 0.4f)
+                        color = if (enabled) Color(0xFF3C4043) else Color(0xFF3C4043).copy(alpha = 0.4f),
                     )
                 }
             }
@@ -119,38 +119,42 @@ internal fun GoogleSignInButtonContent(
 @Composable
 private fun GoogleGLogo(size: Dp = 22.dp) {
     Canvas(modifier = Modifier.size(size)) {
-        val s  = this.size.minDimension
-        val sw = s * 0.155f                 // tebal stroke
-        val r  = (s - sw) / 2f             // jari-jari (ke tengah stroke)
+        val s = this.size.minDimension
+        val sw = s * 0.155f // tebal stroke
+        val r = (s - sw) / 2f // jari-jari (ke tengah stroke)
         val cx = s / 2f
         val cy = s / 2f
         val tl = Offset(cx - r, cy - r)
         val sz = Size(r * 2f, r * 2f)
 
-        fun arc(color: Color, start: Float, sweep: Float) = drawArc(
-            color      = color,
+        fun arc(
+            color: Color,
+            start: Float,
+            sweep: Float,
+        ) = drawArc(
+            color = color,
             startAngle = start,
             sweepAngle = sweep,
-            useCenter  = false,
-            topLeft    = tl,
-            size       = sz,
-            style      = Stroke(width = sw, cap = StrokeCap.Butt)
+            useCenter = false,
+            topLeft = tl,
+            size = sz,
+            style = Stroke(width = sw, cap = StrokeCap.Butt),
         )
 
-        arc(Color(0xFF4285F4),  23f,  50f)   // Biru   — kanan turun
-        arc(Color(0xFF34A853),  73f,  65f)   // Hijau  — bawah kanan
-        arc(Color(0xFFFBBC05), 138f,  57f)   // Kuning — bawah kiri
-        arc(Color(0xFFEA4335), 195f, 142f)   // Merah  — kiri & atas
+        arc(Color(0xFF4285F4), 23f, 50f) // Biru   — kanan turun
+        arc(Color(0xFF34A853), 73f, 65f) // Hijau  — bawah kanan
+        arc(Color(0xFFFBBC05), 138f, 57f) // Kuning — bawah kiri
+        arc(Color(0xFFEA4335), 195f, 142f) // Merah  — kiri & atas
 
         // Batang horizontal (biru) — mengisi celah di kanan
         // Mulai dari ~40% jari-jari (dalam lubang G) sampai tepi luar lingkaran
         val barX0 = cx + r * 0.38f
         val barX1 = cx + r + sw * 0.5f
         drawLine(
-            color       = Color(0xFF4285F4),
-            start       = Offset(barX0, cy),
-            end         = Offset(barX1, cy),
-            strokeWidth = sw
+            color = Color(0xFF4285F4),
+            start = Offset(barX0, cy),
+            end = Offset(barX1, cy),
+            strokeWidth = sw,
         )
     }
 }

@@ -20,32 +20,32 @@ import id.rancak.app.presentation.util.formatRupiah
 @Composable
 internal fun MySalesTodayCard(mySales: MySalesReport) {
     Card(
-        modifier  = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(1.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(
                 "Penjualan Saya Hari Ini",
-                style      = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.outline,
-                modifier   = Modifier.padding(bottom = 8.dp)
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(bottom = 8.dp),
             )
             FinanceRow(
                 label = "Total Penjualan",
                 value = formatRupiah(mySales.totalSales),
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             FinanceRow(
                 label = "Jumlah Transaksi",
                 value = "${mySales.totalTransactions}x",
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             FinanceRow(
                 label = "Total Tunai",
                 value = formatRupiah(mySales.cashTotal),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -57,7 +57,7 @@ private fun MySalesTodayCardPreview() {
     RancakTheme {
         Column(Modifier.padding(12.dp)) {
             MySalesTodayCard(
-                MySalesReport(totalSales = 1_250_000, totalTransactions = 14, cashTotal = 650_000)
+                MySalesReport(totalSales = 1_250_000, totalTransactions = 14, cashTotal = 650_000),
             )
         }
     }

@@ -12,7 +12,6 @@ import kotlinx.serialization.json.Json
  * internet yang dibutuhkan. Setiap perubahan langsung diserialisasi ke JSON.
  */
 class OpenBillStore(private val settings: Settings, private val json: Json) {
-
     private var cachedBills: List<LocalOpenBill>? = null
 
     /** Simpan atau perbarui open bill (berdasarkan [LocalOpenBill.id]). */

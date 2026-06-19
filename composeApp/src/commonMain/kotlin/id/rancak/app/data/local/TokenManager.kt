@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.asStateFlow
  * `Settings()` default ke secure storage kemudian menghapus yang plain.
  */
 class TokenManager(private val settings: Settings) {
-
     init {
         migrateFromLegacy()
     }
@@ -55,19 +54,40 @@ class TokenManager(private val settings: Settings) {
     val lastSyncTime: String?
         get() = settings.getStringOrNull(KEY_LAST_SYNC_TIME)
 
-    fun saveTokens(accessToken: String, refreshToken: String) {
+    val subscriptionStatus: String?
+        get() = settings.getStringOrNull(KEY_SUBSCRIPTION_STATUS)
+
+    fun setSubscriptionStatus(status: String?) {
+        if (status == null) {
+            settings.remove(KEY_SUBSCRIPTION_STATUS)
+        } else {
+            settings[KEY_SUBSCRIPTION_STATUS] = status
+        }
+    }
+
+    fun saveTokens(
+        accessToken: String,
+        refreshToken: String,
+    ) {
         _accessToken.value = accessToken
         settings[KEY_ACCESS_TOKEN] = accessToken
         settings[KEY_REFRESH_TOKEN] = refreshToken
     }
 
-    fun saveUser(uuid: String, name: String, email: String) {
+    fun saveUser(
+        uuid: String,
+        name: String,
+        email: String,
+    ) {
         settings[KEY_USER_UUID] = uuid
         settings[KEY_USER_NAME] = name
         settings[KEY_USER_EMAIL] = email
     }
 
-    fun setTenant(uuid: String, name: String) {
+    fun setTenant(
+        uuid: String,
+        name: String,
+    ) {
         settings[KEY_TENANT_UUID] = uuid
         settings[KEY_TENANT_NAME] = name
     }
@@ -91,6 +111,7 @@ class TokenManager(private val settings: Settings) {
         settings.remove(KEY_USER_EMAIL)
         settings.remove(KEY_USER_ROLE)
         settings.remove(KEY_LAST_SYNC_TIME)
+        settings.remove(KEY_SUBSCRIPTION_STATUS)
     }
 
     /**
@@ -125,11 +146,12 @@ class TokenManager(private val settings: Settings) {
         if (settings.getBoolean(KEY_MIGRATION_DONE, false)) return
         try {
             val legacy = Settings()
-            val keysToMigrate = listOf(
-                KEY_ACCESS_TOKEN, KEY_REFRESH_TOKEN, KEY_TENANT_UUID, KEY_TENANT_NAME,
-                KEY_USER_UUID, KEY_USER_NAME, KEY_USER_EMAIL, KEY_USER_ROLE,
-                KEY_DEVICE_ID, KEY_LAST_SYNC_TIME
-            )
+            val keysToMigrate =
+                listOf(
+                    KEY_ACCESS_TOKEN, KEY_REFRESH_TOKEN, KEY_TENANT_UUID, KEY_TENANT_NAME,
+                    KEY_USER_UUID, KEY_USER_NAME, KEY_USER_EMAIL, KEY_USER_ROLE,
+                    KEY_DEVICE_ID, KEY_LAST_SYNC_TIME,
+                )
             keysToMigrate.forEach { key ->
                 legacy.getStringOrNull(key)?.let { value ->
                     if (settings.getStringOrNull(key) == null) {
@@ -145,16 +167,17 @@ class TokenManager(private val settings: Settings) {
     }
 
     companion object {
-        private const val KEY_ACCESS_TOKEN  = "rancak_access_token"
+        private const val KEY_ACCESS_TOKEN = "rancak_access_token"
         private const val KEY_REFRESH_TOKEN = "rancak_refresh_token"
-        private const val KEY_TENANT_UUID   = "rancak_tenant_uuid"
-        private const val KEY_TENANT_NAME   = "rancak_tenant_name"
-        private const val KEY_DEVICE_ID     = "rancak_device_id"
-        private const val KEY_USER_UUID     = "rancak_user_uuid"
-        private const val KEY_USER_NAME     = "rancak_user_name"
-        private const val KEY_USER_EMAIL    = "rancak_user_email"
-        private const val KEY_USER_ROLE     = "rancak_user_role"
+        private const val KEY_TENANT_UUID = "rancak_tenant_uuid"
+        private const val KEY_TENANT_NAME = "rancak_tenant_name"
+        private const val KEY_DEVICE_ID = "rancak_device_id"
+        private const val KEY_USER_UUID = "rancak_user_uuid"
+        private const val KEY_USER_NAME = "rancak_user_name"
+        private const val KEY_USER_EMAIL = "rancak_user_email"
+        private const val KEY_USER_ROLE = "rancak_user_role"
         private const val KEY_LAST_SYNC_TIME = "rancak_last_sync_time"
+        private const val KEY_SUBSCRIPTION_STATUS = "rancak_subscription_status"
         private const val KEY_MIGRATION_DONE = "rancak_secure_migration_done"
     }
 }

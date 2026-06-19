@@ -19,8 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import id.rancak.app.presentation.designsystem.RancakTheme
@@ -31,15 +31,15 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 
 @Composable
 fun FeeInputDialog(
-    title:              String,
-    icon:               ImageVector,
-    initialValue:       Long = 0L,
-    isNegative:         Boolean = false,
-    prefix:             String = "Rp ",   // kosong ("") untuk input qty/jumlah
-    showPercentToggle:  Boolean = false,
-    initialIsPercent:   Boolean = false,
-    onDismiss:          () -> Unit,
-    onConfirm:          (value: Long, isPercent: Boolean) -> Unit
+    title: String,
+    icon: ImageVector,
+    initialValue: Long = 0L,
+    isNegative: Boolean = false,
+    prefix: String = "Rp ", // kosong ("") untuk input qty/jumlah
+    showPercentToggle: Boolean = false,
+    initialIsPercent: Boolean = false,
+    onDismiss: () -> Unit,
+    onConfirm: (value: Long, isPercent: Boolean) -> Unit,
 ) {
     var isPercent by remember { mutableStateOf(initialIsPercent) }
     var raw by remember {
@@ -52,58 +52,60 @@ fun FeeInputDialog(
         raw = ""
     }
 
-    val amount    = raw.toLongOrNull() ?: 0L
-    val hasValue  = amount > 0L
-    val primary   = MaterialTheme.colorScheme.primary
-    val error     = MaterialTheme.colorScheme.error
-    val valueColor = when {
-        isNegative && hasValue -> error
-        hasValue               -> primary
-        else                   -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
-    }
-    val displayText = when {
-        isPercent && hasValue -> "${amount}%"
-        isPercent             -> "0%"
-        hasValue              -> "$prefix${feeFormatNumber(amount)}"
-        else                  -> "${prefix}0"
-    }
+    val amount = raw.toLongOrNull() ?: 0L
+    val hasValue = amount > 0L
+    val primary = MaterialTheme.colorScheme.primary
+    val error = MaterialTheme.colorScheme.error
+    val valueColor =
+        when {
+            isNegative && hasValue -> error
+            hasValue -> primary
+            else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+        }
+    val displayText =
+        when {
+            isPercent && hasValue -> "$amount%"
+            isPercent -> "0%"
+            hasValue -> "$prefix${feeFormatNumber(amount)}"
+            else -> "${prefix}0"
+        }
 
     Dialog(
         onDismissRequest = onDismiss,
-        properties       = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(
-            modifier        = Modifier.width(300.dp),
-            shape           = MaterialTheme.shapes.extraLarge,
-            color           = MaterialTheme.colorScheme.surface,
-            tonalElevation  = 6.dp,
-            shadowElevation = 12.dp
+            modifier = Modifier.width(300.dp),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp,
+            shadowElevation = 12.dp,
         ) {
             Column(
-                modifier            = Modifier.padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-
                 // ── Header ──────────────────────────────────────────────────
                 Row(
-                    verticalAlignment     = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier              = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(primary.copy(alpha = 0.10f)),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(primary.copy(alpha = 0.10f)),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(icon, null, Modifier.size(17.dp), tint = primary)
                     }
                     Text(
                         title,
-                        style      = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
@@ -112,36 +114,45 @@ fun FeeInputDialog(
                 // ── Toggle Rp / % (hanya tampil jika showPercentToggle = true) ─────────
                 if (showPercentToggle) {
                     Row(
-                        modifier              = Modifier
-                            .fillMaxWidth()
-                            .clip(MaterialTheme.shapes.extraLarge)
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        horizontalArrangement = Arrangement.Center
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(MaterialTheme.shapes.extraLarge)
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                        horizontalArrangement = Arrangement.Center,
                     ) {
                         listOf(false to "Rp", true to "%").forEach { (pct, label) ->
                             val selected = isPercent == pct
                             Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(3.dp)
-                                    .clip(MaterialTheme.shapes.large)
-                                    .background(
-                                        if (selected) primary
-                                        else          MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                    .clickable(
-                                        indication        = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) { if (!selected) onToggleMode(pct) }
-                                    .padding(vertical = 8.dp),
-                                contentAlignment = Alignment.Center
+                                modifier =
+                                    Modifier
+                                        .weight(1f)
+                                        .padding(3.dp)
+                                        .clip(MaterialTheme.shapes.large)
+                                        .background(
+                                            if (selected) {
+                                                primary
+                                            } else {
+                                                MaterialTheme.colorScheme.surfaceVariant
+                                            },
+                                        )
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() },
+                                        ) { if (!selected) onToggleMode(pct) }
+                                        .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center,
                             ) {
                                 Text(
                                     label,
-                                    style      = MaterialTheme.typography.labelLarge,
+                                    style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Bold,
-                                    color      = if (selected) MaterialTheme.colorScheme.onPrimary
-                                                 else         MaterialTheme.colorScheme.onSurfaceVariant
+                                    color =
+                                        if (selected) {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
                                 )
                             }
                         }
@@ -151,26 +162,27 @@ fun FeeInputDialog(
 
                 // ── Display nominal ─────────────────────────────────────────
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.extraLarge)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(horizontal = 18.dp, vertical = 14.dp),
-                    contentAlignment = Alignment.CenterEnd
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.extraLarge)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(horizontal = 18.dp, vertical = 14.dp),
+                    contentAlignment = Alignment.CenterEnd,
                 ) {
                     Column(horizontalAlignment = Alignment.End) {
                         if (isNegative && hasValue) {
                             Text(
                                 if (isPercent) "− (Diskon Persen)" else "− (Pengurangan)",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = error.copy(alpha = 0.65f)
+                                color = error.copy(alpha = 0.65f),
                             )
                         }
                         Text(
                             displayText,
-                            style      = MaterialTheme.typography.headlineLarge,
+                            style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.ExtraBold,
-                            color      = valueColor
+                            color = valueColor,
                         )
                     }
                 }
@@ -178,39 +190,45 @@ fun FeeInputDialog(
                 Spacer(Modifier.height(14.dp))
 
                 // ── Numpad ──────────────────────────────────────────────────
-                val rows = listOf(
-                    listOf("7", "8", "9"),
-                    listOf("4", "5", "6"),
-                    listOf("1", "2", "3"),
-                    listOf("000", "0", "⌫")
-                )
+                val rows =
+                    listOf(
+                        listOf("7", "8", "9"),
+                        listOf("4", "5", "6"),
+                        listOf("1", "2", "3"),
+                        listOf("000", "0", "⌫"),
+                    )
 
                 rows.forEach { keyRow ->
                     Row(
-                        modifier              = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         keyRow.forEach { key ->
                             NumpadKey(
-                                label      = key,
-                                modifier   = Modifier.weight(1f),
+                                label = key,
+                                modifier = Modifier.weight(1f),
                                 isBackspace = key == "⌫",
-                                onClick    = {
-                                    raw = when (key) {
-                                        "⌫"   -> raw.dropLast(1)
-                                        "000" -> if (isPercent) raw  // tidak relevan dalam mode persen
-                                                 else (raw + "000").trimStart('0').ifEmpty { "" }
-                                                     .let { if (it.length > 12) raw else raw + "000" }
-                                        else  -> {
-                                            val next = if (raw == "0") key else raw + key
-                                            when {
-                                                isPercent && (next.toLongOrNull() ?: 0L) > 100L -> raw
-                                                !isPercent && next.length > 12                  -> raw
-                                                else                                             -> next
+                                onClick = {
+                                    raw =
+                                        when (key) {
+                                            "⌫" -> raw.dropLast(1)
+                                            "000" ->
+                                                if (isPercent) {
+                                                    raw // tidak relevan dalam mode persen
+                                                } else {
+                                                    (raw + "000").trimStart('0').ifEmpty { "" }
+                                                        .let { if (it.length > 12) raw else raw + "000" }
+                                                }
+                                            else -> {
+                                                val next = if (raw == "0") key else raw + key
+                                                when {
+                                                    isPercent && (next.toLongOrNull() ?: 0L) > 100L -> raw
+                                                    !isPercent && next.length > 12 -> raw
+                                                    else -> next
+                                                }
                                             }
                                         }
-                                    }
-                                }
+                                },
                             )
                         }
                     }
@@ -221,23 +239,24 @@ fun FeeInputDialog(
 
                 // ── Tombol aksi ─────────────────────────────────────────────
                 Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     OutlinedButton(
-                        onClick  = onDismiss,
+                        onClick = onDismiss,
                         modifier = Modifier.weight(1f),
-                        shape    = MaterialTheme.shapes.extraLarge
+                        shape = MaterialTheme.shapes.extraLarge,
                     ) {
                         Text("Batal")
                     }
                     Button(
-                        onClick  = { onConfirm(raw.toLongOrNull() ?: 0L, isPercent) },
+                        onClick = { onConfirm(raw.toLongOrNull() ?: 0L, isPercent) },
                         modifier = Modifier.weight(1f),
-                        shape    = MaterialTheme.shapes.extraLarge,
-                        colors   = ButtonDefaults.buttonColors(
-                            containerColor = if (isNegative && hasValue) error else primary
-                        )
+                        shape = MaterialTheme.shapes.extraLarge,
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = if (isNegative && hasValue) error else primary,
+                            ),
                     ) {
                         Icon(Icons.Default.Check, null, Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
@@ -255,51 +274,53 @@ fun FeeInputDialog(
 
 @Composable
 private fun NumpadKey(
-    label:       String,
-    modifier:    Modifier = Modifier,
-    isBackspace: Boolean  = false,
-    onClick:     () -> Unit
+    label: String,
+    modifier: Modifier = Modifier,
+    isBackspace: Boolean = false,
+    onClick: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val bgColor by animateColorAsState(
-        targetValue = when {
-            isBackspace && isPressed -> MaterialTheme.colorScheme.errorContainer
-            isBackspace              -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.55f)
-            isPressed                -> MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-            else                     -> MaterialTheme.colorScheme.surfaceVariant
-        },
+        targetValue =
+            when {
+                isBackspace && isPressed -> MaterialTheme.colorScheme.errorContainer
+                isBackspace -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.55f)
+                isPressed -> MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                else -> MaterialTheme.colorScheme.surfaceVariant
+            },
         animationSpec = tween(80),
-        label         = "numpad_bg"
+        label = "numpad_bg",
     )
 
     Box(
-        modifier = modifier
-            .height(54.dp)
-            .clip(MaterialTheme.shapes.extraLarge)
-            .background(bgColor)
-            .clickable(
-                interactionSource = interactionSource,
-                indication        = null,
-                onClick           = onClick
-            ),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .height(54.dp)
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(bgColor)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick,
+                ),
+        contentAlignment = Alignment.Center,
     ) {
         if (isBackspace) {
             Icon(
                 Icons.AutoMirrored.Filled.Backspace,
                 contentDescription = "Hapus",
-                tint   = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(20.dp)
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(20.dp),
             )
         } else {
             Text(
-                text       = label,
-                style      = MaterialTheme.typography.titleMedium,
+                text = label,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                textAlign  = TextAlign.Center,
-                color      = MaterialTheme.colorScheme.onSurface
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }
@@ -322,7 +343,7 @@ private fun FeeInputDialogPreview() {
             isNegative = true,
             showPercentToggle = true,
             onDismiss = {},
-            onConfirm = { _, _ -> }
+            onConfirm = { _, _ -> },
         )
     }
 }
@@ -339,7 +360,7 @@ private fun FeeInputDialogPercentPreview() {
             showPercentToggle = true,
             initialIsPercent = true,
             onDismiss = {},
-            onConfirm = { _, _ -> }
+            onConfirm = { _, _ -> },
         )
     }
 }
@@ -354,7 +375,7 @@ private fun FeeInputDialogEmptyPreview() {
             initialValue = 0L,
             isNegative = false,
             onDismiss = {},
-            onConfirm = { _, _ -> }
+            onConfirm = { _, _ -> },
         )
     }
 }
@@ -362,7 +383,7 @@ private fun FeeInputDialogEmptyPreview() {
 internal fun feeFormatNumber(value: Long): String {
     if (value == 0L) return "0"
     val str = value.toString()
-    val sb  = StringBuilder()
+    val sb = StringBuilder()
     var count = 0
     for (i in str.indices.reversed()) {
         if (count > 0 && count % 3 == 0) sb.insert(0, '.')

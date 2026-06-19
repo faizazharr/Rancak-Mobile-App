@@ -33,7 +33,7 @@ import org.koin.compose.koinInject
 fun RoleGate(
     minRole: UserRole,
     fallback: @Composable () -> Unit = {},
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val sessionProvider: UserSessionProvider = koinInject()
     val currentRole = sessionProvider.getUserRole()
@@ -51,29 +51,29 @@ fun RoleGate(
 @Composable
 fun AccessDeniedScreen(
     minRole: UserRole,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(
             imageVector = Icons.Default.Lock,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.outline
+            tint = MaterialTheme.colorScheme.outline,
         )
         Text(
             text = "Akses Ditolak",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(top = 12.dp)
+            modifier = Modifier.padding(top = 12.dp),
         )
         Text(
             text = "Fitur ini hanya tersedia untuk ${minRole.displayName()} ke atas.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(top = 4.dp),
         )
     }
 }
@@ -82,13 +82,11 @@ fun AccessDeniedScreen(
 @Composable
 fun RoleGatedScreen(
     minRole: UserRole,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     RoleGate(
         minRole = minRole,
         fallback = { AccessDeniedScreen(minRole = minRole) },
-        content = content
+        content = content,
     )
 }
-
-

@@ -5,7 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,61 +21,63 @@ import id.rancak.app.presentation.viewmodel.CashExpenseUiState
 @Composable
 fun ExpenseFormDialog(
     uiState: CashExpenseUiState,
-    actions: CashExpenseActions
+    actions: CashExpenseActions,
 ) {
     if (!uiState.showExpenseForm) return
 
     val amountNum = uiState.formAmount.toLongOrNull()
-    val amountError = when {
-        uiState.formAmount.isBlank() -> null
-        amountNum == null -> "Jumlah tidak valid"
-        amountNum <= 0 -> "Jumlah harus lebih dari 0"
-        else -> null
-    }
-    val canSubmit = uiState.formAmount.isNotBlank() && amountError == null &&
-        uiState.formDescription.isNotBlank()
+    val amountError =
+        when {
+            uiState.formAmount.isBlank() -> null
+            amountNum == null -> "Jumlah tidak valid"
+            amountNum <= 0 -> "Jumlah harus lebih dari 0"
+            else -> null
+        }
+    val canSubmit =
+        uiState.formAmount.isNotBlank() && amountError == null &&
+            uiState.formDescription.isNotBlank()
 
     AlertDialog(
         onDismissRequest = actions.onToggleExpenseForm,
         icon = {
             Icon(
-                imageVector = Icons.Default.TrendingDown,
+                imageVector = Icons.AutoMirrored.Filled.TrendingDown,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             )
         },
         title = {
             Text(
                 text = "Tambah Pengeluaran",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 RancakTextField(
-                    value           = uiState.formAmount,
-                    onValueChange   = actions.onAmountChange,
-                    label           = "Jumlah (Rp) *",
-                    isError         = amountError != null,
-                    errorMessage    = amountError,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    value = uiState.formAmount,
+                    onValueChange = actions.onAmountChange,
+                    label = "Jumlah (Rp) *",
+                    isError = amountError != null,
+                    errorMessage = amountError,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
                 RancakTextField(
-                    value         = uiState.formDescription,
+                    value = uiState.formDescription,
                     onValueChange = actions.onDescriptionChange,
-                    label         = "Keterangan *",
-                    isError       = uiState.formDescription.isBlank() && uiState.formAmount.isNotBlank(),
-                    errorMessage  = if (uiState.formDescription.isBlank() && uiState.formAmount.isNotBlank()) "Keterangan wajib diisi" else null
+                    label = "Keterangan *",
+                    isError = uiState.formDescription.isBlank() && uiState.formAmount.isNotBlank(),
+                    errorMessage = if (uiState.formDescription.isBlank() && uiState.formAmount.isNotBlank()) "Keterangan wajib diisi" else null,
                 )
                 RancakTextField(
-                    value         = uiState.formNote,
+                    value = uiState.formNote,
                     onValueChange = actions.onNoteChange,
-                    label         = "Catatan (opsional)"
+                    label = "Catatan (opsional)",
                 )
             }
         },
@@ -85,6 +87,6 @@ fun ExpenseFormDialog(
         dismissButton = {
             RancakOutlinedButton(text = "Batal", onClick = actions.onToggleExpenseForm)
         },
-        shape = MaterialTheme.shapes.large
+        shape = MaterialTheme.shapes.large,
     )
 }

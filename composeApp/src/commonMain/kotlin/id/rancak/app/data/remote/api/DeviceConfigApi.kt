@@ -20,8 +20,7 @@ import io.ktor.http.contentType
  * `device_id` diambil otomatis dari JWT, tidak perlu dikirim manual.
  */
 
-private fun base(tenantUuid: String) =
-    ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.DEVICE_CONFIG
+private fun base(tenantUuid: String) = ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + ApiConstants.DEVICE_CONFIG
 
 // ── Printers ────────────────────────────────────────────────────────────────
 
@@ -33,13 +32,12 @@ suspend fun RancakApiService.getAllPrinters(tenantUuid: String): ApiResponse<Lis
 
 suspend fun RancakApiService.getPrinter(
     tenantUuid: String,
-    printerId: String
-): ApiResponse<PrinterConfigDto> =
-    client.get(base(tenantUuid) + "/printers/$printerId").body()
+    printerId: String,
+): ApiResponse<PrinterConfigDto> = client.get(base(tenantUuid) + "/printers/$printerId").body()
 
 suspend fun RancakApiService.createPrinter(
     tenantUuid: String,
-    request: CreatePrinterConfigRequest
+    request: CreatePrinterConfigRequest,
 ): ApiResponse<PrinterConfigDto> =
     client.post(base(tenantUuid) + "/printers") {
         contentType(ContentType.Application.Json)
@@ -49,7 +47,7 @@ suspend fun RancakApiService.createPrinter(
 suspend fun RancakApiService.updatePrinter(
     tenantUuid: String,
     printerId: String,
-    request: UpdatePrinterConfigRequest
+    request: UpdatePrinterConfigRequest,
 ): ApiResponse<PrinterConfigDto> =
     client.patch(base(tenantUuid) + "/printers/$printerId") {
         contentType(ContentType.Application.Json)
@@ -58,9 +56,8 @@ suspend fun RancakApiService.updatePrinter(
 
 suspend fun RancakApiService.deletePrinter(
     tenantUuid: String,
-    printerId: String
-): ApiResponse<Unit> =
-    client.delete(base(tenantUuid) + "/printers/$printerId").body()
+    printerId: String,
+): ApiResponse<Unit> = client.delete(base(tenantUuid) + "/printers/$printerId").body()
 
 // ── App config (key-value) ──────────────────────────────────────────────────
 
@@ -70,7 +67,7 @@ suspend fun RancakApiService.getAppConfig(tenantUuid: String): ApiResponse<List<
 suspend fun RancakApiService.upsertAppConfig(
     tenantUuid: String,
     key: String,
-    value: String
+    value: String,
 ): ApiResponse<AppConfigDto> =
     client.post(base(tenantUuid) + "/app/$key") {
         contentType(ContentType.Application.Json)
@@ -79,6 +76,5 @@ suspend fun RancakApiService.upsertAppConfig(
 
 suspend fun RancakApiService.deleteAppConfig(
     tenantUuid: String,
-    key: String
-): ApiResponse<Unit> =
-    client.delete(base(tenantUuid) + "/app/$key").body()
+    key: String,
+): ApiResponse<Unit> = client.delete(base(tenantUuid) + "/app/$key").body()

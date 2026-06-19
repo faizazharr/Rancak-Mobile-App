@@ -20,21 +20,22 @@ import io.ktor.http.contentType
  * Product variant groups and variant options CRUD.
  */
 
-private fun variantGroupsUrl(tenantUuid: String, productId: String) =
-    ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId/variant-groups"
+private fun variantGroupsUrl(
+    tenantUuid: String,
+    productId: String,
+) = ApiConstants.BASE_URL + ApiConstants.tenantPath(tenantUuid) + "${ApiConstants.PRODUCTS}/$productId/variant-groups"
 
 // ── Variant Groups ─────────────────────────────────────────────────────────────
 
 suspend fun RancakApiService.getVariantGroups(
     tenantUuid: String,
-    productId: String
-): ApiResponse<List<VariantGroupDto>> =
-    client.get(variantGroupsUrl(tenantUuid, productId)).body()
+    productId: String,
+): ApiResponse<List<VariantGroupDto>> = client.get(variantGroupsUrl(tenantUuid, productId)).body()
 
 suspend fun RancakApiService.createVariantGroup(
     tenantUuid: String,
     productId: String,
-    request: CreateVariantGroupRequest
+    request: CreateVariantGroupRequest,
 ): ApiResponse<VariantGroupDto> =
     client.post(variantGroupsUrl(tenantUuid, productId)) {
         contentType(ContentType.Application.Json)
@@ -45,7 +46,7 @@ suspend fun RancakApiService.updateVariantGroup(
     tenantUuid: String,
     productId: String,
     groupId: String,
-    request: UpdateVariantGroupRequest
+    request: UpdateVariantGroupRequest,
 ): ApiResponse<VariantGroupDto> =
     client.patch("${variantGroupsUrl(tenantUuid, productId)}/$groupId") {
         contentType(ContentType.Application.Json)
@@ -55,24 +56,22 @@ suspend fun RancakApiService.updateVariantGroup(
 suspend fun RancakApiService.deleteVariantGroup(
     tenantUuid: String,
     productId: String,
-    groupId: String
-): ApiResponse<Unit> =
-    client.delete("${variantGroupsUrl(tenantUuid, productId)}/$groupId").body()
+    groupId: String,
+): ApiResponse<Unit> = client.delete("${variantGroupsUrl(tenantUuid, productId)}/$groupId").body()
 
 // ── Variants ───────────────────────────────────────────────────────────────────
 
 suspend fun RancakApiService.getVariants(
     tenantUuid: String,
     productId: String,
-    groupId: String
-): ApiResponse<List<VariantDto>> =
-    client.get("${variantGroupsUrl(tenantUuid, productId)}/$groupId/variants").body()
+    groupId: String,
+): ApiResponse<List<VariantDto>> = client.get("${variantGroupsUrl(tenantUuid, productId)}/$groupId/variants").body()
 
 suspend fun RancakApiService.createVariant(
     tenantUuid: String,
     productId: String,
     groupId: String,
-    request: CreateVariantRequest
+    request: CreateVariantRequest,
 ): ApiResponse<VariantDto> =
     client.post("${variantGroupsUrl(tenantUuid, productId)}/$groupId/variants") {
         contentType(ContentType.Application.Json)
@@ -84,7 +83,7 @@ suspend fun RancakApiService.updateVariant(
     productId: String,
     groupId: String,
     variantId: String,
-    request: UpdateVariantRequest
+    request: UpdateVariantRequest,
 ): ApiResponse<VariantDto> =
     client.patch("${variantGroupsUrl(tenantUuid, productId)}/$groupId/variants/$variantId") {
         contentType(ContentType.Application.Json)
@@ -95,6 +94,5 @@ suspend fun RancakApiService.deleteVariant(
     tenantUuid: String,
     productId: String,
     groupId: String,
-    variantId: String
-): ApiResponse<Unit> =
-    client.delete("${variantGroupsUrl(tenantUuid, productId)}/$groupId/variants/$variantId").body()
+    variantId: String,
+): ApiResponse<Unit> = client.delete("${variantGroupsUrl(tenantUuid, productId)}/$groupId/variants/$variantId").body()

@@ -2,7 +2,6 @@ package id.rancak.app.presentation.ui.settings.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bluetooth
@@ -38,36 +37,36 @@ internal fun PrinterContent(
     onNetworkIp: (String) -> Unit,
     onNetworkPort: (String) -> Unit,
     onSaveNetwork: () -> Unit,
-    onTestPrint: () -> Unit
+    onTestPrint: () -> Unit,
 ) {
     if (uiState.hasPrinter) {
         SavedPrinterCard(
-            uiState     = uiState,
+            uiState = uiState,
             onTestPrint = onTestPrint,
-            onDisconnect = onDisconnect
+            onDisconnect = onDisconnect,
         )
     }
 
     ConnectionTypePicker(
-        currentType   = uiState.printerType,
-        onPrinterType = onPrinterType
+        currentType = uiState.printerType,
+        onPrinterType = onPrinterType,
     )
 
     if (uiState.printerType == SettingsStore.TYPE_BLUETOOTH) {
         BluetoothPrinterSection(
-            uiState         = uiState,
-            onScan          = onScan,
-            onSelectPrinter = onSelectPrinter
+            uiState = uiState,
+            onScan = onScan,
+            onSelectPrinter = onSelectPrinter,
         )
     }
 
     if (uiState.printerType == SettingsStore.TYPE_NETWORK) {
         NetworkPrinterSection(
-            networkIp     = uiState.networkIp,
-            networkPort   = uiState.networkPort,
-            onNetworkIp   = onNetworkIp,
+            networkIp = uiState.networkIp,
+            networkPort = uiState.networkPort,
+            onNetworkIp = onNetworkIp,
             onNetworkPort = onNetworkPort,
-            onSaveNetwork = onSaveNetwork
+            onSaveNetwork = onSaveNetwork,
         )
     }
 }
@@ -78,52 +77,55 @@ internal fun PrinterContent(
 private fun SavedPrinterCard(
     uiState: SettingsUiState,
     onTestPrint: () -> Unit,
-    onDisconnect: () -> Unit
+    onDisconnect: () -> Unit,
 ) {
     SettingsCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(
-                if (uiState.printerType == SettingsStore.TYPE_BLUETOOTH) Icons.Default.Bluetooth
-                else Icons.Default.Wifi,
+                if (uiState.printerType == SettingsStore.TYPE_BLUETOOTH) {
+                    Icons.Default.Bluetooth
+                } else {
+                    Icons.Default.Wifi
+                },
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     uiState.savedPrinterName.ifBlank { uiState.savedPrinterAddress },
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Text(
                     uiState.savedPrinterAddress,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Surface(
                 shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
             ) {
                 Text(
                     "Tersimpan",
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(
-                onClick  = onTestPrint,
-                enabled  = !uiState.isPrinting,
-                modifier = Modifier.weight(1f)
+                onClick = onTestPrint,
+                enabled = !uiState.isPrinting,
+                modifier = Modifier.weight(1f),
             ) {
                 if (uiState.isPrinting) {
                     CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
@@ -131,14 +133,15 @@ private fun SavedPrinterCard(
                 }
                 Text(
                     if (uiState.isPrinting) "Mencetak…" else "Test Print",
-                    style = MaterialTheme.typography.labelMedium
+                    style = MaterialTheme.typography.labelMedium,
                 )
             }
             OutlinedButton(
                 onClick = onDisconnect,
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
+                colors =
+                    ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
             ) {
                 Icon(Icons.Default.LinkOff, contentDescription = null, modifier = Modifier.size(14.dp))
                 Spacer(Modifier.width(4.dp))
@@ -151,30 +154,30 @@ private fun SavedPrinterCard(
 @Composable
 private fun ConnectionTypePicker(
     currentType: String,
-    onPrinterType: (String) -> Unit
+    onPrinterType: (String) -> Unit,
 ) {
     SettingsCard {
         Text(
             "Tipe Koneksi",
-            style      = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
-            color      = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             PrimaryFilterChip(
-                selected    = currentType == SettingsStore.TYPE_BLUETOOTH,
-                onClick     = { onPrinterType(SettingsStore.TYPE_BLUETOOTH) },
-                label       = { Text("Bluetooth", style = MaterialTheme.typography.labelMedium) },
+                selected = currentType == SettingsStore.TYPE_BLUETOOTH,
+                onClick = { onPrinterType(SettingsStore.TYPE_BLUETOOTH) },
+                label = { Text("Bluetooth", style = MaterialTheme.typography.labelMedium) },
                 leadingIcon = { Icon(Icons.Default.Bluetooth, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                modifier    = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             PrimaryFilterChip(
-                selected    = currentType == SettingsStore.TYPE_NETWORK,
-                onClick     = { onPrinterType(SettingsStore.TYPE_NETWORK) },
-                label       = { Text("Wi-Fi / LAN", style = MaterialTheme.typography.labelMedium) },
+                selected = currentType == SettingsStore.TYPE_NETWORK,
+                onClick = { onPrinterType(SettingsStore.TYPE_NETWORK) },
+                label = { Text("Wi-Fi / LAN", style = MaterialTheme.typography.labelMedium) },
                 leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                modifier    = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -184,7 +187,7 @@ private fun ConnectionTypePicker(
 private fun BluetoothPrinterSection(
     uiState: SettingsUiState,
     onScan: () -> Unit,
-    onSelectPrinter: (PrinterDevice) -> Unit
+    onSelectPrinter: (PrinterDevice) -> Unit,
 ) {
     if (!uiState.isBluetoothOn) BluetoothOffBanner()
 
@@ -192,13 +195,13 @@ private fun BluetoothPrinterSection(
         Button(
             onClick = onScan,
             enabled = !uiState.isScanning && !uiState.isConnecting && uiState.isBluetoothOn,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             if (uiState.isScanning) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(14.dp),
                     strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
                 Spacer(Modifier.width(6.dp))
             }
@@ -206,7 +209,7 @@ private fun BluetoothPrinterSection(
             Spacer(Modifier.width(6.dp))
             Text(
                 if (uiState.isScanning) "Mencari…" else "Cari Printer Bluetooth",
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelMedium,
             )
         }
 
@@ -214,7 +217,7 @@ private fun BluetoothPrinterSection(
             Spacer(Modifier.height(8.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
                 Text("Menghubungkan…", style = MaterialTheme.typography.bodySmall)
@@ -229,33 +232,33 @@ private fun BluetoothPrinterSection(
                 "Tips:",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 "Nyalakan printer → aktifkan Bluetooth → pair printer di Pengaturan perangkat → tekan Cari",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         AnimatedVisibility(visible = uiState.discoveredPrinters.isNotEmpty()) {
             Column(
                 modifier = Modifier.padding(top = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 HorizontalDivider()
                 Spacer(Modifier.height(4.dp))
                 Text(
                     "Ditemukan ${uiState.discoveredPrinters.size} printer:",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 uiState.discoveredPrinters.forEach { device ->
                     PrinterDeviceRow(
-                        device       = device,
-                        isSaved      = device.address == uiState.savedPrinterAddress,
+                        device = device,
+                        isSaved = device.address == uiState.savedPrinterAddress,
                         isConnecting = uiState.isConnecting,
-                        onClick      = { onSelectPrinter(device) }
+                        onClick = { onSelectPrinter(device) },
                     )
                 }
             }
@@ -266,7 +269,7 @@ private fun BluetoothPrinterSection(
             Text(
                 "Tidak ada printer ditemukan. Pastikan printer sudah di-pair.",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
             )
         }
     }
@@ -277,21 +280,23 @@ private fun BluetoothOffBanner() {
     Surface(
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Icon(
-                Icons.Default.BluetoothDisabled, contentDescription = null,
-                tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp)
+                Icons.Default.BluetoothDisabled,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(18.dp),
             )
             Text(
                 "Bluetooth tidak aktif — aktifkan di pengaturan perangkat",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onErrorContainer
+                color = MaterialTheme.colorScheme.onErrorContainer,
             )
         }
     }
@@ -303,22 +308,25 @@ private fun NetworkPrinterSection(
     networkPort: String,
     onNetworkIp: (String) -> Unit,
     onNetworkPort: (String) -> Unit,
-    onSaveNetwork: () -> Unit
+    onSaveNetwork: () -> Unit,
 ) {
-    val ipError = when {
-        networkIp.isBlank() -> null
-        !networkIp.matches(Regex("""^(\d{1,3}\.){3}\d{1,3}$""")) -> "Format IP tidak valid (mis. 192.168.1.100)"
-        else -> null
-    }
+    val ipError =
+        when {
+            networkIp.isBlank() -> null
+            !networkIp.matches(Regex("""^(\d{1,3}\.){3}\d{1,3}$""")) -> "Format IP tidak valid (mis. 192.168.1.100)"
+            else -> null
+        }
     val portNum = networkPort.toIntOrNull()
-    val portError = when {
-        networkPort.isBlank() -> null
-        portNum == null -> "Port tidak valid"
-        portNum !in 1..65535 -> "Port harus 1–65535"
-        else -> null
-    }
-    val canSave = networkIp.isNotBlank() && ipError == null &&
-        networkPort.isNotBlank() && portError == null
+    val portError =
+        when {
+            networkPort.isBlank() -> null
+            portNum == null -> "Port tidak valid"
+            portNum !in 1..65535 -> "Port harus 1–65535"
+            else -> null
+        }
+    val canSave =
+        networkIp.isNotBlank() && ipError == null &&
+            networkPort.isNotBlank() && portError == null
 
     SettingsCard {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -333,7 +341,7 @@ private fun NetworkPrinterSection(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 leadingIcon = { Icon(Icons.Default.Wifi, contentDescription = null, modifier = Modifier.size(18.dp)) },
                 modifier = Modifier.weight(1f),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
             OutlinedTextField(
                 value = networkPort,
@@ -345,7 +353,7 @@ private fun NetworkPrinterSection(
                 supportingText = portError?.let { err -> { Text(err) } },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.width(90.dp),
-                textStyle = MaterialTheme.typography.bodySmall
+                textStyle = MaterialTheme.typography.bodySmall,
             )
         }
         Spacer(Modifier.height(4.dp))
@@ -365,28 +373,30 @@ private fun PrinterContentPreview_Bluetooth() {
     RancakTheme {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             PrinterContent(
-                uiState = SettingsUiState(
-                    savedPrinterName    = "EPSON TM-T82",
-                    savedPrinterAddress = "AA:BB:CC:DD:EE:01",
-                    printerType         = SettingsStore.TYPE_BLUETOOTH,
-                    isBluetoothOn       = true,
-                    hasScannedOnce      = true,
-                    discoveredPrinters  = listOf(
-                        PrinterDevice("EPSON TM-T82",      "AA:BB:CC:DD:EE:01", PrinterConnectionType.BLUETOOTH),
-                        PrinterDevice("Bluetooth Printer", "AA:BB:CC:DD:EE:02", PrinterConnectionType.BLUETOOTH)
-                    )
-                ),
-                onPrinterType   = {},
-                onScan          = {},
+                uiState =
+                    SettingsUiState(
+                        savedPrinterName = "EPSON TM-T82",
+                        savedPrinterAddress = "AA:BB:CC:DD:EE:01",
+                        printerType = SettingsStore.TYPE_BLUETOOTH,
+                        isBluetoothOn = true,
+                        hasScannedOnce = true,
+                        discoveredPrinters =
+                            listOf(
+                                PrinterDevice("EPSON TM-T82", "AA:BB:CC:DD:EE:01", PrinterConnectionType.BLUETOOTH),
+                                PrinterDevice("Bluetooth Printer", "AA:BB:CC:DD:EE:02", PrinterConnectionType.BLUETOOTH),
+                            ),
+                    ),
+                onPrinterType = {},
+                onScan = {},
                 onSelectPrinter = {},
-                onDisconnect    = {},
-                onNetworkIp     = {},
-                onNetworkPort   = {},
-                onSaveNetwork   = {},
-                onTestPrint     = {}
+                onDisconnect = {},
+                onNetworkIp = {},
+                onNetworkPort = {},
+                onSaveNetwork = {},
+                onTestPrint = {},
             )
         }
     }
@@ -398,22 +408,23 @@ private fun PrinterContentPreview_Network() {
     RancakTheme {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             PrinterContent(
-                uiState = SettingsUiState(
-                    printerType = SettingsStore.TYPE_NETWORK,
-                    networkIp   = "192.168.1.100",
-                    networkPort = "9100"
-                ),
-                onPrinterType   = {},
-                onScan          = {},
+                uiState =
+                    SettingsUiState(
+                        printerType = SettingsStore.TYPE_NETWORK,
+                        networkIp = "192.168.1.100",
+                        networkPort = "9100",
+                    ),
+                onPrinterType = {},
+                onScan = {},
                 onSelectPrinter = {},
-                onDisconnect    = {},
-                onNetworkIp     = {},
-                onNetworkPort   = {},
-                onSaveNetwork   = {},
-                onTestPrint     = {}
+                onDisconnect = {},
+                onNetworkIp = {},
+                onNetworkPort = {},
+                onSaveNetwork = {},
+                onTestPrint = {},
             )
         }
     }

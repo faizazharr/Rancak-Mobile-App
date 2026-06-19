@@ -40,7 +40,7 @@ data class LocalOpenBill(
      * Epoch millis terakhir kali item ditambahkan lewat "Tambah Item".
      * Null jika belum pernah ada penambahan item setelah bill dibuat.
      */
-    val lastAddedAt: Long? = null
+    val lastAddedAt: Long? = null,
 ) {
     val subtotal: Long get() = items.sumOf { it.price * it.qty }
     val itemCount: Int get() = items.sumOf { it.qty }
@@ -56,27 +56,29 @@ data class LocalOpenBillItem(
     val variantUuid: String? = null,
     val variantName: String? = null,
     val note: String? = null,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
 )
 
-fun LocalOpenBillItem.toDomain() = CartItem(
-    productUuid = productUuid,
-    productName = productName,
-    qty         = qty,
-    price       = price,
-    variantUuid = variantUuid,
-    variantName = variantName,
-    note        = note,
-    imageUrl    = imageUrl
-)
+fun LocalOpenBillItem.toDomain() =
+    CartItem(
+        productUuid = productUuid,
+        productName = productName,
+        qty = qty,
+        price = price,
+        variantUuid = variantUuid,
+        variantName = variantName,
+        note = note,
+        imageUrl = imageUrl,
+    )
 
-fun CartItem.toLocalOpenBillItem() = LocalOpenBillItem(
-    productUuid = productUuid,
-    productName = productName,
-    qty         = qty,
-    price       = price,
-    variantUuid = variantUuid,
-    variantName = variantName,
-    note        = note,
-    imageUrl    = imageUrl
-)
+fun CartItem.toLocalOpenBillItem() =
+    LocalOpenBillItem(
+        productUuid = productUuid,
+        productName = productName,
+        qty = qty,
+        price = price,
+        variantUuid = variantUuid,
+        variantName = variantName,
+        note = note,
+        imageUrl = imageUrl,
+    )

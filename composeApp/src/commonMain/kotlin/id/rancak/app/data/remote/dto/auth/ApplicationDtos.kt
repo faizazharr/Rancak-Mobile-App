@@ -9,12 +9,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class SubmitApplicationRequest(
-    @SerialName("outlet_name")     val outletName: String,
-    @SerialName("phone")           val phone: String,
-    @SerialName("address")         val address: String,
-    @SerialName("nib")             val nib: String,
-    @SerialName("business_type")   val businessType: String,
-    @SerialName("google_maps_url") val googleMapsUrl: String? = null
+    @SerialName("outlet_name") val outletName: String,
+    @SerialName("phone") val phone: String,
+    @SerialName("address") val address: String,
+    @SerialName("nib") val nib: String,
+    @SerialName("business_type") val businessType: String,
+    @SerialName("google_maps_url") val googleMapsUrl: String? = null,
 )
 
 /**
@@ -25,16 +25,16 @@ data class SubmitApplicationRequest(
 @Serializable
 data class TenantApplicationDto(
     val uuid: String,
-    @SerialName("outlet_name")          val outletName: String,
+    @SerialName("outlet_name") val outletName: String,
     val phone: String,
     val address: String,
-    @SerialName("google_maps_url")      val googleMapsUrl: String? = null,
+    @SerialName("google_maps_url") val googleMapsUrl: String? = null,
     val nib: String,
-    @SerialName("business_type")        val businessType: String,
+    @SerialName("business_type") val businessType: String,
     val status: String,
-    @SerialName("rejection_reason")     val rejectionReason: String? = null,
-    @SerialName("reviewed_at")          val reviewedAt: String? = null,
+    @SerialName("rejection_reason") val rejectionReason: String? = null,
+    @SerialName("reviewed_at") val reviewedAt: String? = null,
     @SerialName("approved_tenant_uuid") val approvedTenantUuid: String? = null,
-    @SerialName("created_at")           val createdAt: String,
-    @SerialName("updated_at")           val updatedAt: String
+    @SerialName("created_at") val createdAt: String,
+    @SerialName("updated_at") val updatedAt: String,
 )
