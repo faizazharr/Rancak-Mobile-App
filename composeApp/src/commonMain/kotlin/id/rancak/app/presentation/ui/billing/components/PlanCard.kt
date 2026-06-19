@@ -22,17 +22,117 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.designsystem.Secondary
 import id.rancak.app.presentation.ui.billing.formatPlanPrice
 import id.rancak.app.presentation.ui.billing.linearGradientBrush
+import androidx.compose.material.icons.filled.Refresh
 
 @Composable
 fun PlanCard(
     plan: Plan,
     isCurrentPlan: Boolean,
     onSubscribe: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isExpiredPlan: Boolean = false
 ) {
     val shape = MaterialTheme.shapes.extraLarge
 
-    if (isCurrentPlan) {
+    if (isExpiredPlan) {
+        Card(
+            modifier = modifier,
+            shape = shape,
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFF59E0B)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color(0xFFFEF3C7),
+                            shape = MaterialTheme.shapes.extraLarge.copy(
+                                bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)
+                            )
+                        )
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            plan.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF92400E),
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0xFFF59E0B).copy(alpha = 0.2f)
+                        ) {
+                            Text(
+                                "KEDALUWARSA",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF92400E),
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    if (plan.description != null) {
+                        Text(
+                            plan.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                formatPlanPrice(plan.totalPrice),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                "${plan.durationDays} hari" + if (plan.maxUsers != null) " · ${plan.maxUsers} user" else "",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Button(
+                            onClick = onSubscribe,
+                            shape = MaterialTheme.shapes.extraLarge,
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B))
+                        ) {
+                            Icon(
+                                Icons.Default.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text("Perbarui", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
+            }
+        }
+    } else if (isCurrentPlan) {
         Card(
             modifier = modifier,
             shape = shape,

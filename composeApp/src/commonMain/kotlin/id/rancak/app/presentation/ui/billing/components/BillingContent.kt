@@ -60,11 +60,13 @@ fun BillingContent(
                     if (plans.isNotEmpty()) {
                         SectionLabel(Icons.Default.Stars, "Paket Langganan")
                         plans.forEach { plan ->
+                            val planMatches = subscription?.plan == plan.code
                             PlanCard(
-                                plan = plan,
-                                isCurrentPlan = subscription?.plan == plan.code,
-                                onSubscribe = { onSubscribe(plan) },
-                                modifier = Modifier.fillMaxWidth()
+                                plan          = plan,
+                                isCurrentPlan = planMatches && subscription?.status == "active",
+                                isExpiredPlan = planMatches && subscription?.status == "expired",
+                                onSubscribe   = { onSubscribe(plan) },
+                                modifier      = Modifier.fillMaxWidth()
                             )
                         }
                     }
@@ -120,11 +122,13 @@ fun BillingContent(
                 if (plans.isNotEmpty()) {
                     item { SectionLabel(Icons.Default.Stars, "Paket Langganan") }
                     items(plans, key = { it.uuid }) { plan ->
+                        val planMatches = subscription?.plan == plan.code
                         PlanCard(
-                            plan = plan,
-                            isCurrentPlan = subscription?.plan == plan.code,
-                            onSubscribe = { onSubscribe(plan) },
-                            modifier = Modifier.fillMaxWidth()
+                            plan          = plan,
+                            isCurrentPlan = planMatches && subscription?.status == "active",
+                            isExpiredPlan = planMatches && subscription?.status == "expired",
+                            onSubscribe   = { onSubscribe(plan) },
+                            modifier      = Modifier.fillMaxWidth()
                         )
                     }
                 }

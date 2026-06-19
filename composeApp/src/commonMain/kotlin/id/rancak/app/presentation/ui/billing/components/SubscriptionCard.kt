@@ -23,6 +23,7 @@ import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.designsystem.Tertiary
 import id.rancak.app.presentation.ui.billing.Quadruple
 import id.rancak.app.presentation.ui.billing.linearGradientBrush
+import androidx.compose.material.icons.filled.Refresh
 
 @Composable
 fun SubscriptionCard(
@@ -95,6 +96,25 @@ fun SubscriptionCard(
                         align = Alignment.End,
                         isTablet = isTablet
                     )
+                }
+                if (subscription.status == "expired") {
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.85f),
+                            modifier = Modifier.size(if (isTablet) 14.dp else 12.dp)
+                        )
+                        Text(
+                            "Masa berlaku habis — pilih paket di bawah untuk memperbarui",
+                            style = if (isTablet) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.85f)
+                        )
+                    }
                 }
             }
         }
