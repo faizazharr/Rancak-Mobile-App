@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import id.rancak.app.domain.model.CashCount
 import id.rancak.app.presentation.components.ErrorBanner
 import id.rancak.app.presentation.components.LoadingScreen
@@ -27,6 +26,7 @@ import id.rancak.app.presentation.components.SummaryRow
 import id.rancak.app.presentation.designsystem.LocalSizes
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.util.formatRupiah
+import id.rancak.app.presentation.util.localizeApiError
 import id.rancak.app.presentation.viewmodel.ShiftUiState
 import id.rancak.app.presentation.viewmodel.ShiftViewModel
 import id.rancak.app.domain.model.Shift
@@ -90,7 +90,15 @@ fun ShiftScreenContent(
             )
         }
     ) { padding ->
-        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            // ── Error banner — in-flow so content below doesn't get obscured ──
+            ErrorBanner(
+                error     = uiState.error?.let { localizeApiError(it) },
+                onDismiss = onClearError,
+                modifier  = Modifier.fillMaxWidth()
+            )
+
+            BoxWithConstraints(modifier = Modifier.weight(1f)) {
             val sizes = LocalSizes.current
             val isTablet = maxWidth >= sizes.tabletBreakpoint
             val contentModifier = if (isTablet) {
@@ -98,16 +106,6 @@ fun ShiftScreenContent(
             } else {
                 Modifier.fillMaxSize()
             }
-
-            // ── Error banner ───────────────────────────────────────────────────
-            ErrorBanner(
-                error = uiState.error,
-                onDismiss = onClearError,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter)
-                    .zIndex(10f)
-            )
 
             when {
                 uiState.isLoading -> LoadingScreen()
@@ -251,7 +249,8 @@ fun ShiftScreenContent(
                     }
                 }
             } // end when
-        } // end BoxWithConstraints
+            } // end BoxWithConstraints
+        } // end Column
     }
 }
 
