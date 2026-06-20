@@ -19,8 +19,8 @@ import kotlinx.serialization.json.Json
 
 /**
  * Membuat [HttpClient] beserta lambda untuk mengosongkan cache Bearer token
- * internal Ktor.  Keduanya harus didaftarkan bersama sehingga [RancakApiService]
- * dapat memanggil [clearBearerToken] saat logout.
+ * internal Ktor. Keduanya harus didaftarkan bersama sehingga `RancakApiService`
+ * dapat memanggil `clearBearerTokenCache()` saat logout.
  */
 fun createHttpClient(
     tokenManager: TokenManager,
@@ -102,7 +102,7 @@ fun createHttpClient(
                                 tokenManager.clear()
                                 null
                             }
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             // Network error — keep tokens, retry later
                             null
                         }

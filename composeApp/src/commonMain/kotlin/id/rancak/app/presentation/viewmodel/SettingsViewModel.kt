@@ -16,6 +16,9 @@ import id.rancak.app.domain.model.ReceiptSettingsConfig
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.DeviceConfigRepository
 import id.rancak.app.domain.repository.ReceiptSettingsRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +33,7 @@ data class SettingsUiState(
     val savedPrinterAddress: String = "",
     val networkIp: String = "",
     val networkPort: String = "9100",
-    val discoveredPrinters: List<PrinterDevice> = emptyList(),
+    val discoveredPrinters: ImmutableList<PrinterDevice> = persistentListOf(),
     val isScanning: Boolean = false,
     val isConnecting: Boolean = false,
     val isPrinting: Boolean = false,
@@ -336,9 +339,9 @@ class SettingsViewModel(
 
     fun scanBluetoothPrinters() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isScanning = true, printerMessage = null, discoveredPrinters = emptyList()) }
+            _uiState.update { it.copy(isScanning = true, printerMessage = null, discoveredPrinters = persistentListOf()) }
             try {
-                val devices = printerManager.getBluetoothPrinters()
+                val devices = printerManager.getBluetoothPrinters().toImmutableList()
                 _uiState.update {
                     it.copy(
                         discoveredPrinters = devices,

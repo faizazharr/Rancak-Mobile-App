@@ -68,8 +68,9 @@ class KdsViewModel(
                 is Resource.Success -> {
                     val orders = result.data
                     withContext(Dispatchers.Default) {
-                        val active = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
-                        val completed = orders.filter { it.status == KdsStatus.DONE }.toImmutableList()
+                        val (notDone, done) = orders.partition { it.status != KdsStatus.DONE }
+                        val active = notDone.toImmutableList()
+                        val completed = done.toImmutableList()
                         _uiState.value =
                             _uiState.value.copy(
                                 activeOrders = active,
@@ -98,8 +99,9 @@ class KdsViewModel(
                 is Resource.Success -> {
                     val orders = result.data
                     withContext(Dispatchers.Default) {
-                        val active = orders.filter { it.status != KdsStatus.DONE }.toImmutableList()
-                        val completed = orders.filter { it.status == KdsStatus.DONE }.toImmutableList()
+                        val (notDone, done) = orders.partition { it.status != KdsStatus.DONE }
+                        val active = notDone.toImmutableList()
+                        val completed = done.toImmutableList()
                         _uiState.value =
                             _uiState.value.copy(
                                 activeOrders = active,

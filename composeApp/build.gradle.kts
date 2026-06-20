@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.stabilityAnalyzer)
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 kotlin {
@@ -183,6 +184,18 @@ android {
         getByName("debug") {
             isMinifyEnabled = false
         }
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            // Profileable di benchmark build
+            proguardFiles("benchmark-rules.pro")
+            isMinifyEnabled = true
+            isShrinkResources = false
+        }
+    }
+    baselineProfile {
+        // Jalankan AOT compile saat install untuk cold-start lebih cepat
+        dexLayoutOptimization = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -196,6 +209,8 @@ dependencies {
     add("kspAndroid", libs.room.compiler)
     add("kspIosArm64", libs.room.compiler)
     add("kspIosSimulatorArm64", libs.room.compiler)
+    // Baseline Profile — generate via ./gradlew :composeApp:generateReleaseBaselineProfile
+    add("baselineProfile", project(":macrobenchmark"))
 }
 
 // ── Compose Compiler Metrics & Stability Reports ─────────────────────────────
@@ -252,4 +267,9 @@ composeStabilityAnalyzer {
         // Jangan laporkan composable @Preview — hanya ada di debug/tooling
         ignoredClasses.set(listOf("Preview"))
     }
+}
+
+// Resolve Gradle task output validation issues for Skydoves Compose Stability Analyzer tasks
+tasks.matching { it.name.contains("StabilityCheck") || it.name.contains("StabilityDump") }.configureEach {
+    mustRunAfter(tasks.matching { it.name.startsWith("compile") })
 }

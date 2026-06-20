@@ -9,6 +9,9 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleItem
 import id.rancak.app.domain.repository.SaleRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +35,7 @@ data class RefundLine(
 data class RefundUiState(
     val saleUuid: String? = null,
     val invoiceNo: String? = null,
-    val lines: List<RefundLine> = emptyList(),
+    val lines: ImmutableList<RefundLine> = persistentListOf(),
     val reason: String = "",
     val isProcessing: Boolean = false,
     val error: String? = null,
@@ -64,7 +67,7 @@ class RefundViewModel(
             RefundUiState(
                 saleUuid = sale.uuid,
                 invoiceNo = sale.invoiceNo,
-                lines = sale.items.map { it.toRefundLine() },
+                lines = sale.items.map { it.toRefundLine() }.toImmutableList(),
             ).recompute()
     }
 
@@ -81,7 +84,7 @@ class RefundViewModel(
                         } else {
                             line
                         }
-                    },
+                    }.toImmutableList(),
             ).recompute()
         }
     }
@@ -90,7 +93,7 @@ class RefundViewModel(
     fun refundFull() {
         _uiState.update { state ->
             state.copy(
-                lines = state.lines.map { it.copy(qtyToRefund = it.maxQty) },
+                lines = state.lines.map { it.copy(qtyToRefund = it.maxQty) }.toImmutableList(),
             ).recompute()
         }
     }
@@ -98,7 +101,7 @@ class RefundViewModel(
     /** Reset semua qty ke 0. */
     fun clearQty() {
         _uiState.update { state ->
-            state.copy(lines = state.lines.map { it.copy(qtyToRefund = 0) }).recompute()
+            state.copy(lines = state.lines.map { it.copy(qtyToRefund = 0) }.toImmutableList()).recompute()
         }
     }
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
@@ -128,7 +129,7 @@ private fun OrderItemRow(
     onSetQty: (Int) -> Unit,
     onSetNote: (String) -> Unit,
 ) {
-    val accent = accentFor(item.productName)
+    val accent = remember(item.productName) { accentFor(item.productName) }
     val onSurface = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -371,8 +372,8 @@ private fun ItemNoteDialog(
                             .background(
                                 Brush.horizontalGradient(listOf(Primary, NoteGradientEnd)),
                                 MaterialTheme.shapes.extraLarge.copy(
-                                    bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp),
-                                    bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp),
+                                    bottomStart = CornerSize(0.dp),
+                                    bottomEnd = CornerSize(0.dp),
                                 ),
                             )
                             .padding(horizontal = 20.dp, vertical = 16.dp),

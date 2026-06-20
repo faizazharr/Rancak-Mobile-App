@@ -33,6 +33,9 @@ import id.rancak.app.presentation.designsystem.StatusAvailable
 import id.rancak.app.presentation.designsystem.StatusMaintenance
 import id.rancak.app.presentation.designsystem.Warning
 
+private val TERMINAL_STATUSES = setOf("completed", "cancelled", "no_show")
+private val ACTIVE_STATUSES = setOf("pending", "confirmed", "seated")
+
 /**
  * Card reservasi dengan aksen strip kiri berwarna status, avatar inisial,
  * dan tombol aksi kontekstual.
@@ -53,7 +56,7 @@ fun ReservationCard(
             .take(2)
             .joinToString("") { it.firstOrNull()?.uppercase() ?: "" }
 
-    val isTerminal = reservation.status in listOf("completed", "cancelled", "no_show")
+    val isTerminal = reservation.status in TERMINAL_STATUSES
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -204,7 +207,7 @@ fun ReservationCard(
                     }
 
                     // ── Action buttons ───────────────────────────────────────────
-                    val isActive = reservation.status in listOf("pending", "confirmed", "seated")
+                    val isActive = reservation.status in ACTIVE_STATUSES
                     if (isActive) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),

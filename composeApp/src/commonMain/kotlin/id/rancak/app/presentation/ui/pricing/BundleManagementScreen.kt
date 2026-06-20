@@ -31,6 +31,7 @@ import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.util.formatRupiah
 import id.rancak.app.presentation.viewmodel.BundleManagementUiState
 import id.rancak.app.presentation.viewmodel.BundleManagementViewModel
+import kotlinx.collections.immutable.ImmutableList
 import org.koin.compose.viewmodel.koinViewModel
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -193,7 +194,7 @@ internal fun BundleManagementContent(
 
 @Composable
 private fun BundleList(
-    bundles: List<Bundle>,
+    bundles: ImmutableList<Bundle>,
     onEdit: (Bundle) -> Unit,
     onDelete: (Bundle) -> Unit,
     onToggleActive: (Bundle) -> Unit,

@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.ui.auth.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -38,7 +39,7 @@ import id.rancak.app.presentation.viewmodel.OutletSubmissionFormState
  * - Sukses : konfirmasi pengajuan berhasil
  *
  * Semua state menggunakan visual language yang sama dengan
- * [TenantPickerPortrait] — gradient primary, dekorasi lingkaran,
+ * `TenantPickerPortrait` — gradient primary, dekorasi lingkaran,
  * tipografi putih di atas gradient.
  */
 @Composable
@@ -744,7 +745,7 @@ private fun SubmissionSuccess(
                         .fillMaxWidth()
                         .height(48.dp),
                 shape = MaterialTheme.shapes.medium,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.70f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.70f)),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
             ) {
                 Text("Ajukan Outlet Lain", style = MaterialTheme.typography.labelLarge)

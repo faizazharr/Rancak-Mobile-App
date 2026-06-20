@@ -59,6 +59,7 @@ fun VariantDto.toDomain() =
         priceAdjustment = priceAdjustment.toLongOrNull() ?: 0L,
         isDefault = isDefault,
         isActive = isActive,
+        sortOrder = sortOrder,
     )
 
 fun ProductBatchDto.toDomain() =

@@ -7,9 +7,12 @@ import com.russhwolf.settings.set
 /**
  * Persistent app settings stored via multiplatform-settings.
  * Covers printer connection, receipt header, and general preferences.
+ *
+ * `secureSettings` uses encrypted storage (EncryptedSharedPreferences on Android,
+ * Keychain on iOS) for sensitive fields: WiFi password and merchant QRIS string.
  */
 @Stable
-class SettingsStore {
+class SettingsStore(private val secureSettings: Settings) {
     private val settings = Settings()
 
     // ── Cashier Printer (primary) ────────────────────────────────────────────
@@ -186,9 +189,9 @@ class SettingsStore {
         }
 
     var receiptWifiPassword: String
-        get() = settings.getString(KEY_RECEIPT_WIFI_PASSWORD, "")
+        get() = secureSettings.getString(KEY_RECEIPT_WIFI_PASSWORD, "")
         set(value) {
-            settings[KEY_RECEIPT_WIFI_PASSWORD] = value
+            secureSettings[KEY_RECEIPT_WIFI_PASSWORD] = value
         }
 
     var receiptEmail: String
@@ -217,9 +220,9 @@ class SettingsStore {
      * QR yang sama dan memasukkan nominal manual sesuai bagiannya.
      */
     var merchantQrisString: String
-        get() = settings.getString(KEY_MERCHANT_QRIS, "")
+        get() = secureSettings.getString(KEY_MERCHANT_QRIS, "")
         set(value) {
-            settings[KEY_MERCHANT_QRIS] = value
+            secureSettings[KEY_MERCHANT_QRIS] = value
         }
 
     // ── General ──────────────────────────────────────────────────────────────

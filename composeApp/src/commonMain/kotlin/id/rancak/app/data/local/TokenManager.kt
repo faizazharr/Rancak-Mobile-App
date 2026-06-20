@@ -5,6 +5,7 @@ import com.russhwolf.settings.set
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlin.uuid.Uuid
 
 /**
  * Manages authentication tokens with persistent storage via multiplatform-settings.
@@ -125,7 +126,7 @@ class TokenManager(private val settings: Settings) {
             if (existing != null) return existing
             // Generate and persist on first access
             @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
-            val newId = kotlin.uuid.Uuid.random().toString()
+            val newId = Uuid.random().toString()
             settings[KEY_DEVICE_ID] = newId
             return newId
         }
@@ -136,7 +137,7 @@ class TokenManager(private val settings: Settings) {
     /**
      * Pindahkan token + user info dari storage plain (versi lama app) ke
      * storage terenkripsi. Hanya berjalan sekali — setelah sukses, flag
-     * [KEY_MIGRATION_DONE] di-set agar tidak dipanggil lagi.
+     * `KEY_MIGRATION_DONE` di-set agar tidak dipanggil lagi.
      *
      * Semua akses ke `Settings()` plain dibungkus try/catch supaya error
      * pada platform tertentu (iOS tanpa NSUserDefaults lama, dll.) tidak

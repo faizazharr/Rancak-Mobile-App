@@ -42,6 +42,7 @@ import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.model.TaxConfig
 import id.rancak.app.domain.model.VoucherValidation
 import id.rancak.app.domain.repository.OperationsRepository
+import kotlin.time.Clock
 
 class OperationsRepositoryImpl(
     private val api: RancakApiService,
@@ -57,7 +58,7 @@ class OperationsRepositoryImpl(
             val response = api.getTables(tenantUuid)
             if (response.isSuccess && response.data != null) {
                 val tables = response.data.map { it.toDomain() }
-                val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
+                val now = Clock.System.now().toEpochMilliseconds()
                 tableDao.upsertAll(tables.map { it.toEntity(now) })
                 Resource.Success(tables)
             } else {
@@ -79,7 +80,7 @@ class OperationsRepositoryImpl(
             if (response.isSuccess) {
                 val shift = response.data?.toDomain()
                 if (shift != null) {
-                    val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
+                    val now = Clock.System.now().toEpochMilliseconds()
                     shiftDao.upsert(shift.toEntity(now))
                 }
                 Resource.Success(shift)
@@ -101,7 +102,7 @@ class OperationsRepositoryImpl(
             val response = api.openShift(tenantUuid, openingCash)
             if (response.isSuccess && response.data != null) {
                 val shift = response.data.toDomain()
-                val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
+                val now = Clock.System.now().toEpochMilliseconds()
                 shiftDao.upsert(shift.toEntity(now))
                 Resource.Success(shift)
             } else {
@@ -120,7 +121,7 @@ class OperationsRepositoryImpl(
             val response = api.closeShift(tenantUuid, closingCash, note)
             if (response.isSuccess && response.data != null) {
                 val shift = response.data.toDomain()
-                val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
+                val now = Clock.System.now().toEpochMilliseconds()
                 shiftDao.upsert(shift.toEntity(now))
                 Resource.Success(shift)
             } else {

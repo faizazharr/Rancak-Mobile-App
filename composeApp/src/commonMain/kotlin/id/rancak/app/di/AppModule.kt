@@ -99,15 +99,19 @@ val dataModule =
                 coerceInputValues = true
             }
         }
-        // Secure settings (encrypted storage) — dipakai TokenManager untuk
-        // menyimpan token auth + user info. Android: EncryptedSharedPreferences,
-        // iOS: Keychain. Dua namespace terpisah supaya auth data & offline queue
-        // tidak bercampur di storage yang sama.
+        // Secure settings (encrypted storage) — Android: EncryptedSharedPreferences, iOS: Keychain.
+        // Namespace terpisah supaya data tidak bercampur antar subsystem.
         single<Settings>(qualifier = org.koin.core.qualifier.named("secure-auth")) {
             createSecureSettings(namespace = "auth")
         }
         single<Settings>(qualifier = org.koin.core.qualifier.named("secure-queue")) {
             createSecureSettings(namespace = "offline_queue")
+        }
+        single<Settings>(qualifier = org.koin.core.qualifier.named("secure-openbill")) {
+            createSecureSettings(namespace = "open_bills")
+        }
+        single<Settings>(qualifier = org.koin.core.qualifier.named("secure-store")) {
+            createSecureSettings(namespace = "settings")
         }
         single { TokenManager(get(qualifier = org.koin.core.qualifier.named("secure-auth"))) }
         single {
@@ -124,12 +128,12 @@ val dataModule =
 // Repository bindings — semua memakai API backend sungguhan
 val repositoryModule =
     module {
+        singleOf(::AuthRepositoryImpl)
         single<AuthRepository> { get<AuthRepositoryImpl>() }
         single<UserSessionProvider> { get<AuthRepositoryImpl>() }
-        singleOf(::AuthRepositoryImpl)
-        single<ProductRepository> { ProductRepositoryImpl(get(), get(), get(), get()) }
-        single<SaleRepository> { SaleRepositoryImpl(get(), get(), get(), get(), get()) }
-        single<OperationsRepository> { OperationsRepositoryImpl(get(), get(), get(), get()) }
+        singleOf(::ProductRepositoryImpl) bind ProductRepository::class
+        singleOf(::SaleRepositoryImpl) bind SaleRepository::class
+        singleOf(::OperationsRepositoryImpl) bind OperationsRepository::class
         singleOf(::FinanceRepositoryImpl) bind FinanceRepository::class
         singleOf(::DeviceConfigRepositoryImpl) bind DeviceConfigRepository::class
         singleOf(::ReceiptSettingsRepositoryImpl) bind ReceiptSettingsRepository::class
@@ -144,8 +148,8 @@ val repositoryModule =
 
 val viewModelModule =
     module {
-        single { SettingsStore() }
-        single { OpenBillStore(Settings(), get()) }
+        single { SettingsStore(get(qualifier = org.koin.core.qualifier.named("secure-store"))) }
+        single { OpenBillStore(get(qualifier = org.koin.core.qualifier.named("secure-openbill")), get()) }
         viewModelOf(::LoginViewModel)
         viewModelOf(::ForgotPasswordViewModel)
         viewModelOf(::SplashViewModel)

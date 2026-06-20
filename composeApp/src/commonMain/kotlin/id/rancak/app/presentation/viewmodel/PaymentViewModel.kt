@@ -57,10 +57,10 @@ data class SplitableItem(
 @Immutable
 data class SplitGroup(
     val id: Int,
-    val itemQtys: Map<Int, Int>,
+    val itemQtys: PersistentMap<Int, Int>,
     val method: PaymentMethod,
-    val cashPaid: Long = 0L, // hanya untuk CASH; QRIS menggunakan groupActualTotal
-    val groupActualTotal: Long = 0L, // item subtotal + biaya proporsional
+    val cashPaid: Long = 0L,
+    val groupActualTotal: Long = 0L,
 )
 
 @Immutable
@@ -106,41 +106,27 @@ data class PaymentUiState(
 ) {
     val paidAmountLong: Long get() = paidAmount.toLongOrNull() ?: 0L
 
-    /** Total subtotal item yang dipilih untuk grup saat ini. */
-    val currentSplitSubtotal: Long get() {
-        val priceMap = splitableItems.associate { it.index to it.price }
-        return currentSplitItemQtys.entries.sumOf { (idx, qty) ->
-            (priceMap[idx] ?: 0L) * qty
-        }
-    }
+    // Dihitung sekali saat state dibuat — semua derived values berbagi priceMap yang sama.
+    val itemPriceMap: Map<Int, Long> = splitableItems.associate { it.index to it.price }
 
-    /** Jumlah qty yang sudah dikonfirmasi ke grup per item (itemIndex → totalQty). */
-    val confirmedQtyMap: Map<Int, Int> get() {
-        val result = mutableMapOf<Int, Int>()
-        splitGroups.forEach { group ->
-            group.itemQtys.forEach { (idx, qty) ->
-                result[idx] = (result[idx] ?: 0) + qty
+    val currentSplitSubtotal: Long =
+        currentSplitItemQtys.entries.sumOf { (idx, qty) -> (itemPriceMap[idx] ?: 0L) * qty }
+
+    val confirmedQtyMap: Map<Int, Int> =
+        buildMap {
+            splitGroups.forEach { group ->
+                group.itemQtys.forEach { (idx, qty) ->
+                    put(idx, (get(idx) ?: 0) + qty)
+                }
             }
         }
-        return result
-    }
 
-    /** True ketika semua item qty sudah dibagi penuh ke grup yang ada. */
-    val allItemsAssigned: Boolean get() {
-        if (splitableItems.isEmpty()) return false
-        val confirmed = confirmedQtyMap
-        return splitableItems.all { item -> (confirmed[item.index] ?: 0) >= item.qty }
-    }
+    val allItemsAssigned: Boolean =
+        splitableItems.isNotEmpty() &&
+            splitableItems.all { item -> (confirmedQtyMap[item.index] ?: 0) >= item.qty }
 
-    /** Hitung subtotal item untuk satu grup berdasarkan qty masing-masing. */
-    fun splitGroupSubtotal(group: SplitGroup): Long {
-        val priceMap = splitableItems.associate { it.index to it.price }
-        return group.itemQtys.entries.sumOf { (idx, qty) ->
-            (priceMap[idx] ?: 0L) * qty
-        }
-    }
+    fun splitGroupSubtotal(group: SplitGroup): Long = group.itemQtys.entries.sumOf { (idx, qty) -> (itemPriceMap[idx] ?: 0L) * qty }
 
-    /** Apakah sedang dalam layar tunggu QR QRIS. */
     val isQrisWaiting: Boolean get() = qrisQrString?.isNotBlank() == true && completedSale == null
 }
 

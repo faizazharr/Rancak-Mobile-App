@@ -21,6 +21,9 @@ interface SaleDao {
     @Query("SELECT * FROM sale_items WHERE saleUuid = :saleUuid")
     suspend fun getItemsForSale(saleUuid: String): List<SaleItemEntity>
 
+    @Query("SELECT * FROM sale_items")
+    suspend fun getAllItems(): List<SaleItemEntity>
+
     @Upsert
     suspend fun upsertSales(sales: List<SaleEntity>)
 

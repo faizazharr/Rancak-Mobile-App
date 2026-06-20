@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.ui.products
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -66,6 +67,7 @@ private fun FormSection(
 
 // ── State holder shared by both Dialog and Panel ──────────────────────────────
 
+@Stable
 private class ProductFormState(editingProduct: Product?, initialCategoryUuid: String?) {
     var name by mutableStateOf(editingProduct?.name ?: "")
     var priceText by mutableStateOf(editingProduct?.price?.toString() ?: "")
@@ -302,7 +304,7 @@ private fun ProductFormBody(
     FormSection("PENGATURAN", Icons.Default.Settings) {
         Surface(
             shape = MaterialTheme.shapes.medium,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             color = Color.Transparent,
         ) {
             Row(

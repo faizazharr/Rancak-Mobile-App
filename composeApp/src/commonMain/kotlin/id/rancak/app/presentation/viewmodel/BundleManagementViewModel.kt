@@ -8,6 +8,9 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.AdminRepository
 import id.rancak.app.domain.repository.BundleUpdate
 import id.rancak.app.domain.repository.ProductRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +19,7 @@ import kotlinx.coroutines.launch
 
 @Immutable
 data class BundleManagementUiState(
-    val bundles: List<Bundle> = emptyList(),
+    val bundles: ImmutableList<Bundle> = persistentListOf(),
     val isLoading: Boolean = true,
     val error: String? = null,
     // Form state
@@ -47,7 +50,7 @@ class BundleManagementViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = productRepository.getBundles()) {
-                is Resource.Success -> _uiState.update { it.copy(bundles = result.data, isLoading = false) }
+                is Resource.Success -> _uiState.update { it.copy(bundles = result.data.toImmutableList(), isLoading = false) }
                 is Resource.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Resource.Loading -> {}
             }
@@ -155,7 +158,7 @@ class BundleManagementViewModel(
             _uiState.update { it.copy(deletingBundle = null) }
             when (val result = adminRepository.deleteBundle(bundle.uuid)) {
                 is Resource.Success -> {
-                    _uiState.update { it.copy(bundles = it.bundles.filter { b -> b.uuid != bundle.uuid }) }
+                    _uiState.update { it.copy(bundles = it.bundles.filter { b -> b.uuid != bundle.uuid }.toImmutableList()) }
                 }
                 is Resource.Error -> _uiState.update { it.copy(error = result.message) }
                 is Resource.Loading -> {}
@@ -168,7 +171,7 @@ class BundleManagementViewModel(
             adminRepository.updateBundle(bundle.uuid, BundleUpdate(isActive = !bundle.isActive)).let { result ->
                 if (result is Resource.Success) {
                     _uiState.update { state ->
-                        state.copy(bundles = state.bundles.map { if (it.uuid == bundle.uuid) result.data else it })
+                        state.copy(bundles = state.bundles.map { if (it.uuid == bundle.uuid) result.data else it }.toImmutableList())
                     }
                 }
             }

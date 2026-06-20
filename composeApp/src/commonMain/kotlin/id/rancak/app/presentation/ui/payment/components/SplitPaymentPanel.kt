@@ -180,7 +180,7 @@ private fun SplitPaymentPanelPreview_WithGroup() {
                 persistentListOf(
                     SplitGroup(
                         id = 1,
-                        itemQtys = mapOf(0 to 1, 2 to 1),
+                        itemQtys = persistentMapOf(0 to 1, 2 to 1),
                         method = PaymentMethod.CASH,
                         cashPaid = 35_000L,
                         groupActualTotal = 30_000L,

@@ -42,6 +42,7 @@ data class Variant(
     val priceAdjustment: Long,
     val isDefault: Boolean = false,
     val isActive: Boolean = true,
+    val sortOrder: Int = 0,
 )
 
 @Immutable

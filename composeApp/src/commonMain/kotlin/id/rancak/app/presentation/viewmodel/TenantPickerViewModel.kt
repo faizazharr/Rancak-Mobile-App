@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Tenant
 import id.rancak.app.domain.repository.AuthRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,7 +61,7 @@ enum class BillingIssue {
 
 @Immutable
 data class TenantPickerUiState(
-    val tenants: List<Tenant> = emptyList(),
+    val tenants: ImmutableList<Tenant> = persistentListOf(),
     val selectedTenant: Tenant? = null,
     // Mulai dengan isLoading=true agar UI tidak flash ke OutletSubmissionContent
     // sebelum coroutine loadTenants() sempat set isLoading=true.
@@ -93,7 +96,7 @@ class TenantPickerViewModel(
             }
             when (val result = authRepository.getMyTenants()) {
                 is Resource.Success -> {
-                    val tenants = result.data
+                    val tenants = result.data.toImmutableList()
                     _uiState.update { it.copy(tenants = tenants, isLoading = false, isRefreshing = false) }
                     if (autoConfirmSingle && tenants.size == 1) {
                         selectTenant(tenants.first())

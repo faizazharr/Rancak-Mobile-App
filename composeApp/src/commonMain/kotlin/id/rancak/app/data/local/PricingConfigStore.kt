@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.concurrent.Volatile
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.TimeSource
 
 /**
  * Cache singleton untuk konfigurasi pricing (Pajak, Surcharge, Aturan Diskon).
@@ -32,6 +34,9 @@ class PricingConfigStore(
     private val _discountRules = MutableStateFlow<ImmutableList<DiscountRule>>(persistentListOf())
 
     private val refreshMutex = Mutex()
+    private val clock = TimeSource.Monotonic
+    private var lastRefreshMark: TimeSource.Monotonic.ValueTimeMark? = null
+    private val cacheTtl = 30.minutes
 
     @Volatile private var loaded = false
 
@@ -44,13 +49,20 @@ class PricingConfigStore(
         if (!loaded) refresh()
     }
 
-    /** Muat ulang seluruh konfigurasi dari server (idempotent, ter-mutex). */
-    suspend fun refresh() {
+    /**
+     * Muat ulang konfigurasi dari server. Jika data sudah di-load dalam [cacheTtl] terakhir,
+     * skip refresh — mencegah API call berulang setiap PaymentScreen dibuka.
+     * Gunakan [forceRefresh] = true setelah admin mengubah konfigurasi pricing.
+     */
+    suspend fun refresh(forceRefresh: Boolean = false) {
         refreshMutex.withLock {
+            val mark = lastRefreshMark
+            if (!forceRefresh && mark != null && mark.elapsedNow() < cacheTtl) return@withLock
             (adminRepository.getTaxConfigs() as? Resource.Success)?.let { _taxConfigs.value = it.data.toImmutableList() }
             (adminRepository.getSurcharges() as? Resource.Success)?.let { _surcharges.value = it.data.toImmutableList() }
             (adminRepository.getDiscountRules() as? Resource.Success)?.let { _discountRules.value = it.data.toImmutableList() }
             loaded = true
+            lastRefreshMark = clock.markNow()
         }
     }
 
@@ -60,17 +72,13 @@ class PricingConfigStore(
         _surcharges.value = persistentListOf()
         _discountRules.value = persistentListOf()
         loaded = false
+        lastRefreshMark = null
     }
 
     // ── Tax Config ───────────────────────────────────────────────────────────
 
     fun upsertTax(saved: TaxConfig) {
-        _taxConfigs.value =
-            if (_taxConfigs.value.any { it.uuid == saved.uuid }) {
-                _taxConfigs.value.map { if (it.uuid == saved.uuid) saved else it }.toImmutableList()
-            } else {
-                (_taxConfigs.value + saved).toImmutableList()
-            }
+        _taxConfigs.value = _taxConfigs.value.upsertItem(saved) { it.uuid == saved.uuid }
     }
 
     fun removeTax(uuid: String) {
@@ -89,12 +97,7 @@ class PricingConfigStore(
     // ── Surcharge ────────────────────────────────────────────────────────────
 
     fun upsertSurcharge(saved: Surcharge) {
-        _surcharges.value =
-            if (_surcharges.value.any { it.uuid == saved.uuid }) {
-                _surcharges.value.map { if (it.uuid == saved.uuid) saved else it }.toImmutableList()
-            } else {
-                (_surcharges.value + saved).toImmutableList()
-            }
+        _surcharges.value = _surcharges.value.upsertItem(saved) { it.uuid == saved.uuid }
     }
 
     fun removeSurcharge(uuid: String) {
@@ -113,12 +116,7 @@ class PricingConfigStore(
     // ── Discount Rule ────────────────────────────────────────────────────────
 
     fun upsertDiscountRule(saved: DiscountRule) {
-        _discountRules.value =
-            if (_discountRules.value.any { it.uuid == saved.uuid }) {
-                _discountRules.value.map { if (it.uuid == saved.uuid) saved else it }.toImmutableList()
-            } else {
-                (_discountRules.value + saved).toImmutableList()
-            }
+        _discountRules.value = _discountRules.value.upsertItem(saved) { it.uuid == saved.uuid }
     }
 
     fun removeDiscountRule(uuid: String) {
@@ -137,4 +135,21 @@ class PricingConfigStore(
         if (result is Resource.Success) upsertDiscountRule(result.data)
         return result
     }
+}
+
+private inline fun <T> ImmutableList<T>.upsertItem(
+    item: T,
+    crossinline matches: (T) -> Boolean,
+): ImmutableList<T> {
+    var found = false
+    val updated =
+        map {
+            if (matches(it)) {
+                found = true
+                item
+            } else {
+                it
+            }
+        }
+    return if (found) updated.toImmutableList() else (this + item).toImmutableList()
 }

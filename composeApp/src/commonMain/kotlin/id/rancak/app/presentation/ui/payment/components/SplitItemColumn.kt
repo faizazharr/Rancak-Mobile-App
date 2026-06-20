@@ -520,7 +520,7 @@ private fun ConfirmedGroupRowPreview() {
                 group =
                     SplitGroup(
                         id = 1,
-                        itemQtys = mapOf(0 to 2),
+                        itemQtys = persistentMapOf(0 to 2),
                         method = PaymentMethod.CASH,
                         cashPaid = 40_000L,
                         groupActualTotal = 36_000L,
@@ -533,7 +533,7 @@ private fun ConfirmedGroupRowPreview() {
                 group =
                     SplitGroup(
                         id = 2,
-                        itemQtys = mapOf(1 to 1),
+                        itemQtys = persistentMapOf(1 to 1),
                         method = PaymentMethod.QRIS,
                         cashPaid = 0L,
                         groupActualTotal = 22_000L,
@@ -562,7 +562,7 @@ private fun SplitItemColumnPreview() {
             currentItemQtys = persistentMapOf(1 to 1),
             splitGroups =
                 persistentListOf(
-                    SplitGroup(1, mapOf(0 to 1), PaymentMethod.CASH, 20_000L, 18_000L),
+                    SplitGroup(1, persistentMapOf(0 to 1), PaymentMethod.CASH, 20_000L, 18_000L),
                 ),
             isSplit = true,
             onSetItemQty = { _, _ -> },

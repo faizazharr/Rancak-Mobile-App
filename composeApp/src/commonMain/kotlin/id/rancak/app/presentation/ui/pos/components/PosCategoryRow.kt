@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
@@ -53,7 +54,7 @@ internal fun PosChip(
     onClick: () -> Unit,
 ) {
     val primary = MaterialTheme.colorScheme.primary
-    androidx.compose.foundation.layout.Box(
+    Box(
         modifier =
             Modifier
                 .clip(CircleShape)

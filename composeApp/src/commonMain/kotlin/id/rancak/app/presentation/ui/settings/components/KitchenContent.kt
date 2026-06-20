@@ -22,6 +22,7 @@ import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.designsystem.SettingsAccentKitchen
 import id.rancak.app.presentation.viewmodel.SettingsUiState
+import kotlinx.collections.immutable.persistentListOf
 
 /**
  * Panel pengaturan printer dapur (KOT). Mirip [PrinterContent] namun dengan
@@ -287,7 +288,7 @@ private fun KitchenContentPreview() {
                         kitchenPrinterType = SettingsStore.TYPE_BLUETOOTH,
                         isBluetoothOn = true,
                         discoveredPrinters =
-                            listOf(
+                            persistentListOf(
                                 PrinterDevice("Kitchen XP-80", "AA:BB:CC:DD:EE:10", PrinterConnectionType.BLUETOOTH),
                             ),
                     ),

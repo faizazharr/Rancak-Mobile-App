@@ -24,11 +24,8 @@ data class ShiftUiState(
     val openingCash: String = "",
     val closingCash: String = "",
     val closingNote: String = "",
-    val shiftJustOpened: Boolean = false,
-    val shiftJustClosed: Boolean = false,
     // ── Cash count (rekonsiliasi kas) ─────────────────────────────────────────
     val cashCounts: ImmutableList<CashCount> = persistentListOf(),
-    val isCountLoading: Boolean = false,
     val isCountSubmitting: Boolean = false,
     val cashCountError: String? = null,
     val cashCountSuccess: Boolean = false,
@@ -77,7 +74,6 @@ class ShiftViewModel(
                         it.copy(
                             currentShift = result.data,
                             isLoading = false,
-                            shiftJustOpened = true,
                             openingCash = "",
                         )
                     }
@@ -101,7 +97,6 @@ class ShiftViewModel(
                         it.copy(
                             currentShift = null,
                             isLoading = false,
-                            shiftJustClosed = true,
                             closingCash = "",
                             closingNote = "",
                         )
@@ -123,10 +118,10 @@ class ShiftViewModel(
 
     fun loadCashCounts(shiftUuid: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isCountLoading = true, cashCountError = null) }
+            _uiState.update { it.copy(cashCountError = null) }
             when (val result = operationsRepository.getCashCounts(shiftUuid)) {
-                is Resource.Success -> _uiState.update { it.copy(cashCounts = result.data.toImmutableList(), isCountLoading = false) }
-                is Resource.Error -> _uiState.update { it.copy(cashCountError = result.message, isCountLoading = false) }
+                is Resource.Success -> _uiState.update { it.copy(cashCounts = result.data.toImmutableList()) }
+                is Resource.Error -> _uiState.update { it.copy(cashCountError = result.message) }
                 is Resource.Loading -> {}
             }
         }

@@ -91,11 +91,14 @@ fun BillingScreen(
     }
 
     // ── Dialogs ───────────────────────────────────────────────────────────────
+    val selectedPlan = state.selectedPlan
+    val qrInvoice = state.qrInvoice
+    val cancelTargetInvoice = state.cancelTargetInvoice
 
     // 1. Konfirmasi berlangganan (tampilkan detail paket + harga sebelum buat invoice)
-    if (state.showSubscribeDialog && state.selectedPlan != null) {
+    if (state.showSubscribeDialog && selectedPlan != null) {
         SubscribeConfirmDialog(
-            plan = state.selectedPlan!!,
+            plan = selectedPlan,
             isSubmitting = state.isSubmitting,
             onConfirm = { viewModel.subscribe() },
             onDismiss = { viewModel.closeSubscribeDialog() },
@@ -104,18 +107,18 @@ fun BillingScreen(
 
     // 2. QR pembayaran — muncul langsung setelah invoice dibuat dan QR string tersedia.
     //    Polling berjalan di ViewModel; dialog ditutup otomatis saat status = "paid".
-    if (state.qrInvoice != null) {
+    if (qrInvoice != null) {
         BillingQrPaymentDialog(
-            invoice = state.qrInvoice!!,
+            invoice = qrInvoice,
             isPolling = state.isPolling,
             onDismiss = { viewModel.dismissQrPayment() },
         )
     }
 
     // 3. Konfirmasi pembatalan invoice
-    if (state.showCancelDialog && state.cancelTargetInvoice != null) {
+    if (state.showCancelDialog && cancelTargetInvoice != null) {
         CancelInvoiceDialog(
-            invoice = state.cancelTargetInvoice!!,
+            invoice = cancelTargetInvoice,
             isSubmitting = state.isSubmitting,
             onConfirm = { viewModel.cancelInvoice() },
             onDismiss = { viewModel.closeCancelDialog() },

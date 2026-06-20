@@ -195,40 +195,6 @@ internal fun PaymentReceiptPanel(
     }
 }
 
-// ── Store Header ──────────────────────────────────────────────────────────────
-
-@Composable
-private fun ReceiptStoreHeader(storeName: String) {
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            Icon(
-                Icons.Default.Store,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
-                modifier = Modifier.size(22.dp),
-            )
-            Text(
-                storeName.uppercase(),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 3.sp,
-                color = MaterialTheme.colorScheme.onPrimary,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-}
-
 // ── Notch decoration ─────────────────────────────────────────────────────────
 
 @Composable

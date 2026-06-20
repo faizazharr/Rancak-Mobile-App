@@ -53,12 +53,19 @@ class OrderBoardViewModel(
                 is Resource.Success -> {
                     val orders = result.data
                     withContext(Dispatchers.Default) {
-                        val active = orders.filter { it.status == SaleStatus.HELD }.toImmutableList()
-                        val completed = orders.filter { it.status == SaleStatus.PAID }.toImmutableList()
+                        val active = mutableListOf<OrderBoardOrder>()
+                        val completed = mutableListOf<OrderBoardOrder>()
+                        for (order in orders) {
+                            when (order.status) {
+                                SaleStatus.HELD -> active.add(order)
+                                SaleStatus.PAID -> completed.add(order)
+                                else -> {}
+                            }
+                        }
                         _uiState.value =
                             _uiState.value.copy(
-                                activeOrders = active,
-                                completedOrders = completed,
+                                activeOrders = active.toImmutableList(),
+                                completedOrders = completed.toImmutableList(),
                                 isLoading = false,
                             ).recompute()
                     }

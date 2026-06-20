@@ -22,6 +22,7 @@ import id.rancak.app.data.printing.PrinterConnectionType
 import id.rancak.app.data.printing.PrinterDevice
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.viewmodel.SettingsUiState
+import kotlinx.collections.immutable.persistentListOf
 
 /**
  * Panel pengaturan printer kasir: tampilkan printer tersimpan, pemilihan tipe
@@ -384,7 +385,7 @@ private fun PrinterContentPreview_Bluetooth() {
                         isBluetoothOn = true,
                         hasScannedOnce = true,
                         discoveredPrinters =
-                            listOf(
+                            persistentListOf(
                                 PrinterDevice("EPSON TM-T82", "AA:BB:CC:DD:EE:01", PrinterConnectionType.BLUETOOTH),
                                 PrinterDevice("Bluetooth Printer", "AA:BB:CC:DD:EE:02", PrinterConnectionType.BLUETOOTH),
                             ),

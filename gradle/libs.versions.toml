@@ -36,6 +36,8 @@ room = "2.7.1"
 sqlite = "2.5.1"
 androidxSecurity = "1.1.0-alpha07"
 profileInstaller = "1.4.1"
+benchmark = "1.3.4"
+uiautomator = "2.3.0"
 stabilityAnalyzer = "0.7.4"   # KMP · Kotlin 2.3.20-compatible
 ktlint = "12.1.2"
 detekt = "1.23.8"
@@ -131,9 +133,16 @@ androidx-security-crypto = { module = "androidx.security:security-crypto", versi
 # untuk mengurangi cold-start time (AOT-compile path kritis).
 androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileInstaller" }
 
+# Macrobenchmark / Baseline Profile generator
+androidx-benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "benchmark" }
+androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
+androidTest = { id = "com.android.test" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android" }
+androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "benchmark" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

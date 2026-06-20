@@ -13,6 +13,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -66,39 +67,35 @@ class ProductManagementViewModel(
         withContext(Dispatchers.Default) {
             val p86Uuids = products86.mapTo(mutableSetOf()) { it.productUuid }
 
-            var base =
-                if (searchQuery.isBlank()) {
-                    products
-                } else {
-                    val q = searchQuery.lowercase()
-                    products.filter {
-                        it.name.lowercase().contains(q) ||
-                            it.sku?.lowercase()?.contains(q) == true ||
-                            it.barcode?.contains(q) == true
-                    }
-                }
-            base =
-                when (stockFilter) {
-                    StockFilter.ALL -> base
-                    StockFilter.LOW -> base.filter { it.stock in 1.0..5.0 && !p86Uuids.contains(it.uuid) }
-                    StockFilter.OUT -> base.filter { it.stock <= 0.0 && !p86Uuids.contains(it.uuid) }
-                    StockFilter.MARKED_86 -> base.filter { p86Uuids.contains(it.uuid) }
-                }
-            base =
-                when (priceFilter) {
-                    PriceFilter.ALL -> base
-                    PriceFilter.BUDGET -> base.filter { it.price < 10_000L }
-                    PriceFilter.MID -> base.filter { it.price in 10_000L..50_000L }
-                    PriceFilter.HIGH -> base.filter { it.price in 50_001L..100_000L }
-                    PriceFilter.PREMIUM -> base.filter { it.price > 100_000L }
-                }
+            val q = if (searchQuery.isBlank()) null else searchQuery.lowercase()
             val comparator: Comparator<Product> =
                 when (sortField) {
                     ProductSortField.NAME -> compareBy { it.name.lowercase() }
                     ProductSortField.STOCK -> compareBy { it.stock }
                     ProductSortField.PRICE -> compareBy { it.price }
                 }
-            val sorted = if (sortAscending) base.sortedWith(comparator) else base.sortedWith(comparator.reversed())
+            val sorted =
+                products.filter { p ->
+                    (
+                        q == null ||
+                            p.name.lowercase().contains(q) ||
+                            p.sku?.lowercase()?.contains(q) == true ||
+                            p.barcode?.contains(q) == true
+                    ) &&
+                        when (stockFilter) {
+                            StockFilter.ALL -> true
+                            StockFilter.LOW -> p.stock in 1.0..5.0 && !p86Uuids.contains(p.uuid)
+                            StockFilter.OUT -> p.stock <= 0.0 && !p86Uuids.contains(p.uuid)
+                            StockFilter.MARKED_86 -> p86Uuids.contains(p.uuid)
+                        } &&
+                        when (priceFilter) {
+                            PriceFilter.ALL -> true
+                            PriceFilter.BUDGET -> p.price < 10_000L
+                            PriceFilter.MID -> p.price in 10_000L..50_000L
+                            PriceFilter.HIGH -> p.price in 50_001L..100_000L
+                            PriceFilter.PREMIUM -> p.price > 100_000L
+                        }
+                }.let { if (sortAscending) it.sortedWith(comparator) else it.sortedWith(comparator.reversed()) }
 
             copy(
                 filteredProducts = sorted.toImmutableList(),
@@ -126,10 +123,13 @@ class ProductManagementViewModel(
                 ).recompute()
             _uiState.value = intermediateState
 
-            // Langkah 2: Refresh dari network secara silent di background.
-            val categoriesResult = productRepository.getCategories()
-            val products86Result = productRepository.get86Products()
-            val productsResult = productRepository.getProducts(categoryId = categoryId)
+            // Langkah 2: Refresh dari network secara paralel di background.
+            val categoriesDeferred = async { productRepository.getCategories() }
+            val products86Deferred = async { productRepository.get86Products() }
+            val productsDeferred = async { productRepository.getProducts(categoryId = categoryId) }
+            val categoriesResult = categoriesDeferred.await()
+            val products86Result = products86Deferred.await()
+            val productsResult = productsDeferred.await()
 
             val finalState =
                 _uiState.value.copy(

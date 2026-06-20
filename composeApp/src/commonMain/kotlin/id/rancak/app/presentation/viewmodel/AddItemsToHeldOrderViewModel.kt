@@ -11,6 +11,9 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.repository.ProductRepository
 import id.rancak.app.domain.repository.SaleRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,13 +32,13 @@ import kotlin.time.Clock
 data class AddItemsToHeldOrderUiState(
     val isLoading: Boolean = false,
     val isSubmitting: Boolean = false,
-    val products: List<Product> = emptyList(),
+    val products: ImmutableList<Product> = persistentListOf(),
     val searchQuery: String = "",
     val selected: Map<String, CartItem> = emptyMap(), // key = productUuid
     val error: String? = null,
     val successSale: Sale? = null,
 ) {
-    val filteredProducts: List<Product>
+    val filteredProducts: ImmutableList<Product>
         get() =
             if (searchQuery.isBlank()) {
                 products
@@ -43,7 +46,7 @@ data class AddItemsToHeldOrderUiState(
                 products.filter {
                     it.name.contains(searchQuery, ignoreCase = true) ||
                         (it.sku?.contains(searchQuery, ignoreCase = true) == true)
-                }
+                }.toImmutableList()
             }
 
     val totalSelectedQty: Int get() = selected.values.sumOf { it.qty }
@@ -64,7 +67,7 @@ class AddItemsToHeldOrderViewModel(
             when (val result = productRepository.getProducts()) {
                 is Resource.Success ->
                     _uiState.update {
-                        it.copy(isLoading = false, products = result.data.filter { p -> p.isActive })
+                        it.copy(isLoading = false, products = result.data.filter { p -> p.isActive }.toImmutableList())
                     }
                 is Resource.Error ->
                     _uiState.update {

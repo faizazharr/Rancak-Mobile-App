@@ -9,6 +9,9 @@ import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Table
 import id.rancak.app.domain.repository.OperationsRepository
 import id.rancak.app.domain.repository.ReservationRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,8 +30,8 @@ enum class ReservationStatusFilter(val apiValue: String?, val label: String) {
 
 @Immutable
 data class ReservationUiState(
-    val reservations: List<Reservation> = emptyList(),
-    val tables: List<Table> = emptyList(),
+    val reservations: ImmutableList<Reservation> = persistentListOf(),
+    val tables: ImmutableList<Table> = persistentListOf(),
     val statusFilter: ReservationStatusFilter = ReservationStatusFilter.ALL,
     val dateFilter: String? = null,
     val isLoading: Boolean = false,
@@ -76,7 +79,7 @@ class ReservationViewModel(
             ) {
                 is Resource.Success ->
                     _uiState.update {
-                        it.copy(reservations = result.data, isLoading = false)
+                        it.copy(reservations = result.data.toImmutableList(), isLoading = false)
                     }
                 is Resource.Error ->
                     _uiState.update {
@@ -92,7 +95,7 @@ class ReservationViewModel(
             when (val result = operationsRepository.getTables()) {
                 is Resource.Success ->
                     _uiState.update {
-                        it.copy(tables = result.data.sortedBy { t -> t.sortOrder })
+                        it.copy(tables = result.data.sortedBy { t -> t.sortOrder }.toImmutableList())
                     }
                 is Resource.Error -> { /* swallow — list meja optional di form */ }
                 is Resource.Loading -> { /* not used */ }

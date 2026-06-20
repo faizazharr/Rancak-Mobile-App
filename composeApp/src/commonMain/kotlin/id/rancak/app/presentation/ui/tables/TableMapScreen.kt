@@ -1,9 +1,11 @@
 package id.rancak.app.presentation.ui.tables
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
@@ -17,10 +19,13 @@ import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.rancak.app.domain.model.Table
@@ -30,6 +35,7 @@ import id.rancak.app.presentation.components.ErrorScreen
 import id.rancak.app.presentation.components.LoadingScreen
 import id.rancak.app.presentation.components.RancakTopBar
 import id.rancak.app.presentation.designsystem.LocalSizes
+import id.rancak.app.presentation.designsystem.RancakColors
 import id.rancak.app.presentation.designsystem.RancakTheme
 import id.rancak.app.presentation.ui.tables.components.AreaSummaryCard
 import id.rancak.app.presentation.ui.tables.components.TableCell
@@ -151,7 +157,7 @@ fun TableMapScreenContent(
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Icon(
@@ -251,7 +257,7 @@ private fun CompactTableLayout(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         areas.forEach { (area, tables) ->
-            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 AreaSectionHeader(area, tables.size)
             }
             items(tables, key = { it.uuid }) { table ->
@@ -309,7 +315,7 @@ private fun TabletTableLayout(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             areas.forEach { (area, tables) ->
-                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     AreaSectionHeader(area, tables.size)
                 }
                 items(tables, key = { it.uuid }) { table ->
@@ -364,12 +370,12 @@ private fun TabletTableLayout(
  * - Tap → edit (admin) / select (kasir)
  * - Long-press → konfirmasi hapus (admin saja)
  */
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AdminAwareTableCell(
     table: Table,
     adminMode: Boolean,
-    size: androidx.compose.ui.unit.Dp = 100.dp,
+    size: Dp = 100.dp,
     onSelect: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -393,7 +399,7 @@ private fun AdminAwareTableCell(
         Icon(
             imageVector = Icons.Default.Edit,
             contentDescription = "Edit",
-            modifier = Modifier.align(androidx.compose.ui.Alignment.TopEnd).padding(4.dp).size(14.dp),
+            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(14.dp),
             tint = MaterialTheme.colorScheme.primary,
         )
     }
@@ -404,7 +410,7 @@ private fun AdminAwareTableCell(
 /** Legenda status di bawah top bar. */
 @Composable
 private fun TableStatusLegend() {
-    val semantic = id.rancak.app.presentation.designsystem.RancakColors.semantic
+    val semantic = RancakColors.semantic
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         modifier = Modifier.fillMaxWidth(),
@@ -426,10 +432,10 @@ private fun TableStatusLegend() {
 @Composable
 private fun LegendDot(
     label: String,
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
 ) {
     Row(
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Box(
@@ -454,9 +460,9 @@ private fun AreaSectionHeader(
     count: Int,
 ) {
     Row(
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        modifier = androidx.compose.ui.Modifier.padding(vertical = 6.dp),
+        modifier = Modifier.padding(vertical = 6.dp),
     ) {
         Text(
             area,
@@ -472,7 +478,7 @@ private fun AreaSectionHeader(
                 "$count",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = androidx.compose.ui.Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
             )
         }
     }

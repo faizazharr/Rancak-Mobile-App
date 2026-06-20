@@ -3,6 +3,7 @@ package id.rancak.app.presentation.ui.products
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -195,7 +196,7 @@ private fun StockTypeButton(
             ),
         shape = MaterialTheme.shapes.medium,
         color = bgColor,
-        border = androidx.compose.foundation.BorderStroke(width = borderWidth, color = borderColor),
+        border = BorderStroke(width = borderWidth, color = borderColor),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
@@ -292,7 +293,7 @@ fun StockAdjustDialog(
         subtitle = product.name,
         onDismissRequest = onDismiss,
         confirmLabel = "Simpan",
-        onConfirm = { onConfirm(adjustType, qty!!, noteText.ifBlank { null }) },
+        onConfirm = { if (qty != null) onConfirm(adjustType, qty, noteText.ifBlank { null }) },
         confirmEnabled = canConfirm,
         isSubmitting = isSubmitting,
     ) {
@@ -404,7 +405,7 @@ fun StockAdjustPanel(
             TextButton(onClick = { if (!isSubmitting) onDismiss() }, enabled = !isSubmitting) { Text("Batal") }
             Spacer(Modifier.width(10.dp))
             GradientSaveButton(canConfirm = canConfirm, isSubmitting = isSubmitting, modifier = Modifier.width(140.dp)) {
-                onConfirm(adjustType, qty!!, noteText.ifBlank { null })
+                if (qty != null) onConfirm(adjustType, qty, noteText.ifBlank { null })
             }
         }
     }

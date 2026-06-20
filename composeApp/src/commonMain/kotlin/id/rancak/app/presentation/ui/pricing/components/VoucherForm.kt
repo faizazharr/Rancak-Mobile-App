@@ -2,6 +2,7 @@ package id.rancak.app.presentation.ui.pricing.components
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -66,7 +67,7 @@ private fun DiscountTypeButton(
             ),
         shape = MaterialTheme.shapes.medium,
         color = bgColor,
-        border = androidx.compose.foundation.BorderStroke(width = borderWidth, color = borderColor),
+        border = BorderStroke(width = borderWidth, color = borderColor),
     ) {
         Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
             Text(

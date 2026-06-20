@@ -8,6 +8,9 @@ import id.rancak.app.domain.model.Plan
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.SubscriptionState
 import id.rancak.app.domain.repository.BillingRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +24,8 @@ import kotlinx.coroutines.launch
 data class BillingUiState(
     val isLoading: Boolean = false,
     val subscription: SubscriptionState? = null,
-    val plans: List<Plan> = emptyList(),
-    val invoices: List<Invoice> = emptyList(),
+    val plans: ImmutableList<Plan> = persistentListOf(),
+    val invoices: ImmutableList<Invoice> = persistentListOf(),
     val selectedPlan: Plan? = null,
     val showSubscribeDialog: Boolean = false,
     val showCancelDialog: Boolean = false,
@@ -64,8 +67,8 @@ class BillingViewModel(
             _uiState.update { state ->
                 var s = state.copy(isLoading = false)
                 if (subscriptionResult is Resource.Success) s = s.copy(subscription = subscriptionResult.data)
-                if (plansResult is Resource.Success) s = s.copy(plans = plansResult.data)
-                if (invoicesResult is Resource.Success) s = s.copy(invoices = invoicesResult.data)
+                if (plansResult is Resource.Success) s = s.copy(plans = plansResult.data.toImmutableList())
+                if (invoicesResult is Resource.Success) s = s.copy(invoices = invoicesResult.data.toImmutableList())
                 s.copy(
                     error =
                         when {
@@ -106,7 +109,7 @@ class BillingViewModel(
                             isSubmitting = false,
                             showSubscribeDialog = false,
                             selectedPlan = null,
-                            invoices = listOf(invoice) + it.invoices,
+                            invoices = (persistentListOf(invoice) + it.invoices).toImmutableList(),
                             // Jika QR tersedia → buka dialog QR langsung.
                             // Jika tidak (mis. trial) → tampilkan notifikasi teks biasa.
                             qrInvoice = invoice.takeIf { inv -> inv.qrString != null },
@@ -171,7 +174,7 @@ class BillingViewModel(
                                     invoices =
                                         state.invoices.map {
                                             if (it.uuid == invoiceUuid) updated else it
-                                        },
+                                        }.toImmutableList(),
                                 )
                             }
                             when (updated.status) {
@@ -271,7 +274,7 @@ class BillingViewModel(
                             invoices =
                                 state.invoices.map {
                                     if (it.uuid == invoice.uuid) it.copy(status = "cancelled") else it
-                                },
+                                }.toImmutableList(),
                         )
                     }
                 }
@@ -296,7 +299,7 @@ class BillingViewModel(
             val invoicesResult = billingRepository.getInvoices()
             _uiState.update { state ->
                 var s = state.copy(isRefreshing = false)
-                if (invoicesResult is Resource.Success) s = s.copy(invoices = invoicesResult.data)
+                if (invoicesResult is Resource.Success) s = s.copy(invoices = invoicesResult.data.toImmutableList())
                 if (invoicesResult is Resource.Error) s = s.copy(error = invoicesResult.message)
                 s
             }

@@ -78,7 +78,7 @@ fun PosScreen(
     val cartState by cartViewModel.uiState.collectAsStateWithLifecycle()
     val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
     val openBillState by openBillViewModel.uiState.collectAsStateWithLifecycle()
-    val showScannerState = remember { mutableStateOf(false) }
+    var showScanner by remember { mutableStateOf(false) }
 
     val hasOpenShift = shiftState.currentShift != null
     val isSubscriptionExpired = LocalSubscriptionExpired.current
@@ -164,13 +164,13 @@ fun PosScreen(
         onPauseOrDispose { }
     }
 
-    if (showScannerState.value) {
+    if (showScanner) {
         BarcodeScannerView(
             onBarcodeDetected = { barcode ->
                 posViewModel.onSearchQueryChange(barcode)
-                showScannerState.value = false
+                showScanner = false
             },
-            onClose = { showScannerState.value = false },
+            onClose = { showScanner = false },
         )
         return
     }
@@ -226,7 +226,7 @@ fun PosScreen(
                 onDeliveryFee = { cartViewModel.setDeliveryFee(it) },
                 onTip = { cartViewModel.setTip(it) },
                 onVoucherCode = { cartViewModel.setVoucherCode(it) },
-                onScanClick = { showScannerState.value = true },
+                onScanClick = { showScanner = true },
                 modifierCache = uiState.modifierCache,
                 onLoadModifiers = posViewModel::loadModifiersForProduct,
             )
@@ -245,7 +245,7 @@ fun PosScreen(
                 onCategorySelect = posViewModel::onCategorySelected,
                 onRefresh = posViewModel::refresh,
                 onAdd = { if (!isSubscriptionExpired) cartViewModel.addProduct(it) },
-                onScanClick = { showScannerState.value = true },
+                onScanClick = { showScanner = true },
             )
         }
     }

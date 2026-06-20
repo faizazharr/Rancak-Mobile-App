@@ -38,3 +38,24 @@ Thumbs.db
 **/.cxx/
 captures/
 **/captures/
+
+# Ignore large OpenAPI spec files (800KB+ — read via grep if needed, not by default)
+openapi.json
+openapi.yaml
+
+# Ignore Gradle wrapper binaries and CI scripts
+gradlew
+gradlew.bat
+.github/
+
+# Ignore generated Kotlin/Compose code
+**/generated/
+**/*.generated.kt
+
+# Ignore iOS build artifacts and Xcode files
+iosApp/iosApp.xcodeproj/
+iosApp/Pods/
+iosApp/*.xcworkspace/
+
+# Ignore README (use CLAUDE.md for context)
+README.md

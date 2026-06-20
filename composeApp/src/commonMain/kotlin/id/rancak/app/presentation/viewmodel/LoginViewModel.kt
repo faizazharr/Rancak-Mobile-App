@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.model.Tenant
 import id.rancak.app.domain.repository.AuthRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +21,7 @@ data class LoginUiState(
     val isLoading: Boolean = false,
     val isGoogleLoading: Boolean = false,
     val error: String? = null,
-    val tenants: List<Tenant>? = null,
+    val tenants: ImmutableList<Tenant>? = null,
     val isLoggedIn: Boolean = false,
 )
 
@@ -52,7 +54,7 @@ class LoginViewModel(
                         it.copy(
                             isLoading = false,
                             password = "",
-                            tenants = result.data.user.tenants,
+                            tenants = result.data.user.tenants.toImmutableList(),
                             isLoggedIn = true,
                         )
                     }
@@ -73,7 +75,7 @@ class LoginViewModel(
                     _uiState.update {
                         it.copy(
                             isGoogleLoading = false,
-                            tenants = result.data.user.tenants,
+                            tenants = result.data.user.tenants.toImmutableList(),
                             isLoggedIn = true,
                         )
                     }

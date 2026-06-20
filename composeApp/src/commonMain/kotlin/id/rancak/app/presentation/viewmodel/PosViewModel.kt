@@ -84,12 +84,11 @@ class PosViewModel(
             _uiState.update { it.copy(isLoading = true) }
             when (val result = productRepository.getProducts()) {
                 is Resource.Success -> {
-                    val newState =
+                    _uiState.value =
                         _uiState.value.copy(
                             products = result.data.toImmutableList(),
                             isLoading = false,
                         ).recompute()
-                    _uiState.value = newState
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(error = result.message, isLoading = false) }
@@ -113,18 +112,17 @@ class PosViewModel(
 
     fun onSearchQueryChange(query: String) {
         viewModelScope.launch {
-            val newState = _uiState.value.copy(searchQuery = query).recompute()
-            _uiState.value = newState
+            _uiState.value = _uiState.value.copy(searchQuery = query).recompute()
         }
     }
 
     fun onCategorySelected(category: Category?) {
         viewModelScope.launch {
-            val newState =
-                _uiState.value.copy(
-                    selectedCategory = if (_uiState.value.selectedCategory == category) null else category,
+            val current = _uiState.value
+            _uiState.value =
+                current.copy(
+                    selectedCategory = if (current.selectedCategory == category) null else category,
                 ).recompute()
-            _uiState.value = newState
         }
     }
 
@@ -149,11 +147,7 @@ class PosViewModel(
         viewModelScope.launch {
             when (val result = productRepository.get86Products()) {
                 is Resource.Success -> {
-                    val newState =
-                        _uiState.value.copy(
-                            products86 = result.data.toImmutableList(),
-                        ).recompute()
-                    _uiState.value = newState
+                    _uiState.value = _uiState.value.copy(products86 = result.data.toImmutableList()).recompute()
                 }
                 is Resource.Error -> { /* silent fail for 86 */ }
                 is Resource.Loading -> {}

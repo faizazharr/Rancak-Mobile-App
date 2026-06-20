@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.ui.billing.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -38,7 +39,7 @@ fun PlanCard(
         Card(
             modifier = modifier,
             shape = shape,
-            border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFF59E0B)),
+            border = BorderStroke(1.5.dp, Color(0xFFF59E0B)),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
@@ -139,7 +140,7 @@ fun PlanCard(
         Card(
             modifier = modifier,
             shape = shape,
-            border = androidx.compose.foundation.BorderStroke(2.dp, Primary),
+            border = BorderStroke(2.dp, Primary),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
@@ -244,7 +245,7 @@ fun PlanCard(
         Card(
             modifier = modifier,
             shape = shape,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +40,14 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 
+private data class SalesDerived(
+    val heldCount: Int,
+    val voidCount: Int,
+    val totalRevenue: Long,
+    val avgRevenue: Long,
+    val byMethod: ImmutableList<Pair<String, Long>>,
+)
+
 /**
  * Right-hand summary panel (tablet layout) shown when no transaction is
  * selected. Aggregates totals, average, held count, payment-method breakdown
@@ -51,19 +60,24 @@ internal fun SalesSummaryPanel(
 ) {
     val semantic = RancakColors.semantic
 
-    val paidSales = sales.filter { it.status == SaleStatus.PAID }
-    val heldCount = sales.count { it.status == SaleStatus.HELD }
-    val voidCount = sales.count { it.status == SaleStatus.VOID || it.status == SaleStatus.CANCELLED }
-    val totalRevenue = paidSales.sumOf { it.total }
-    val avgRevenue = if (paidSales.isNotEmpty()) totalRevenue / paidSales.size else 0L
-
-    val byMethod =
-        paidSales
-            .groupBy { it.paymentMethod?.value?.uppercase() ?: "LAINNYA" }
-            .mapValues { (_, list) -> list.sumOf { it.total } }
-            .entries.sortedByDescending { it.value }
-            .map { it.key to it.value }
-            .toImmutableList()
+    val derived =
+        remember(sales) {
+            val paid = sales.filter { it.status == SaleStatus.PAID }
+            val revenue = paid.sumOf { it.total }
+            SalesDerived(
+                heldCount = sales.count { it.status == SaleStatus.HELD },
+                voidCount = sales.count { it.status == SaleStatus.VOID || it.status == SaleStatus.CANCELLED },
+                totalRevenue = revenue,
+                avgRevenue = if (paid.isNotEmpty()) revenue / paid.size else 0L,
+                byMethod =
+                    paid
+                        .groupBy { it.paymentMethod?.value?.uppercase() ?: "LAINNYA" }
+                        .mapValues { (_, list) -> list.sumOf { it.total } }
+                        .entries.sortedByDescending { it.value }
+                        .map { it.key to it.value }
+                        .toImmutableList(),
+            )
+        }
 
     Column(
         modifier =
@@ -103,7 +117,7 @@ internal fun SalesSummaryPanel(
                 icon = Icons.Default.Payments,
                 iconColor = semantic.success,
                 label = "Total Pendapatan",
-                value = formatRupiah(totalRevenue),
+                value = formatRupiah(derived.totalRevenue),
                 bgColor = semantic.success.copy(alpha = 0.08f),
             )
         }
@@ -113,7 +127,7 @@ internal fun SalesSummaryPanel(
                 icon = Icons.AutoMirrored.Filled.TrendingUp,
                 iconColor = semantic.info,
                 label = "Rata-rata / Transaksi",
-                value = formatRupiah(avgRevenue),
+                value = formatRupiah(derived.avgRevenue),
                 bgColor = semantic.info.copy(alpha = 0.08f),
             )
             SummaryStatCard(
@@ -121,17 +135,17 @@ internal fun SalesSummaryPanel(
                 icon = Icons.Default.Schedule,
                 iconColor = semantic.warning,
                 label = "Belum Bayar",
-                value = "$heldCount transaksi",
+                value = "${derived.heldCount} transaksi",
                 bgColor = semantic.warning.copy(alpha = 0.08f),
             )
         }
 
-        if (byMethod.isNotEmpty()) {
-            PaymentMethodBreakdown(byMethod = byMethod)
+        if (derived.byMethod.isNotEmpty()) {
+            PaymentMethodBreakdown(byMethod = derived.byMethod)
         }
 
-        if (voidCount > 0) {
-            VoidInfoBanner(voidCount = voidCount)
+        if (derived.voidCount > 0) {
+            VoidInfoBanner(voidCount = derived.voidCount)
         }
 
         SelectHint()

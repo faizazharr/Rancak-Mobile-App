@@ -45,8 +45,10 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +67,7 @@ import androidx.navigation.compose.rememberNavController
 import id.rancak.app.domain.model.Resource
 import id.rancak.app.domain.repository.AuthRepository
 import id.rancak.app.presentation.components.LocalNavigateToHome
+import id.rancak.app.presentation.components.LocalSubscriptionExpired
 import id.rancak.app.presentation.viewmodel.CartViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -95,6 +98,8 @@ private val LocalNavController =
     staticCompositionLocalOf<NavHostController> {
         error("NavHostController not provided — pastikan dipanggil di dalam RancakNavHost()")
     }
+
+private val EXPIRED_SUBSCRIPTION_STATUSES = setOf("expired", "past_due", "inactive")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -463,6 +468,10 @@ private fun NavigationContent(onMenuClick: () -> Unit) {
     val authRepository: AuthRepository = koinInject()
     val scope = rememberCoroutineScope()
 
+    // Subscription status — updated by the billing guard on every ON_RESUME.
+    var subscriptionStatus by remember { mutableStateOf(authRepository.getSubscriptionStatus()) }
+    val isSubscriptionExpired = subscriptionStatus?.lowercase() in EXPIRED_SUBSCRIPTION_STATUSES
+
     // ── Billing guard real-time ───────────────────────────────────────────────
     // Setiap kali Activity di-resume (termasuk saat kembali dari background),
     // periksa status billing tenant aktif. Jika kedaluwarsa / belum aktif,
@@ -488,8 +497,10 @@ private fun NavigationContent(onMenuClick: () -> Unit) {
                         val storedUuid = authRepository.getCurrentTenantUuid() ?: return@launch
                         val result = authRepository.getMyTenants()
                         if (result is Resource.Success) {
-                            val tenant = result.data.find { it.uuid == storedUuid }
-                            val status = tenant?.subscriptionStatus?.lowercase()
+                            val freshStatus = result.data.find { it.uuid == storedUuid }?.subscriptionStatus
+                            authRepository.setSubscriptionStatus(freshStatus)
+                            subscriptionStatus = freshStatus
+                            val status = freshStatus?.lowercase()
                             val hasIssue =
                                 status == "expired" ||
                                     status == "past_due" ||
@@ -526,6 +537,7 @@ private fun NavigationContent(onMenuClick: () -> Unit) {
     CompositionLocalProvider(
         LocalCartViewModel provides cartViewModel,
         LocalNavigateToHome provides { navController.navigate(Screen.Pos) { launchSingleTop = true } },
+        LocalSubscriptionExpired provides isSubscriptionExpired,
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),

@@ -128,12 +128,11 @@ class CartViewModel(
         ) { items, extras, taxConfigs, surcharges ->
             // Hanya konfigurasi yang `isActive` yang ikut diperhitungkan di kasir.
             val activeTax = taxConfigs.filter { it.isActive }.toImmutableList()
-            val activeSurcharges = surcharges.filter { it.isActive }
-            // Surcharge yang berlaku: yang orderType-nya null (semua), atau cocok dengan orderType saat ini.
+            // Surcharge yang berlaku: aktif + orderType-nya null (semua) atau cocok dengan orderType saat ini.
             val orderTypeKey = extras.orderType.name.lowercase()
             val applicableSurcharges =
-                activeSurcharges.filter { sc ->
-                    sc.orderType.isNullOrBlank() || sc.orderType.equals(orderTypeKey, ignoreCase = true)
+                surcharges.filter { sc ->
+                    sc.isActive && (sc.orderType.isNullOrBlank() || sc.orderType.equals(orderTypeKey, ignoreCase = true))
                 }.toImmutableList()
 
             val subtotal = items.sumOf { it.subtotal }

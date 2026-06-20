@@ -231,8 +231,10 @@ class AuthRepositoryImpl(
             // Anti-enumeration: BE selalu kembalikan 200 walau email tidak terdaftar.
             api.forgotPassword(id.rancak.app.data.remote.dto.auth.ForgotPasswordRequest(email))
             Resource.Success(Unit)
-        } catch (_: Exception) {
-            // Bahkan kalau network error pun, jangan kasih tahu user — anggap sukses.
+        } catch (e: Exception) {
+            // Re-throw CancellationException so the coroutine can be properly cancelled.
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            // For all other exceptions (network, etc.) still return success — anti-enumeration.
             Resource.Success(Unit)
         }
     }

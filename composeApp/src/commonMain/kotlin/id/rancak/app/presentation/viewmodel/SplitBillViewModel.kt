@@ -8,6 +8,8 @@ import id.rancak.app.domain.model.Sale
 import id.rancak.app.domain.model.SaleItem
 import id.rancak.app.domain.model.SplitBillResult
 import id.rancak.app.domain.repository.SaleRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +25,7 @@ data class SplitBillUiState(
     /** Non-null saat split berhasil. */
     val result: SplitBillResult? = null,
 ) {
-    val availableItems: List<SaleItem> get() = sale?.items ?: emptyList()
+    val availableItems: ImmutableList<SaleItem> get() = sale?.items ?: persistentListOf()
     val canSplit: Boolean get() {
         val total = availableItems.size
         val selected = selectedItemIds.size

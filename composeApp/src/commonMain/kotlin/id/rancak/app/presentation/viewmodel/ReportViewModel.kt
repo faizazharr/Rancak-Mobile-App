@@ -30,7 +30,6 @@ data class ReportUiState(
     val dailyByCategory: ImmutableList<DailyCategoryReport> = persistentListOf(),
     val cashierShifts: ImmutableList<CashierShiftSummary> = persistentListOf(),
     val isCashierShiftsLoading: Boolean = false,
-    val cashierShiftDate: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
     val dateFrom: String = "",
@@ -99,7 +98,6 @@ class ReportViewModel(
                         it.copy(
                             cashierShifts = result.data.toImmutableList(),
                             isCashierShiftsLoading = false,
-                            cashierShiftDate = date ?: "",
                         )
                     }
                 is Resource.Error ->

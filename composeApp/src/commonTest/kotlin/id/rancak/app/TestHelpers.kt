@@ -155,6 +155,8 @@ class FakeSaleDao : SaleDao {
         upsertItems(items)
     }
 
+    override suspend fun getAllItems(): List<SaleItemEntity> = items.toList()
+
     override suspend fun deleteAll() {
         sales.clear()
     }

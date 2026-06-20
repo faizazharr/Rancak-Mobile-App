@@ -1,158 +1,211 @@
 # Rancak POS — Project Instructions
 
-## What is this project?
+**Rancak POS** is a multi-tenant Point of Sale app (restaurants, cafes, retail). Compose Multiplatform — single shared UI for Android + iOS. Backend is Rust/Axum — **do not modify it**.
 
-**Rancak POS** is a multi-tenant Point of Sale app for restaurants, cafes, and retail. Built with Compose Multiplatform (shared UI for Android + iOS). Backend is Rust/Axum — do not modify it.
-
-Key traits: **offline-first** (sales work without internet), **multi-tenant** (all API calls are scoped to a `tenant_uuid`), **role-based** (Staff → Admin → Owner with progressively more access).
+Key traits: offline-first, multi-tenant (`tenant_uuid` scopes every API call), role-based (Staff → Admin → Owner).
 
 ---
 
 ## Tech Stack
 
-- **UI**: Compose Multiplatform (`commonMain`) — shared screens for Android and iOS
-- **Networking**: Ktor Client 2.x
-- **DI**: Koin 3.x
-- **Storage**: `multiplatform-settings` (no SQLDelight — offline queue uses in-memory + settings)
-- **Navigation**: Compose Navigation with `@Serializable` type-safe routes
-- **QR Code**: QRose (for QRIS payment display)
-- **Android extras**: WorkManager (sync), CameraX + ML Kit (barcode), Credential Manager (Google SSO)
-- **iOS extras**: BGTaskScheduler (sync), AVFoundation (barcode), CoreBluetooth (printer)
-
----
-
-## Project Structure
-
-```
-composeApp/src/
-├── commonMain/kotlin/id/rancak/app/
-│   ├── data/
-│   │   ├── local/          # TokenManager, OfflineSaleQueue, PendingSale
-│   │   ├── mapper/         # DtoMappers.kt (DTO → domain)
-│   │   ├── printing/       # EscPosBuilder, PrinterManager (expect), SaleReceiptMapper
-│   │   ├── remote/         # HttpClientFactory, RancakApiService, dto/
-│   │   ├── repository/     # AuthRepositoryImpl, ProductRepositoryImpl, SaleRepositoryImpl,
-│   │   │                   # OperationsRepositoryImpl, FinanceRepositoryImpl
-│   │   └── sync/           # SyncManager (expect)
-│   ├── di/                 # AppModule.kt, PlatformModule.kt (expect)
-│   ├── domain/
-│   │   ├── model/          # Auth, Product, Sale, Operations, Finance, Resource
-│   │   └── repository/     # interfaces: AuthRepository, ProductRepository, SaleRepository,
-│   │                       #             OperationsRepository, FinanceRepository
-│   └── presentation/
-│       ├── auth/           # GoogleSignInButton (expect)
-│       ├── barcode/        # BarcodeScanner (expect)
-│       ├── components/     # Buttons, ProductCard, QrCodeComposable, StateScreens, etc.
-│       ├── designsystem/   # Color.kt, Theme.kt, Typography.kt
-│       ├── navigation/     # Screen.kt (routes), RancakNavHost.kt
-│       ├── ui/             # LoginScreen, TenantPickerScreen, PosScreen, CartScreen,
-│       │                   # PaymentScreen, ShiftScreen, TableMapScreen, KdsScreen,
-│       │                   # OrderBoardScreen, SalesHistoryScreen, CashExpenseScreen, ReportScreen
-│       ├── util/           # CurrencyFormatter.kt
-│       └── viewmodel/      # All ViewModels (Login, TenantPicker, Pos, Cart, Payment,
-│                           # Shift, Table, Kds, OrderBoard, SalesHistory, CashExpense, Report)
-├── androidMain/            # PrinterManager.android, SyncManager.android, SyncWorker,
-│                           # GoogleSignInButton.android, BarcodeScanner.android, PlatformModule.android
-└── iosMain/                # PrinterManager.ios, SyncManager.ios, IosSyncRunner,
-                            # GoogleSignInButton.ios, BarcodeScanner.ios, PlatformModule.ios
-```
+| Layer | Library |
+|---|---|
+| UI | Compose Multiplatform (`commonMain`) |
+| Network | Ktor Client 2.x |
+| DI | Koin 3.x |
+| Storage | `multiplatform-settings` (no SQLDelight) |
+| Navigation | Compose Navigation + `@Serializable` routes |
+| Sync (Android) | WorkManager |
+| Sync (iOS) | BGTaskScheduler |
+| Barcode | CameraX + ML Kit (Android) / AVFoundation (iOS) |
+| Auth (Android) | Credential Manager (Google SSO) |
+| Bluetooth print | CoreBluetooth (iOS) |
 
 ---
 
 ## Architecture
 
-Clean Architecture + MVVM. All layers live in `commonMain` and are shared between platforms.
+Clean Architecture + MVVM. All layers in `commonMain`.
 
 ```
-Compose UI  →  ViewModel (StateFlow)  →  Repository  →  RancakApiService / local storage
+Compose UI  →  ViewModel (StateFlow<UiState>)  →  Repository  →  RancakApiService / local storage
 ```
 
-- **Domain models** (`domain/model/`) — pure Kotlin data classes, no platform imports
-- **Repository interfaces** (`domain/repository/`) — contracts; implementations in `data/repository/`
-- **ViewModels** (`presentation/viewmodel/`) — fully shared, use `StateFlow` + `UiState`
-- **Screens** (`presentation/ui/`) — every screen split into `Screen` (holds ViewModel) + `Content` (pure UI, no VM)
-- **Platform code** — always behind `expect`/`actual` (printer, barcode, sync, Google SSO)
-
-### UiState pattern
-```kotlin
-sealed class UiState<out T> {
-    object Idle : UiState<Nothing>()
-    object Loading : UiState<Nothing>()
-    data class Success<T>(val data: T) : UiState<T>()
-    data class Error(val message: String) : UiState<Nothing>()
-}
-```
-Always handle all four variants in every screen.
+- `domain/model/` — pure Kotlin data classes, zero platform imports
+- `domain/repository/` — interfaces; implementations in `data/repository/`
+- `presentation/viewmodel/` — fully shared, expose `StateFlow`, never `MutableStateFlow`
+- `presentation/ui/` — each screen split: `*Screen` (holds VM) + `*Content` (pure UI, testable)
+- Platform code always behind `expect`/`actual` (printer, barcode, sync, Google SSO)
+- `di/AppModule.kt` + platform `PlatformModule.kt` — every new class must be registered here
 
 ---
 
 ## API
 
-**Base URL**: `https://api.rancak.id`
+**Base URL**: `https://api.rancak.id` — tenant-scoped: `/tenants/:tenant_uuid/<resource>`
 
-**Tenant-scoped pattern**: `/tenants/:tenant_uuid/<resource>`
-- `tenantUuid` always comes from `TokenManager.tenantUuid` — never hardcode it
+`tenantUuid` always from `TokenManager.tenantUuid` — never hardcode.
 
-**Auth headers** on every protected request (handled by Ktor `Auth` plugin automatically):
-```
-Authorization: Bearer <access_token>
-Content-Type:  application/json
-```
+Auth headers handled automatically by Ktor `Auth` plugin (Bearer token).
 
-**Response envelope**:
-```json
-{ "status": "ok", "data": { ... } }
-{ "status": "error", "message": "...", "code": 404 }
-```
-
-**Key HTTP rules**:
-- `401` → auto-refresh token → retry (never logout on 401)
+**Key HTTP rules:**
+- `401` → auto-refresh token → retry. Never logout on 401.
 - `409` → idempotency duplicate → **treat as success**, not error
-- `422` → business error (e.g., stok habis) → show message to user
-- `POST /sales` always requires header `X-Idempotency-Key: <UUID v4>`
+- `422` → business error → show message to user in Bahasa Indonesia
+- `POST /sales` requires header `X-Idempotency-Key: <UUID v4>`
 
 ---
 
 ## Offline-First
 
-- Transactions created offline go into `OfflineSaleQueue` with `synced = false`
-- `SyncManager` + WorkManager (Android) / BGTaskScheduler (iOS) uploads them via `POST /tenants/:id/sales/batch` when online
-- On app start: call `GET /tenants/:id/sync/status` → if server data is newer, trigger delta sync via `GET /tenants/:id/sync/catalog?updated_after=...`
-- **QRIS payment is online-only** — always check connectivity before showing QRIS option
+- Offline sales go into `OfflineSaleQueue` (`synced = false`)
+- `SyncManager` uploads via `POST /tenants/:id/sales/batch` when online
+- App start: `GET /tenants/:id/sync/status` → delta sync via `GET /tenants/:id/sync/catalog?updated_after=...`
+- QRIS is **online-only** — always check connectivity before showing QRIS
 
 ---
 
 ## Key Product Rules
 
-- **Roles**: Staff (cashier only) → Admin (+ product/table management) → Owner (+ financial config). Hide Admin/Owner UI from Staff.
-- **Shift**: Cashier must open a shift before creating any sale. Block sale creation if no open shift.
-- **Currency**: All prices are `Long` (integer Rupiah). Display with `CurrencyFormatter.formatRupiah()` → `Rp 35.000`
-- **Error messages**: Always show errors to the user in **Bahasa Indonesia**
-- **Device ID**: Use `TokenManager.deviceId` (stable UUID) on every sale payload as `device_id`
-- **Table status**: Changes automatically (`occupied` on sale created, `available` on void/serve/cancel)
-- **86**: Product marked as out-of-stock for the day. Resets automatically each day server-side.
+- **Roles**: Staff (cashier only) → Admin (+ product/table mgmt) → Owner (+ financial config). Gate UI accordingly.
+- **Shift**: Must be open before any sale. Block sale creation if no open shift.
+- **Currency**: All prices `Long` (integer Rupiah). Display via `CurrencyFormatter.formatRupiah()` → `Rp 35.000`
+- **Device ID**: `TokenManager.deviceId` on every sale payload as `device_id`
+- **Table status**: Auto-changes (`occupied` on sale create, `available` on void/serve/cancel)
+- **86**: Product out-of-stock for the day. Resets server-side each day.
+- **Error messages**: Always in **Bahasa Indonesia**
 
 ---
 
 ## Design System
 
-Colors, spacing, and typography are defined in `presentation/designsystem/`. Never hardcode values.
+Never hardcode colors, spacing, or typography — always use design system tokens from `presentation/designsystem/`.
 
-Key semantic tokens to use (defined in `Color.kt`):
-- `Primary` = Teal `#0D9373`, `Secondary` = Warm Orange `#E8772E`
-- `StatusAvailable / Occupied / Reserved / Maintenance` — for table status chips
-- `PaymentCash / Card / Qris / Transfer` — for payment method badges
+- Primary = Teal `#0D9373`, Secondary = Warm Orange `#E8772E`
+- `StatusAvailable / Occupied / Reserved / Maintenance` — table status chips
+- `PaymentCash / Card / Qris / Transfer` — payment method badges
+- Spacing: `Spacing.xs(4dp) / sm(8dp) / md(16dp) / lg(24dp) / xl(32dp)`
 
-Spacing: `Spacing.xs(4dp) / sm(8dp) / md(16dp) / lg(24dp) / xl(32dp)`
+---
+
+## Coding Rules (enforced every time)
+
+### 1. No FQCN — always use `import`
+
+Never write package paths inline in code. Add an `import`, use the simple name.
+
+```kotlin
+// WRONG
+border = androidx.compose.foundation.BorderStroke(1.dp, color)
+```
+```kotlin
+// CORRECT
+import androidx.compose.foundation.BorderStroke
+border = BorderStroke(1.dp, color)
+```
+
+**Edit tool safety**: never use `replace_all: true` on a FQCN string — it mangles the import line. Never use `sed` or `perl` for multi-line replacements — they corrupt import statements. Use `Edit` per-occurrence.
+
+---
+
+### 2. `suspend fun` never inside `_uiState.update {}`
+
+`update {}` takes a non-suspend `(T) -> T` lambda. Any `suspend` call inside won't compile.
+
+```kotlin
+// WRONG — compile error
+_uiState.update { it.copy(searchQuery = q).recompute() }
+
+// CORRECT
+viewModelScope.launch {
+    _uiState.value = _uiState.value.copy(searchQuery = q).recompute()
+}
+```
+
+Use `_uiState.update {}` only for simple non-suspend `copy()`. Wrap in `launch` whenever a suspend call is needed.
+
+---
+
+### 3. Parallelization inside `launch`
+
+```kotlin
+viewModelScope.launch {
+    coroutineScope {
+        val a = async { repo.getA() }
+        val b = async { repo.getB() }
+        process(a.await(), b.await())
+    }
+}
+```
+
+---
+
+### 4. `ImmutableList<T>` for all list fields in UiState and Composable params
+
+`List<T>` causes a Compose **runtime stability warning** (`MutableList` also implements `List`). Use `ImmutableList<T>` for compile-time stability.
+
+```kotlin
+// WRONG
+data class MyUiState(val items: List<Product> = emptyList())
+```
+```kotlin
+// CORRECT
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+
+data class MyUiState(val items: ImmutableList<Product> = persistentListOf())
+
+// Every .map{} / .filter{} / .sortedBy{} must end with .toImmutableList()
+_uiState.update { it.copy(items = result.data.toImmutableList()) }
+_uiState.update { it.copy(items = it.items.filter { p -> p.isActive }.toImmutableList()) }
+```
+
+**Exception**: if the field nullable-defaults to `null`, the default stays `null` — don't add `persistentListOf()`. Only add `toImmutableList` import if actually used in the file.
+
+---
+
+### 5. `@Stable` for form state holders
+
+A class with `var` properties shows **"Has N mutable (var) properties — Unstable"** unless annotated `@Stable`. Valid only when **every** `var` is backed by `mutableStateOf()`.
+
+```kotlin
+@Stable
+private class ProductFormState {
+    var name by mutableStateOf("")
+    var price by mutableStateOf("")
+}
+```
+
+Do **not** use `@Stable` if any `var` is a plain Kotlin field — that's a false annotation.
+
+---
+
+### 6. KDoc `[Symbol]` — only for public importable symbols
+
+`[SymbolName]` triggers **"Cannot resolve symbol"** warning for private/internal/cross-package references. Use backticks instead.
+
+- `` `KEY_MIGRATION_DONE` `` not `[KEY_MIGRATION_DONE]` — private const
+- `` `RancakApiService` `` not `[RancakApiService]` — cross-package, not imported
+- `` `clearBearerToken` `` not `[clearBearerToken]` — private constructor param
+
+FQN `[id.rancak.app.data.remote.api.RancakApiService]` resolves if the class exists.
 
 ---
 
 ## Checklist (before submitting code)
 
 - [ ] No `android.*` or Apple imports in `commonMain`
-- [ ] All repository methods return `AppResult<T>`
+- [ ] No FQCN in code body — every class uses a proper `import`
+- [ ] All repository methods return `Resource<T>`
 - [ ] ViewModels expose `StateFlow`, not `MutableStateFlow`
 - [ ] All four `UiState` variants handled in every screen
+- [ ] `suspend fun` never called inside `_uiState.update {}` — use `launch` instead
+- [ ] All `List<T>` in UiState/Composable params → `ImmutableList<T>` + `persistentListOf()` default
+- [ ] All `.map {}` / `.filter {}` / `.sortedBy {}` on list fields end with `.toImmutableList()`
+- [ ] Only import `persistentListOf` / `toImmutableList` if actually used in the file
+- [ ] Form state holders with `var mutableStateOf` annotated `@Stable`
+- [ ] KDoc `[Symbol]` only for importable public symbols — backticks for private/internal
 - [ ] New classes registered in Koin `AppModule` or platform `PlatformModule`
 - [ ] `POST /sales` sends `X-Idempotency-Key`
 - [ ] `409` treated as success; `401` triggers refresh not logout

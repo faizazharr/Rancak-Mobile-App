@@ -2,7 +2,6 @@ package id.rancak.app.data.local
 
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -67,7 +66,7 @@ class OfflineSaleQueue(
     /**
      * Pindahkan antrian offline dari storage plain (versi lama app) ke
      * storage terenkripsi. Hanya sekali — setelah selesai, flag
-     * [KEY_MIGRATION_DONE] di-set.
+     * `KEY_MIGRATION_DONE` di-set.
      */
     private fun migrateFromLegacy() {
         if (settings.getBoolean(KEY_MIGRATION_DONE, false)) return

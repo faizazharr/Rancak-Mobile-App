@@ -1,5 +1,6 @@
 package id.rancak.app.presentation.ui.billing.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -170,7 +171,7 @@ fun InvoiceCard(
                         shape = MaterialTheme.shapes.extraLarge,
                         contentPadding = PaddingValues(vertical = 8.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Error.copy(alpha = 0.4f)),
+                        border = BorderStroke(1.dp, Error.copy(alpha = 0.4f)),
                     ) {
                         Icon(Icons.Default.Cancel, null, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(6.dp))

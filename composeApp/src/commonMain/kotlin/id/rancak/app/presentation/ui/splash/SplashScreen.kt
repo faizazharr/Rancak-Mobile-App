@@ -1,6 +1,7 @@
 package id.rancak.app.presentation.ui.splash
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -166,7 +167,7 @@ fun SplashScreen(onNavigate: (Screen) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             // Logo (white tint)
-            androidx.compose.foundation.Image(
+            Image(
                 painter = painterResource(Res.drawable.tias_logo),
                 contentDescription = "TIAS Logo",
                 contentScale = ContentScale.Fit,

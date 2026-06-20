@@ -70,36 +70,30 @@ class SalesHistoryViewModel(
             val yesterdayStr = today.minus(DatePeriod(days = 1)).toString()
             val weekStartStr = today.minus(DatePeriod(days = 6)).toString()
 
+            val q = if (searchQuery.isBlank()) null else searchQuery.trim().lowercase()
             val filtered =
-                allSales
-                    .filter { sale ->
-                        if (searchQuery.isBlank()) {
-                            true
-                        } else {
-                            val q = searchQuery.trim().lowercase()
+                allSales.filter { sale ->
+                    (
+                        q == null ||
                             sale.invoiceNo?.lowercase()?.contains(q) == true ||
-                                sale.items.any { it.productName.lowercase().contains(q) }
-                        }
-                    }
-                    .filter { sale ->
-                        val d =
-                            sale.createdAt?.take(10)
-                                ?: return@filter dateFilter == DateFilter.ALL
-                        when (dateFilter) {
-                            DateFilter.ALL -> true
-                            DateFilter.TODAY -> d == todayStr
-                            DateFilter.YESTERDAY -> d == yesterdayStr
-                            DateFilter.WEEK -> d in weekStartStr..todayStr
-                            DateFilter.CUSTOM -> {
-                                val from = customDateFrom ?: return@filter true
-                                val to = customDateTo ?: return@filter true
-                                d in from..to
+                            sale.items.any { it.productName.lowercase().contains(q) }
+                    ) &&
+                        run {
+                            val d = sale.createdAt?.take(10) ?: return@run dateFilter == DateFilter.ALL
+                            when (dateFilter) {
+                                DateFilter.ALL -> true
+                                DateFilter.TODAY -> d == todayStr
+                                DateFilter.YESTERDAY -> d == yesterdayStr
+                                DateFilter.WEEK -> d in weekStartStr..todayStr
+                                DateFilter.CUSTOM -> {
+                                    val from = customDateFrom ?: return@run true
+                                    val to = customDateTo ?: return@run true
+                                    d in from..to
+                                }
                             }
-                        }
-                    }
-                    .filter { sale ->
-                        statusFilter == null || sale.status == statusFilter
-                    }
+                        } &&
+                        (statusFilter == null || sale.status == statusFilter)
+                }
 
             copy(sales = filtered.toImmutableList())
         }

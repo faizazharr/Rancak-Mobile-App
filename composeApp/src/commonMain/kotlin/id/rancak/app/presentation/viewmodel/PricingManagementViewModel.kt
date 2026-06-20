@@ -10,6 +10,8 @@ import id.rancak.app.domain.model.Surcharge
 import id.rancak.app.domain.model.TaxConfig
 import id.rancak.app.domain.repository.AdminRepository
 import id.rancak.app.domain.repository.DiscountRuleUpdate
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,9 +23,9 @@ import kotlinx.coroutines.launch
 
 @Immutable
 data class PricingManagementUiState(
-    val surcharges: List<Surcharge> = emptyList(),
-    val taxConfigs: List<TaxConfig> = emptyList(),
-    val discountRules: List<DiscountRule> = emptyList(),
+    val surcharges: ImmutableList<Surcharge> = persistentListOf(),
+    val taxConfigs: ImmutableList<TaxConfig> = persistentListOf(),
+    val discountRules: ImmutableList<DiscountRule> = persistentListOf(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
@@ -66,7 +68,7 @@ class PricingManagementViewModel(
     fun loadAll() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            pricingStore.refresh()
+            pricingStore.refresh(forceRefresh = true)
             _uiState.update { it.copy(isLoading = false) }
         }
     }

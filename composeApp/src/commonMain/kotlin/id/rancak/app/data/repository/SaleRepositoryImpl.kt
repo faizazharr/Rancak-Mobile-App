@@ -249,10 +249,9 @@ class SaleRepositoryImpl(
     private suspend fun serveCachedSales(errorMessage: String?): Resource<List<Sale>> {
         val cached = saleDao.getAll()
         return if (cached.isNotEmpty()) {
+            val itemsByUuid = saleDao.getAllItems().groupBy { it.saleUuid }
             Resource.Success(
-                cached.map { entity ->
-                    entity.toDomain(saleDao.getItemsForSale(entity.uuid))
-                },
+                cached.map { entity -> entity.toDomain(itemsByUuid[entity.uuid] ?: emptyList()) },
             )
         } else {
             Resource.Error(errorMessage ?: "Tidak ada koneksi internet")
@@ -261,10 +260,9 @@ class SaleRepositoryImpl(
 
     override suspend fun getSalesFromCache(): Resource<List<Sale>> {
         val cached = saleDao.getAll()
+        val itemsByUuid = saleDao.getAllItems().groupBy { it.saleUuid }
         return Resource.Success(
-            cached.map { entity ->
-                entity.toDomain(saleDao.getItemsForSale(entity.uuid))
-            },
+            cached.map { entity -> entity.toDomain(itemsByUuid[entity.uuid] ?: emptyList()) },
         )
     }
 

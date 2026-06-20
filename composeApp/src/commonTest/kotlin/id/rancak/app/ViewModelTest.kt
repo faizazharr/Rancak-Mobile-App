@@ -106,7 +106,7 @@ class ViewModelTest {
 
             override fun setUserRole(role: String) {}
 
-            override fun getUserRole() = id.rancak.app.domain.model.UserRole.STAFF
+            override fun getUserRole() = UserRole.STAFF
 
             override fun getSubscriptionStatus(): String? = null
 
@@ -333,7 +333,7 @@ class ViewModelTest {
         }
 
     @Test
-    fun `openShift - success sets shift and shiftJustOpened flag`() =
+    fun `openShift - success sets shift and clears openingCash`() =
         runTest {
             val shift = fakeShift("new-shift")
             val vm = ShiftViewModel(operationsRepo(openShift = Resource.Success(shift)))
@@ -346,7 +346,6 @@ class ViewModelTest {
             assertFalse(state.isLoading)
             assertNull(state.error)
             assertEquals("new-shift", state.currentShift?.uuid)
-            assertTrue(state.shiftJustOpened)
             assertEquals("", state.openingCash)
         }
 
@@ -371,7 +370,7 @@ class ViewModelTest {
         }
 
     @Test
-    fun `closeShift - success clears currentShift and sets shiftJustClosed`() =
+    fun `closeShift - success clears currentShift and closing fields`() =
         runTest {
             val closedShift =
                 fakeShift("closed-shift").copy(
@@ -396,7 +395,6 @@ class ViewModelTest {
             val state = vm.uiState.value
             assertFalse(state.isLoading)
             assertNull(state.currentShift)
-            assertTrue(state.shiftJustClosed)
             assertEquals("", state.closingCash)
             assertEquals("", state.closingNote)
         }

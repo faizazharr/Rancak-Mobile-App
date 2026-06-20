@@ -32,6 +32,15 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
 
+private val STATUS_FILTER_OPTIONS: List<Pair<SaleStatus?, String>> =
+    listOf(
+        null to "Semua",
+        SaleStatus.HELD to "Belum Bayar",
+        SaleStatus.PAID to "Lunas",
+        SaleStatus.REFUNDED to "Refund",
+        SaleStatus.VOID to "Void",
+    )
+
 /**
  * Top bar of [id.rancak.app.presentation.ui.sales.SalesHistoryScreen]: a
  * search field plus horizontally-scrolling date-preset and status chips.
@@ -164,20 +173,12 @@ private fun StatusFilterRow(
     onStatusFilter: (SaleStatus?) -> Unit,
     onClear: () -> Unit,
 ) {
-    val statusOptions: List<Pair<SaleStatus?, String>> =
-        listOf(
-            null to "Semua",
-            SaleStatus.HELD to "Belum Bayar",
-            SaleStatus.PAID to "Lunas",
-            SaleStatus.REFUNDED to "Refund",
-            SaleStatus.VOID to "Void",
-        )
     Row(
         modifier = Modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        statusOptions.forEach { (status, label) ->
+        STATUS_FILTER_OPTIONS.forEach { (status, label) ->
             StatusPill(
                 label = label,
                 status = status,

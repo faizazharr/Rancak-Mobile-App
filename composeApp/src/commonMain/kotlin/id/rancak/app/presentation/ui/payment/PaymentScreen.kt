@@ -144,7 +144,7 @@ fun PaymentScreen(
 
     // Builds ReceiptData from the current in-progress group and triggers print dialog
     val onConfirmAndPrint: (Long) -> Unit = { groupActualTotal ->
-        val state = paymentViewModel.uiState.value
+        val state = paymentState
         val currentItemQtys = state.currentSplitItemQtys
         val currentMethod = state.currentSplitMethod
         val cashPaid = state.currentSplitCashInput.toLongOrNull() ?: 0L
@@ -207,10 +207,12 @@ fun PaymentScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
+            val completedSale = paymentState.completedSale
+            val qrisQrString = paymentState.qrisQrString
             when {
-                paymentState.completedSale != null ->
+                completedSale != null ->
                     PaymentSuccessContent(
-                        sale = paymentState.completedSale!!,
+                        sale = completedSale,
                         printerManager = printerManager,
                         settingsStore = settingsStore,
                         onNewTransaction = {
@@ -223,7 +225,7 @@ fun PaymentScreen(
                 // QRIS waiting dalam split mode — tampil sebagai full-screen overlay
                 paymentState.isQrisWaiting && paymentState.isSplitPayment -> {
                     QrisWaitingContent(
-                        qrString = paymentState.qrisQrString!!,
+                        qrString = qrisQrString ?: "",
                         amount = paymentState.qrisAmount,
                         isPolling = paymentState.isQrisPolling,
                         onCancel = paymentViewModel::cancelQrisPayment,

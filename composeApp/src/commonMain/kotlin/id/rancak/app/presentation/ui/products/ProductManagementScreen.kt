@@ -126,7 +126,9 @@ fun ProductManagementScreen(
                     },
                     onFormDismiss = viewModel::closeProductForm,
                     onAdjustConfirm = { type, qty, note ->
-                        viewModel.adjustStock(uiState.actionProduct!!.uuid, type, qty, note)
+                        uiState.actionProduct?.let { product ->
+                            viewModel.adjustStock(product.uuid, type, qty, note)
+                        }
                     },
                     onAdjustDismiss = viewModel::closeAdjustDialog,
                     onSortChange = viewModel::setSort,
@@ -138,24 +140,26 @@ fun ProductManagementScreen(
 
             // ── Dialogs ───────────────────────────────────────────────────────
 
-            if (uiState.showAdjustDialog && uiState.actionProduct != null) {
+            val actionProduct = uiState.actionProduct
+
+            if (uiState.showAdjustDialog && actionProduct != null) {
                 StockAdjustDialog(
-                    product = uiState.actionProduct!!,
+                    product = actionProduct,
                     isSubmitting = uiState.isSubmitting,
                     onDismiss = viewModel::closeAdjustDialog,
                     onConfirm = { type, qty, note ->
-                        viewModel.adjustStock(uiState.actionProduct!!.uuid, type, qty, note)
+                        viewModel.adjustStock(actionProduct.uuid, type, qty, note)
                     },
                 )
             }
 
-            if (uiState.showBatchDialog && uiState.actionProduct != null) {
+            if (uiState.showBatchDialog && actionProduct != null) {
                 AddBatchDialog(
-                    product = uiState.actionProduct!!,
+                    product = actionProduct,
                     isSubmitting = uiState.isSubmitting,
                     onDismiss = viewModel::closeBatchDialog,
                     onConfirm = { qty, expiry, cost, batch, note ->
-                        viewModel.createBatch(uiState.actionProduct!!.uuid, qty, expiry, cost, batch, note)
+                        viewModel.createBatch(actionProduct.uuid, qty, expiry, cost, batch, note)
                     },
                 )
             }
@@ -173,11 +177,11 @@ fun ProductManagementScreen(
                 )
             }
 
-            if (uiState.showDeleteConfirmDialog && uiState.actionProduct != null) {
+            if (uiState.showDeleteConfirmDialog && actionProduct != null) {
                 AlertDialog(
                     onDismissRequest = { if (!uiState.isSubmitting) viewModel.closeDeleteConfirm() },
                     title = { Text("Hapus Produk") },
-                    text = { Text("Hapus produk \"${uiState.actionProduct!!.name}\"? Tindakan ini tidak dapat dibatalkan.") },
+                    text = { Text("Hapus produk \"${actionProduct.name}\"? Tindakan ini tidak dapat dibatalkan.") },
                     confirmButton = {
                         TextButton(onClick = viewModel::deleteProduct, enabled = !uiState.isSubmitting) {
                             if (uiState.isSubmitting) {
